@@ -9,9 +9,11 @@ use Digitick\Sepa\GroupHeader;
 use Digitick\Sepa\PaymentInformation;
 use Digitick\Sepa\TransferFile\CustomerDirectDebitTransferFile;
 use Digitick\Sepa\TransferInformation\CustomerDirectDebitTransferInformation;
+use Nowo\SepaPaymentBundle\DependencyInjection\Configuration;
 use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitData;
 use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitTransaction;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 /**
  * SEPA Direct Debit generator.
@@ -21,8 +23,11 @@ use Nowo\SepaPaymentBundle\Validator\IbanValidator;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
  * @copyright 2025 Nowo.tech
  */
+#[AsAlias(id: self::SERVICE_NAME, public: true)]
 class DirectDebitGenerator
 {
+    public const string SERVICE_NAME = Configuration::ALIAS. '.generator.direct_debit_generator';
+
     /**
      * Constructor.
      *

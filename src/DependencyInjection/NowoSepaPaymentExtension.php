@@ -48,6 +48,6 @@ class NowoSepaPaymentExtension extends Extension
      */
     public function getAlias(): string
     {
-        return 'nowo_sepa_payment';
+        return Configuration::ALIAS;
     }
 }

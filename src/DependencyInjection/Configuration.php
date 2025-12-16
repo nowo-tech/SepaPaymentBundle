@@ -16,6 +16,9 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  */
 class Configuration implements ConfigurationInterface
 {
+
+    public const string ALIAS = 'nowo_sepa_payment';
+
     /**
      * Builds the configuration tree.
      *
@@ -23,7 +26,7 @@ class Configuration implements ConfigurationInterface
      */
     public function getConfigTreeBuilder(): TreeBuilder
     {
-        $treeBuilder = new TreeBuilder('nowo_sepa_payment');
+        $treeBuilder = new TreeBuilder(self::ALIAS);
 
         $rootNode = $treeBuilder->getRootNode();
 
