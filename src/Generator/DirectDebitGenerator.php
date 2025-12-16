@@ -67,44 +67,41 @@ class DirectDebitGenerator
             $directDebitData->getMessageId(),
             $directDebitData->getInitiatingPartyName()
         );
-        $groupHeader->setCreationDateTime(new \DateTime());
 
         // Create transfer file (pain.008.001.02 format) with group header
         $transferFile = new CustomerDirectDebitTransferFile($groupHeader);
 
         // Create payment information
-        $paymentInformation = new PaymentInformation();
-        $paymentInformation->setPaymentInformationIdentification($directDebitData->getPaymentInfoId());
+        $paymentInformation = new PaymentInformation(
+            $directDebitData->getPaymentInfoId(),
+            $this->ibanValidator->normalize($directDebitData->getCreditorIban()),
+            $directDebitData->getCreditorBic() ?? '',
+            $directDebitData->getCreditorName(),
+            'EUR'
+        );
         $paymentInformation->setPaymentMethod('DD');
-        $paymentInformation->setNumberOfTransactions(count($directDebitData->getTransactions()));
-        $paymentInformation->setControlSum($directDebitData->getTotalAmount());
-        $paymentInformation->setRequestedCollectionDate($directDebitData->getDueDate());
-
-        // Set creditor information
-        $paymentInformation->setCreditorName($directDebitData->getCreditorName());
-        $paymentInformation->setCreditorAccountIBAN($this->ibanValidator->normalize($directDebitData->getCreditorIban()));
-        if (null !== $directDebitData->getCreditorBic()) {
-            $paymentInformation->setCreditorAgentBIC($directDebitData->getCreditorBic());
-        }
-        $paymentInformation->setCreditorSchemeIdentification($directDebitData->getCreditorId());
+        $paymentInformation->setDueDate($directDebitData->getDueDate());
+        $paymentInformation->setCreditorId($directDebitData->getCreditorId());
         $paymentInformation->setSequenceType($directDebitData->getSequenceType());
         $paymentInformation->setLocalInstrumentCode($directDebitData->getLocalInstrumentCode());
 
         // Add transactions
         foreach ($directDebitData->getTransactions() as $transaction) {
-            $transferInformation = new CustomerDirectDebitTransferInformation();
-            $transferInformation->setInstructedAmount($transaction->getAmount());
-            $transferInformation->setDebtorName($transaction->getDebtorName());
-            $transferInformation->setDebtorAccountIBAN($this->ibanValidator->normalize($transaction->getDebtorIban()));
-            $transferInformation->setMandateIdentification($transaction->getDebtorMandate());
-            $transferInformation->setDateOfSignature($transaction->getDebtorMandateSignDate());
-            $transferInformation->setEndToEndIdentification($transaction->getEndToEndId());
+            $transferInformation = new CustomerDirectDebitTransferInformation(
+                (int) round($transaction->getAmount() * 100), // Convert to cents
+                $this->ibanValidator->normalize($transaction->getDebtorIban()),
+                $transaction->getDebtorName(),
+                $transaction->getEndToEndId()
+            );
+
+            $transferInformation->setMandateId($transaction->getDebtorMandate());
+            $transferInformation->setMandateSignDate($transaction->getDebtorMandateSignDate());
 
             if (null !== $transaction->getRemittanceInformation()) {
                 $transferInformation->setRemittanceInformation($transaction->getRemittanceInformation());
             }
 
-            $paymentInformation->addTransferInformation($transferInformation);
+            $paymentInformation->addTransfer($transferInformation);
         }
 
         $transferFile->addPaymentInformation($paymentInformation);

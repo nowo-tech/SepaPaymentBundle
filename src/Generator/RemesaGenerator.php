@@ -8,6 +8,7 @@ use Digitick\Sepa\DomBuilder\DomBuilderFactory;
 use Digitick\Sepa\GroupHeader;
 use Digitick\Sepa\PaymentInformation;
 use Digitick\Sepa\TransferFile\CustomerCreditTransferFile;
+use Digitick\Sepa\TransferInformation\CustomerCreditTransferInformation;
 use Nowo\SepaPaymentBundle\Model\Remesa\RemesaData;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 
@@ -49,37 +50,40 @@ class RemesaGenerator
             $remesaData->getMessageId(),
             $remesaData->getInitiatingPartyName()
         );
-        $groupHeader->setCreationDateTime($remesaData->getCreationDate());
 
         // Create transfer file (pain.001.001.03 format) with group header
         $transferFile = new CustomerCreditTransferFile($groupHeader);
 
         // Create payment information
-        $paymentInformation = new PaymentInformation();
-        $paymentInformation->setPaymentInformationIdentification($remesaData->getPaymentInfoId());
+        $paymentInformation = new PaymentInformation(
+            $remesaData->getPaymentInfoId(),
+            $this->ibanValidator->normalize($remesaData->getCreditorIban()),
+            $remesaData->getCreditorBic() ?? '',
+            $remesaData->getCreditorName(),
+            'EUR'
+        );
         $paymentInformation->setPaymentMethod('TRF');
         $paymentInformation->setBatchBooking($remesaData->isBatchBooking());
-        $paymentInformation->setNumberOfTransactions(count($remesaData->getTransactions()));
-        $paymentInformation->setControlSum($remesaData->getTotalAmount());
-        $paymentInformation->setRequestedExecutionDate($remesaData->getRequestedExecutionDate());
-
-        // Set creditor information
-        $paymentInformation->setDebtorName($remesaData->getCreditorName());
-        $paymentInformation->setDebtorAccountIBAN($this->ibanValidator->normalize($remesaData->getCreditorIban()));
-        if (null !== $remesaData->getCreditorBic()) {
-            $paymentInformation->setDebtorAgentBIC($remesaData->getCreditorBic());
-        }
+        $paymentInformation->setDueDate($remesaData->getRequestedExecutionDate());
 
         // Add transactions
         foreach ($remesaData->getTransactions() as $transaction) {
-            $paymentInformation->addCreditTransferTransaction(
-                $transaction->getAmount(),
+            $transferInformation = new CustomerCreditTransferInformation(
+                (int) round($transaction->getAmount() * 100), // Convert to cents
                 $this->ibanValidator->normalize($transaction->getDebtorIban()),
                 $transaction->getDebtorName(),
-                $transaction->getEndToEndId(),
-                $transaction->getDebtorBic(),
-                $transaction->getRemittanceInformation()
+                $transaction->getEndToEndId()
             );
+
+            if (null !== $transaction->getDebtorBic()) {
+                $transferInformation->setBic($transaction->getDebtorBic());
+            }
+
+            if (null !== $transaction->getRemittanceInformation()) {
+                $transferInformation->setRemittanceInformation($transaction->getRemittanceInformation());
+            }
+
+            $paymentInformation->addTransfer($transferInformation);
         }
 
         $transferFile->addPaymentInformation($paymentInformation);

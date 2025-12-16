@@ -477,6 +477,7 @@ nowo_sepa_payment:
 
 - PHP >= 8.1, < 8.6
 - Symfony >= 6.0 || >= 7.0 || >= 8.0
+- digitick/sepa-xml ^3.0 (automatically installed as a dependency)
 
 ## Demo Projects
 
