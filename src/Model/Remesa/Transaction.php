@@ -30,10 +30,10 @@ class Transaction
      * Constructor.
      *
      * @param string $endToEndId End-to-end identifier
-     * @param float  $amount      Amount to transfer
-     * @param string $currency    Currency code (ISO 4217)
-     * @param string $debtorIban   Debtor IBAN
-     * @param string $debtorName   Debtor name
+     * @param float  $amount     Amount to transfer
+     * @param string $currency   Currency code (ISO 4217)
+     * @param string $debtorIban Debtor IBAN
+     * @param string $debtorName Debtor name
      */
     public function __construct(
         private string $endToEndId,
@@ -88,6 +88,7 @@ class Transaction
      * Sets the debtor BIC.
      *
      * @param string|null $debtorBic The debtor BIC
+     *
      * @return self
      */
     public function setDebtorBic(?string $debtorBic): self
@@ -121,6 +122,7 @@ class Transaction
      * Sets the remittance information.
      *
      * @param string|null $remittanceInformation The remittance information
+     *
      * @return self
      */
     public function setRemittanceInformation(?string $remittanceInformation): self
@@ -140,4 +142,3 @@ class Transaction
         return $this->remittanceInformation;
     }
 }
-

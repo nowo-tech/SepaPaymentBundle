@@ -31,8 +31,10 @@ class CccConverter
      * Where: EEEE = Bank code, OOOO = Branch code, DD = Check digits, NNNNNNNNNN = Account number
      *
      * @param string $ccc The CCC to convert (with or without spaces)
-     * @return string The IBAN (ES + check digits + CCC)
+     *
      * @throws \InvalidArgumentException If the CCC format is invalid
+     *
+     * @return string The IBAN (ES + check digits + CCC)
      */
     public function cccToIban(string $ccc): string
     {
@@ -58,6 +60,7 @@ class CccConverter
      * CCC format: EEEE OOOO DD NNNNNNNNNN (20 digits)
      *
      * @param string $ccc The CCC to validate
+     *
      * @return bool True if the CCC is valid, false otherwise
      */
     public function isValidCcc(string $ccc): bool
@@ -86,6 +89,7 @@ class CccConverter
      * Extracts bank code from CCC.
      *
      * @param string $ccc The CCC
+     *
      * @return string The bank code (4 digits)
      */
     public function getBankCode(string $ccc): string
@@ -99,6 +103,7 @@ class CccConverter
      * Extracts branch code from CCC.
      *
      * @param string $ccc The CCC
+     *
      * @return string The branch code (4 digits)
      */
     public function getBranchCode(string $ccc): string
@@ -112,6 +117,7 @@ class CccConverter
      * Extracts account number from CCC.
      *
      * @param string $ccc The CCC
+     *
      * @return string The account number (10 digits)
      */
     public function getAccountNumber(string $ccc): string
@@ -124,9 +130,10 @@ class CccConverter
     /**
      * Calculates CCC check digits.
      *
-     * @param string $bankCode     Bank code (4 digits)
-     * @param string $branchCode   Branch code (4 digits)
+     * @param string $bankCode      Bank code (4 digits)
+     * @param string $branchCode    Branch code (4 digits)
      * @param string $accountNumber Account number (10 digits)
+     *
      * @return string The check digits (2 digits)
      */
     private function calculateCccCheckDigits(string $bankCode, string $branchCode, string $accountNumber): string
@@ -164,4 +171,3 @@ class CccConverter
         return sprintf('%02d', $checkDigit1) . sprintf('%02d', $checkDigit2);
     }
 }
-

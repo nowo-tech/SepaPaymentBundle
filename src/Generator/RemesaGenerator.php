@@ -35,8 +35,10 @@ class RemesaGenerator
      * Generates a SEPA Credit Transfer XML file.
      *
      * @param RemesaData $remesaData The remesa data
-     * @return string The XML content
+     *
      * @throws \InvalidArgumentException If the data is invalid
+     *
+     * @return string The XML content
      */
     public function generate(RemesaData $remesaData): string
     {
@@ -92,8 +94,10 @@ class RemesaGenerator
      * Validates remesa data.
      *
      * @param RemesaData $remesaData The remesa data to validate
-     * @return void
+     *
      * @throws \InvalidArgumentException If the data is invalid
+     *
+     * @return void
      */
     private function validateRemesaData(RemesaData $remesaData): void
     {

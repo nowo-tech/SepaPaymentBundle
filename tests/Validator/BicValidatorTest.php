@@ -156,4 +156,3 @@ class BicValidatorTest extends TestCase
         $this->assertEquals('500', $this->validator->getBranchCode('DEUTDEFF500'));
     }
 }
-

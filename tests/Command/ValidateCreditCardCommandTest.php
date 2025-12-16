@@ -188,4 +188,3 @@ class ValidateCreditCardCommandTest extends TestCase
         $this->assertStringContainsString('American Express', $output);
     }
 }
-

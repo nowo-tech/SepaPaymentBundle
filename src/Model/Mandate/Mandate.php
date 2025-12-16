@@ -30,12 +30,12 @@ class Mandate
     /**
      * Constructor.
      *
-     * @param string             $mandateId    Mandate identifier
+     * @param string             $mandateId     Mandate identifier
      * @param \DateTimeInterface $signatureDate Date when the mandate was signed
-     * @param string             $debtorIban   IBAN of the debtor
-     * @param string             $debtorName   Name of the debtor
-     * @param string             $type         Type of mandate (CORE, B2B)
-     * @param string             $sequenceType Sequence type (FRST, RCUR, OOFF, FNAL)
+     * @param string             $debtorIban    IBAN of the debtor
+     * @param string             $debtorName    Name of the debtor
+     * @param string             $type          Type of mandate (CORE, B2B)
+     * @param string             $sequenceType  Sequence type (FRST, RCUR, OOFF, FNAL)
      */
     public function __construct(
         private string $mandateId,
@@ -81,6 +81,7 @@ class Mandate
      * Sets the debtor BIC.
      *
      * @param string|null $debtorBic The debtor BIC
+     *
      * @return self
      */
     public function setDebtorBic(?string $debtorBic): self
@@ -124,6 +125,7 @@ class Mandate
      * Sets the sequence type.
      *
      * @param string $sequenceType The sequence type (FRST, RCUR, OOFF, FNAL)
+     *
      * @return self
      */
     public function setSequenceType(string $sequenceType): self
@@ -147,6 +149,7 @@ class Mandate
      * Sets whether the mandate is active.
      *
      * @param bool $active Whether the mandate is active
+     *
      * @return self
      */
     public function setActive(bool $active): self
@@ -166,4 +169,3 @@ class Mandate
         return $this->active;
     }
 }
-

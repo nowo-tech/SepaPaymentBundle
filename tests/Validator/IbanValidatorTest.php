@@ -146,4 +146,3 @@ class IbanValidatorTest extends TestCase
         $this->assertEquals('82', $calculated);
     }
 }
-

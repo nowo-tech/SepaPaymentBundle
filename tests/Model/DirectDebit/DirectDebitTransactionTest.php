@@ -65,4 +65,3 @@ class DirectDebitTransactionTest extends TestCase
         $this->assertNull($transaction->getRemittanceInformation());
     }
 }
-

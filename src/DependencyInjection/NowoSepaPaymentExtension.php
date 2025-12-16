@@ -51,4 +51,3 @@ class NowoSepaPaymentExtension extends Extension
         return 'nowo_sepa_payment';
     }
 }
-

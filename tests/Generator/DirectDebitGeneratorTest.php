@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Tests\Generator;
 
-use Nowo\SepaPaymentBundle\Validator\IbanValidator;
-use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitData;
 use Nowo\SepaPaymentBundle\Generator\DirectDebitGenerator;
+use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitData;
 use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitTransaction;
+use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -227,4 +227,3 @@ class DirectDebitGeneratorTest extends TestCase
         $this->assertStringContainsString('MSG-001', $xml);
     }
 }
-

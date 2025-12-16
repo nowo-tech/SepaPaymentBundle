@@ -32,4 +32,3 @@ class NowoSepaPaymentBundle extends Bundle
         return $this->extension;
     }
 }
-

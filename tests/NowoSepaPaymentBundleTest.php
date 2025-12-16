@@ -40,4 +40,3 @@ class NowoSepaPaymentBundleTest extends TestCase
         $this->assertEquals('nowo_sepa_payment', $extension->getAlias());
     }
 }
-

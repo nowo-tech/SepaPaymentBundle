@@ -52,6 +52,7 @@ class ValidateIbanCommand extends Command
      *
      * @param InputInterface  $input  Input interface
      * @param OutputInterface $output Output interface
+     *
      * @return int Command exit code
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -85,4 +86,3 @@ class ValidateIbanCommand extends Command
         return $isValid ? Command::SUCCESS : Command::FAILURE;
     }
 }
-

@@ -37,8 +37,10 @@ class DirectDebitGenerator
      * Generates a SEPA Direct Debit XML file from array data.
      *
      * @param array<string, mixed> $data The direct debit data in array format
-     * @return string The XML content
+     *
      * @throws \InvalidArgumentException If the data is invalid
+     *
+     * @return string The XML content
      */
     public function generateFromArray(array $data): string
     {
@@ -51,8 +53,10 @@ class DirectDebitGenerator
      * Generates a SEPA Direct Debit XML file.
      *
      * @param DirectDebitData $directDebitData The direct debit data
-     * @return string The XML content
+     *
      * @throws \InvalidArgumentException If the data is invalid
+     *
+     * @return string The XML content
      */
     public function generate(DirectDebitData $directDebitData): string
     {
@@ -115,8 +119,10 @@ class DirectDebitGenerator
      * Creates DirectDebitData from array format.
      *
      * @param array<string, mixed> $data The data in array format
-     * @return DirectDebitData The DirectDebitData object
+     *
      * @throws \InvalidArgumentException If the data is invalid
+     *
+     * @return DirectDebitData The DirectDebitData object
      */
     private function createDirectDebitDataFromArray(array $data): DirectDebitData
     {
@@ -167,9 +173,11 @@ class DirectDebitGenerator
      * Creates DirectDebitTransaction from array format.
      *
      * @param array<string, mixed> $transactionData The transaction data
-     * @param \DateTimeInterface   $defaultDate      Default date for mandate sign date if not provided
-     * @return DirectDebitTransaction The DirectDebitTransaction object
+     * @param \DateTimeInterface   $defaultDate     Default date for mandate sign date if not provided
+     *
      * @throws \InvalidArgumentException If the data is invalid
+     *
+     * @return DirectDebitTransaction The DirectDebitTransaction object
      */
     private function createTransactionFromArray(array $transactionData, \DateTimeInterface $defaultDate): DirectDebitTransaction
     {
@@ -218,8 +226,10 @@ class DirectDebitGenerator
      * Validates direct debit data.
      *
      * @param DirectDebitData $directDebitData The direct debit data to validate
-     * @return void
+     *
      * @throws \InvalidArgumentException If the data is invalid
+     *
+     * @return void
      */
     private function validateDirectDebitData(DirectDebitData $directDebitData): void
     {
@@ -234,4 +244,3 @@ class DirectDebitGenerator
         }
     }
 }
-
