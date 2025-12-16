@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.3] - 2025-01-23
+
+### Fixed
+- Fixed `GroupHeader` constructor usage in `RemesaGenerator` and `DirectDebitGenerator`
+  - Now correctly passes required parameters (`messageId` and `initiatingPartyName`) to constructor
+  - Full compatibility with Digitick\Sepa v3.0 API changes
+
+## [0.0.2] - 2025-01-23
+
+### Fixed
+- Updated `RemesaGenerator` and `DirectDebitGenerator` to use `GroupHeader` in constructor instead of format string
+- Fixed footer display in demo templates using flexbox layout for proper positioning
+
+### Changed
+- Updated demo `composer.json` files to use `@dev` version for local development with path repositories
+
+## [0.0.1] - 2025-01-23
+
+### Added
+- Initial release of SEPA Payment Bundle
+- Full SEPA payment management functionality
+
+## [Unreleased]
+
 ### Added
 - **Credit Card Validation**: Complete credit card number validation using Luhn algorithm
   - `CreditCardValidator::isValid()` - Validate credit card number using Luhn algorithm
