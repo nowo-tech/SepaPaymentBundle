@@ -9,7 +9,6 @@ use Digitick\Sepa\GroupHeader;
 use Digitick\Sepa\PaymentInformation;
 use Digitick\Sepa\TransferFile\CustomerCreditTransferFile;
 use Digitick\Sepa\TransferInformation\CustomerCreditTransferInformation;
-use Nowo\SepaPaymentBundle\DependencyInjection\Configuration;
 use Nowo\SepaPaymentBundle\Model\Remesa\RemesaData;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
@@ -25,7 +24,7 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
 class RemesaGenerator
 {
-    public const string SERVICE_NAME = Configuration::ALIAS. '.generator.remesa_generator';
+    public const SERVICE_NAME = 'nowo_sepa_payment.generator.remesa_generator';
 
     /**
      * Constructor.

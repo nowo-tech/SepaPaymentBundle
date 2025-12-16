@@ -17,7 +17,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 class Configuration implements ConfigurationInterface
 {
 
-    public const string ALIAS = 'nowo_sepa_payment';
+    public const ALIAS = 'nowo_sepa_payment';
 
     /**
      * Builds the configuration tree.

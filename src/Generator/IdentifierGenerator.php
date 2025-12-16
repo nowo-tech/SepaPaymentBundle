@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Generator;
 
-use Nowo\SepaPaymentBundle\DependencyInjection\Configuration;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 /**
@@ -17,7 +16,7 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
 class IdentifierGenerator
 {
-    public const string SERVICE_NAME = Configuration::ALIAS. '.generator.identifier_generator';
+    public const SERVICE_NAME = 'nowo_sepa_payment.generator.identifier_generator';
 
     /**
      * Generates a unique message identifier.
