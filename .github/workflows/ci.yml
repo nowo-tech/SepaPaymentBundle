@@ -61,7 +61,11 @@ jobs:
         run: |
           echo "📦 Installing dependencies for Symfony ${{ matrix.symfony }}..."
           composer require symfony/config:^${{ matrix.symfony }} symfony/dependency-injection:^${{ matrix.symfony }} symfony/http-kernel:^${{ matrix.symfony }} symfony/console:^${{ matrix.symfony }} --no-interaction --no-update
-          composer update symfony/* --with-all-dependencies --no-interaction --prefer-dist --no-progress
+          if [ ! -f composer.lock ]; then
+            composer update --no-interaction --prefer-dist --no-progress
+          else
+            composer update symfony/* --with-all-dependencies --no-interaction --prefer-dist --no-progress
+          fi
 
       - name: Run tests
         run: |
