@@ -17,6 +17,7 @@ class IbanValidator
      * Validates an IBAN according to ISO 13616 standard.
      *
      * @param string $iban The IBAN to validate
+     *
      * @return bool True if the IBAN is valid, false otherwise
      */
     public function isValid(string $iban): bool
@@ -42,6 +43,7 @@ class IbanValidator
      * Normalizes an IBAN by removing spaces and converting to uppercase.
      *
      * @param string $iban The IBAN to normalize
+     *
      * @return string The normalized IBAN
      */
     public function normalize(string $iban): string
@@ -53,6 +55,7 @@ class IbanValidator
      * Formats an IBAN with spaces every 4 characters for readability.
      *
      * @param string $iban The IBAN to format
+     *
      * @return string The formatted IBAN
      */
     public function format(string $iban): string
@@ -74,6 +77,7 @@ class IbanValidator
      * Extracts the country code from an IBAN.
      *
      * @param string $iban The IBAN
+     *
      * @return string The country code (2 letters)
      */
     public function getCountryCode(string $iban): string
@@ -87,6 +91,7 @@ class IbanValidator
      * Extracts the check digits from an IBAN.
      *
      * @param string $iban The IBAN
+     *
      * @return string The check digits (2 digits)
      */
     public function getCheckDigits(string $iban): string
@@ -100,6 +105,7 @@ class IbanValidator
      * Extracts the BBAN (Basic Bank Account Number) from an IBAN.
      *
      * @param string $iban The IBAN
+     *
      * @return string The BBAN
      */
     public function getBban(string $iban): string
@@ -114,8 +120,10 @@ class IbanValidator
      * The IBAN should have '00' as check digits, and this method will calculate the correct ones.
      *
      * @param string $iban The IBAN with '00' as check digits
-     * @return string The calculated check digits (2 digits)
+     *
      * @throws \InvalidArgumentException If the IBAN format is invalid
+     *
+     * @return string The calculated check digits (2 digits)
      */
     public function calculateCheckDigits(string $iban): string
     {
@@ -151,6 +159,7 @@ class IbanValidator
      * Validates check digits using mod-97 algorithm.
      *
      * @param string $iban The normalized IBAN
+     *
      * @return bool True if check digits are valid, false otherwise
      */
     private function validateCheckDigits(string $iban): bool
@@ -177,6 +186,7 @@ class IbanValidator
      * Calculates mod-97 of a large number represented as a string.
      *
      * @param string $number The number as a string
+     *
      * @return int The remainder of mod-97
      */
     private function mod97(string $number): int
@@ -189,4 +199,3 @@ class IbanValidator
         return $remainder;
     }
 }
-

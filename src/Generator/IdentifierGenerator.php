@@ -18,11 +18,12 @@ class IdentifierGenerator
      * Format: MSG-{timestamp}-{random}
      *
      * @param string|null $prefix Optional prefix (default: 'MSG')
+     *
      * @return string The message identifier
      */
     public function generateMessageId(?string $prefix = null): string
     {
-        $prefix = $prefix ?? 'MSG';
+        $prefix ??= 'MSG';
 
         return sprintf('%s-%s-%s', $prefix, date('YmdHis'), bin2hex(random_bytes(4)));
     }
@@ -32,11 +33,12 @@ class IdentifierGenerator
      * Format: PMT-{timestamp}-{random}
      *
      * @param string|null $prefix Optional prefix (default: 'PMT')
+     *
      * @return string The payment information identifier
      */
     public function generatePaymentInfoId(?string $prefix = null): string
     {
-        $prefix = $prefix ?? 'PMT';
+        $prefix ??= 'PMT';
 
         return sprintf('%s-%s-%s', $prefix, date('YmdHis'), bin2hex(random_bytes(4)));
     }
@@ -46,11 +48,12 @@ class IdentifierGenerator
      * Format: E2E-{timestamp}-{random}
      *
      * @param string|null $prefix Optional prefix (default: 'E2E')
+     *
      * @return string The end-to-end identifier
      */
     public function generateEndToEndId(?string $prefix = null): string
     {
-        $prefix = $prefix ?? 'E2E';
+        $prefix ??= 'E2E';
 
         return sprintf('%s-%s-%s', $prefix, date('YmdHis'), bin2hex(random_bytes(4)));
     }
@@ -60,11 +63,12 @@ class IdentifierGenerator
      * Format: MANDATE-{timestamp}-{random}
      *
      * @param string|null $prefix Optional prefix (default: 'MANDATE')
+     *
      * @return string The mandate identifier
      */
     public function generateMandateId(?string $prefix = null): string
     {
-        $prefix = $prefix ?? 'MANDATE';
+        $prefix ??= 'MANDATE';
 
         return sprintf('%s-%s-%s', $prefix, date('YmdHis'), bin2hex(random_bytes(4)));
     }
@@ -73,6 +77,7 @@ class IdentifierGenerator
      * Generates a custom identifier with a prefix.
      *
      * @param string $prefix The prefix for the identifier
+     *
      * @return string The generated identifier
      */
     public function generateCustomId(string $prefix): string
@@ -80,4 +85,3 @@ class IdentifierGenerator
         return sprintf('%s-%s-%s', $prefix, date('YmdHis'), bin2hex(random_bytes(4)));
     }
 }
-

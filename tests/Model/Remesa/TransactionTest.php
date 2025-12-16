@@ -83,4 +83,3 @@ class TransactionTest extends TestCase
         $this->assertNull($transaction->getRemittanceInformation());
     }
 }
-

@@ -141,4 +141,3 @@ class CccConverterTest extends TestCase
         $this->assertEquals('0200051332', $this->converter->getAccountNumber($ccc));
     }
 }
-

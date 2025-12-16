@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Model\Remesa;
 
-use Nowo\SepaPaymentBundle\Model\Remesa\Transaction;
-
 /**
  * Remesa data container.
  * Contains all information needed to generate a SEPA Credit Transfer.
@@ -40,11 +38,11 @@ class RemesaData
      * Constructor.
      *
      * @param string             $messageId              Message identifier
-     * @param \DateTimeInterface $creationDate            Creation date
-     * @param string             $initiatingPartyName     Initiating party name
+     * @param \DateTimeInterface $creationDate           Creation date
+     * @param string             $initiatingPartyName    Initiating party name
      * @param string             $paymentInfoId          Payment information identifier
      * @param string             $creditorIban           Creditor IBAN
-     * @param string             $creditorName            Creditor name
+     * @param string             $creditorName           Creditor name
      * @param \DateTimeInterface $requestedExecutionDate Requested execution date
      */
     public function __construct(
@@ -112,6 +110,7 @@ class RemesaData
      * Sets the creditor BIC.
      *
      * @param string|null $creditorBic The creditor BIC
+     *
      * @return self
      */
     public function setCreditorBic(?string $creditorBic): self
@@ -155,6 +154,7 @@ class RemesaData
      * Sets whether batch booking is enabled.
      *
      * @param bool $batchBooking Whether batch booking is enabled
+     *
      * @return self
      */
     public function setBatchBooking(bool $batchBooking): self
@@ -178,6 +178,7 @@ class RemesaData
      * Adds a transaction.
      *
      * @param Transaction $transaction The transaction to add
+     *
      * @return self
      */
     public function addTransaction(Transaction $transaction): self
@@ -212,4 +213,3 @@ class RemesaData
         return $total;
     }
 }
-

@@ -132,4 +132,3 @@ class ValidateIbanCommandTest extends TestCase
         $this->assertStringContainsString('IBAN is valid', $output);
     }
 }
-

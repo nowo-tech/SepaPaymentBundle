@@ -164,4 +164,3 @@ class DirectDebitDataTest extends TestCase
         );
     }
 }
-

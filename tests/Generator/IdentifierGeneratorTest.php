@@ -151,4 +151,3 @@ class IdentifierGeneratorTest extends TestCase
         $this->assertMatchesRegularExpression('/^TEST-\d{14}-[a-f0-9]{8}$/', $id1);
     }
 }
-

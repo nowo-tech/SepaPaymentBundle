@@ -197,4 +197,3 @@ class CreditCardValidatorTest extends TestCase
         $this->assertFalse($this->validator->isValidForType('12345', CreditCardValidator::TYPE_VISA));
     }
 }
-

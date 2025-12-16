@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Model\DirectDebit;
 
-use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitTransaction;
-
 /**
  * Direct Debit data container.
  * Contains all information needed to generate a SEPA Direct Debit.
@@ -33,14 +31,14 @@ class DirectDebitData
      * Constructor.
      *
      * @param string             $messageId           Message identifier
-     * @param string             $initiatingPartyName  Initiating party name
+     * @param string             $initiatingPartyName Initiating party name
      * @param string             $paymentInfoId       Payment information identifier
      * @param \DateTimeInterface $dueDate             Due date
-     * @param string             $creditorName         Creditor name
-     * @param string             $creditorIban         Creditor IBAN
-     * @param string             $sequenceType         Sequence type (FRST, RCUR, OOFF, FNAL)
-     * @param string             $creditorId           Creditor identifier (SEPA identifier)
-     * @param string             $localInstrumentCode  Local instrument code (CORE, B2B)
+     * @param string             $creditorName        Creditor name
+     * @param string             $creditorIban        Creditor IBAN
+     * @param string             $sequenceType        Sequence type (FRST, RCUR, OOFF, FNAL)
+     * @param string             $creditorId          Creditor identifier (SEPA identifier)
+     * @param string             $localInstrumentCode Local instrument code (CORE, B2B)
      */
     public function __construct(
         private string $messageId,
@@ -119,6 +117,7 @@ class DirectDebitData
      * Sets the creditor BIC.
      *
      * @param string|null $creditorBic The creditor BIC
+     *
      * @return self
      */
     public function setCreditorBic(?string $creditorBic): self
@@ -172,6 +171,7 @@ class DirectDebitData
      * Adds a transaction.
      *
      * @param DirectDebitTransaction $transaction The transaction to add
+     *
      * @return self
      */
     public function addTransaction(DirectDebitTransaction $transaction): self
@@ -206,4 +206,3 @@ class DirectDebitData
         return $total;
     }
 }
-

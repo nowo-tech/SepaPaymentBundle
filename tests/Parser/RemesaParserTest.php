@@ -40,39 +40,39 @@ class RemesaParserTest extends TestCase
     public function testParseCreditTransfer(): void
     {
         $xml = <<<'XML'
-<?xml version="1.0" encoding="UTF-8"?>
-<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
-    <CstmrCdtTrfInitn>
-        <GrpHdr>
-            <MsgId>MSG-001</MsgId>
-            <CreDtTm>2024-01-15T10:00:00</CreDtTm>
-            <InitgPty>
-                <Nm>My Company</Nm>
-            </InitgPty>
-        </GrpHdr>
-        <PmtInf>
-            <PmtInfId>PMT-001</PmtInfId>
-            <NbOfTxs>1</NbOfTxs>
-            <CtrlSum>100.50</CtrlSum>
-            <CdtTrfTxInf>
-                <EndToEndId>E2E-001</EndToEndId>
-                <InstdAmt Ccy="EUR">100.50</InstdAmt>
-                <CdtrAcct>
-                    <Id>
-                        <IBAN>ES9121000418450200051332</IBAN>
-                    </Id>
-                </CdtrAcct>
-                <Cdtr>
-                    <Nm>John Doe</Nm>
-                </Cdtr>
-                <RmtInf>
-                    <Ustrd>Invoice 12345</Ustrd>
-                </RmtInf>
-            </CdtTrfTxInf>
-        </PmtInf>
-    </CstmrCdtTrfInitn>
-</Document>
-XML;
+            <?xml version="1.0" encoding="UTF-8"?>
+            <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
+                <CstmrCdtTrfInitn>
+                    <GrpHdr>
+                        <MsgId>MSG-001</MsgId>
+                        <CreDtTm>2024-01-15T10:00:00</CreDtTm>
+                        <InitgPty>
+                            <Nm>My Company</Nm>
+                        </InitgPty>
+                    </GrpHdr>
+                    <PmtInf>
+                        <PmtInfId>PMT-001</PmtInfId>
+                        <NbOfTxs>1</NbOfTxs>
+                        <CtrlSum>100.50</CtrlSum>
+                        <CdtTrfTxInf>
+                            <EndToEndId>E2E-001</EndToEndId>
+                            <InstdAmt Ccy="EUR">100.50</InstdAmt>
+                            <CdtrAcct>
+                                <Id>
+                                    <IBAN>ES9121000418450200051332</IBAN>
+                                </Id>
+                            </CdtrAcct>
+                            <Cdtr>
+                                <Nm>John Doe</Nm>
+                            </Cdtr>
+                            <RmtInf>
+                                <Ustrd>Invoice 12345</Ustrd>
+                            </RmtInf>
+                        </CdtTrfTxInf>
+                    </PmtInf>
+                </CstmrCdtTrfInitn>
+            </Document>
+            XML;
 
         $data = $this->parser->parseCreditTransfer($xml);
 
@@ -112,15 +112,15 @@ XML;
     public function testIsValidCreditTransfer(): void
     {
         $xml = <<<'XML'
-<?xml version="1.0" encoding="UTF-8"?>
-<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
-    <CstmrCdtTrfInitn>
-        <GrpHdr>
-            <MsgId>MSG-001</MsgId>
-        </GrpHdr>
-    </CstmrCdtTrfInitn>
-</Document>
-XML;
+            <?xml version="1.0" encoding="UTF-8"?>
+            <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
+                <CstmrCdtTrfInitn>
+                    <GrpHdr>
+                        <MsgId>MSG-001</MsgId>
+                    </GrpHdr>
+                </CstmrCdtTrfInitn>
+            </Document>
+            XML;
 
         $this->assertTrue($this->parser->isValidCreditTransfer($xml));
     }
@@ -136,4 +136,3 @@ XML;
         $this->assertFalse($this->parser->isValidCreditTransfer('<xml></xml>'));
     }
 }
-

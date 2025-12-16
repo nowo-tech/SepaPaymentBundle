@@ -103,6 +103,7 @@ class DirectDebitTransaction
      * Sets the remittance information.
      *
      * @param string|null $remittanceInformation The remittance information
+     *
      * @return self
      */
     public function setRemittanceInformation(?string $remittanceInformation): self
@@ -122,4 +123,3 @@ class DirectDebitTransaction
         return $this->remittanceInformation;
     }
 }
-

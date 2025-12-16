@@ -103,4 +103,3 @@ class MandateTest extends TestCase
         $this->assertTrue($mandate->isActive());
     }
 }
-

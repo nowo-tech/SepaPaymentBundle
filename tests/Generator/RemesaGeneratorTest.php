@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Tests\Generator;
 
-use Nowo\SepaPaymentBundle\Validator\IbanValidator;
-use Nowo\SepaPaymentBundle\Model\Remesa\RemesaData;
 use Nowo\SepaPaymentBundle\Generator\RemesaGenerator;
+use Nowo\SepaPaymentBundle\Model\Remesa\RemesaData;
 use Nowo\SepaPaymentBundle\Model\Remesa\Transaction;
+use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -253,4 +253,3 @@ class RemesaGeneratorTest extends TestCase
         $this->assertStringContainsString('&gt;', $xml);
     }
 }
-

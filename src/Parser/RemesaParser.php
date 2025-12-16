@@ -17,8 +17,10 @@ class RemesaParser
      * Parses a SEPA Credit Transfer XML file.
      *
      * @param string $xml The XML content
-     * @return array<string, mixed> Parsed data
+     *
      * @throws \InvalidArgumentException If the XML is invalid
+     *
+     * @return array<string, mixed> Parsed data
      */
     public function parseCreditTransfer(string $xml): array
     {
@@ -108,6 +110,7 @@ class RemesaParser
      * Validates that an XML string is a valid SEPA Credit Transfer file.
      *
      * @param string $xml The XML content
+     *
      * @return bool True if valid, false otherwise
      */
     public function isValidCreditTransfer(string $xml): bool
@@ -131,4 +134,3 @@ class RemesaParser
         }
     }
 }
-

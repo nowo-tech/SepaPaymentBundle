@@ -18,6 +18,7 @@ class BicValidator
      * BIC format: 4 letters (bank code) + 2 letters (country code) + 2 alphanumeric (location) + 3 alphanumeric (branch, optional)
      *
      * @param string $bic The BIC to validate
+     *
      * @return bool True if the BIC is valid, false otherwise
      */
     public function isValid(string $bic): bool
@@ -38,6 +39,7 @@ class BicValidator
      * Normalizes a BIC by removing spaces and converting to uppercase.
      *
      * @param string $bic The BIC to normalize
+     *
      * @return string The normalized BIC
      */
     public function normalize(string $bic): string
@@ -49,6 +51,7 @@ class BicValidator
      * Extracts the bank code from a BIC.
      *
      * @param string $bic The BIC
+     *
      * @return string The bank code (4 letters)
      */
     public function getBankCode(string $bic): string
@@ -62,6 +65,7 @@ class BicValidator
      * Extracts the country code from a BIC.
      *
      * @param string $bic The BIC
+     *
      * @return string The country code (2 letters)
      */
     public function getCountryCode(string $bic): string
@@ -75,6 +79,7 @@ class BicValidator
      * Extracts the location code from a BIC.
      *
      * @param string $bic The BIC
+     *
      * @return string The location code (2 alphanumeric)
      */
     public function getLocationCode(string $bic): string
@@ -88,6 +93,7 @@ class BicValidator
      * Extracts the branch code from a BIC (if present).
      *
      * @param string $bic The BIC
+     *
      * @return string|null The branch code (3 alphanumeric) or null if not present
      */
     public function getBranchCode(string $bic): ?string
@@ -101,4 +107,3 @@ class BicValidator
         return null;
     }
 }
-

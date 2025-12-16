@@ -132,4 +132,3 @@ class ConvertCccCommandTest extends TestCase
         $this->assertStringContainsString('error', strtolower($output));
     }
 }
-
