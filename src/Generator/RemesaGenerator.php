@@ -45,9 +45,10 @@ class RemesaGenerator
         $this->validateRemesaData($remesaData);
 
         // Create and configure group header
-        $groupHeader = new GroupHeader();
-        $groupHeader->setMessageIdentification($remesaData->getMessageId());
-        $groupHeader->setInitiatingPartyName($remesaData->getInitiatingPartyName());
+        $groupHeader = new GroupHeader(
+            $remesaData->getMessageId(),
+            $remesaData->getInitiatingPartyName()
+        );
         $groupHeader->setCreationDateTime($remesaData->getCreationDate());
 
         // Create transfer file (pain.001.001.03 format) with group header

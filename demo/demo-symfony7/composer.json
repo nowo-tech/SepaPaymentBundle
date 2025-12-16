@@ -5,7 +5,7 @@
     "license": "MIT",
     "require": {
         "php": ">=8.1,<8.6",
-        "nowo-tech/sepa-payment-bundle": "@dev",
+        "nowo-tech/sepa-payment-bundle": "0.0.2",
         "symfony/console": "^7.0",
         "symfony/dotenv": "^7.0",
         "symfony/flex": "^2.0",
