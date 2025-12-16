@@ -59,9 +59,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial release of SEPA Payment Bundle
 - Full SEPA payment management functionality
 
-## [Unreleased]
+## [0.0.6] - 2025-12-16
 
 ### Added
+- **Service Registration with Attributes**: `DirectDebitGenerator` now uses Symfony `#[AsAlias]` attribute for automatic service registration
+  - Service is registered with alias `nowo_sepa_payment.generator.direct_debit_generator`
+  - Service is marked as public for explicit service retrieval
+  - Added `SERVICE_NAME` constant using `Configuration::ALIAS` for consistent naming
+
+- **Enhanced Test Coverage for DirectDebitGenerator**: Added comprehensive test cases to improve code coverage
+  - Tests for `generateFromArray()` with `DateTimeInterface` objects
+  - Tests for amount conversion from cents (> 10000)
+  - Tests for optional fields (`creditorBic`, `remittanceInformation`, `debtorMandateSignDate`)
+  - Tests for missing required fields validation
+  - Tests for invalid data types validation
+  - Tests for edge cases (empty transactions, missing transactions)
+  - Total of 14 new test methods covering all code paths
+
+## [Unreleased]
+
 - **Credit Card Validation**: Complete credit card number validation using Luhn algorithm
   - `CreditCardValidator::isValid()` - Validate credit card number using Luhn algorithm
   - `CreditCardValidator::normalize()` - Normalize card number (remove spaces and dashes)

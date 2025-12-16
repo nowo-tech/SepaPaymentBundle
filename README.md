@@ -375,7 +375,7 @@ $xml = $generator->generate($directDebitData);
 
 ### Using with Dependency Injection
 
-The bundle registers services automatically:
+The bundle registers services automatically using Symfony service attributes. All services are autowired and can be injected via constructor:
 
 ```php
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
@@ -406,6 +406,25 @@ class MyService
     }
 }
 ```
+
+#### Service Aliases
+
+Services are also available via their service aliases for explicit service retrieval:
+
+```php
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+
+class MyService
+{
+    public function __construct(
+        #[Autowire('nowo_sepa_payment.generator.direct_debit_generator')]
+        private DirectDebitGenerator $directDebitGenerator
+    ) {
+    }
+}
+```
+
+The `DirectDebitGenerator` service is registered with the alias `nowo_sepa_payment.generator.direct_debit_generator` and is available as a public service for dependency injection.
 
 ## Console Commands
 
@@ -553,6 +572,11 @@ The bundle has comprehensive test coverage with **100% code coverage**. All test
 - **Validators**: `IbanValidator`, `BicValidator`, `CreditCardValidator`
 - **Converters**: `CccConverter`
 - **Generators**: `RemesaGenerator`, `DirectDebitGenerator`, `IdentifierGenerator`
+  - `DirectDebitGenerator` includes extensive test coverage for all code paths:
+    - Array-based generation with various data types
+    - Validation of required fields
+    - Optional fields handling
+    - Edge cases (empty transactions, amount conversion, etc.)
 - **Models**: `RemesaData`, `Transaction`, `DirectDebitData`, `DirectDebitTransaction`, `Mandate`
 - **Parsers**: `RemesaParser`
 - **Commands**: All console commands

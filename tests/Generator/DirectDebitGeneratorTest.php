@@ -226,4 +226,432 @@ class DirectDebitGeneratorTest extends TestCase
         $this->assertStringContainsString('CstmrDrctDbtInitn', $xml);
         $this->assertStringContainsString('MSG-001', $xml);
     }
+
+    /**
+     * Tests XML generation from array with DateTimeInterface dueDate.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayWithDateTimeInterface(): void
+    {
+        $data = [
+            'reference' => 'MSG-001',
+            'bankAccountOwner' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'dueDate' => new \DateTime('2024-01-20'),
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+            'seqType' => 'FRST',
+            'creditorId' => 'ES1234567890123456789012',
+            'localInstrumentCode' => 'CORE',
+            'transactions' => [
+                [
+                    'amount' => 100.50,
+                    'debtorIban' => 'GB82WEST12345698765432',
+                    'debtorName' => 'John Doe',
+                    'debtorMandate' => 'MANDATE-001',
+                    'endToEndId' => 'E2E-001',
+                ],
+            ],
+        ];
+
+        $xml = $this->generator->generateFromArray($data);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrDrctDbtInitn', $xml);
+    }
+
+    /**
+     * Tests XML generation from array with amount in cents (> 10000).
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayWithAmountInCents(): void
+    {
+        $data = [
+            'reference' => 'MSG-001',
+            'bankAccountOwner' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'dueDate' => '2024-01-20',
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+            'seqType' => 'FRST',
+            'creditorId' => 'ES1234567890123456789012',
+            'localInstrumentCode' => 'CORE',
+            'transactions' => [
+                [
+                    'amount' => 15000, // 150.00 in cents
+                    'debtorIban' => 'GB82WEST12345698765432',
+                    'debtorName' => 'John Doe',
+                    'debtorMandate' => 'MANDATE-001',
+                    'endToEndId' => 'E2E-001',
+                ],
+            ],
+        ];
+
+        $xml = $this->generator->generateFromArray($data);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('150.00', $xml);
+    }
+
+    /**
+     * Tests XML generation from array without creditorBic.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayWithoutCreditorBic(): void
+    {
+        $data = [
+            'reference' => 'MSG-001',
+            'bankAccountOwner' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'dueDate' => '2024-01-20',
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+            'seqType' => 'FRST',
+            'creditorId' => 'ES1234567890123456789012',
+            'localInstrumentCode' => 'CORE',
+            'transactions' => [
+                [
+                    'amount' => 100.50,
+                    'debtorIban' => 'GB82WEST12345698765432',
+                    'debtorName' => 'John Doe',
+                    'debtorMandate' => 'MANDATE-001',
+                    'endToEndId' => 'E2E-001',
+                ],
+            ],
+        ];
+
+        $xml = $this->generator->generateFromArray($data);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrDrctDbtInitn', $xml);
+    }
+
+    /**
+     * Tests XML generation from array without remittanceInformation.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayWithoutRemittanceInformation(): void
+    {
+        $data = [
+            'reference' => 'MSG-001',
+            'bankAccountOwner' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'dueDate' => '2024-01-20',
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+            'seqType' => 'FRST',
+            'creditorId' => 'ES1234567890123456789012',
+            'localInstrumentCode' => 'CORE',
+            'transactions' => [
+                [
+                    'amount' => 100.50,
+                    'debtorIban' => 'GB82WEST12345698765432',
+                    'debtorName' => 'John Doe',
+                    'debtorMandate' => 'MANDATE-001',
+                    'endToEndId' => 'E2E-001',
+                ],
+            ],
+        ];
+
+        $xml = $this->generator->generateFromArray($data);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrDrctDbtInitn', $xml);
+    }
+
+    /**
+     * Tests XML generation from array without debtorMandateSignDate (uses default).
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayWithoutMandateSignDate(): void
+    {
+        $data = [
+            'reference' => 'MSG-001',
+            'bankAccountOwner' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'dueDate' => '2024-01-20',
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+            'seqType' => 'FRST',
+            'creditorId' => 'ES1234567890123456789012',
+            'localInstrumentCode' => 'CORE',
+            'transactions' => [
+                [
+                    'amount' => 100.50,
+                    'debtorIban' => 'GB82WEST12345698765432',
+                    'debtorName' => 'John Doe',
+                    'debtorMandate' => 'MANDATE-001',
+                    'endToEndId' => 'E2E-001',
+                ],
+            ],
+        ];
+
+        $xml = $this->generator->generateFromArray($data);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrDrctDbtInitn', $xml);
+    }
+
+    /**
+     * Tests XML generation from array with DateTimeInterface mandateSignDate.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayWithDateTimeInterfaceMandateSignDate(): void
+    {
+        $data = [
+            'reference' => 'MSG-001',
+            'bankAccountOwner' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'dueDate' => '2024-01-20',
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+            'seqType' => 'FRST',
+            'creditorId' => 'ES1234567890123456789012',
+            'localInstrumentCode' => 'CORE',
+            'transactions' => [
+                [
+                    'amount' => 100.50,
+                    'debtorIban' => 'GB82WEST12345698765432',
+                    'debtorName' => 'John Doe',
+                    'debtorMandate' => 'MANDATE-001',
+                    'debtorMandateSignDate' => new \DateTime('2023-12-01'),
+                    'endToEndId' => 'E2E-001',
+                ],
+            ],
+        ];
+
+        $xml = $this->generator->generateFromArray($data);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrDrctDbtInitn', $xml);
+    }
+
+    /**
+     * Tests XML generation from array without transactions.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayWithoutTransactions(): void
+    {
+        $data = [
+            'reference' => 'MSG-001',
+            'bankAccountOwner' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'dueDate' => '2024-01-20',
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+            'seqType' => 'FRST',
+            'creditorId' => 'ES1234567890123456789012',
+            'localInstrumentCode' => 'CORE',
+        ];
+
+        $xml = $this->generator->generateFromArray($data);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrDrctDbtInitn', $xml);
+    }
+
+    /**
+     * Tests XML generation from array with empty transactions.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayWithEmptyTransactions(): void
+    {
+        $data = [
+            'reference' => 'MSG-001',
+            'bankAccountOwner' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'dueDate' => '2024-01-20',
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+            'seqType' => 'FRST',
+            'creditorId' => 'ES1234567890123456789012',
+            'localInstrumentCode' => 'CORE',
+            'transactions' => [],
+        ];
+
+        $xml = $this->generator->generateFromArray($data);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrDrctDbtInitn', $xml);
+    }
+
+    /**
+     * Tests generateFromArray with missing required field: reference.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayMissingReference(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Missing required field: reference');
+
+        $data = [
+            'bankAccountOwner' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'dueDate' => '2024-01-20',
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+            'seqType' => 'FRST',
+            'creditorId' => 'ES1234567890123456789012',
+            'localInstrumentCode' => 'CORE',
+        ];
+
+        $this->generator->generateFromArray($data);
+    }
+
+    /**
+     * Tests generateFromArray with missing required field: creditorIban.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayMissingCreditorIban(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Missing required field: creditorIban');
+
+        $data = [
+            'reference' => 'MSG-001',
+            'bankAccountOwner' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'dueDate' => '2024-01-20',
+            'creditorName' => 'My Company Name',
+            'seqType' => 'FRST',
+            'creditorId' => 'ES1234567890123456789012',
+            'localInstrumentCode' => 'CORE',
+        ];
+
+        $this->generator->generateFromArray($data);
+    }
+
+    /**
+     * Tests generateFromArray with invalid dueDate type.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayInvalidDueDateType(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('dueDate must be a string or DateTimeInterface');
+
+        $data = [
+            'reference' => 'MSG-001',
+            'bankAccountOwner' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'dueDate' => 12345, // Invalid type
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+            'seqType' => 'FRST',
+            'creditorId' => 'ES1234567890123456789012',
+            'localInstrumentCode' => 'CORE',
+        ];
+
+        $this->generator->generateFromArray($data);
+    }
+
+    /**
+     * Tests generateFromArray with missing required transaction field: amount.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayMissingTransactionAmount(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Missing required transaction field: amount');
+
+        $data = [
+            'reference' => 'MSG-001',
+            'bankAccountOwner' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'dueDate' => '2024-01-20',
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+            'seqType' => 'FRST',
+            'creditorId' => 'ES1234567890123456789012',
+            'localInstrumentCode' => 'CORE',
+            'transactions' => [
+                [
+                    'debtorIban' => 'GB82WEST12345698765432',
+                    'debtorName' => 'John Doe',
+                    'debtorMandate' => 'MANDATE-001',
+                    'endToEndId' => 'E2E-001',
+                ],
+            ],
+        ];
+
+        $this->generator->generateFromArray($data);
+    }
+
+    /**
+     * Tests generateFromArray with missing required transaction field: debtorIban.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayMissingTransactionDebtorIban(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Missing required transaction field: debtorIban');
+
+        $data = [
+            'reference' => 'MSG-001',
+            'bankAccountOwner' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'dueDate' => '2024-01-20',
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+            'seqType' => 'FRST',
+            'creditorId' => 'ES1234567890123456789012',
+            'localInstrumentCode' => 'CORE',
+            'transactions' => [
+                [
+                    'amount' => 100.50,
+                    'debtorName' => 'John Doe',
+                    'debtorMandate' => 'MANDATE-001',
+                    'endToEndId' => 'E2E-001',
+                ],
+            ],
+        ];
+
+        $this->generator->generateFromArray($data);
+    }
+
+    /**
+     * Tests generateFromArray with missing required transaction field: endToEndId.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayMissingTransactionEndToEndId(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Missing required transaction field: endToEndId');
+
+        $data = [
+            'reference' => 'MSG-001',
+            'bankAccountOwner' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'dueDate' => '2024-01-20',
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+            'seqType' => 'FRST',
+            'creditorId' => 'ES1234567890123456789012',
+            'localInstrumentCode' => 'CORE',
+            'transactions' => [
+                [
+                    'amount' => 100.50,
+                    'debtorIban' => 'GB82WEST12345698765432',
+                    'debtorName' => 'John Doe',
+                    'debtorMandate' => 'MANDATE-001',
+                ],
+            ],
+        ];
+
+        $this->generator->generateFromArray($data);
+    }
 }
