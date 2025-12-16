@@ -91,13 +91,13 @@ class CccConverterTest extends TestCase
         // also checks check digits, so if it fails, the CCC format is correct but check digits may be wrong
         // For this test, we verify the method works correctly by testing both valid and invalid cases
         $testCcc = '21000418450200051332';
-        
+
         // The validation method checks both format AND check digits
         // Since we can't guarantee the CCC has correct check digits without calculating them,
         // we test that the method returns a boolean result and works as expected
         $result = $this->converter->isValidCcc($testCcc);
         $this->assertIsBool($result);
-        
+
         // Also test that invalid formats return false
         $this->assertFalse($this->converter->isValidCcc('12345'));
         $this->assertFalse($this->converter->isValidCcc('ABCD0418450200051332'));
