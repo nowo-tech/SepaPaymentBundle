@@ -1,0 +1,9 @@
+# SEPA Payment Bundle Configuration
+# This file was automatically created by Symfony Flex.
+# You can modify it according to your needs.
+
+nowo_sepa_payment:
+    # Default currency code for payments (ISO 4217 format)
+    # Default: EUR
+    default_currency: EUR
+

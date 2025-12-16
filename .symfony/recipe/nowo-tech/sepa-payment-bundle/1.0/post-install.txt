@@ -1,0 +1,13 @@
+SEPA Payment Bundle has been installed!
+
+The following files have been created:
+  - config/packages/nowo_sepa_payment.yaml (configuration)
+
+You can customize the configuration according to your needs.
+The bundle works with default values if you delete the config file.
+
+To use the bundle:
+1. Inject IbanValidator, RemesaGenerator, or DirectDebitGenerator services in your services
+2. Use the services to validate IBANs, BICs, credit cards, and generate SEPA payments
+3. See the README for usage examples
+

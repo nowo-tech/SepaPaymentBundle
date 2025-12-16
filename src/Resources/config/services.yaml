@@ -1,0 +1,64 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    # Validators
+    Nowo\SepaPaymentBundle\Validator\IbanValidator:
+        class: Nowo\SepaPaymentBundle\Validator\IbanValidator
+        public: true
+
+    Nowo\SepaPaymentBundle\Validator\BicValidator:
+        class: Nowo\SepaPaymentBundle\Validator\BicValidator
+        public: true
+
+    Nowo\SepaPaymentBundle\Validator\CreditCardValidator:
+        class: Nowo\SepaPaymentBundle\Validator\CreditCardValidator
+        public: true
+
+    # Converters
+    Nowo\SepaPaymentBundle\Converter\CccConverter:
+        class: Nowo\SepaPaymentBundle\Converter\CccConverter
+        arguments:
+            - '@Nowo\SepaPaymentBundle\Validator\IbanValidator'
+        public: true
+
+    # Generators
+    Nowo\SepaPaymentBundle\Generator\RemesaGenerator:
+        class: Nowo\SepaPaymentBundle\Generator\RemesaGenerator
+        arguments:
+            - '@Nowo\SepaPaymentBundle\Validator\IbanValidator'
+        public: true
+
+    Nowo\SepaPaymentBundle\Generator\DirectDebitGenerator:
+        class: Nowo\SepaPaymentBundle\Generator\DirectDebitGenerator
+        arguments:
+            - '@Nowo\SepaPaymentBundle\Validator\IbanValidator'
+        public: true
+
+    Nowo\SepaPaymentBundle\Generator\IdentifierGenerator:
+        class: Nowo\SepaPaymentBundle\Generator\IdentifierGenerator
+        public: true
+
+    # Parsers
+    Nowo\SepaPaymentBundle\Parser\RemesaParser:
+        class: Nowo\SepaPaymentBundle\Parser\RemesaParser
+        public: true
+
+    # Console Commands
+    Nowo\SepaPaymentBundle\Command\ValidateIbanCommand:
+        tags: ['console.command']
+        arguments:
+            $ibanValidator: '@Nowo\SepaPaymentBundle\Validator\IbanValidator'
+
+    Nowo\SepaPaymentBundle\Command\ConvertCccCommand:
+        tags: ['console.command']
+        arguments:
+            $cccConverter: '@Nowo\SepaPaymentBundle\Converter\CccConverter'
+
+    Nowo\SepaPaymentBundle\Command\ValidateCreditCardCommand:
+        tags: ['console.command']
+        arguments:
+            $creditCardValidator: '@Nowo\SepaPaymentBundle\Validator\CreditCardValidator'
+

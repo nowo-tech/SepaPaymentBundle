@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}SEPA Payment Bundle Demo{% endblock %}
+
+{% block content %}
+    <h1>Welcome</h1>
+    <p>Welcome to the SEPA Payment Bundle demo. This demo showcases all the features of the bundle.</p>
+
+    <h2>Available Endpoints</h2>
+
+    <div class="endpoint-group">
+        <h3>Validators</h3>
+        <ul>
+            <li><a href="{{ path('demo_validate_iban', {iban: 'ES9121000418450200051332'}) }}">Validate IBAN</a></li>
+            <li><a href="{{ path('demo_validate_bic', {bic: 'ESPBESMM'}) }}">Validate BIC</a></li>
+            <li><a href="{{ path('demo_validate_credit_card', {card: '4532015112830366'}) }}">Validate Credit Card</a></li>
+        </ul>
+    </div>
+
+    <div class="endpoint-group">
+        <h3>Converters</h3>
+        <ul>
+            <li><a href="{{ path('demo_convert_ccc', {ccc: '21000418450200051332'}) }}">Convert CCC to IBAN</a></li>
+        </ul>
+    </div>
+
+    <div class="endpoint-group">
+        <h3>Generators</h3>
+        <ul>
+            <li><a href="{{ path('demo_generate_identifier') }}">Generate Identifier</a></li>
+            <li><a href="{{ path('demo_mandate') }}">Demo Mandate</a></li>
+            <li><a href="{{ path('demo_remesa_pago') }}">Demo Remesa de Pago (Credit Transfer)</a></li>
+            <li><a href="{{ path('demo_remesa_cobro') }}">Demo Remesa de Cobro (Direct Debit)</a></li>
+        </ul>
+    </div>
+{% endblock %}
+
