@@ -58,15 +58,14 @@ class DirectDebitGenerator
     {
         $this->validateDirectDebitData($directDebitData);
 
-        // Create transfer file (pain.008.001.02 format)
-        $transferFile = new CustomerDirectDebitTransferFile('pain.008.001.02');
-
         // Create and configure group header
         $groupHeader = new GroupHeader();
         $groupHeader->setMessageIdentification($directDebitData->getMessageId());
         $groupHeader->setInitiatingPartyName($directDebitData->getInitiatingPartyName());
         $groupHeader->setCreationDateTime(new \DateTime());
-        $transferFile->setGroupHeader($groupHeader);
+
+        // Create transfer file (pain.008.001.02 format) with group header
+        $transferFile = new CustomerDirectDebitTransferFile($groupHeader);
 
         // Create payment information
         $paymentInformation = new PaymentInformation();

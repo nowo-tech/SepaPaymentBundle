@@ -42,15 +42,14 @@ class RemesaGenerator
     {
         $this->validateRemesaData($remesaData);
 
-        // Create transfer file (pain.001.001.03 format)
-        $transferFile = new CustomerCreditTransferFile('pain.001.001.03');
-
         // Create and configure group header
         $groupHeader = new GroupHeader();
         $groupHeader->setMessageIdentification($remesaData->getMessageId());
         $groupHeader->setInitiatingPartyName($remesaData->getInitiatingPartyName());
         $groupHeader->setCreationDateTime($remesaData->getCreationDate());
-        $transferFile->setGroupHeader($groupHeader);
+
+        // Create transfer file (pain.001.001.03 format) with group header
+        $transferFile = new CustomerCreditTransferFile($groupHeader);
 
         // Create payment information
         $paymentInformation = new PaymentInformation();
