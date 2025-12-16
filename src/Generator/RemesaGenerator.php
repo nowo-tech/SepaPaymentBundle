@@ -62,7 +62,7 @@ class RemesaGenerator
             $remesaData->getCreditorName(),
             'EUR'
         );
-        $paymentInformation->setPaymentMethod('TRF');
+        // Payment method is automatically set based on the transfer file type (CustomerCreditTransferFile)
         $paymentInformation->setBatchBooking($remesaData->isBatchBooking());
         $paymentInformation->setDueDate($remesaData->getRequestedExecutionDate());
 

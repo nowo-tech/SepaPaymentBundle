@@ -79,7 +79,7 @@ class DirectDebitGenerator
             $directDebitData->getCreditorName(),
             'EUR'
         );
-        $paymentInformation->setPaymentMethod('DD');
+        // Payment method is automatically set based on the transfer file type (CustomerDirectDebitTransferFile)
         $paymentInformation->setDueDate($directDebitData->getDueDate());
         $paymentInformation->setCreditorId($directDebitData->getCreditorId());
         $paymentInformation->setSequenceType($directDebitData->getSequenceType());

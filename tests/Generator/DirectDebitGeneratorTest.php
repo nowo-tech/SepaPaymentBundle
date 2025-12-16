@@ -199,13 +199,13 @@ class DirectDebitGeneratorTest extends TestCase
     public function testGenerateFromArray(): void
     {
         $data = [
-            'messageId' => 'MSG-001',
-            'initiatingPartyName' => 'My Company',
+            'reference' => 'MSG-001',
+            'bankAccountOwner' => 'My Company',
             'paymentInfoId' => 'PMT-001',
             'dueDate' => '2024-01-20',
             'creditorName' => 'My Company Name',
             'creditorIban' => 'ES9121000418450200051332',
-            'sequenceType' => 'FRST',
+            'seqType' => 'FRST',
             'creditorId' => 'ES1234567890123456789012',
             'localInstrumentCode' => 'CORE',
             'transactions' => [

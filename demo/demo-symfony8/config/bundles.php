@@ -5,4 +5,3 @@ return [
     Symfony\Bundle\TwigBundle\TwigBundle::class => ['all' => true],
     Nowo\SepaPaymentBundle\NowoSepaPaymentBundle::class => ['all' => true],
 ];
-
