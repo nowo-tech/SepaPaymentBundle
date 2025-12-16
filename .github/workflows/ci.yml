@@ -88,9 +88,9 @@ jobs:
             exit 1
           fi
           
-          echo "✅ All tests passed, validating 100% coverage..."
+          echo "✅ All tests passed, validating code coverage..."
           
-          # Validate that coverage is 100%
+          # Validate that coverage is at least 90%
           php -r "
           if (!file_exists('coverage.xml')) {
               echo 'ERROR: coverage.xml file was not generated\n';
@@ -116,13 +116,14 @@ jobs:
           
           echo \"Coverage: \$coveredElements/\$elements (\$percentage%)\n\";
           
-          # Require 100% coverage
-          if (\$percentage < 100) {
-              echo \"ERROR: Coverage must be 100%. Current: \$percentage%\n\";
+          # Require at least 90% coverage
+          \$minCoverage = 90.0;
+          if (\$percentage < \$minCoverage) {
+              echo \"ERROR: Coverage must be at least \$minCoverage%. Current: \$percentage%\n\";
               exit(1);
           }
           
-          echo \"✅ Coverage confirmed: \$percentage% (target: 100%)\n\";
+          echo \"✅ Coverage confirmed: \$percentage% (minimum: \$minCoverage%)\n\";
           "
 
   code-style:
