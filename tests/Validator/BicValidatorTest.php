@@ -81,8 +81,8 @@ class BicValidatorTest extends TestCase
             'ESPBESMMM', // Wrong length (9 chars)
             'ESPBESMMXXXX', // Too long (12 chars)
             '1234ESMM', // Numbers in bank code
-            'ESPBES12', // Numbers in country code
             'INVALID', // Invalid format
+            // Note: ESPBES12 is valid (has alphanumeric location code '12', which is allowed)
         ];
 
         foreach ($invalidBics as $bic) {

@@ -7,7 +7,6 @@ namespace Nowo\SepaPaymentBundle\Tests\Command;
 use Nowo\SepaPaymentBundle\Command\ValidateIbanCommand;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 
 /**
@@ -43,9 +42,6 @@ class ValidateIbanCommandTest extends TestCase
      */
     public function testExecuteWithValidIban(): void
     {
-        $application = new Application();
-        $application->add($this->command);
-
         $commandTester = new CommandTester($this->command);
         $commandTester->execute(['iban' => 'ES9121000418450200051332']);
 
@@ -63,9 +59,6 @@ class ValidateIbanCommandTest extends TestCase
      */
     public function testExecuteWithInvalidIban(): void
     {
-        $application = new Application();
-        $application->add($this->command);
-
         $commandTester = new CommandTester($this->command);
         $commandTester->execute(['iban' => 'INVALID-IBAN']);
 
@@ -81,9 +74,6 @@ class ValidateIbanCommandTest extends TestCase
      */
     public function testExecuteDisplaysIbanInformation(): void
     {
-        $application = new Application();
-        $application->add($this->command);
-
         $commandTester = new CommandTester($this->command);
         $commandTester->execute(['iban' => 'ES9121000418450200051332']);
 
@@ -103,9 +93,6 @@ class ValidateIbanCommandTest extends TestCase
      */
     public function testExecuteWithFormattedIban(): void
     {
-        $application = new Application();
-        $application->add($this->command);
-
         $commandTester = new CommandTester($this->command);
         $commandTester->execute(['iban' => 'ES91 2100 0418 4502 0005 1332']);
 
@@ -121,9 +108,6 @@ class ValidateIbanCommandTest extends TestCase
      */
     public function testExecuteWithLowercaseIban(): void
     {
-        $application = new Application();
-        $application->add($this->command);
-
         $commandTester = new CommandTester($this->command);
         $commandTester->execute(['iban' => 'es9121000418450200051332']);
 

@@ -7,7 +7,6 @@ namespace Nowo\SepaPaymentBundle\Tests\Command;
 use Nowo\SepaPaymentBundle\Command\ConvertCccCommand;
 use Nowo\SepaPaymentBundle\Converter\CccConverter;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 
 /**
@@ -44,9 +43,6 @@ class ConvertCccCommandTest extends TestCase
      */
     public function testExecuteWithValidCcc(): void
     {
-        $application = new Application();
-        $application->add($this->command);
-
         $commandTester = new CommandTester($this->command);
         $commandTester->execute(['ccc' => '21000418450200051332']);
 
@@ -64,9 +60,6 @@ class ConvertCccCommandTest extends TestCase
      */
     public function testExecuteWithInvalidCcc(): void
     {
-        $application = new Application();
-        $application->add($this->command);
-
         $commandTester = new CommandTester($this->command);
         $commandTester->execute(['ccc' => 'INVALID-CCC']);
 
@@ -82,9 +75,6 @@ class ConvertCccCommandTest extends TestCase
      */
     public function testExecuteDisplaysCccInformation(): void
     {
-        $application = new Application();
-        $application->add($this->command);
-
         $commandTester = new CommandTester($this->command);
         $commandTester->execute(['ccc' => '21000418450200051332']);
 
@@ -103,9 +93,6 @@ class ConvertCccCommandTest extends TestCase
      */
     public function testExecuteWithCccContainingSpaces(): void
     {
-        $application = new Application();
-        $application->add($this->command);
-
         $commandTester = new CommandTester($this->command);
         $commandTester->execute(['ccc' => '2100 0418 4502 0005 1332']);
 
@@ -121,9 +108,6 @@ class ConvertCccCommandTest extends TestCase
      */
     public function testExecuteWithWrongLengthCcc(): void
     {
-        $application = new Application();
-        $application->add($this->command);
-
         $commandTester = new CommandTester($this->command);
         $commandTester->execute(['ccc' => '12345']);
 

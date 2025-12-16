@@ -7,7 +7,6 @@ namespace Nowo\SepaPaymentBundle\Tests\Command;
 use Nowo\SepaPaymentBundle\Command\ValidateCreditCardCommand;
 use Nowo\SepaPaymentBundle\Validator\CreditCardValidator;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 
 /**
@@ -43,9 +42,6 @@ class ValidateCreditCardCommandTest extends TestCase
      */
     public function testExecuteWithValidCreditCard(): void
     {
-        $application = new Application();
-        $application->add($this->command);
-
         $commandTester = new CommandTester($this->command);
         $commandTester->execute(['card-number' => '4532015112830366']);
 
@@ -62,9 +58,6 @@ class ValidateCreditCardCommandTest extends TestCase
      */
     public function testExecuteWithInvalidCreditCard(): void
     {
-        $application = new Application();
-        $application->add($this->command);
-
         $commandTester = new CommandTester($this->command);
         $commandTester->execute(['card-number' => '4532015112830367']);
 
@@ -80,9 +73,6 @@ class ValidateCreditCardCommandTest extends TestCase
      */
     public function testExecuteDisplaysCardInformation(): void
     {
-        $application = new Application();
-        $application->add($this->command);
-
         $commandTester = new CommandTester($this->command);
         $commandTester->execute(['card-number' => '4532015112830366']);
 
@@ -105,9 +95,6 @@ class ValidateCreditCardCommandTest extends TestCase
      */
     public function testExecuteWithFormattedCardNumber(): void
     {
-        $application = new Application();
-        $application->add($this->command);
-
         $commandTester = new CommandTester($this->command);
         $commandTester->execute(['card-number' => '4532 0151 1283 0366']);
 
@@ -123,9 +110,6 @@ class ValidateCreditCardCommandTest extends TestCase
      */
     public function testExecuteWithCardNumberContainingDashes(): void
     {
-        $application = new Application();
-        $application->add($this->command);
-
         $commandTester = new CommandTester($this->command);
         $commandTester->execute(['card-number' => '4532-0151-1283-0366']);
 
@@ -141,9 +125,6 @@ class ValidateCreditCardCommandTest extends TestCase
      */
     public function testExecuteDetectsCardType(): void
     {
-        $application = new Application();
-        $application->add($this->command);
-
         $commandTester = new CommandTester($this->command);
         $commandTester->execute(['card-number' => '4532015112830366']);
 
@@ -159,9 +140,6 @@ class ValidateCreditCardCommandTest extends TestCase
      */
     public function testExecuteWithMastercard(): void
     {
-        $application = new Application();
-        $application->add($this->command);
-
         $commandTester = new CommandTester($this->command);
         $commandTester->execute(['card-number' => '5555555555554444']);
 
@@ -177,9 +155,6 @@ class ValidateCreditCardCommandTest extends TestCase
      */
     public function testExecuteWithAmex(): void
     {
-        $application = new Application();
-        $application->add($this->command);
-
         $commandTester = new CommandTester($this->command);
         $commandTester->execute(['card-number' => '378282246310005']);
 

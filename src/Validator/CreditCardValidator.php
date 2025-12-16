@@ -145,7 +145,11 @@ class CreditCardValidator
         }
 
         // Discover: starts with 6011, 622126-622925, 644-649, or 65, 16 digits
-        if (preg_match('/^6(?:011|5\d{2}|4[4-9]\d|22[1-9]\d{2})\d{10}$/', $normalized)) {
+        // Patterns: 6011 (4 digits) + 12 more = 16, 65xx (4 digits) + 12 more = 16, etc.
+        if (preg_match('/^6011\d{12}$/', $normalized) || // 6011 + 12 digits
+            preg_match('/^65\d{14}$/', $normalized) || // 65 + 14 digits
+            preg_match('/^64[4-9]\d{13}$/', $normalized) || // 644-649 + 13 digits
+            preg_match('/^622[1-9]\d{12}$/', $normalized)) { // 622126-622925 (simplified: 6221-6229 + 12 digits)
             return self::TYPE_DISCOVER;
         }
 

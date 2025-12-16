@@ -181,7 +181,8 @@ class CreditCardValidatorTest extends TestCase
     public function testMask(): void
     {
         $this->assertEquals('************0366', $this->validator->mask('4532015112830366'));
-        $this->assertEquals('##########0366', $this->validator->mask('4532015112830366', '#'));
+        // 16-digit card: 16 - 4 = 12 mask characters
+        $this->assertEquals('############0366', $this->validator->mask('4532015112830366', '#'));
     }
 
     /**
