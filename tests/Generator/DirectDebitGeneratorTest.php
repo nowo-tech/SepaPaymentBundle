@@ -654,4 +654,216 @@ class DirectDebitGeneratorTest extends TestCase
 
         $this->generator->generateFromArray($data);
     }
+
+    /**
+     * Tests XML generation with debtor BIC.
+     *
+     * @return void
+     */
+    public function testGenerateXmlWithDebtorBic(): void
+    {
+        $directDebitData = new DirectDebitData(
+            'MSG-001',
+            'My Company',
+            'PMT-001',
+            new \DateTime('2024-01-20'),
+            'My Company Name',
+            'ES9121000418450200051332',
+            'FRST',
+            'ES1234567890123456789012',
+            'CORE'
+        );
+
+        $transaction = new DirectDebitTransaction(
+            100.50,
+            'GB82WEST12345698765432',
+            'John Doe',
+            'MANDATE-001',
+            new \DateTime('2023-12-01'),
+            'E2E-001'
+        );
+
+        $transaction->setDebtorBic('WESTGB22');
+        $directDebitData->addTransaction($transaction);
+
+        $xml = $this->generator->generate($directDebitData);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('WESTGB22', $xml);
+        $this->assertStringContainsString('GB82WEST12345698765432', $xml);
+    }
+
+    /**
+     * Tests generateFromArray with debtor BIC.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayWithDebtorBic(): void
+    {
+        $data = [
+            'reference' => 'MSG-001',
+            'bankAccountOwner' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'dueDate' => '2024-01-20',
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+            'seqType' => 'FRST',
+            'creditorId' => 'ES1234567890123456789012',
+            'localInstrumentCode' => 'CORE',
+            'transactions' => [
+                [
+                    'amount' => 100.50,
+                    'debtorIban' => 'GB82WEST12345698765432',
+                    'debtorName' => 'John Doe',
+                    'debtorMandate' => 'MANDATE-001',
+                    'debtorMandateSignDate' => '2023-12-01',
+                    'endToEndId' => 'E2E-001',
+                    'debtorBic' => 'WESTGB22',
+                ],
+            ],
+        ];
+
+        $xml = $this->generator->generateFromArray($data);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrDrctDbtInitn', $xml);
+        $this->assertStringContainsString('WESTGB22', $xml);
+    }
+
+    /**
+     * Tests generateFromArray with additional data fields.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayWithAdditionalData(): void
+    {
+        $data = [
+            'reference' => 'MSG-001',
+            'bankAccountOwner' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'dueDate' => '2024-01-20',
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+            'seqType' => 'FRST',
+            'creditorId' => 'ES1234567890123456789012',
+            'localInstrumentCode' => 'CORE',
+            'transactions' => [
+                [
+                    'amount' => 100.50,
+                    'debtorIban' => 'GB82WEST12345698765432',
+                    'debtorName' => 'John Doe',
+                    'debtorMandate' => 'MANDATE-001',
+                    'debtorMandateSignDate' => '2023-12-01',
+                    'endToEndId' => 'E2E-001',
+                    'internalReference' => 'INT-12345',
+                    'customerId' => 'CUST-789',
+                    'customField' => 'customValue',
+                ],
+            ],
+        ];
+
+        $xml = $this->generator->generateFromArray($data);
+
+        // XML should be generated successfully even with additional fields
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrDrctDbtInitn', $xml);
+        // Additional fields should not appear in XML (they are stored internally only)
+        $this->assertStringNotContainsString('INT-12345', $xml);
+        $this->assertStringNotContainsString('CUST-789', $xml);
+        $this->assertStringNotContainsString('customValue', $xml);
+    }
+
+    /**
+     * Tests that additional data is stored but not included in XML.
+     *
+     * @return void
+     */
+    public function testAdditionalDataNotInXml(): void
+    {
+        $directDebitData = new DirectDebitData(
+            'MSG-001',
+            'My Company',
+            'PMT-001',
+            new \DateTime('2024-01-20'),
+            'My Company Name',
+            'ES9121000418450200051332',
+            'FRST',
+            'ES1234567890123456789012',
+            'CORE'
+        );
+
+        $transaction = new DirectDebitTransaction(
+            100.50,
+            'GB82WEST12345698765432',
+            'John Doe',
+            'MANDATE-001',
+            new \DateTime('2023-12-01'),
+            'E2E-001'
+        );
+
+        $transaction->setAdditionalData([
+            'internalReference' => 'INT-12345',
+            'customerId' => 'CUST-789',
+            'sensitiveData' => 'should-not-appear-in-xml',
+        ]);
+
+        $directDebitData->addTransaction($transaction);
+
+        $xml = $this->generator->generate($directDebitData);
+
+        // Verify XML is valid
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrDrctDbtInitn', $xml);
+
+        // Verify additional data is NOT in XML
+        $this->assertStringNotContainsString('INT-12345', $xml);
+        $this->assertStringNotContainsString('CUST-789', $xml);
+        $this->assertStringNotContainsString('should-not-appear-in-xml', $xml);
+    }
+
+    /**
+     * Tests generateFromArray with both debtorBic and additional data.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayWithDebtorBicAndAdditionalData(): void
+    {
+        $data = [
+            'reference' => 'MSG-001',
+            'bankAccountOwner' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'dueDate' => '2024-01-20',
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+            'seqType' => 'FRST',
+            'creditorId' => 'ES1234567890123456789012',
+            'localInstrumentCode' => 'CORE',
+            'transactions' => [
+                [
+                    'amount' => 100.50,
+                    'debtorIban' => 'GB82WEST12345698765432',
+                    'debtorName' => 'John Doe',
+                    'debtorMandate' => 'MANDATE-001',
+                    'debtorMandateSignDate' => '2023-12-01',
+                    'endToEndId' => 'E2E-001',
+                    'debtorBic' => 'WESTGB22',
+                    'remittanceInformation' => 'Invoice 12345',
+                    'internalReference' => 'INT-12345',
+                    'customField' => 'customValue',
+                ],
+            ],
+        ];
+
+        $xml = $this->generator->generateFromArray($data);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrDrctDbtInitn', $xml);
+        // BIC should be in XML
+        $this->assertStringContainsString('WESTGB22', $xml);
+        // Remittance information should be in XML
+        $this->assertStringContainsString('Invoice 12345', $xml);
+        // Additional data should NOT be in XML
+        $this->assertStringNotContainsString('INT-12345', $xml);
+        $this->assertStringNotContainsString('customValue', $xml);
+    }
 }

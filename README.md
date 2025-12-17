@@ -326,6 +326,9 @@ $data = [
             'debtorMandateSignDate' => new \DateTime('2024-01-15'), // Mandate sign date
             'endToEndId' => 'E2E-001',                    // End-to-end ID
             'remittanceInformation' => 'Invoice 12345',  // Remittance info (optional)
+            'debtorBic' => 'WESTGB22',                    // Debtor BIC (optional)
+            // You can add any additional custom fields here
+            // They will be stored in additionalData and can be used in applyAdditionalData()
         ],
         // More transactions...
     ],
@@ -367,6 +370,13 @@ $transaction = new DirectDebitTransaction(
 );
 
 $transaction->setRemittanceInformation('Invoice 12345');
+$transaction->setDebtorBic('WESTGB22'); // Optional: Set debtor BIC
+
+// You can also add additional custom data
+$transaction->setAdditionalField('customField', 'customValue');
+// Or set multiple additional fields at once
+$transaction->setAdditionalData(['field1' => 'value1', 'field2' => 'value2']);
+
 $directDebitData->addTransaction($transaction);
 
 $generator = new DirectDebitGenerator(new IbanValidator());
@@ -632,6 +642,10 @@ Please read [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for details on our code
 ## Branching Strategy
 
 See [docs/BRANCHING.md](docs/BRANCHING.md) for information about our branching strategy and workflow.
+
+## Deprecated Fields
+
+See [docs/DEPRECATED_FIELDS.md](docs/DEPRECATED_FIELDS.md) for information about fields that are no longer allowed in SEPA Direct Debit transactions (e.g., postal addresses).
 
 ## Changelog
 

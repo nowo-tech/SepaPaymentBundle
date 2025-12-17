@@ -64,4 +64,135 @@ class DirectDebitTransactionTest extends TestCase
         $transaction->setRemittanceInformation(null);
         $this->assertNull($transaction->getRemittanceInformation());
     }
+
+    /**
+     * Tests setting debtor BIC.
+     *
+     * @return void
+     */
+    public function testSetDebtorBic(): void
+    {
+        $transaction = new DirectDebitTransaction(
+            100.50,
+            'ES9121000418450200051332',
+            'John Doe',
+            'MANDATE-001',
+            new \DateTime('2023-12-01'),
+            'E2E-001'
+        );
+
+        $this->assertNull($transaction->getDebtorBic());
+
+        $transaction->setDebtorBic('CAIXESBBXXX');
+        $this->assertEquals('CAIXESBBXXX', $transaction->getDebtorBic());
+
+        $transaction->setDebtorBic(null);
+        $this->assertNull($transaction->getDebtorBic());
+    }
+
+    /**
+     * Tests setting additional data.
+     *
+     * @return void
+     */
+    public function testSetAdditionalData(): void
+    {
+        $transaction = new DirectDebitTransaction(
+            100.50,
+            'ES9121000418450200051332',
+            'John Doe',
+            'MANDATE-001',
+            new \DateTime('2023-12-01'),
+            'E2E-001'
+        );
+
+        $this->assertEquals([], $transaction->getAdditionalData());
+
+        $additionalData = [
+            'internalReference' => 'INT-12345',
+            'customerId' => 'CUST-789',
+            'customField' => 'customValue',
+        ];
+
+        $transaction->setAdditionalData($additionalData);
+        $this->assertEquals($additionalData, $transaction->getAdditionalData());
+    }
+
+    /**
+     * Tests setting a specific additional field.
+     *
+     * @return void
+     */
+    public function testSetAdditionalField(): void
+    {
+        $transaction = new DirectDebitTransaction(
+            100.50,
+            'ES9121000418450200051332',
+            'John Doe',
+            'MANDATE-001',
+            new \DateTime('2023-12-01'),
+            'E2E-001'
+        );
+
+        $transaction->setAdditionalField('internalReference', 'INT-12345');
+        $this->assertEquals('INT-12345', $transaction->getAdditionalField('internalReference'));
+
+        $transaction->setAdditionalField('customerId', 'CUST-789');
+        $this->assertEquals('CUST-789', $transaction->getAdditionalField('customerId'));
+
+        $this->assertEquals([
+            'internalReference' => 'INT-12345',
+            'customerId' => 'CUST-789',
+        ], $transaction->getAdditionalData());
+    }
+
+    /**
+     * Tests getting additional field with default value.
+     *
+     * @return void
+     */
+    public function testGetAdditionalFieldWithDefault(): void
+    {
+        $transaction = new DirectDebitTransaction(
+            100.50,
+            'ES9121000418450200051332',
+            'John Doe',
+            'MANDATE-001',
+            new \DateTime('2023-12-01'),
+            'E2E-001'
+        );
+
+        $this->assertNull($transaction->getAdditionalField('nonExistent'));
+        $this->assertEquals('default', $transaction->getAdditionalField('nonExistent', 'default'));
+        $this->assertEquals(0, $transaction->getAdditionalField('nonExistent', 0));
+    }
+
+    /**
+     * Tests that additional data can store various types.
+     *
+     * @return void
+     */
+    public function testAdditionalDataTypes(): void
+    {
+        $transaction = new DirectDebitTransaction(
+            100.50,
+            'ES9121000418450200051332',
+            'John Doe',
+            'MANDATE-001',
+            new \DateTime('2023-12-01'),
+            'E2E-001'
+        );
+
+        $transaction->setAdditionalField('stringValue', 'test');
+        $transaction->setAdditionalField('intValue', 123);
+        $transaction->setAdditionalField('floatValue', 45.67);
+        $transaction->setAdditionalField('boolValue', true);
+        $transaction->setAdditionalField('arrayValue', ['key' => 'value']);
+
+        $this->assertEquals('test', $transaction->getAdditionalField('stringValue'));
+        $this->assertEquals(123, $transaction->getAdditionalField('intValue'));
+        $this->assertEquals(45.67, $transaction->getAdditionalField('floatValue'));
+        $this->assertTrue($transaction->getAdditionalField('boolValue'));
+        $this->assertEquals(['key' => 'value'], $transaction->getAdditionalField('arrayValue'));
+    }
 }

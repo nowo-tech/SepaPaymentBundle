@@ -20,6 +20,21 @@ class DirectDebitTransaction
     private ?string $remittanceInformation = null;
 
     /**
+     * Debtor BIC (optional).
+     *
+     * @var string|null
+     */
+    private ?string $debtorBic = null;
+
+    /**
+     * Additional data (optional).
+     * Can be used to store extra fields that may be needed for specific use cases.
+     *
+     * @var array<string, mixed>
+     */
+    private array $additionalData = [];
+
+    /**
      * Constructor.
      *
      * @param float              $amount                Amount to debit
@@ -121,5 +136,81 @@ class DirectDebitTransaction
     public function getRemittanceInformation(): ?string
     {
         return $this->remittanceInformation;
+    }
+
+    /**
+     * Sets the debtor BIC.
+     *
+     * @param string|null $debtorBic The debtor BIC
+     *
+     * @return self
+     */
+    public function setDebtorBic(?string $debtorBic): self
+    {
+        $this->debtorBic = $debtorBic;
+
+        return $this;
+    }
+
+    /**
+     * Gets the debtor BIC.
+     *
+     * @return string|null The debtor BIC
+     */
+    public function getDebtorBic(): ?string
+    {
+        return $this->debtorBic;
+    }
+
+    /**
+     * Sets additional data.
+     *
+     * @param array<string, mixed> $additionalData Additional data
+     *
+     * @return self
+     */
+    public function setAdditionalData(array $additionalData): self
+    {
+        $this->additionalData = $additionalData;
+
+        return $this;
+    }
+
+    /**
+     * Gets additional data.
+     *
+     * @return array<string, mixed> Additional data
+     */
+    public function getAdditionalData(): array
+    {
+        return $this->additionalData;
+    }
+
+    /**
+     * Sets a specific additional data field.
+     *
+     * @param string $key   The field key
+     * @param mixed  $value The field value
+     *
+     * @return self
+     */
+    public function setAdditionalField(string $key, mixed $value): self
+    {
+        $this->additionalData[$key] = $value;
+
+        return $this;
+    }
+
+    /**
+     * Gets a specific additional data field.
+     *
+     * @param string $key     The field key
+     * @param mixed  $default Default value if key doesn't exist
+     *
+     * @return mixed The field value or default
+     */
+    public function getAdditionalField(string $key, mixed $default = null): mixed
+    {
+        return $this->additionalData[$key] ?? $default;
     }
 }

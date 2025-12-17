@@ -105,6 +105,16 @@ class DirectDebitGenerator
                 $transferInformation->setRemittanceInformation($transaction->getRemittanceInformation());
             }
 
+            // Set debtor BIC if available
+            if (null !== $transaction->getDebtorBic()) {
+                $transferInformation->setBic($transaction->getDebtorBic());
+            }
+
+            // Apply additional data if available
+            // Note: This allows for future extensibility. Additional fields can be set
+            // using methods available in CustomerDirectDebitTransferInformation
+            $this->applyAdditionalData($transferInformation, $transaction);
+
             $paymentInformation->addTransfer($transferInformation);
         }
 
@@ -220,7 +230,50 @@ class DirectDebitGenerator
             $transaction->setRemittanceInformation($transactionData['remittanceInformation']);
         }
 
+        // Set debtor BIC if available
+        if (isset($transactionData['debtorBic'])) {
+            $transaction->setDebtorBic($transactionData['debtorBic']);
+        }
+
+        // Store any additional fields that are not standard
+        $standardFields = ['amount', 'debtorIban', 'debtorName', 'debtorMandate', 'debtorMandateSignDate', 'endToEndId', 'remittanceInformation', 'debtorBic'];
+        $additionalData = [];
+        foreach ($transactionData as $key => $value) {
+            if (!in_array($key, $standardFields, true)) {
+                $additionalData[$key] = $value;
+            }
+        }
+        if (!empty($additionalData)) {
+            $transaction->setAdditionalData($additionalData);
+        }
+
         return $transaction;
+    }
+
+    /**
+     * Applies additional data to the transfer information if available.
+     * This method can be extended to support additional fields from the Digitick\Sepa library.
+     *
+     * @param CustomerDirectDebitTransferInformation $transferInformation The transfer information object
+     * @param DirectDebitTransaction                 $transaction          The transaction data
+     *
+     * @return void
+     */
+    private function applyAdditionalData(
+        CustomerDirectDebitTransferInformation $transferInformation,
+        DirectDebitTransaction $transaction
+    ): void {
+        $additionalData = $transaction->getAdditionalData();
+
+        // Example: If you need to set instruction identification or other fields
+        // that are supported by CustomerDirectDebitTransferInformation, you can add them here
+        // For example:
+        // if (isset($additionalData['instructionId'])) {
+        //     $transferInformation->setInstructionId($additionalData['instructionId']);
+        // }
+
+        // This method is intentionally left extensible for future needs
+        // You can add more field mappings here as needed
     }
 
     /**

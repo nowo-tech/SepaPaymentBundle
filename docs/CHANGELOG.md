@@ -5,6 +5,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Additional Fields Support for DirectDebit Transactions**:
+  - Added `debtorBic` field support in `DirectDebitTransaction` (optional BIC for debtor)
+  - Added `additionalData` array for storing custom fields internally
+  - Added methods: `setDebtorBic()`, `getDebtorBic()`, `setAdditionalData()`, `getAdditionalData()`, `setAdditionalField()`, `getAdditionalField()`
+  - `debtorBic` is included in generated XML when provided
+  - `additionalData` is stored internally but not included in XML (for internal use only)
+  - Support for `debtorBic` and additional fields in `generateFromArray()` method
+
+- **Documentation**:
+  - Added `DEPRECATED_FIELDS.md` documenting fields that are no longer allowed in SEPA Direct Debit transactions
+  - Documented that postal addresses and contact information cannot be included in transactions (only in mandates)
+  - Added examples of correct and incorrect usage
+
+- **Test Coverage**:
+  - Added 5 new tests for `DirectDebitTransaction` covering `debtorBic` and `additionalData` functionality
+  - Added 5 new tests for `DirectDebitGenerator` verifying BIC inclusion in XML and additional data handling
+  - Tests verify that additional data is stored but not included in generated XML
+
+### Fixed
+- Fixed constant type declarations for PHP 8.2 compatibility
+  - Removed `const string` type declarations that caused syntax errors in PHP 8.2
+  - Changed to untyped constants with literal string values
+  - Fixed in `Configuration::ALIAS`, `DirectDebitGenerator::SERVICE_NAME`, `RemesaGenerator::SERVICE_NAME`, `IdentifierGenerator::SERVICE_NAME`
+
+## [0.0.6] - 2025-12-16
+
+### Added
+- **Service Registration with Attributes**: `DirectDebitGenerator` now uses Symfony `#[AsAlias]` attribute for automatic service registration
+  - Service is registered with alias `nowo_sepa_payment.generator.direct_debit_generator`
+  - Service is marked as public for explicit service retrieval
+  - Added `SERVICE_NAME` constant using `Configuration::ALIAS` for consistent naming
+
+- **Enhanced Test Coverage for DirectDebitGenerator**: Added comprehensive test cases to improve code coverage
+  - Tests for `generateFromArray()` with `DateTimeInterface` objects
+  - Tests for amount conversion from cents (> 10000)
+  - Tests for optional fields (`creditorBic`, `remittanceInformation`, `debtorMandateSignDate`)
+  - Tests for missing required fields validation
+  - Tests for invalid data types validation
+  - Tests for edge cases (empty transactions, missing transactions)
+  - Total of 14 new test methods covering all code paths
+
 ## [0.0.5] - 2025-12-16
 
 ### Fixed
@@ -76,7 +120,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Tests for edge cases (empty transactions, missing transactions)
   - Total of 14 new test methods covering all code paths
 
-## [Unreleased]
+## [0.0.7] - 2025-12-17
+
+### Added
+- **Additional Fields Support for DirectDebit Transactions**:
+  - Added `debtorBic` field support in `DirectDebitTransaction` (optional BIC for debtor)
+  - Added `additionalData` array for storing custom fields internally
+  - Added methods: `setDebtorBic()`, `getDebtorBic()`, `setAdditionalData()`, `getAdditionalData()`, `setAdditionalField()`, `getAdditionalField()`
+  - `debtorBic` is included in generated XML when provided
+  - `additionalData` is stored internally but not included in XML (for internal use only)
+  - Support for `debtorBic` and additional fields in `generateFromArray()` method
+
+- **Documentation**:
+  - Added `DEPRECATED_FIELDS.md` documenting fields that are no longer allowed in SEPA Direct Debit transactions
+  - Documented that postal addresses and contact information cannot be included in transactions (only in mandates)
+  - Added examples of correct and incorrect usage
+
+- **Test Coverage**:
+  - Added 5 new tests for `DirectDebitTransaction` covering `debtorBic` and `additionalData` functionality
+  - Added 5 new tests for `DirectDebitGenerator` verifying BIC inclusion in XML and additional data handling
+  - Tests verify that additional data is stored but not included in generated XML
+
+### Fixed
+- Fixed constant type declarations for PHP 8.2 compatibility
+  - Removed `const string` type declarations that caused syntax errors in PHP 8.2
+  - Changed to untyped constants with literal string values
+  - Fixed in `Configuration::ALIAS`, `DirectDebitGenerator::SERVICE_NAME`, `RemesaGenerator::SERVICE_NAME`, `IdentifierGenerator::SERVICE_NAME`
 
 - **Credit Card Validation**: Complete credit card number validation using Luhn algorithm
   - `CreditCardValidator::isValid()` - Validate credit card number using Luhn algorithm
