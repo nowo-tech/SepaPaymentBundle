@@ -255,7 +255,7 @@ class DirectDebitGenerator
      * This method can be extended to support additional fields from the Digitick\Sepa library.
      *
      * @param CustomerDirectDebitTransferInformation $transferInformation The transfer information object
-     * @param DirectDebitTransaction                 $transaction          The transaction data
+     * @param DirectDebitTransaction                 $transaction         The transaction data
      *
      * @return void
      */
