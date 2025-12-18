@@ -213,4 +213,60 @@ class DirectDebitTransaction
     {
         return $this->additionalData[$key] ?? $default;
     }
+
+    /**
+     * Sets the debtor address.
+     * Address will be included in the generated XML (as of v0.0.8).
+     *
+     * @param array<string, string|null>|string|null $street     Address array or street address
+     * @param string|null                            $city       City (ignored if first param is array)
+     * @param string|null                            $postalCode Postal code (ignored if first param is array)
+     * @param string|null                            $country    Country code (ignored if first param is array)
+     *
+     * @return self
+     */
+    public function setDebtorAddress(array|string|null $street = null, ?string $city = null, ?string $postalCode = null, ?string $country = null): self
+    {
+        if (is_array($street)) {
+            return $this->setDebtorAddressFromArray($street);
+        }
+
+        $this->additionalData['debtorAddress'] = [
+            'street' => $street,
+            'city' => $city,
+            'postalCode' => $postalCode,
+            'country' => $country,
+        ];
+
+        return $this;
+    }
+
+    /**
+     * Sets the debtor address from array.
+     *
+     * @param array<string, string|null> $address Address array with keys: street, city, postalCode, country
+     *
+     * @return self
+     */
+    public function setDebtorAddressFromArray(array $address): self
+    {
+        $this->additionalData['debtorAddress'] = [
+            'street' => $address['street'] ?? $address['address'] ?? null,
+            'city' => $address['city'] ?? null,
+            'postalCode' => $address['postalCode'] ?? $address['postal_code'] ?? null,
+            'country' => $address['country'] ?? null,
+        ];
+
+        return $this;
+    }
+
+    /**
+     * Gets the debtor address.
+     *
+     * @return array<string, string|null>|null The debtor address
+     */
+    public function getDebtorAddress(): ?array
+    {
+        return $this->additionalData['debtorAddress'] ?? null;
+    }
 }

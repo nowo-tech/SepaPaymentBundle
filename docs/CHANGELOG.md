@@ -120,6 +120,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Tests for edge cases (empty transactions, missing transactions)
   - Total of 14 new test methods covering all code paths
 
+## [0.0.8] - 2025-12-17
+
+### Added
+- **Postal Address Support (Optional)**: Added support for exporting creditor and debtor postal addresses in the generated XML
+  - Addresses are **completely optional** - only included if provided in the array
+  - Addresses are included using structured format (PstlAdr) with elements: StrtNm, TwnNm, PstCd, and Ctry
+  - Addresses are automatically added to XML using DOM manipulation after generation
+  - Both `DirectDebitData` and `DirectDebitTransaction` support address fields
+  - Addresses can be set via object methods (`setCreditorAddress()`, `setDebtorAddress()`) or array input (both camelCase and snake_case)
+  - Support for `creditorAddress` and `debtorAddress` in `generateFromArray()` method
+  - Support for `creditor_address` and `debtor_address` in snake_case format
+  - Support for individual address fields: `creditor_street`, `creditor_city`, `creditor_postal_code`, `creditor_country`, `debtor_street`, `debtor_city`, `debtor_postal_code`, `debtor_country`
+  - Updated `setCreditorAddress()` and `setDebtorAddress()` methods to accept arrays directly
+  - Empty address arrays are ignored and will not create address elements
+  - At least one address field must be provided for the address to be included in XML
+  - Updated documentation to reflect address support and optional nature
+
+### Changed
+- Updated `DEPRECATED_FIELDS.md` to clarify that addresses are now supported (as of v0.0.8)
+- Updated README examples to show address usage and clarify that addresses are optional
+- Address methods now accept arrays directly as first parameter for better usability
+
+### Test Coverage
+- Added 8 new tests for address functionality:
+  - `testGenerateXmlWithCreditorAddress()` - Tests creditor address with object methods
+  - `testGenerateXmlWithDebtorAddress()` - Tests debtor address with object methods
+  - `testGenerateXmlWithBothAddresses()` - Tests both addresses together
+  - `testGenerateFromArrayWithCreditorAddressSnakeCase()` - Tests creditor address in snake_case
+  - `testGenerateXmlWithoutAddresses()` - Tests that addresses are not included when not provided
+  - `testGenerateXmlWithEmptyAddressArray()` - Tests that empty address arrays are ignored
+  - Updated `testGenerateXml()` - Verifies no address elements when addresses are not provided
+  - Updated `testGenerateFromArrayWithAddresses()` - Enhanced assertions for address elements
+  - Updated `testGenerateFromArrayWithAddressesSnakeCase()` - Enhanced assertions for address elements
+
 ## [0.0.7] - 2025-12-17
 
 ### Added
@@ -131,15 +165,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `additionalData` is stored internally but not included in XML (for internal use only)
   - Support for `debtorBic` and additional fields in `generateFromArray()` method
 
+- **Snake_case Field Name Support**:
+  - `DirectDebitGenerator::generateFromArray()` now supports both camelCase and snake_case field names
+  - Automatic field name normalization for maximum flexibility
+  - Supports common snake_case formats: `message_id`, `initiating_party_name`, `payment_name`, `due_date`, `creditor_name`, `creditor_iban`, `creditor_bic`, `sequence_type`, `creditor_id`, `instrument_code`, `items`, `instruction_id`, `debtor_iban`, `debtor_name`, `debtor_mandate`, `debtor_mandate_signature_date`, `information`
+  - Backward compatible: existing camelCase code continues to work
+
 - **Documentation**:
   - Added `DEPRECATED_FIELDS.md` documenting fields that are no longer allowed in SEPA Direct Debit transactions
   - Documented that postal addresses and contact information cannot be included in transactions (only in mandates)
   - Added examples of correct and incorrect usage
+  - Updated README with snake_case examples
 
 - **Test Coverage**:
   - Added 5 new tests for `DirectDebitTransaction` covering `debtorBic` and `additionalData` functionality
   - Added 5 new tests for `DirectDebitGenerator` verifying BIC inclusion in XML and additional data handling
+  - Added 2 new tests for snake_case format support
   - Tests verify that additional data is stored but not included in generated XML
+
+- **Demo Applications**:
+  - Added `/demo-remesa-cobro-snake-case` endpoint to all demo applications (Symfony 6, 7, 8)
+  - Demonstrates usage of snake_case format with real-world example
 
 ### Fixed
 - Fixed constant type declarations for PHP 8.2 compatibility

@@ -6,20 +6,18 @@ This document describes fields that were previously required or allowed in SEPA 
 
 SEPA standards have evolved and some fields that were previously required or common have been **removed or deprecated** in the most recent versions of the pain.008.001.02 format. It is important not to attempt to include these fields, as they may cause validation errors or rejection by banks.
 
+**Note:** As of version 0.0.8, postal addresses for both creditor and debtor **are now supported** and will be included in the generated XML. The addresses are added using structured format (PstlAdr) with elements like StrtNm, TwnNm, PstCd, and Ctry.
+
 ## Fields that MUST NOT be included
 
-### 1. Debtor Postal Address
+### 1. Contact Information (Phone, Email)
 
-**Before:** In older versions of the SEPA standard, the complete postal address of the debtor could be included in the direct debit transaction.
-
-**Now:** The debtor's postal address **can no longer be included** in direct debit transactions (pain.008.001.02).
-
-**Important note:** The address is still required in the **SEPA mandate** (the document that authorizes the direct debit), but not in the XML transaction sent to the bank to execute the collection.
+**Before:** Contact information such as phone number or email of the debtor could be included.
 
 **Example of what you should NOT do:**
 
 ```php
-// ❌ INCORRECT - Do not attempt to include address in the transaction
+// ❌ INCORRECT - Do not attempt to include contact info in the transaction
 $transaction = new DirectDebitTransaction(
     100.50,
     'GB82WEST12345698765432',
@@ -29,10 +27,9 @@ $transaction = new DirectDebitTransaction(
     'E2E-001'
 );
 
-// ❌ This method does not exist and should not be used
-// $transaction->setDebtorAddress('123 Main St, London, UK');
-// $transaction->setDebtorPostalCode('SW1A 1AA');
-// $transaction->setDebtorCity('London');
+// ❌ These methods do not exist and should not be used
+// $transaction->setDebtorPhone('+44 20 1234 5678');
+// $transaction->setDebtorEmail('john@example.com');
 ```
 
 **Correct example:**
@@ -50,11 +47,17 @@ $transaction = new DirectDebitTransaction(
 
 $transaction->setRemittanceInformation('Invoice 12345');
 $transaction->setDebtorBic('WESTGB22'); // BIC is optional but allowed
+
+// ✅ Addresses are now supported (as of v0.0.8)
+$transaction->setDebtorAddress([
+    'street' => '123 Main St',
+    'city' => 'London',
+    'postalCode' => 'SW1A 1AA',
+    'country' => 'GB',
+]);
 ```
 
-### 2. Debtor Contact Information
-
-**Before:** Contact information such as phone number or email of the debtor could be included.
+### 2. Tax Identification Information
 
 **Now:** These fields **are not allowed** in direct debit transactions.
 
@@ -127,11 +130,15 @@ $data = [
             'remittanceInformation' => 'Invoice 12345',
             'debtorBic' => 'WESTGB22',
             
+            // ✅ Addresses are now supported (as of v0.0.8)
+            'debtorAddress' => [
+                'street' => '123 Main St',
+                'city' => 'London',
+                'postalCode' => 'SW1A 1AA',
+                'country' => 'GB',
+            ],
+            
             // ❌ DO NOT include these fields (they will cause errors):
-            // 'debtorAddress' => '123 Main St',        // ❌ Not allowed
-            // 'debtorPostalCode' => 'SW1A 1AA',       // ❌ Not allowed
-            // 'debtorCity' => 'London',                // ❌ Not allowed
-            // 'debtorCountry' => 'GB',                 // ❌ Not allowed
             // 'debtorPhone' => '+44 20 1234 5678',     // ❌ Not allowed
             // 'debtorEmail' => 'john@example.com',      // ❌ Not allowed
             // 'debtorTaxId' => 'GB123456789',          // ❌ Not allowed
@@ -142,9 +149,18 @@ $data = [
 $xml = $generator->generateFromArray($data);
 ```
 
-## Where does address information go then?
+## Address Support (as of v0.0.8)
 
-The debtor's address **must be in the SEPA mandate**, not in the transaction. The mandate is the document that the debtor signs to authorize direct debits. This document is managed separately and contains:
+**Postal addresses are now supported** in SEPA Direct Debit transactions. Both creditor and debtor addresses can be included in the XML using structured format:
+
+- **Street** (`StrtNm`): Street name
+- **City** (`TwnNm`): City name
+- **Postal Code** (`PstCd`): Postal/ZIP code
+- **Country** (`Ctry`): ISO 3166-1 alpha-2 country code
+
+The addresses are automatically added to the XML using DOM manipulation, ensuring compatibility with the SEPA pain.008.001.02 format.
+
+**Note:** The address is also required in the **SEPA mandate** (the document that authorizes the direct debit). The mandate is managed separately and contains:
 
 - Full name of the debtor
 - Complete postal address
