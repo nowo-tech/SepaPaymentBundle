@@ -271,6 +271,14 @@ $transaction1 = new Transaction(
 );
 
 $transaction1->setDebtorBic('WESTGB22');
+
+// Set debtor address (will be included in XML)
+$transaction1->setDebtorAddress([
+    'street' => '123 Main Street',
+    'city' => 'London',
+    'postalCode' => 'SW1A 1AA',
+    'country' => 'GB',
+]);
 $transaction1->setRemittanceInformation('Invoice 12345');
 
 $remesaData->addTransaction($transaction1);
@@ -300,6 +308,10 @@ file_put_contents('remesa.xml', $xml);
 
 #### Using Array Format (Recommended)
 
+The `generateFromArray()` method supports both **camelCase** and **snake_case** field names for maximum flexibility.
+
+**Using camelCase (default):**
+
 ```php
 use Nowo\SepaPaymentBundle\Generator\DirectDebitGenerator;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
@@ -327,16 +339,107 @@ $data = [
             'endToEndId' => 'E2E-001',                    // End-to-end ID
             'remittanceInformation' => 'Invoice 12345',  // Remittance info (optional)
             'debtorBic' => 'WESTGB22',                    // Debtor BIC (optional)
+            // Debtor address (optional, included in XML)
+            'debtorAddress' => [
+                'street' => '456 Customer Avenue',
+                'city' => 'London',
+                'postalCode' => 'SW1A 1AA',
+                'country' => 'GB',
+            ],
+            // Or use individual fields:
+            // 'debtorStreet' => '456 Customer Avenue',
+            // 'debtorCity' => 'London',
+            // 'debtorPostalCode' => 'SW1A 1AA',
+            // 'debtorCountry' => 'GB',
             // You can add any additional custom fields here
             // They will be stored in additionalData and can be used in applyAdditionalData()
         ],
         // More transactions...
     ],
+    // Creditor address (optional, included in XML)
+    'creditorAddress' => [
+        'street' => '123 Business Street',
+        'city' => 'Madrid',
+        'postalCode' => '28001',
+        'country' => 'ES',
+    ],
+    // Or use individual fields:
+    // 'creditorStreet' => '123 Business Street',
+    // 'creditorCity' => 'Madrid',
+    // 'creditorPostalCode' => '28001',
+    // 'creditorCountry' => 'ES',
 ];
 
 $xml = $generator->generateFromArray($data);
 file_put_contents('direct_debit.xml', $xml);
 ```
+
+**Note about Addresses:**
+
+As of version 0.0.8, postal addresses for both creditor and debtor are **optional** and will be included in the XML **only if provided** in the array. Addresses are added using structured format (PstlAdr) with elements like StrtNm, TwnNm, PstCd, and Ctry. The addresses are automatically added to the XML using DOM manipulation, ensuring compatibility with the SEPA pain.008.001.02 format.
+
+**Important:**
+- Addresses are **completely optional** - if not provided, no address elements will be added to the XML
+- Empty address arrays are ignored and will not create address elements
+- At least one address field (street, city, postalCode, or country) must be provided for the address to be included
+
+See [docs/DEPRECATED_FIELDS.md](docs/DEPRECATED_FIELDS.md) for more information about deprecated fields.
+
+**Using snake_case (also supported):**
+
+```php
+$data = [
+    'message_id' => 'PRE2025121614020000001REM000001',
+    'initiating_party_name' => 'My Company',
+    'payment_name' => 'PMTINF-1',
+    'due_date' => '2025-12-18',
+    'creditor_name' => 'My Company Name',
+    'creditor_iban' => 'ES2931183364320522274646',
+    'creditor_bic' => 'BBVAESMM',
+    'sequence_type' => 'RCUR',
+    'creditor_id' => 'ES654646464646',
+    'instrument_code' => 'CORE',
+    'items' => [  // Note: 'items' is also accepted (maps to 'transactions')
+        [
+            'instruction_id' => 'E2E-001',  // Maps to 'endToEndId'
+            'amount' => 2500.0,
+            'debtor_iban' => 'ES3330605615396412039906',
+            'debtor_name' => 'John Doe',
+            'debtor_mandate' => 'MANDATE-001',
+            'debtor_mandate_signature_date' => new \DateTime('2025-09-26'),
+            'information' => 'Invoice details',  // Maps to 'remittanceInformation'
+            'id' => 'custom-id',  // Additional field (stored in additionalData)
+            'debtor_address' => [                        // Debtor address (snake_case, included in XML)
+                'street' => '789 Customer Road',
+                'city' => 'Barcelona',
+                'postal_code' => '08001',
+                'country' => 'ES',
+            ],
+        ],
+    ],
+];
+
+$xml = $generator->generateFromArray($data);
+```
+
+**Field name mapping (snake_case → camelCase):**
+- `message_id` → `reference`
+- `initiating_party_name` → `bankAccountOwner`
+- `payment_name` → `paymentInfoId`
+- `due_date` → `dueDate`
+- `creditor_name` → `creditorName`
+- `creditor_iban` → `creditorIban`
+- `creditor_bic` → `creditorBic`
+- `sequence_type` → `seqType`
+- `creditor_id` → `creditorId`
+- `instrument_code` → `localInstrumentCode`
+- `items` → `transactions`
+- `instruction_id` → `endToEndId`
+- `debtor_iban` → `debtorIban`
+- `debtor_name` → `debtorName`
+- `debtor_mandate` → `debtorMandate`
+- `debtor_mandate_signature_date` → `debtorMandateSignDate`
+- `information` → `remittanceInformation`
 
 #### Using Object Format
 
@@ -372,10 +475,26 @@ $transaction = new DirectDebitTransaction(
 $transaction->setRemittanceInformation('Invoice 12345');
 $transaction->setDebtorBic('WESTGB22'); // Optional: Set debtor BIC
 
+// Set debtor address (included in XML)
+$transaction->setDebtorAddress([
+    'street' => '456 Customer Avenue',
+    'city' => 'London',
+    'postalCode' => 'SW1A 1AA',
+    'country' => 'GB',
+]);
+
 // You can also add additional custom data
 $transaction->setAdditionalField('customField', 'customValue');
 // Or set multiple additional fields at once
 $transaction->setAdditionalData(['field1' => 'value1', 'field2' => 'value2']);
+
+// Set creditor address (included in XML)
+$directDebitData->setCreditorAddress([
+    'street' => '123 Business Street',
+    'city' => 'Madrid',
+    'postalCode' => '28001',
+    'country' => 'ES',
+]);
 
 $directDebitData->addTransaction($transaction);
 
@@ -642,6 +761,10 @@ Please read [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for details on our code
 ## Branching Strategy
 
 See [docs/BRANCHING.md](docs/BRANCHING.md) for information about our branching strategy and workflow.
+
+## Upgrade Guide
+
+See [docs/UPGRADE.md](docs/UPGRADE.md) for instructions on upgrading between versions.
 
 ## Deprecated Fields
 

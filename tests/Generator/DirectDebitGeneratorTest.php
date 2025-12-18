@@ -37,7 +37,7 @@ class DirectDebitGeneratorTest extends TestCase
     }
 
     /**
-     * Tests XML generation with valid data.
+     * Tests XML generation with valid data (without addresses).
      *
      * @return void
      */
@@ -865,5 +865,476 @@ class DirectDebitGeneratorTest extends TestCase
         // Additional data should NOT be in XML
         $this->assertStringNotContainsString('INT-12345', $xml);
         $this->assertStringNotContainsString('customValue', $xml);
+    }
+
+    /**
+     * Tests generateFromArray with snake_case field names.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayWithSnakeCase(): void
+    {
+        $data = [
+            'message_id' => 'PRE2025121614020000001REM000001',
+            'initiating_party_name' => 'dwdwdw',
+            'payment_name' => 'PMTINF-1',
+            'due_date' => '2025-12-18',
+            'creditor_name' => 'pepito',
+            'creditor_iban' => 'ES2931183364320522274646',
+            'creditor_bic' => 'BBVAESMM',
+            'sequence_type' => 'RCUR',
+            'creditor_id' => 'ES654646464646',
+            'instrument_code' => 'CORE',
+            'items' => [
+                [
+                    'instruction_id' => 'ES3330605615396412039906',
+                    'amount' => 2500.0,
+                    'debtor_iban' => 'ES3330605615396412039906',
+                    'debtor_name' => 'grgrg',
+                    'debtor_mandate' => 'ES3330605615396412039906',
+                    'debtor_mandate_signature_date' => new \DateTime('2025-09-26'),
+                    'information' => 'Periodo:26/09/2025 al 26/09/2025 N. Poliza: 2025-00000001-00003 Recibo Cia: rtrtt',
+                    'id' => 'rtrtt',
+                ],
+            ],
+        ];
+
+        $xml = $this->generator->generateFromArray($data);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrDrctDbtInitn', $xml);
+        $this->assertStringContainsString('PRE2025121614020000001REM000001', $xml);
+        $this->assertStringContainsString('PMTINF-1', $xml);
+        $this->assertStringContainsString('pepito', $xml);
+        $this->assertStringContainsString('ES2931183364320522274646', $xml);
+        $this->assertStringContainsString('ES3330605615396412039906', $xml);
+        $this->assertStringContainsString('2500', $xml);
+        $this->assertStringContainsString('Periodo:26/09/2025', $xml);
+    }
+
+    /**
+     * Tests generateFromArray with snake_case and additional fields.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayWithSnakeCaseAndAdditionalFields(): void
+    {
+        $data = [
+            'message_id' => 'MSG-001',
+            'initiating_party_name' => 'My Company',
+            'payment_name' => 'PMT-001',
+            'due_date' => '2024-01-20',
+            'creditor_name' => 'My Company Name',
+            'creditor_iban' => 'ES9121000418450200051332',
+            'creditor_bic' => 'CAIXESBBXXX',
+            'sequence_type' => 'FRST',
+            'creditor_id' => 'ES1234567890123456789012',
+            'instrument_code' => 'CORE',
+            'items' => [
+                [
+                    'instruction_id' => 'E2E-001',
+                    'amount' => 100.50,
+                    'debtor_iban' => 'GB82WEST12345698765432',
+                    'debtor_name' => 'John Doe',
+                    'debtor_mandate' => 'MANDATE-001',
+                    'debtor_mandate_signature_date' => '2023-12-01',
+                    'information' => 'Invoice 12345',
+                    'custom_field' => 'customValue',
+                    'internal_id' => 'INT-12345',
+                ],
+            ],
+        ];
+
+        $xml = $this->generator->generateFromArray($data);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrDrctDbtInitn', $xml);
+        $this->assertStringContainsString('Invoice 12345', $xml);
+        // Additional fields should not appear in XML
+        $this->assertStringNotContainsString('customValue', $xml);
+        $this->assertStringNotContainsString('INT-12345', $xml);
+    }
+
+    /**
+     * Tests generateFromArray with creditor and debtor addresses.
+     * Addresses are attempted to be included in XML if the library supports it.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayWithAddresses(): void
+    {
+        $data = [
+            'reference' => 'MSG-001',
+            'bankAccountOwner' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'dueDate' => '2024-01-20',
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+            'seqType' => 'FRST',
+            'creditorId' => 'ES1234567890123456789012',
+            'localInstrumentCode' => 'CORE',
+            'creditorAddress' => [
+                'street' => '123 Business Street',
+                'city' => 'Madrid',
+                'postalCode' => '28001',
+                'country' => 'ES',
+            ],
+            'transactions' => [
+                [
+                    'amount' => 100.50,
+                    'debtorIban' => 'GB82WEST12345698765432',
+                    'debtorName' => 'John Doe',
+                    'debtorMandate' => 'MANDATE-001',
+                    'debtorMandateSignDate' => '2024-01-15',
+                    'endToEndId' => 'E2E-001',
+                    'debtorAddress' => [
+                        'street' => '456 Customer Avenue',
+                        'city' => 'London',
+                        'postalCode' => 'SW1A 1AA',
+                        'country' => 'GB',
+                    ],
+                ],
+            ],
+        ];
+
+        $xml = $this->generator->generateFromArray($data);
+
+        // XML should be generated successfully
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrDrctDbtInitn', $xml);
+        // Addresses should appear in XML
+        $this->assertStringContainsString('PstlAdr', $xml);
+        $this->assertStringContainsString('123 Business Street', $xml);
+        $this->assertStringContainsString('Madrid', $xml);
+        $this->assertStringContainsString('28001', $xml);
+        $this->assertStringContainsString('ES', $xml);
+        $this->assertStringContainsString('456 Customer Avenue', $xml);
+        $this->assertStringContainsString('London', $xml);
+        $this->assertStringContainsString('SW1A 1AA', $xml);
+        $this->assertStringContainsString('GB', $xml);
+    }
+
+    /**
+     * Tests generateFromArray with addresses using snake_case field names.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayWithAddressesSnakeCase(): void
+    {
+        $data = [
+            'message_id' => 'MSG-001',
+            'initiating_party_name' => 'My Company',
+            'payment_name' => 'PMT-001',
+            'due_date' => '2024-01-20',
+            'creditor_name' => 'My Company Name',
+            'creditor_iban' => 'ES9121000418450200051332',
+            'sequence_type' => 'FRST',
+            'creditor_id' => 'ES1234567890123456789012',
+            'instrument_code' => 'CORE',
+            'creditor_street' => '123 Business Street',
+            'creditor_city' => 'Madrid',
+            'creditor_postal_code' => '28001',
+            'creditor_country' => 'ES',
+            'items' => [
+                [
+                    'instruction_id' => 'E2E-001',
+                    'amount' => 100.50,
+                    'debtor_iban' => 'GB82WEST12345698765432',
+                    'debtor_name' => 'John Doe',
+                    'debtor_mandate' => 'MANDATE-001',
+                    'debtor_mandate_signature_date' => '2024-01-15',
+                    'debtor_street' => '456 Customer Avenue',
+                    'debtor_city' => 'London',
+                    'debtor_postal_code' => 'SW1A 1AA',
+                    'debtor_country' => 'GB',
+                ],
+            ],
+        ];
+
+        $xml = $this->generator->generateFromArray($data);
+
+        // XML should be generated successfully
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrDrctDbtInitn', $xml);
+        // Addresses should appear in XML
+        $this->assertStringContainsString('PstlAdr', $xml);
+        $this->assertStringContainsString('123 Business Street', $xml);
+        $this->assertStringContainsString('Madrid', $xml);
+        $this->assertStringContainsString('28001', $xml);
+        $this->assertStringContainsString('456 Customer Avenue', $xml);
+        $this->assertStringContainsString('London', $xml);
+        $this->assertStringContainsString('SW1A 1AA', $xml);
+    }
+
+    /**
+     * Tests XML generation with creditor address using object methods.
+     *
+     * @return void
+     */
+    public function testGenerateXmlWithCreditorAddress(): void
+    {
+        $directDebitData = new DirectDebitData(
+            'MSG-001',
+            'My Company',
+            'PMT-001',
+            new \DateTime('2024-01-20'),
+            'My Company Name',
+            'ES9121000418450200051332',
+            'FRST',
+            'ES1234567890123456789012',
+            'CORE'
+        );
+
+        $directDebitData->setCreditorAddress([
+            'street' => '789 Business Road',
+            'city' => 'Barcelona',
+            'postalCode' => '08001',
+            'country' => 'ES',
+        ]);
+
+        $transaction = new DirectDebitTransaction(
+            100.50,
+            'GB82WEST12345698765432',
+            'John Doe',
+            'MANDATE-001',
+            new \DateTime('2023-12-01'),
+            'E2E-001'
+        );
+
+        $directDebitData->addTransaction($transaction);
+
+        $xml = $this->generator->generate($directDebitData);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrDrctDbtInitn', $xml);
+        $this->assertStringContainsString('PstlAdr', $xml);
+        $this->assertStringContainsString('789 Business Road', $xml);
+        $this->assertStringContainsString('Barcelona', $xml);
+        $this->assertStringContainsString('08001', $xml);
+    }
+
+    /**
+     * Tests XML generation with debtor address using object methods.
+     *
+     * @return void
+     */
+    public function testGenerateXmlWithDebtorAddress(): void
+    {
+        $directDebitData = new DirectDebitData(
+            'MSG-001',
+            'My Company',
+            'PMT-001',
+            new \DateTime('2024-01-20'),
+            'My Company Name',
+            'ES9121000418450200051332',
+            'FRST',
+            'ES1234567890123456789012',
+            'CORE'
+        );
+
+        $transaction = new DirectDebitTransaction(
+            100.50,
+            'GB82WEST12345698765432',
+            'John Doe',
+            'MANDATE-001',
+            new \DateTime('2023-12-01'),
+            'E2E-001'
+        );
+
+        $transaction->setDebtorAddress([
+            'street' => '321 Customer Street',
+            'city' => 'Manchester',
+            'postalCode' => 'M1 1AA',
+            'country' => 'GB',
+        ]);
+
+        $directDebitData->addTransaction($transaction);
+
+        $xml = $this->generator->generate($directDebitData);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrDrctDbtInitn', $xml);
+        $this->assertStringContainsString('PstlAdr', $xml);
+        $this->assertStringContainsString('321 Customer Street', $xml);
+        $this->assertStringContainsString('Manchester', $xml);
+        $this->assertStringContainsString('M1 1AA', $xml);
+    }
+
+    /**
+     * Tests XML generation with both creditor and debtor addresses.
+     *
+     * @return void
+     */
+    public function testGenerateXmlWithBothAddresses(): void
+    {
+        $directDebitData = new DirectDebitData(
+            'MSG-001',
+            'My Company',
+            'PMT-001',
+            new \DateTime('2024-01-20'),
+            'My Company Name',
+            'ES9121000418450200051332',
+            'FRST',
+            'ES1234567890123456789012',
+            'CORE'
+        );
+
+        $directDebitData->setCreditorAddress([
+            'street' => '111 Creditor Ave',
+            'city' => 'Valencia',
+            'postalCode' => '46001',
+            'country' => 'ES',
+        ]);
+
+        $transaction = new DirectDebitTransaction(
+            100.50,
+            'GB82WEST12345698765432',
+            'John Doe',
+            'MANDATE-001',
+            new \DateTime('2023-12-01'),
+            'E2E-001'
+        );
+
+        $transaction->setDebtorAddress([
+            'street' => '222 Debtor Blvd',
+            'city' => 'Leeds',
+            'postalCode' => 'LS1 1AA',
+            'country' => 'GB',
+        ]);
+
+        $directDebitData->addTransaction($transaction);
+
+        $xml = $this->generator->generate($directDebitData);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrDrctDbtInitn', $xml);
+        $this->assertStringContainsString('PstlAdr', $xml);
+        // Creditor address
+        $this->assertStringContainsString('111 Creditor Ave', $xml);
+        $this->assertStringContainsString('Valencia', $xml);
+        // Debtor address
+        $this->assertStringContainsString('222 Debtor Blvd', $xml);
+        $this->assertStringContainsString('Leeds', $xml);
+    }
+
+    /**
+     * Tests generateFromArray with creditor_address in snake_case.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayWithCreditorAddressSnakeCase(): void
+    {
+        $data = [
+            'message_id' => 'MSG-001',
+            'initiating_party_name' => 'My Company',
+            'payment_name' => 'PMT-001',
+            'due_date' => '2024-01-20',
+            'creditor_name' => 'My Company Name',
+            'creditor_iban' => 'ES9121000418450200051332',
+            'sequence_type' => 'FRST',
+            'creditor_id' => 'ES1234567890123456789012',
+            'instrument_code' => 'CORE',
+            'creditor_address' => [
+                'street' => '333 Snake Street',
+                'city' => 'Seville',
+                'postal_code' => '41001',
+                'country' => 'ES',
+            ],
+            'items' => [
+                [
+                    'instruction_id' => 'E2E-001',
+                    'amount' => 100.50,
+                    'debtor_iban' => 'GB82WEST12345698765432',
+                    'debtor_name' => 'John Doe',
+                    'debtor_mandate' => 'MANDATE-001',
+                    'debtor_mandate_signature_date' => '2024-01-15',
+                ],
+            ],
+        ];
+
+        $xml = $this->generator->generateFromArray($data);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrDrctDbtInitn', $xml);
+        $this->assertStringContainsString('PstlAdr', $xml);
+        $this->assertStringContainsString('333 Snake Street', $xml);
+        $this->assertStringContainsString('Seville', $xml);
+        $this->assertStringContainsString('41001', $xml);
+    }
+
+    /**
+     * Tests that addresses are optional and not included when not provided.
+     *
+     * @return void
+     */
+    public function testGenerateXmlWithoutAddresses(): void
+    {
+        $data = [
+            'reference' => 'MSG-001',
+            'bankAccountOwner' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'dueDate' => '2024-01-20',
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+            'seqType' => 'FRST',
+            'creditorId' => 'ES1234567890123456789012',
+            'localInstrumentCode' => 'CORE',
+            'transactions' => [
+                [
+                    'amount' => 100.50,
+                    'debtorIban' => 'GB82WEST12345698765432',
+                    'debtorName' => 'John Doe',
+                    'debtorMandate' => 'MANDATE-001',
+                    'debtorMandateSignDate' => '2024-01-15',
+                    'endToEndId' => 'E2E-001',
+                ],
+            ],
+        ];
+
+        $xml = $this->generator->generateFromArray($data);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrDrctDbtInitn', $xml);
+        // Addresses should NOT appear when not provided
+        $this->assertStringNotContainsString('PstlAdr', $xml);
+    }
+
+    /**
+     * Tests that empty address arrays are not included.
+     *
+     * @return void
+     */
+    public function testGenerateXmlWithEmptyAddressArray(): void
+    {
+        $data = [
+            'reference' => 'MSG-001',
+            'bankAccountOwner' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'dueDate' => '2024-01-20',
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+            'seqType' => 'FRST',
+            'creditorId' => 'ES1234567890123456789012',
+            'localInstrumentCode' => 'CORE',
+            'creditorAddress' => [], // Empty array
+            'transactions' => [
+                [
+                    'amount' => 100.50,
+                    'debtorIban' => 'GB82WEST12345698765432',
+                    'debtorName' => 'John Doe',
+                    'debtorMandate' => 'MANDATE-001',
+                    'debtorMandateSignDate' => '2024-01-15',
+                    'endToEndId' => 'E2E-001',
+                    'debtorAddress' => [], // Empty array
+                ],
+            ],
+        ];
+
+        $xml = $this->generator->generateFromArray($data);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrDrctDbtInitn', $xml);
+        // Empty address arrays should NOT create PstlAdr elements
+        $this->assertStringNotContainsString('PstlAdr', $xml);
     }
 }

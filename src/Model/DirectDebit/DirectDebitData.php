@@ -21,6 +21,13 @@ class DirectDebitData
     private ?string $creditorBic = null;
 
     /**
+     * Creditor address (optional, stored internally, not included in XML).
+     *
+     * @var array<string, string|null>|null
+     */
+    private ?array $creditorAddress = null;
+
+    /**
      * List of transactions.
      *
      * @var array<int, DirectDebitTransaction>
@@ -204,5 +211,61 @@ class DirectDebitData
         }
 
         return $total;
+    }
+
+    /**
+     * Sets the creditor address.
+     * Address will be included in the generated XML (as of v0.0.8).
+     *
+     * @param array<string, string|null>|string|null $street     Address array or street address
+     * @param string|null                            $city       City (ignored if first param is array)
+     * @param string|null                            $postalCode Postal code (ignored if first param is array)
+     * @param string|null                            $country    Country code (ignored if first param is array)
+     *
+     * @return self
+     */
+    public function setCreditorAddress(array|string|null $street = null, ?string $city = null, ?string $postalCode = null, ?string $country = null): self
+    {
+        if (is_array($street)) {
+            return $this->setCreditorAddressFromArray($street);
+        }
+
+        $this->creditorAddress = [
+            'street' => $street,
+            'city' => $city,
+            'postalCode' => $postalCode,
+            'country' => $country,
+        ];
+
+        return $this;
+    }
+
+    /**
+     * Sets the creditor address from array.
+     *
+     * @param array<string, string|null> $address Address array with keys: street, city, postalCode, country
+     *
+     * @return self
+     */
+    public function setCreditorAddressFromArray(array $address): self
+    {
+        $this->creditorAddress = [
+            'street' => $address['street'] ?? $address['address'] ?? null,
+            'city' => $address['city'] ?? null,
+            'postalCode' => $address['postalCode'] ?? $address['postal_code'] ?? null,
+            'country' => $address['country'] ?? null,
+        ];
+
+        return $this;
+    }
+
+    /**
+     * Gets the creditor address.
+     *
+     * @return array<string, string|null>|null The creditor address
+     */
+    public function getCreditorAddress(): ?array
+    {
+        return $this->creditorAddress;
     }
 }
