@@ -197,10 +197,9 @@ class DirectDebitGenerator
             );
         }
 
-        // Add transactions (support both 'transactions' and 'items' keys)
-        $transactionsKey = $data['transactions'] ?? $data['items'] ?? null;
-        if (is_array($transactionsKey)) {
-            foreach ($transactionsKey as $transactionData) {
+        // Add transactions (after normalization, 'items' should already be 'transactions')
+        if (isset($data['transactions']) && is_array($data['transactions'])) {
+            foreach ($data['transactions'] as $transactionData) {
                 // Normalize transaction array keys
                 $transactionData = $this->normalizeTransactionArrayKeys($transactionData);
                 $transaction = $this->createTransactionFromArray($transactionData, $dueDate);

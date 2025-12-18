@@ -55,6 +55,12 @@ define up-target-template
 up-$(1):
 	@VERSION=$$$$(echo $(1) | sed 's/symfony/Symfony /' | sed 's/6/6.4/' | sed 's/7/7.0/' | sed 's/8/8.0/'); \
 	echo "🚀 Starting $$$$VERSION demo..."; \
+	if ! command -v docker-compose >/dev/null 2>&1 && ! command -v docker compose >/dev/null 2>&1; then \
+		echo "❌ Error: docker-compose or 'docker compose' is not available"; \
+		echo "Please install Docker Desktop and enable WSL 2 integration"; \
+		echo "See: https://docs.docker.com/go/wsl2/"; \
+		exit 1; \
+	fi; \
 	cd demo-$(1) && \
 	if [ ! -f .env ]; then cp .env.example .env 2>/dev/null || true; fi && \
 	PORT=$$$$(grep "^PORT=" .env 2>/dev/null | cut -d= -f2 | head -1 || echo 8001); \
@@ -67,14 +73,19 @@ up-$(1):
 		docker rm $$$$CONTAINER 2>/dev/null || true; \
 		echo "✅ Port $$$$PORT is now free"; \
 	fi && \
-	docker-compose build && \
-	docker-compose up -d && \
+	if command -v docker-compose >/dev/null 2>&1; then \
+		DOCKER_COMPOSE_CMD="docker-compose"; \
+	else \
+		DOCKER_COMPOSE_CMD="docker compose"; \
+	fi && \
+	$$$$DOCKER_COMPOSE_CMD build && \
+	$$$$DOCKER_COMPOSE_CMD up -d && \
 	echo "⏳ Waiting for demo to be ready..." && \
 	sleep 5 && \
 	MAX_ATTEMPTS=12; \
 	ATTEMPT=1; \
 	while [ $$$$ATTEMPT -le $$$$MAX_ATTEMPTS ]; do \
-		if curl -s -o /dev/null -w "%{http_code}" http://localhost:$$$$PORT | grep -q "200"; then \
+		if curl -s -o /dev/null -w "%{http_code}" http://localhost:$$$$PORT 2>/dev/null | grep -q "200"; then \
 			echo "✅ $$$$VERSION demo is running and responding at http://localhost:$$$$PORT"; \
 			exit 0; \
 		fi; \
@@ -88,28 +99,58 @@ up-$(1):
 down-$(1):
 	@VERSION=$$$$(echo $(1) | sed 's/symfony/Symfony /' | sed 's/6/6.4/' | sed 's/7/7.0/' | sed 's/8/8.0/'); \
 	echo "🛑 Stopping $$$$VERSION demo..."; \
-	cd demo-$(1) && docker-compose down
+	if command -v docker-compose >/dev/null 2>&1; then \
+		DOCKER_COMPOSE_CMD="docker-compose"; \
+	else \
+		DOCKER_COMPOSE_CMD="docker compose"; \
+	fi; \
+	cd demo-$(1) && $$$$DOCKER_COMPOSE_CMD down
 
 install-$(1):
 	@VERSION=$$$$(echo $(1) | sed 's/symfony/Symfony /' | sed 's/6/6.4/' | sed 's/7/7.0/' | sed 's/8/8.0/'); \
 	echo "📦 Installing dependencies for $$$$VERSION demo..."; \
-	cd demo-$(1) && docker-compose exec php composer install --no-interaction
+	if command -v docker-compose >/dev/null 2>&1; then \
+		DOCKER_COMPOSE_CMD="docker-compose"; \
+	else \
+		DOCKER_COMPOSE_CMD="docker compose"; \
+	fi; \
+	cd demo-$(1) && $$$$DOCKER_COMPOSE_CMD exec php composer install --no-interaction
 
 shell-$(1):
-	@cd demo-$(1) && docker-compose exec php sh
+	@if command -v docker-compose >/dev/null 2>&1; then \
+		DOCKER_COMPOSE_CMD="docker-compose"; \
+	else \
+		DOCKER_COMPOSE_CMD="docker compose"; \
+	fi; \
+	cd demo-$(1) && $$$$DOCKER_COMPOSE_CMD exec php sh
 
 logs-$(1):
-	@cd demo-$(1) && docker-compose logs -f
+	@if command -v docker-compose >/dev/null 2>&1; then \
+		DOCKER_COMPOSE_CMD="docker-compose"; \
+	else \
+		DOCKER_COMPOSE_CMD="docker compose"; \
+	fi; \
+	cd demo-$(1) && $$$$DOCKER_COMPOSE_CMD logs -f
 
 test-$(1):
 	@VERSION=$$$$(echo $(1) | sed 's/symfony/Symfony /' | sed 's/6/6.4/' | sed 's/7/7.0/' | sed 's/8/8.0/'); \
 	echo "🧪 Running tests for $$$$VERSION demo..."; \
-	cd demo-$(1) && docker-compose exec php composer test
+	if command -v docker-compose >/dev/null 2>&1; then \
+		DOCKER_COMPOSE_CMD="docker-compose"; \
+	else \
+		DOCKER_COMPOSE_CMD="docker compose"; \
+	fi; \
+	cd demo-$(1) && $$$$DOCKER_COMPOSE_CMD exec php composer test
 
 test-coverage-$(1):
 	@VERSION=$$$$(echo $(1) | sed 's/symfony/Symfony /' | sed 's/6/6.4/' | sed 's/7/7.0/' | sed 's/8/8.0/'); \
 	echo "📊 Running tests with coverage for $$$$VERSION demo..."; \
-	cd demo-$(1) && docker-compose exec php composer test-coverage
+	if command -v docker-compose >/dev/null 2>&1; then \
+		DOCKER_COMPOSE_CMD="docker-compose"; \
+	else \
+		DOCKER_COMPOSE_CMD="docker compose"; \
+	fi; \
+	cd demo-$(1) && $$$$DOCKER_COMPOSE_CMD exec php composer test-coverage
 
 verify-$(1):
 	@VERSION=$$$$(echo $(1) | sed 's/symfony/Symfony /' | sed 's/6/6.4/' | sed 's/7/7.0/' | sed 's/8/8.0/'); \
