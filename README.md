@@ -1,6 +1,8 @@
 # SEPA Payment Bundle
 
-[![CI](https://github.com/nowo-tech/sepa-payment-bundle/actions/workflows/ci.yml/badge.svg)](https://github.com/nowo-tech/sepa-payment-bundle/actions/workflows/ci.yml) [![Latest Stable Version](https://poser.pugx.org/nowo-tech/sepa-payment-bundle/v)](https://packagist.org/packages/nowo-tech/sepa-payment-bundle) [![License](https://poser.pugx.org/nowo-tech/sepa-payment-bundle/license)](https://packagist.org/packages/nowo-tech/sepa-payment-bundle) [![PHP Version Require](https://poser.pugx.org/nowo-tech/sepa-payment-bundle/require/php)](https://packagist.org/packages/nowo-tech/sepa-payment-bundle)
+[![CI](https://github.com/nowo-tech/sepa-payment-bundle/actions/workflows/ci.yml/badge.svg)](https://github.com/nowo-tech/sepa-payment-bundle/actions/workflows/ci.yml) [![Latest Stable Version](https://poser.pugx.org/nowo-tech/sepa-payment-bundle/v)](https://packagist.org/packages/nowo-tech/sepa-payment-bundle) [![License](https://poser.pugx.org/nowo-tech/sepa-payment-bundle/license)](https://packagist.org/packages/nowo-tech/sepa-payment-bundle) [![PHP Version Require](https://poser.pugx.org/nowo-tech/sepa-payment-bundle/require/php)](https://packagist.org/packages/nowo-tech/sepa-payment-bundle) [![GitHub stars](https://img.shields.io/github/stars/nowo-tech/sepa-payment-bundle.svg?style=social&label=Star)](https://github.com/nowo-tech/sepa-payment-bundle)
+
+> ⭐ **Found this project useful?** Give it a star on GitHub! It helps us maintain and improve the project.
 
 Symfony bundle for SEPA payment management: IBAN validation, mandate management, SEPA Credit Transfer and SEPA Direct Debit generation.
 
