@@ -398,7 +398,7 @@ class DirectDebitGenerator
      * Uses available methods from the Digitick\Sepa library.
      *
      * @param CustomerDirectDebitTransferInformation $transferInformation The transfer information object
-     * @param array<string, string|null>             $address              Address array with keys: street, city, postalCode, country
+     * @param array<string, string|null>             $address             Address array with keys: street, city, postalCode, country
      *
      * @return void
      */
@@ -438,8 +438,8 @@ class DirectDebitGenerator
      * Sets creditor postal address on payment information.
      * Uses available methods from the Digitick\Sepa library.
      *
-     * @param PaymentInformation                     $paymentInformation The payment information object
-     * @param array<string, string|null>             $address            Address array with keys: street, city, postalCode, country
+     * @param PaymentInformation         $paymentInformation The payment information object
+     * @param array<string, string|null> $address            Address array with keys: street, city, postalCode, country
      *
      * @return void
      */
@@ -478,7 +478,7 @@ class DirectDebitGenerator
      * Adds addresses to the generated XML using DOM manipulation.
      * This ensures addresses are included even if the library doesn't support them directly.
      *
-     * @param string          $xml            The generated XML
+     * @param string          $xml             The generated XML
      * @param DirectDebitData $directDebitData The direct debit data with addresses
      *
      * @return string The XML with addresses added
@@ -594,9 +594,9 @@ class DirectDebitGenerator
     private function createPostalAddressElement(\DOMDocument $dom, \DOMElement $parentNode, array $address, string $namespace): void
     {
         // Check if at least one address field is provided
-        $hasAddress = !empty($address['street']) 
-            || !empty($address['city']) 
-            || !empty($address['postalCode']) 
+        $hasAddress = !empty($address['street'])
+            || !empty($address['city'])
+            || !empty($address['postalCode'])
             || !empty($address['country']);
 
         if (!$hasAddress) {
