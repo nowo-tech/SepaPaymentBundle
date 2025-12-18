@@ -2,6 +2,31 @@
 
 This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
+## Upgrading to 0.0.9
+
+### New Features
+
+#### HTTP Response Helper Method
+
+Both `DirectDebitGenerator` and `RemesaGenerator` now include a `createResponse()` method that simplifies returning XML files as HTTP responses in Symfony controllers.
+
+**Before:**
+```php
+$xml = $generator->generateFromArray($data);
+return new Response($xml, 200, [
+    'Content-Type' => 'application/xml',
+    'Content-Disposition' => 'attachment; filename="remesa-cobro.xml"',
+]);
+```
+
+**After:**
+```php
+$xml = $generator->generateFromArray($data);
+return $generator->createResponse($xml, 'remesa-cobro.xml');
+```
+
+This is a **non-breaking change** - existing code will continue to work. The new method is optional and provides a more convenient way to create HTTP responses.
+
 ## Upgrading to 0.0.8
 
 ### New Features

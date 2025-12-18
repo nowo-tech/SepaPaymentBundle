@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.9] - 2025-12-16
+
+### Added
+- **HTTP Response Helper Method**: Added `createResponse()` method to both `DirectDebitGenerator` and `RemesaGenerator`
+  - Method accepts XML content (string) and filename (string) as parameters
+  - Returns a Symfony `Response` object with proper headers for XML file download
+  - Automatically sets `Content-Type: application/xml` and `Content-Disposition: attachment; filename="..."`
+  - Simplifies controller code by eliminating manual Response creation
+  - Example usage: `$generator->createResponse($xml, 'remesa-cobro.xml')`
+
 ### Added
 - **Additional Fields Support for DirectDebit Transactions**:
   - Added `debtorBic` field support in `DirectDebitTransaction` (optional BIC for debtor)

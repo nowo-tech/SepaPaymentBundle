@@ -126,10 +126,7 @@ class DemoController extends AbstractController
         try {
             $xml = $generator->generate($remesaData);
 
-            return new Response($xml, 200, [
-                'Content-Type' => 'application/xml',
-                'Content-Disposition' => 'attachment; filename="remesa-pago.xml"',
-            ]);
+            return $generator->createResponse($xml, 'remesa-pago.xml');
         } catch (\Exception $e) {
             return new Response('Error: ' . $e->getMessage(), 500);
         }
@@ -171,10 +168,7 @@ class DemoController extends AbstractController
         try {
             $xml = $generator->generateFromArray($data);
 
-            return new Response($xml, 200, [
-                'Content-Type' => 'application/xml',
-                'Content-Disposition' => 'attachment; filename="remesa-cobro.xml"',
-            ]);
+            return $generator->createResponse($xml, 'remesa-cobro.xml');
         } catch (\Exception $e) {
             return new Response('Error: ' . $e->getMessage(), 500);
         }
@@ -314,10 +308,7 @@ class DemoController extends AbstractController
         try {
             $xml = $generator->generateFromArray($data);
 
-            return new Response($xml, 200, [
-                'Content-Type' => 'application/xml',
-                'Content-Disposition' => 'attachment; filename="remesa-cobro-snake-case.xml"',
-            ]);
+            return $generator->createResponse($xml, 'remesa-cobro-snake-case.xml');
         } catch (\Exception $e) {
             return new Response('Error: ' . $e->getMessage(), 500);
         }
@@ -377,10 +368,7 @@ class DemoController extends AbstractController
         try {
             $xml = $generator->generateFromArray($data);
 
-            return new Response($xml, 200, [
-                'Content-Type' => 'application/xml',
-                'Content-Disposition' => 'attachment; filename="remesa-cobro-with-addresses.xml"',
-            ]);
+            return $generator->createResponse($xml, 'remesa-cobro-with-addresses.xml');
         } catch (\Exception $e) {
             return new Response('Error: ' . $e->getMessage(), 500);
         }

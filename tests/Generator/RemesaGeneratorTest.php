@@ -255,4 +255,23 @@ class RemesaGeneratorTest extends TestCase
         $dom = new \DOMDocument();
         $this->assertTrue(@$dom->loadXML($xml), 'Generated XML should be well-formed');
     }
+
+    /**
+     * Tests createResponse method.
+     *
+     * @return void
+     */
+    public function testCreateResponse(): void
+    {
+        $xml = '<?xml version="1.0" encoding="UTF-8"?><test>XML Content</test>';
+        $filename = 'test-remesa-pago.xml';
+
+        $response = $this->generator->createResponse($xml, $filename);
+
+        $this->assertInstanceOf(\Symfony\Component\HttpFoundation\Response::class, $response);
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals($xml, $response->getContent());
+        $this->assertEquals('application/xml', $response->headers->get('Content-Type'));
+        $this->assertEquals('attachment; filename="test-remesa-pago.xml"', $response->headers->get('Content-Disposition'));
+    }
 }

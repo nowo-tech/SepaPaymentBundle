@@ -1337,4 +1337,23 @@ class DirectDebitGeneratorTest extends TestCase
         // Empty address arrays should NOT create PstlAdr elements
         $this->assertStringNotContainsString('PstlAdr', $xml);
     }
+
+    /**
+     * Tests createResponse method.
+     *
+     * @return void
+     */
+    public function testCreateResponse(): void
+    {
+        $xml = '<?xml version="1.0" encoding="UTF-8"?><test>XML Content</test>';
+        $filename = 'test-remesa.xml';
+
+        $response = $this->generator->createResponse($xml, $filename);
+
+        $this->assertInstanceOf(\Symfony\Component\HttpFoundation\Response::class, $response);
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals($xml, $response->getContent());
+        $this->assertEquals('application/xml', $response->headers->get('Content-Type'));
+        $this->assertEquals('attachment; filename="test-remesa.xml"', $response->headers->get('Content-Disposition'));
+    }
 }

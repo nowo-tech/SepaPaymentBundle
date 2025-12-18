@@ -12,6 +12,7 @@ use Digitick\Sepa\TransferInformation\CustomerCreditTransferInformation;
 use Nowo\SepaPaymentBundle\Model\Remesa\RemesaData;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * SEPA Credit Transfer generator.
@@ -96,6 +97,22 @@ class RemesaGenerator
         $domBuilder = DomBuilderFactory::createDomBuilder($transferFile);
 
         return $domBuilder->asXml();
+    }
+
+    /**
+     * Creates an HTTP Response with XML content for download.
+     *
+     * @param string $xmlData The XML content
+     * @param string $filename The filename for the download (e.g., "remesa-pago.xml")
+     *
+     * @return Response The HTTP response with XML content
+     */
+    public function createResponse(string $xmlData, string $filename): Response
+    {
+        return new Response($xmlData, Response::HTTP_OK, [
+            'Content-Type' => 'application/xml',
+            'Content-Disposition' => sprintf('attachment; filename="%s"', $filename),
+        ]);
     }
 
     /**

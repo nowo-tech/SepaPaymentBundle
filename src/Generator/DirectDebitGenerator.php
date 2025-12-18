@@ -13,6 +13,7 @@ use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitData;
 use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitTransaction;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * SEPA Direct Debit generator.
@@ -51,6 +52,22 @@ class DirectDebitGenerator
         $directDebitData = $this->createDirectDebitDataFromArray($data);
 
         return $this->generate($directDebitData);
+    }
+
+    /**
+     * Creates an HTTP Response with XML content for download.
+     *
+     * @param string $xmlData The XML content
+     * @param string $filename The filename for the download (e.g., "remesa-cobro.xml")
+     *
+     * @return Response The HTTP response with XML content
+     */
+    public function createResponse(string $xmlData, string $filename): Response
+    {
+        return new Response($xmlData, Response::HTTP_OK, [
+            'Content-Type' => 'application/xml',
+            'Content-Disposition' => sprintf('attachment; filename="%s"', $filename),
+        ]);
     }
 
     /**

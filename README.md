@@ -300,6 +300,11 @@ $xml = $generator->generate($remesaData);
 
 // Save to file
 file_put_contents('remesa.xml', $xml);
+
+// Or return as HTTP Response (for Symfony controllers)
+use Symfony\Component\HttpFoundation\Response;
+$response = $generator->createResponse($xml, 'remesa-pago.xml');
+return $response;
 ```
 
 ### Generating SEPA Direct Debit (Remesa de Cobro)
@@ -500,6 +505,11 @@ $directDebitData->addTransaction($transaction);
 
 $generator = new DirectDebitGenerator(new IbanValidator());
 $xml = $generator->generate($directDebitData);
+
+// Or return as HTTP Response (for Symfony controllers)
+use Symfony\Component\HttpFoundation\Response;
+$response = $generator->createResponse($xml, 'remesa-cobro.xml');
+return $response;
 ```
 
 ### Using with Dependency Injection
@@ -532,6 +542,12 @@ class MyService
     public function generateRemesaCobro(array $data): string
     {
         return $this->directDebitGenerator->generateFromArray($data);
+    }
+
+    public function generateRemesaCobroResponse(array $data): \Symfony\Component\HttpFoundation\Response
+    {
+        $xml = $this->directDebitGenerator->generateFromArray($data);
+        return $this->directDebitGenerator->createResponse($xml, 'remesa-cobro.xml');
     }
 }
 ```
