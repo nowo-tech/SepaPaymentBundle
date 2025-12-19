@@ -8,28 +8,144 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
 The service definitions in `services.yaml` have been updated to use service aliases directly instead of fully qualified class names. This is an **internal change** that improves consistency and aligns with Symfony best practices.
 
-**What changed:**
-- Service IDs now use aliases (e.g., `nowo_sepa_payment.validator.iban_validator`) instead of class names
-- Service dependencies now reference services by their aliases
+#### What Changed
 
-**Impact:**
-- **No breaking changes for most users**: Services can still be injected via constructor type-hinting (autowiring)
-- **No breaking changes for explicit service retrieval**: If you were using service aliases with `#[Autowire]` or `$container->get()`, the aliases remain the same
-- **Potential impact**: If you were manually retrieving services by their fully qualified class name (e.g., `$container->get('Nowo\\SepaPaymentBundle\\Validator\\IbanValidator')`), you should update to use the alias instead (e.g., `$container->get('nowo_sepa_payment.validator.iban_validator')`)
+- **Service IDs**: Service definitions now use aliases (e.g., `nowo_sepa_payment.validator.iban_validator`) as the service ID instead of class names
+- **Service Dependencies**: All service arguments now reference other services by their aliases instead of class names
+- **Consistency**: All services now follow a consistent naming pattern: `nowo_sepa_payment.{category}.{service_name}`
 
-**Action required:**
-- Only if you're manually retrieving services by class name in your code, update to use service aliases
-- If you're using autowiring or `#[Autowire]` with aliases, no changes needed
+#### Impact Assessment
 
-**Service alias reference:**
+**✅ No action required for most users:**
+
+1. **Autowiring (Type-hinting)**: If you inject services via constructor type-hinting, no changes needed:
+   ```php
+   class MyService
+   {
+       public function __construct(
+           private IbanValidator $ibanValidator,
+           private DirectDebitGenerator $generator
+       ) {
+       }
+   }
+   ```
+
+2. **Using `#[Autowire]` with aliases**: If you're already using service aliases, no changes needed:
+   ```php
+   class MyService
+   {
+       public function __construct(
+           #[Autowire('nowo_sepa_payment.generator.direct_debit_generator')]
+           private DirectDebitGenerator $generator
+       ) {
+       }
+   }
+   ```
+
+**⚠️ Action required only if:**
+
+You're manually retrieving services by their fully qualified class name using `$container->get()` or similar methods.
+
+**Before (needs update):**
+```php
+// ❌ This will no longer work
+$ibanValidator = $container->get('Nowo\\SepaPaymentBundle\\Validator\\IbanValidator');
+$generator = $container->get('Nowo\\SepaPaymentBundle\\Generator\\DirectDebitGenerator');
+```
+
+**After (updated code):**
+```php
+// ✅ Use service aliases instead
+$ibanValidator = $container->get('nowo_sepa_payment.validator.iban_validator');
+$generator = $container->get('nowo_sepa_payment.generator.direct_debit_generator');
+```
+
+#### How to Check if You Need to Update
+
+Search your codebase for patterns like:
+- `$container->get('Nowo\\SepaPaymentBundle\\`
+- `$container->get(Nowo\SepaPaymentBundle\`
+- `$this->get('Nowo\\SepaPaymentBundle\\`
+- Any service locator patterns using class names
+
+If you find any matches, update them to use the service aliases listed below.
+
+#### Complete Service Alias Reference
+
+All services are available via these aliases:
+
+**Validators:**
 - `nowo_sepa_payment.validator.iban_validator` - IBAN validator
 - `nowo_sepa_payment.validator.bic_validator` - BIC validator
 - `nowo_sepa_payment.validator.credit_card_validator` - Credit card validator
+
+**Converters:**
 - `nowo_sepa_payment.converter.ccc_converter` - CCC to IBAN converter
+
+**Generators:**
 - `nowo_sepa_payment.generator.remesa_generator` - Remesa (credit transfer) generator
 - `nowo_sepa_payment.generator.direct_debit_generator` - Direct debit generator
 - `nowo_sepa_payment.generator.identifier_generator` - Identifier generator
+
+**Parsers:**
 - `nowo_sepa_payment.parser.remesa_parser` - Remesa parser
+
+#### Migration Example
+
+If you have code like this:
+
+```php
+// Old way (needs update)
+class PaymentService
+{
+    public function __construct(private ContainerInterface $container)
+    {
+    }
+    
+    public function validateIban(string $iban): bool
+    {
+        $validator = $this->container->get('Nowo\\SepaPaymentBundle\\Validator\\IbanValidator');
+        return $validator->isValid($iban);
+    }
+}
+```
+
+Update it to:
+
+```php
+// New way (recommended - use autowiring)
+class PaymentService
+{
+    public function __construct(private IbanValidator $ibanValidator)
+    {
+    }
+    
+    public function validateIban(string $iban): bool
+    {
+        return $this->ibanValidator->isValid($iban);
+    }
+}
+```
+
+Or if you must use the container:
+
+```php
+// Alternative (using alias)
+class PaymentService
+{
+    public function __construct(private ContainerInterface $container)
+    {
+    }
+    
+    public function validateIban(string $iban): bool
+    {
+        $validator = $this->container->get('nowo_sepa_payment.validator.iban_validator');
+        return $validator->isValid($iban);
+    }
+}
+```
+
+**Note**: Using autowiring (first example) is the recommended Symfony approach and doesn't require any changes.
 
 ## Upgrading to 0.0.9
 
