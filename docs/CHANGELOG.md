@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.11] - 2025-12-17
+
+### Added
+- **Complete Service Auto-Registration with `#[AsAlias]` Attributes**: All services now use Symfony's `#[AsAlias]` attribute for automatic service registration
+  - Added `#[AsAlias]` attribute to all service classes:
+    - `IbanValidator` - `nowo_sepa_payment.validator.iban_validator`
+    - `BicValidator` - `nowo_sepa_payment.validator.bic_validator`
+    - `CreditCardValidator` - `nowo_sepa_payment.validator.credit_card_validator`
+    - `CccConverter` - `nowo_sepa_payment.converter.ccc_converter`
+    - `RemesaParser` - `nowo_sepa_payment.parser.remesa_parser`
+    - `RemesaGenerator` - `nowo_sepa_payment.generator.remesa_generator` (already had it)
+    - `DirectDebitGenerator` - `nowo_sepa_payment.generator.direct_debit_generator` (already had it)
+    - `IdentifierGenerator` - `nowo_sepa_payment.generator.identifier_generator` (already had it)
+  - Each service class now includes a `SERVICE_NAME` constant for consistent alias naming
+  - Services are automatically registered as public services via the `#[AsAlias]` attribute
+
+### Changed
+- **Simplified Service Configuration**: Updated `services.yaml` to use resource-based service discovery
+  - Services are now automatically discovered via `resource` directives for each namespace
+  - Removed manual service definitions (now handled by `#[AsAlias]` attributes)
+  - All services are configured as public by default
+  - Only console commands require explicit configuration (for tags and arguments)
+  - This follows Symfony best practices for modern service registration
+
+### Improved
+- **Code Organization**: All services follow a consistent pattern with `#[AsAlias]` attributes
+- **Maintainability**: Service registration is now declarative in the classes themselves rather than in configuration files
+- **Symfony Best Practices**: Aligns with Symfony's recommended approach for service registration using attributes
+
 ## [0.0.10] - 2025-12-17
 
 ### Changed

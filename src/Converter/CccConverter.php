@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nowo\SepaPaymentBundle\Converter;
 
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 /**
  * CCC (Código Cuenta Cliente) to IBAN converter.
@@ -13,8 +14,10 @@ use Nowo\SepaPaymentBundle\Validator\IbanValidator;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
  * @copyright 2025 Nowo.tech
  */
+#[AsAlias(id: self::SERVICE_NAME, public: true)]
 class CccConverter
 {
+    public const SERVICE_NAME = 'nowo_sepa_payment.converter.ccc_converter';
     /**
      * Constructor.
      *

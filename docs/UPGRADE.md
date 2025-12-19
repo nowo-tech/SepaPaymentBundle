@@ -2,6 +2,66 @@
 
 This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
+## Upgrading to 0.0.11
+
+### Service Auto-Registration with `#[AsAlias]` Attributes
+
+All services now use Symfony's `#[AsAlias]` attribute for automatic service registration. This is a **non-breaking change** that improves code organization and follows Symfony best practices.
+
+#### What Changed
+
+- **All services now use `#[AsAlias]` attributes**: Every service class includes the `#[AsAlias]` attribute with its service alias and `public: true`
+- **Simplified `services.yaml`**: Service definitions are now handled automatically via resource discovery and `#[AsAlias]` attributes
+- **Resource-based service discovery**: Services are automatically discovered using `resource` directives in `services.yaml`
+- **Consistent pattern**: All services follow the same pattern with a `SERVICE_NAME` constant
+
+#### Impact Assessment
+
+**✅ No action required - this is a non-breaking change:**
+
+1. **Service behavior unchanged**: All services work exactly the same way
+2. **Service aliases unchanged**: All service aliases remain the same
+3. **Autowiring unchanged**: Services can still be injected via constructor type-hinting
+4. **Explicit service retrieval unchanged**: Services can still be retrieved by their aliases
+
+#### Benefits
+
+- **Better code organization**: Service registration is now declarative in the classes themselves
+- **Easier maintenance**: No need to maintain service definitions in `services.yaml` for most services
+- **Symfony best practices**: Aligns with Symfony's recommended approach for service registration
+- **Consistency**: All services follow the same registration pattern
+
+#### Technical Details
+
+Each service class now includes:
+
+```php
+use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+
+#[AsAlias(id: self::SERVICE_NAME, public: true)]
+class MyService
+{
+    public const SERVICE_NAME = 'nowo_sepa_payment.category.service_name';
+    // ...
+}
+```
+
+The `services.yaml` file now uses resource-based discovery:
+
+```yaml
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: true
+
+    Nowo\SepaPaymentBundle\Validator\:
+        resource: '../../Validator/*'
+    # ... similar for other namespaces
+```
+
+**No action required**: This change is completely transparent to users of the bundle.
+
 ## Upgrading to 0.0.10
 
 ### Service Configuration Changes

@@ -2,51 +2,26 @@ services:
     _defaults:
         autowire: true
         autoconfigure: true
-        public: false
-
-    # Validators
-    nowo_sepa_payment.validator.iban_validator:
-        class: Nowo\SepaPaymentBundle\Validator\IbanValidator
         public: true
 
-    nowo_sepa_payment.validator.bic_validator:
-        class: Nowo\SepaPaymentBundle\Validator\BicValidator
-        public: true
 
-    nowo_sepa_payment.validator.credit_card_validator:
-        class: Nowo\SepaPaymentBundle\Validator\CreditCardValidator
-        public: true
+    Nowo\SepaPaymentBundle\Converter\:
+        resource: '../../Converter/*'
 
-    # Converters
-    nowo_sepa_payment.converter.ccc_converter:
-        class: Nowo\SepaPaymentBundle\Converter\CccConverter
-        arguments:
-            - '@nowo_sepa_payment.validator.iban_validator'
-        public: true
+    Nowo\SepaPaymentBundle\Parser\:
+        resource: '../../Parser/*'
 
-    # Generators
-    nowo_sepa_payment.generator.remesa_generator:
-        class: Nowo\SepaPaymentBundle\Generator\RemesaGenerator
-        arguments:
-            - '@nowo_sepa_payment.validator.iban_validator'
-        public: true
+    Nowo\SepaPaymentBundle\Generator\:
+        resource: '../../Generator/*'
 
-    nowo_sepa_payment.generator.direct_debit_generator:
-        class: Nowo\SepaPaymentBundle\Generator\DirectDebitGenerator
-        arguments:
-            - '@nowo_sepa_payment.validator.iban_validator'
-        public: true
+    Nowo\SepaPaymentBundle\Validator\:
+        resource: '../../Validator/*'
 
-    nowo_sepa_payment.generator.identifier_generator:
-        class: Nowo\SepaPaymentBundle\Generator\IdentifierGenerator
-        public: true
-
-    # Parsers
-    nowo_sepa_payment.parser.remesa_parser:
-        class: Nowo\SepaPaymentBundle\Parser\RemesaParser
-        public: true
+    # Services are automatically registered via #[AsAlias] attributes
+    # All services are public and can be autowired or retrieved by their aliases
 
     # Console Commands
+    # Commands still need explicit configuration for tags and arguments
     Nowo\SepaPaymentBundle\Command\ValidateIbanCommand:
         tags: ['console.command']
         arguments:

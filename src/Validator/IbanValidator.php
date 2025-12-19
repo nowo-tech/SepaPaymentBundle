@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Validator;
 
+use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+
 /**
  * IBAN validator and utility class.
  * Validates IBAN format and calculates check digits according to ISO 13616 standard.
@@ -11,8 +13,10 @@ namespace Nowo\SepaPaymentBundle\Validator;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
  * @copyright 2025 Nowo.tech
  */
+#[AsAlias(id: self::SERVICE_NAME, public: true)]
 class IbanValidator
 {
+    public const SERVICE_NAME = 'nowo_sepa_payment.validator.iban_validator';
     /**
      * Validates an IBAN according to ISO 13616 standard.
      *
