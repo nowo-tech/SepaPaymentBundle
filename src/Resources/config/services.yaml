@@ -5,44 +5,44 @@ services:
         public: false
 
     # Validators
-    Nowo\SepaPaymentBundle\Validator\IbanValidator:
+    nowo_sepa_payment.validator.iban_validator:
         class: Nowo\SepaPaymentBundle\Validator\IbanValidator
         public: true
 
-    Nowo\SepaPaymentBundle\Validator\BicValidator:
+    nowo_sepa_payment.validator.bic_validator:
         class: Nowo\SepaPaymentBundle\Validator\BicValidator
         public: true
 
-    Nowo\SepaPaymentBundle\Validator\CreditCardValidator:
+    nowo_sepa_payment.validator.credit_card_validator:
         class: Nowo\SepaPaymentBundle\Validator\CreditCardValidator
         public: true
 
     # Converters
-    Nowo\SepaPaymentBundle\Converter\CccConverter:
+    nowo_sepa_payment.converter.ccc_converter:
         class: Nowo\SepaPaymentBundle\Converter\CccConverter
         arguments:
             - '@Nowo\SepaPaymentBundle\Validator\IbanValidator'
         public: true
 
     # Generators
-    Nowo\SepaPaymentBundle\Generator\RemesaGenerator:
+    nowo_sepa_payment.generator.remesa_generator:
         class: Nowo\SepaPaymentBundle\Generator\RemesaGenerator
         arguments:
             - '@Nowo\SepaPaymentBundle\Validator\IbanValidator'
         public: true
 
-    Nowo\SepaPaymentBundle\Generator\DirectDebitGenerator:
+    nowo_sepa_payment.generator.direct_debit_generator:
         class: Nowo\SepaPaymentBundle\Generator\DirectDebitGenerator
         arguments:
             - '@Nowo\SepaPaymentBundle\Validator\IbanValidator'
         public: true
 
-    Nowo\SepaPaymentBundle\Generator\IdentifierGenerator:
+    nowo_sepa_payment.generator.identifier_generator:
         class: Nowo\SepaPaymentBundle\Generator\IdentifierGenerator
         public: true
 
     # Parsers
-    Nowo\SepaPaymentBundle\Parser\RemesaParser:
+    nowo_sepa_payment.parser.remesa_parser:
         class: Nowo\SepaPaymentBundle\Parser\RemesaParser
         public: true
 
