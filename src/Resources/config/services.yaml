@@ -21,20 +21,20 @@ services:
     nowo_sepa_payment.converter.ccc_converter:
         class: Nowo\SepaPaymentBundle\Converter\CccConverter
         arguments:
-            - '@Nowo\SepaPaymentBundle\Validator\IbanValidator'
+            - '@nowo_sepa_payment.validator.iban_validator'
         public: true
 
     # Generators
     nowo_sepa_payment.generator.remesa_generator:
         class: Nowo\SepaPaymentBundle\Generator\RemesaGenerator
         arguments:
-            - '@Nowo\SepaPaymentBundle\Validator\IbanValidator'
+            - '@nowo_sepa_payment.validator.iban_validator'
         public: true
 
     nowo_sepa_payment.generator.direct_debit_generator:
         class: Nowo\SepaPaymentBundle\Generator\DirectDebitGenerator
         arguments:
-            - '@Nowo\SepaPaymentBundle\Validator\IbanValidator'
+            - '@nowo_sepa_payment.validator.iban_validator'
         public: true
 
     nowo_sepa_payment.generator.identifier_generator:
@@ -50,15 +50,15 @@ services:
     Nowo\SepaPaymentBundle\Command\ValidateIbanCommand:
         tags: ['console.command']
         arguments:
-            $ibanValidator: '@Nowo\SepaPaymentBundle\Validator\IbanValidator'
+            $ibanValidator: '@nowo_sepa_payment.validator.iban_validator'
 
     Nowo\SepaPaymentBundle\Command\ConvertCccCommand:
         tags: ['console.command']
         arguments:
-            $cccConverter: '@Nowo\SepaPaymentBundle\Converter\CccConverter'
+            $cccConverter: '@nowo_sepa_payment.converter.ccc_converter'
 
     Nowo\SepaPaymentBundle\Command\ValidateCreditCardCommand:
         tags: ['console.command']
         arguments:
-            $creditCardValidator: '@Nowo\SepaPaymentBundle\Validator\CreditCardValidator'
+            $creditCardValidator: '@nowo_sepa_payment.validator.credit_card_validator'
 

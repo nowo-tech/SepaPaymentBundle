@@ -2,6 +2,35 @@
 
 This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
+## Upgrading to 0.0.10
+
+### Service Configuration Changes
+
+The service definitions in `services.yaml` have been updated to use service aliases directly instead of fully qualified class names. This is an **internal change** that improves consistency and aligns with Symfony best practices.
+
+**What changed:**
+- Service IDs now use aliases (e.g., `nowo_sepa_payment.validator.iban_validator`) instead of class names
+- Service dependencies now reference services by their aliases
+
+**Impact:**
+- **No breaking changes for most users**: Services can still be injected via constructor type-hinting (autowiring)
+- **No breaking changes for explicit service retrieval**: If you were using service aliases with `#[Autowire]` or `$container->get()`, the aliases remain the same
+- **Potential impact**: If you were manually retrieving services by their fully qualified class name (e.g., `$container->get('Nowo\\SepaPaymentBundle\\Validator\\IbanValidator')`), you should update to use the alias instead (e.g., `$container->get('nowo_sepa_payment.validator.iban_validator')`)
+
+**Action required:**
+- Only if you're manually retrieving services by class name in your code, update to use service aliases
+- If you're using autowiring or `#[Autowire]` with aliases, no changes needed
+
+**Service alias reference:**
+- `nowo_sepa_payment.validator.iban_validator` - IBAN validator
+- `nowo_sepa_payment.validator.bic_validator` - BIC validator
+- `nowo_sepa_payment.validator.credit_card_validator` - Credit card validator
+- `nowo_sepa_payment.converter.ccc_converter` - CCC to IBAN converter
+- `nowo_sepa_payment.generator.remesa_generator` - Remesa (credit transfer) generator
+- `nowo_sepa_payment.generator.direct_debit_generator` - Direct debit generator
+- `nowo_sepa_payment.generator.identifier_generator` - Identifier generator
+- `nowo_sepa_payment.parser.remesa_parser` - Remesa parser
+
 ## Upgrading to 0.0.9
 
 ### New Features

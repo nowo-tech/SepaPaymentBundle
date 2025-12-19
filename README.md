@@ -556,22 +556,36 @@ class MyService
 
 #### Service Aliases
 
-Services are also available via their service aliases for explicit service retrieval:
+All services are registered with consistent aliases and can be retrieved explicitly using their service IDs:
 
 ```php
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Nowo\SepaPaymentBundle\Generator\DirectDebitGenerator;
+use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 
 class MyService
 {
     public function __construct(
         #[Autowire('nowo_sepa_payment.generator.direct_debit_generator')]
-        private DirectDebitGenerator $directDebitGenerator
+        private DirectDebitGenerator $directDebitGenerator,
+        #[Autowire('nowo_sepa_payment.validator.iban_validator')]
+        private IbanValidator $ibanValidator
     ) {
     }
 }
 ```
 
-The `DirectDebitGenerator` service is registered with the alias `nowo_sepa_payment.generator.direct_debit_generator` and is available as a public service for dependency injection.
+**Available service aliases:**
+- `nowo_sepa_payment.validator.iban_validator` - IBAN validator
+- `nowo_sepa_payment.validator.bic_validator` - BIC validator
+- `nowo_sepa_payment.validator.credit_card_validator` - Credit card validator
+- `nowo_sepa_payment.converter.ccc_converter` - CCC to IBAN converter
+- `nowo_sepa_payment.generator.remesa_generator` - Remesa (credit transfer) generator
+- `nowo_sepa_payment.generator.direct_debit_generator` - Direct debit generator
+- `nowo_sepa_payment.generator.identifier_generator` - Identifier generator
+- `nowo_sepa_payment.parser.remesa_parser` - Remesa parser
+
+All services are public and available for dependency injection via autowiring (type-hinting) or explicit alias retrieval.
 
 ## Console Commands
 

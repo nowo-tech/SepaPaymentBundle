@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.10] - 2025-12-17
+
+### Changed
+- **Service Configuration**: Updated service definitions in `services.yaml` to use service aliases directly instead of fully qualified class names
+  - All services now use consistent alias naming: `nowo_sepa_payment.{category}.{service_name}`
+  - Service IDs changed from class names to aliases:
+    - `Nowo\SepaPaymentBundle\Validator\IbanValidator` → `nowo_sepa_payment.validator.iban_validator`
+    - `Nowo\SepaPaymentBundle\Validator\BicValidator` → `nowo_sepa_payment.validator.bic_validator`
+    - `Nowo\SepaPaymentBundle\Validator\CreditCardValidator` → `nowo_sepa_payment.validator.credit_card_validator`
+    - `Nowo\SepaPaymentBundle\Converter\CccConverter` → `nowo_sepa_payment.converter.ccc_converter`
+    - `Nowo\SepaPaymentBundle\Generator\RemesaGenerator` → `nowo_sepa_payment.generator.remesa_generator`
+    - `Nowo\SepaPaymentBundle\Generator\DirectDebitGenerator` → `nowo_sepa_payment.generator.direct_debit_generator`
+    - `Nowo\SepaPaymentBundle\Generator\IdentifierGenerator` → `nowo_sepa_payment.generator.identifier_generator`
+    - `Nowo\SepaPaymentBundle\Parser\RemesaParser` → `nowo_sepa_payment.parser.remesa_parser`
+  - All service arguments now reference services by their aliases instead of class names
+  - This change improves consistency with Symfony best practices and aligns with the `#[AsAlias]` attributes used in generator classes
+  - Services can still be injected by type-hinting (autowiring) or by their aliases using `#[Autowire]` attribute
+
+### Improved
+- **Service Dependency Resolution**: Service dependencies now use alias references, making the service container configuration more maintainable and consistent
+
 ## [0.0.9] - 2025-12-16
 
 ### Added
