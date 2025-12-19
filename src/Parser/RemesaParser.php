@@ -17,6 +17,7 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 class RemesaParser
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.parser.remesa_parser';
+
     /**
      * Parses a SEPA Credit Transfer XML file.
      *
