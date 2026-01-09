@@ -687,6 +687,393 @@ class RemesaGeneratorTest extends TestCase
     }
 
     /**
+     * Tests generateFromArray with DateTimeInterface requestedExecutionDate.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayWithDateTimeInterface(): void
+    {
+        $data = [
+            'reference' => 'MSG-001',
+            'initiatingPartyName' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'requestedExecutionDate' => new \DateTime('2024-01-20'),
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+            'transactions' => [
+                [
+                    'amount' => 100.50,
+                    'debtorIban' => 'GB82WEST12345698765432',
+                    'debtorName' => 'John Doe',
+                    'endToEndId' => 'E2E-001',
+                ],
+            ],
+        ];
+
+        $xml = $this->generator->generateFromArray($data);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrCdtTrfInitn', $xml);
+    }
+
+    /**
+     * Tests generateFromArray with DateTimeInterface creationDate.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayWithDateTimeInterfaceCreationDate(): void
+    {
+        $data = [
+            'reference' => 'MSG-001',
+            'initiatingPartyName' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'creationDate' => new \DateTime('2024-01-15 10:00:00'),
+            'requestedExecutionDate' => '2024-01-20',
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+            'transactions' => [
+                [
+                    'amount' => 100.50,
+                    'debtorIban' => 'GB82WEST12345698765432',
+                    'debtorName' => 'John Doe',
+                    'endToEndId' => 'E2E-001',
+                ],
+            ],
+        ];
+
+        $xml = $this->generator->generateFromArray($data);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrCdtTrfInitn', $xml);
+    }
+
+    /**
+     * Tests generateFromArray with amount in cents (> 10000).
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayWithAmountInCents(): void
+    {
+        $data = [
+            'reference' => 'MSG-001',
+            'initiatingPartyName' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'requestedExecutionDate' => '2024-01-20',
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+            'transactions' => [
+                [
+                    'amount' => 15000, // 150.00 in cents
+                    'debtorIban' => 'GB82WEST12345698765432',
+                    'debtorName' => 'John Doe',
+                    'endToEndId' => 'E2E-001',
+                ],
+            ],
+        ];
+
+        $xml = $this->generator->generateFromArray($data);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('150.00', $xml);
+    }
+
+    /**
+     * Tests generateFromArray without creditorBic.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayWithoutCreditorBic(): void
+    {
+        $data = [
+            'reference' => 'MSG-001',
+            'initiatingPartyName' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'requestedExecutionDate' => '2024-01-20',
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+            'transactions' => [
+                [
+                    'amount' => 100.50,
+                    'debtorIban' => 'GB82WEST12345698765432',
+                    'debtorName' => 'John Doe',
+                    'endToEndId' => 'E2E-001',
+                ],
+            ],
+        ];
+
+        $xml = $this->generator->generateFromArray($data);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrCdtTrfInitn', $xml);
+    }
+
+    /**
+     * Tests generateFromArray with creditorBic.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayWithCreditorBic(): void
+    {
+        $data = [
+            'reference' => 'MSG-001',
+            'initiatingPartyName' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'requestedExecutionDate' => '2024-01-20',
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+            'creditorBic' => 'CAIXESBBXXX',
+            'transactions' => [
+                [
+                    'amount' => 100.50,
+                    'debtorIban' => 'GB82WEST12345698765432',
+                    'debtorName' => 'John Doe',
+                    'endToEndId' => 'E2E-001',
+                ],
+            ],
+        ];
+
+        $xml = $this->generator->generateFromArray($data);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrCdtTrfInitn', $xml);
+        $this->assertStringContainsString('CAIXESBBXXX', $xml);
+    }
+
+    /**
+     * Tests generateFromArray with debtorBic.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayWithDebtorBic(): void
+    {
+        $data = [
+            'reference' => 'MSG-001',
+            'initiatingPartyName' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'requestedExecutionDate' => '2024-01-20',
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+            'transactions' => [
+                [
+                    'amount' => 100.50,
+                    'debtorIban' => 'GB82WEST12345698765432',
+                    'debtorName' => 'John Doe',
+                    'endToEndId' => 'E2E-001',
+                    'debtorBic' => 'WESTGB22',
+                ],
+            ],
+        ];
+
+        $xml = $this->generator->generateFromArray($data);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrCdtTrfInitn', $xml);
+        $this->assertStringContainsString('WESTGB22', $xml);
+    }
+
+    /**
+     * Tests generateFromArray with remittanceInformation.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayWithRemittanceInformation(): void
+    {
+        $data = [
+            'reference' => 'MSG-001',
+            'initiatingPartyName' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'requestedExecutionDate' => '2024-01-20',
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+            'transactions' => [
+                [
+                    'amount' => 100.50,
+                    'debtorIban' => 'GB82WEST12345698765432',
+                    'debtorName' => 'John Doe',
+                    'endToEndId' => 'E2E-001',
+                    'remittanceInformation' => 'Invoice 12345',
+                ],
+            ],
+        ];
+
+        $xml = $this->generator->generateFromArray($data);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrCdtTrfInitn', $xml);
+        $this->assertStringContainsString('Invoice 12345', $xml);
+    }
+
+    /**
+     * Tests generateFromArray with currency.
+     * Note: SEPA always uses EUR, but currency can be specified in Transaction.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayWithCurrency(): void
+    {
+        $data = [
+            'reference' => 'MSG-001',
+            'initiatingPartyName' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'requestedExecutionDate' => '2024-01-20',
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+            'transactions' => [
+                [
+                    'amount' => 100.50,
+                    'currency' => 'USD',
+                    'debtorIban' => 'GB82WEST12345698765432',
+                    'debtorName' => 'John Doe',
+                    'endToEndId' => 'E2E-001',
+                ],
+            ],
+        ];
+
+        $xml = $this->generator->generateFromArray($data);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrCdtTrfInitn', $xml);
+        // SEPA always uses EUR in XML, even if currency is specified in Transaction
+        $this->assertStringContainsString('EUR', $xml);
+    }
+
+    /**
+     * Tests generateFromArray with batchBooking.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayWithBatchBooking(): void
+    {
+        $data = [
+            'reference' => 'MSG-001',
+            'initiatingPartyName' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'requestedExecutionDate' => '2024-01-20',
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+            'batchBooking' => true,
+            'transactions' => [
+                [
+                    'amount' => 100.50,
+                    'debtorIban' => 'GB82WEST12345698765432',
+                    'debtorName' => 'John Doe',
+                    'endToEndId' => 'E2E-001',
+                ],
+            ],
+        ];
+
+        $xml = $this->generator->generateFromArray($data);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrCdtTrfInitn', $xml);
+    }
+
+    /**
+     * Tests generateFromArray with invalid requestedExecutionDate type.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayInvalidRequestedExecutionDateType(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('requestedExecutionDate must be a string or DateTimeInterface');
+
+        $data = [
+            'reference' => 'MSG-001',
+            'initiatingPartyName' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'requestedExecutionDate' => 12345, // Invalid type
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+        ];
+
+        $this->generator->generateFromArray($data);
+    }
+
+    /**
+     * Tests generateFromArray with invalid creationDate type.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayInvalidCreationDateType(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('creationDate must be a string or DateTimeInterface');
+
+        $data = [
+            'reference' => 'MSG-001',
+            'initiatingPartyName' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'creationDate' => 12345, // Invalid type
+            'requestedExecutionDate' => '2024-01-20',
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+        ];
+
+        $this->generator->generateFromArray($data);
+    }
+
+    /**
+     * Tests generateFromArray with multiple transactions and addresses.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayWithMultipleTransactionsAndAddresses(): void
+    {
+        $data = [
+            'reference' => 'MSG-001',
+            'initiatingPartyName' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'requestedExecutionDate' => '2024-01-20',
+            'creditorName' => 'My Company Name',
+            'creditorIban' => 'ES9121000418450200051332',
+            'creditorAddress' => [
+                'street' => '123 Business Street',
+                'city' => 'Madrid',
+                'postalCode' => '28001',
+                'country' => 'ES',
+            ],
+            'transactions' => [
+                [
+                    'amount' => 100.50,
+                    'debtorIban' => 'GB82WEST12345698765432',
+                    'debtorName' => 'John Doe',
+                    'endToEndId' => 'E2E-001',
+                    'debtorAddress' => [
+                        'street' => '456 Customer Avenue',
+                        'city' => 'London',
+                        'postalCode' => 'SW1A 1AA',
+                        'country' => 'GB',
+                    ],
+                ],
+                [
+                    'amount' => 200.75,
+                    'debtorIban' => 'FR1420041010050500013M02606',
+                    'debtorName' => 'Jane Smith',
+                    'endToEndId' => 'E2E-002',
+                    'debtorAddress' => [
+                        'street' => '789 Paris Street',
+                        'city' => 'Paris',
+                        'postalCode' => '75001',
+                        'country' => 'FR',
+                    ],
+                ],
+            ],
+        ];
+
+        $xml = $this->generator->generateFromArray($data);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('CstmrCdtTrfInitn', $xml);
+        $this->assertStringContainsString('PstlAdr', $xml);
+        $this->assertStringContainsString('123 Business Street', $xml);
+        $this->assertStringContainsString('456 Customer Avenue', $xml);
+        $this->assertStringContainsString('789 Paris Street', $xml);
+        $this->assertStringContainsString('2', $xml); // Number of transactions
+        $this->assertStringContainsString('301.25', $xml); // Total amount
+    }
+
+    /**
      * Tests createResponse method.
      *
      * @return void
@@ -694,7 +1081,7 @@ class RemesaGeneratorTest extends TestCase
     public function testCreateResponse(): void
     {
         $xml = '<?xml version="1.0" encoding="UTF-8"?><test>XML Content</test>';
-        $filename = 'test-remesa-pago.xml';
+        $filename = 'test-credit-transfer.xml';
 
         $response = $this->generator->createResponse($xml, $filename);
 
@@ -702,6 +1089,6 @@ class RemesaGeneratorTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertEquals($xml, $response->getContent());
         $this->assertEquals('application/xml', $response->headers->get('Content-Type'));
-        $this->assertEquals('attachment; filename="test-remesa-pago.xml"', $response->headers->get('Content-Disposition'));
+        $this->assertEquals('attachment; filename="test-credit-transfer.xml"', $response->headers->get('Content-Disposition'));
     }
 }
