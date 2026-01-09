@@ -4,15 +4,15 @@ This document serves as a checklist for future improvements and new features to 
 
 ## Priority: High 🔴
 
-### 1. Direct Debit Parser
-- [ ] Create `DirectDebitParser` class to parse SEPA Direct Debit XML files (pain.008.001.02 format)
-- [ ] Parse group header information (message ID, creation date, initiating party)
-- [ ] Parse payment information (payment info ID, sequence type, creditor information)
-- [ ] Parse transaction details (amount, debtor information, mandate details, end-to-end ID)
-- [ ] Extract addresses (creditor and debtor) from XML
-- [ ] Support for multiple transactions
-- [ ] Add comprehensive tests
-- [ ] Update documentation (USAGE.md, README.md)
+### 1. Direct Debit Parser ✅
+- [x] Create `DirectDebitParser` class to parse SEPA Direct Debit XML files (pain.008.001.02 format)
+- [x] Parse group header information (message ID, creation date, initiating party)
+- [x] Parse payment information (payment info ID, sequence type, creditor information)
+- [x] Parse transaction details (amount, debtor information, mandate details, end-to-end ID)
+- [x] Extract addresses (creditor and debtor) from XML
+- [x] Support for multiple transactions
+- [x] Add comprehensive tests
+- [x] Update documentation (USAGE.md, README.md)
 - [ ] Add console command for parsing Direct Debit files (optional)
 
 **Rationale**: Currently only `RemesaParser` exists for Credit Transfer. Adding Direct Debit parser provides feature parity.

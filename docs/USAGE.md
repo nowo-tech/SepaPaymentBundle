@@ -167,13 +167,17 @@ $messageId = $generator->generateMessageId('MY-MSG');
 
 ## SEPA XML Parser
 
+The bundle provides parsers for both SEPA Credit Transfer and SEPA Direct Debit XML files.
+
+### Parsing SEPA Credit Transfer
+
 ```php
 use Nowo\SepaPaymentBundle\Parser\RemesaParser;
 
 $parser = new RemesaParser();
 
 // Parse SEPA Credit Transfer XML
-$xml = file_get_contents('remesa.xml');
+$xml = file_get_contents('credit-transfer.xml');
 $data = $parser->parseCreditTransfer($xml);
 
 // Access parsed data
@@ -185,11 +189,86 @@ $numberOfTransactions = $data['numberOfTransactions'];
 $controlSum = $data['controlSum'];
 $transactions = $data['transactions'];
 
+// Each transaction contains:
+foreach ($data['transactions'] as $transaction) {
+    $endToEndId = $transaction['endToEndId'];
+    $amount = $transaction['amount'];
+    $currency = $transaction['currency'];
+    $iban = $transaction['iban'];
+    $name = $transaction['name'];
+    $remittanceInformation = $transaction['remittanceInformation'] ?? null;
+}
+
 // Validate XML format
 if ($parser->isValidCreditTransfer($xml)) {
     echo "Valid SEPA Credit Transfer XML";
 }
 ```
+
+### Parsing SEPA Direct Debit
+
+```php
+use Nowo\SepaPaymentBundle\Parser\DirectDebitParser;
+
+$parser = new DirectDebitParser();
+
+// Parse SEPA Direct Debit XML
+$xml = file_get_contents('direct-debit.xml');
+$data = $parser->parseDirectDebit($xml);
+
+// Access parsed data
+$messageId = $data['messageId'];
+$creationDate = $data['creationDate'];
+$initiatingPartyName = $data['initiatingPartyName'];
+$paymentInfoId = $data['paymentInfoId'];
+$paymentMethod = $data['paymentMethod']; // Usually "DD"
+$numberOfTransactions = $data['numberOfTransactions'];
+$controlSum = $data['controlSum'];
+$sequenceType = $data['sequenceType']; // FRST, RCUR, OOFF, FNAL
+$dueDate = $data['dueDate'];
+$creditorName = $data['creditorName'];
+$creditorIban = $data['creditorIban'];
+$creditorId = $data['creditorId'];
+$localInstrumentCode = $data['localInstrumentCode']; // CORE, B2B
+
+// Creditor address (if present)
+$creditorAddress = $data['creditorAddress'] ?? null;
+if ($creditorAddress) {
+    $street = $creditorAddress['street'] ?? null;
+    $city = $creditorAddress['city'] ?? null;
+    $postalCode = $creditorAddress['postalCode'] ?? null;
+    $country = $creditorAddress['country'] ?? null;
+}
+
+// Each transaction contains:
+foreach ($data['transactions'] as $transaction) {
+    $endToEndId = $transaction['endToEndId'];
+    $amount = $transaction['amount'];
+    $currency = $transaction['currency'];
+    $mandateId = $transaction['mandateId'];
+    $mandateSignDate = $transaction['mandateSignDate'];
+    $debtorName = $transaction['debtorName'];
+    $debtorIban = $transaction['debtorIban'];
+    $debtorBic = $transaction['debtorBic'] ?? null;
+    $remittanceInformation = $transaction['remittanceInformation'] ?? null;
+    
+    // Debtor address (if present)
+    $debtorAddress = $transaction['debtorAddress'] ?? null;
+    if ($debtorAddress) {
+        $street = $debtorAddress['street'] ?? null;
+        $city = $debtorAddress['city'] ?? null;
+        $postalCode = $debtorAddress['postalCode'] ?? null;
+        $country = $debtorAddress['country'] ?? null;
+    }
+}
+
+// Validate XML format
+if ($parser->isValidDirectDebit($xml)) {
+    echo "Valid SEPA Direct Debit XML";
+}
+```
+<｜tool▁calls▁begin｜><｜tool▁call▁begin｜>
+read_file
 
 ## SEPA Mandates
 
