@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-01-09
+
 ### Added
 - **Mandate Management**: Complete mandate lifecycle management system for SEPA Direct Debit
   - `MandateService` - Service for managing mandate lifecycle (create, suspend, reactivate, revoke)
