@@ -928,7 +928,7 @@ class DemoController extends AbstractController
             // Export to JSON
             $json = $exporter->exportCreditTransferToJson($parsedData, true);
 
-            return new JsonResponse([
+            $response = new JsonResponse([
                 'message' => 'Successfully exported Credit Transfer to JSON',
                 'originalData' => $data,
                 'parsedData' => $parsedData,
@@ -1049,7 +1049,7 @@ class DemoController extends AbstractController
             // Export to JSON
             $json = $exporter->exportDirectDebitToJson($parsedData, true);
 
-            return new JsonResponse([
+            $response = new JsonResponse([
                 'message' => 'Successfully exported Direct Debit to JSON',
                 'originalData' => $data,
                 'parsedData' => $parsedData,
