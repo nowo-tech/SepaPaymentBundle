@@ -5,6 +5,8 @@ namespace App\Controller;
 use Nowo\SepaPaymentBundle\Converter\CccConverter;
 use Nowo\SepaPaymentBundle\Generator\DirectDebitGenerator;
 use Nowo\SepaPaymentBundle\Generator\IdentifierGenerator;
+use Nowo\SepaPaymentBundle\Parser\DirectDebitParser;
+use Nowo\SepaPaymentBundle\Parser\RemesaParser;
 use Nowo\SepaPaymentBundle\Validator\BicValidator;
 use Nowo\SepaPaymentBundle\Validator\CreditCardValidator;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
@@ -525,6 +527,132 @@ class DemoController extends AbstractController
             return $generator->createResponse($xml, 'direct-debit-with-addresses.xml');
         } catch (\Exception $e) {
             return new Response('Error: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Demo parsing SEPA Credit Transfer XML.
+     * Generates a sample XML and then parses it to demonstrate the parser functionality.
+     *
+     * @param RemesaGenerator $generator Credit transfer generator
+     * @param RemesaParser    $parser    Credit transfer parser
+     * @return JsonResponse
+     */
+    #[Route('/demo-parse-credit-transfer', name: 'demo_parse_credit_transfer')]
+    public function demoParseCreditTransfer(RemesaGenerator $generator, RemesaParser $parser): JsonResponse
+    {
+        try {
+            // First, generate a sample XML
+            $data = [
+                'reference' => 'MSG-PARSE-001',
+                'initiatingPartyName' => 'Demo Company',
+                'paymentInfoId' => 'PMT-PARSE-001',
+                'creditorIban' => 'ES9121000418450200051332',
+                'creditorName' => 'Demo Company Name',
+                'requestedExecutionDate' => '2024-01-20',
+                'creditorBic' => 'CAIXESBBXXX',
+                'transactions' => [
+                    [
+                        'amount' => 150.75,
+                        'currency' => 'EUR',
+                        'debtorIban' => 'GB82WEST12345698765432',
+                        'debtorName' => 'John Doe',
+                        'endToEndId' => 'E2E-PARSE-001',
+                        'debtorBic' => 'WESTGB22',
+                        'remittanceInformation' => 'Demo Invoice 12345',
+                    ],
+                ],
+            ];
+
+            $xml = $generator->generateFromArray($data);
+
+            // Validate XML format
+            $isValid = $parser->isValidCreditTransfer($xml);
+
+            // Parse the XML
+            $parsedData = $parser->parseCreditTransfer($xml);
+
+            return new JsonResponse([
+                'message' => 'Successfully generated and parsed Credit Transfer XML',
+                'isValid' => $isValid,
+                'generatedXml' => $xml,
+                'parsedData' => $parsedData,
+            ], 200, [], JSON_PRETTY_PRINT);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Demo parsing SEPA Direct Debit XML.
+     * Generates a sample XML and then parses it to demonstrate the parser functionality.
+     *
+     * @param DirectDebitGenerator $generator Direct debit generator
+     * @param DirectDebitParser    $parser    Direct debit parser
+     * @return JsonResponse
+     */
+    #[Route('/demo-parse-direct-debit', name: 'demo_parse_direct_debit')]
+    public function demoParseDirectDebit(DirectDebitGenerator $generator, DirectDebitParser $parser): JsonResponse
+    {
+        try {
+            // First, generate a sample XML with addresses
+            $data = [
+                'reference' => 'MSG-PARSE-001',
+                'bankAccountOwner' => 'Demo Company',
+                'paymentInfoId' => 'PMTINF-PARSE-001',
+                'dueDate' => '2024-01-20',
+                'creditorName' => 'Demo Company Name',
+                'creditorIban' => 'ES9121000418450200051332',
+                'creditorBic' => 'CAIXESBBXXX',
+                'seqType' => 'FRST',
+                'creditorId' => 'ES98ZZZ09999999999',
+                'localInstrumentCode' => 'CORE',
+                'creditorAddress' => [
+                    'street' => '123 Demo Street',
+                    'city' => 'Madrid',
+                    'postalCode' => '28001',
+                    'country' => 'ES',
+                ],
+                'transactions' => [
+                    [
+                        'amount' => 200.50,
+                        'debtorIban' => 'GB82WEST12345698765432',
+                        'debtorName' => 'Jane Smith',
+                        'debtorMandate' => 'MANDATE-PARSE-001',
+                        'debtorMandateSignDate' => '2023-12-01',
+                        'endToEndId' => 'E2E-PARSE-001',
+                        'debtorBic' => 'WESTGB22',
+                        'remittanceInformation' => 'Demo Invoice 67890',
+                        'debtorAddress' => [
+                            'street' => '456 Demo Avenue',
+                            'city' => 'London',
+                            'postalCode' => 'SW1A 1AA',
+                            'country' => 'GB',
+                        ],
+                    ],
+                ],
+            ];
+
+            $xml = $generator->generateFromArray($data);
+
+            // Validate XML format
+            $isValid = $parser->isValidDirectDebit($xml);
+
+            // Parse the XML
+            $parsedData = $parser->parseDirectDebit($xml);
+
+            return new JsonResponse([
+                'message' => 'Successfully generated and parsed Direct Debit XML',
+                'isValid' => $isValid,
+                'generatedXml' => $xml,
+                'parsedData' => $parsedData,
+            ], 200, [], JSON_PRETTY_PRINT);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'error' => $e->getMessage(),
+            ], 500);
         }
     }
 }
