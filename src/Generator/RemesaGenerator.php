@@ -12,6 +12,7 @@ use Digitick\Sepa\TransferInformation\CustomerCreditTransferInformation;
 use Nowo\SepaPaymentBundle\Model\Remesa\RemesaData;
 use Nowo\SepaPaymentBundle\Model\Remesa\Transaction;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+use Nowo\SepaPaymentBundle\Validator\XsdValidator;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -29,13 +30,33 @@ class RemesaGenerator
     public const SERVICE_NAME = 'nowo_sepa_payment.generator.remesa_generator';
 
     /**
+     * Whether to validate generated XML against XSD schema.
+     *
+     * @var bool
+     */
+    private bool $validateXsd = false;
+
+    /**
+     * XSD validator instance (optional).
+     *
+     * @var XsdValidator|null
+     */
+    private ?XsdValidator $xsdValidator = null;
+
+    /**
      * Constructor.
      *
-     * @param IbanValidator $ibanValidator IBAN validator instance
+     * @param IbanValidator      $ibanValidator IBAN validator instance
+     * @param XsdValidator|null  $xsdValidator Optional XSD validator instance
+     * @param bool               $validateXsd  Whether to enable XSD validation (default: false)
      */
     public function __construct(
-        private IbanValidator $ibanValidator
+        private IbanValidator $ibanValidator,
+        ?XsdValidator $xsdValidator = null,
+        bool $validateXsd = false
     ) {
+        $this->xsdValidator = $xsdValidator;
+        $this->validateXsd = $validateXsd && null !== $xsdValidator;
     }
 
     /**
@@ -128,6 +149,15 @@ class RemesaGenerator
 
         // Add addresses to XML if they were provided
         $xml = $this->addAddressesToXml($xml, $remesaData);
+
+        // Validate against XSD schema if enabled
+        if ($this->validateXsd && null !== $this->xsdValidator) {
+            try {
+                $this->xsdValidator->validateCreditTransfer($xml);
+            } catch (\InvalidArgumentException $e) {
+                throw new \InvalidArgumentException('Generated XML failed XSD validation: ' . $e->getMessage(), 0, $e);
+            }
+        }
 
         return $xml;
     }

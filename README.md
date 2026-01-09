@@ -15,6 +15,7 @@ Symfony bundle for SEPA payment management: IBAN validation, mandate management,
 - ✅ **Credit Card Validation**: Validate credit card numbers using Luhn algorithm and detect card types (Visa, Mastercard, Amex, Discover, etc.)
 - ✅ **Identifier Generation**: Generate unique identifiers for messages, payments, and transactions
 - ✅ **SEPA XML Parser**: Parse and validate SEPA XML files (Credit Transfer and Direct Debit)
+- ✅ **XSD Schema Validation**: Validate XML files against official SEPA XSD schemas (ISO 20022)
 - ✅ **SEPA Mandates**: Manage SEPA Direct Debit mandates with full support
 - ✅ **Credit Transfer**: Generate SEPA Credit Transfer XML files (pain.001.001.03 format) using Digitick\Sepa library
 - ✅ **Direct Debit**: Generate SEPA Direct Debit XML files (pain.008.001.02 format) using Digitick\Sepa library

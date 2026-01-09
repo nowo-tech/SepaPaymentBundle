@@ -1,0 +1,12 @@
+# SEPA XSD Schema Files
+
+This directory should contain the official SEPA XSD schema files:
+- `pain.001.001.03.xsd` - Credit Transfer schema
+- `pain.008.001.02.xsd` - Direct Debit schema
+
+You can download these schemas from:
+- ISO 20022 official repository: https://www.iso20022.org/
+- SEPA official documentation
+
+The XsdValidator will work even if these files are not present (validation will be skipped),
+but for full validation, you should download and place the XSD files here.
