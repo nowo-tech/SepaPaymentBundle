@@ -441,8 +441,8 @@ class RemesaGenerator
      * Adds addresses to the generated XML using DOM manipulation.
      * This ensures addresses are included even if the library doesn't support them directly.
      *
-     * @param string      $xml        The generated XML
-     * @param RemesaData  $remesaData The remesa data with addresses
+     * @param string     $xml        The generated XML
+     * @param RemesaData $remesaData The remesa data with addresses
      *
      * @return string The XML with addresses added
      */
