@@ -93,10 +93,31 @@ jobs:
 
           if [ -f "$CHANGELOG_FILE" ]; then
             # Search changelog section for this version
-            # Match patterns like: ## [0.0.4] or ## 0.0.4
-            # Escape dots in version for regex
-            VERSION_ESCAPED=$(echo "$VERSION" | sed 's/\./\\./g')
-            CHANGELOG_ENTRY=$(awk "/^## \[$VERSION_ESCAPED\]/ {flag=1; next} /^## \[?[0-9]/ {flag=0} flag" "$CHANGELOG_FILE" 2>/dev/null || echo "")
+            # Match patterns like: ## [0.0.4] - YYYY-MM-DD
+            # Use awk to extract the section, stopping at the next version header
+            CHANGELOG_ENTRY=$(awk -v version="$VERSION" '
+              BEGIN {
+                # Escape dots in version for regex matching
+                gsub(/\./, "\\.", version)
+                pattern = "^## \\[" version "\\]"
+                flag = 0
+              }
+              /^## \[/ {
+                if ($0 ~ pattern) {
+                  flag = 1
+                  next
+                } else if (flag) {
+                  # Stop at next version header
+                  exit
+                }
+              }
+              flag {
+                print
+              }
+            ' "$CHANGELOG_FILE" 2>/dev/null || echo "")
+
+            # Trim leading and trailing whitespace/newlines
+            CHANGELOG_ENTRY=$(echo "$CHANGELOG_ENTRY" | sed -e :a -e '/^\n*$/{$d;N;ba' -e '}' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 
             if [ -n "$CHANGELOG_ENTRY" ]; then
               # Preserve newlines using heredoc (no escaping needed)
@@ -106,13 +127,15 @@ jobs:
                 echo "$CHANGELOG_ENTRY"
                 echo "EOF"
               } >> $GITHUB_OUTPUT
+              LINE_COUNT=$(echo "$CHANGELOG_ENTRY" | wc -l)
+              echo "✅ Found changelog entry for version $VERSION ($LINE_COUNT lines)"
             else
               echo "HAS_CHANGELOG=false" >> $GITHUB_OUTPUT
-              echo "Warning: No changelog entry found for version $VERSION" >&2
+              echo "⚠️  Warning: No changelog entry found for version $VERSION" >&2
             fi
           else
             echo "HAS_CHANGELOG=false" >> $GITHUB_OUTPUT
-            echo "Warning: CHANGELOG file not found at $CHANGELOG_FILE" >&2
+            echo "⚠️  Warning: CHANGELOG file not found at $CHANGELOG_FILE" >&2
           fi
 
       - name: Check if release exists and update if needed
