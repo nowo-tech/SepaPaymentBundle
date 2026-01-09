@@ -79,6 +79,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated example filenames in PHPDoc: `remesa-cobro.xml` → `direct-debit.xml`
   - Updated class descriptions to use English terminology
   - All PHPDoc comments now consistently use English
+  - Improved PHPDoc comments for address handling methods to clarify DOM manipulation fallback mechanism
+  - Added PHPStan ignore annotations for dynamic method calls verified with `method_exists()`
 
 ## [0.0.11] - 2025-12-19
 

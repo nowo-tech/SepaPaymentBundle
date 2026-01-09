@@ -118,8 +118,9 @@ All PHPDoc comments have been translated to English for consistency:
 - Class descriptions now use English terminology
 - Parameter descriptions use English
 - Example filenames in comments use English names
+- Improved documentation for address handling methods to clarify how DOM manipulation is used as a fallback when library methods are not available
 
-**No code changes required**: This is a documentation-only change that doesn't affect functionality.
+**No code changes required**: This is a documentation-only change that doesn't affect functionality. The improved PHPDoc comments provide better clarity on how address handling works internally.
 
 ## Upgrading to 0.0.11
 
