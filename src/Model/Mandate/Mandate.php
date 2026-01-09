@@ -268,7 +268,7 @@ class Mandate
             return false;
         }
 
-        $checkDate = $checkDate ?? new \DateTime();
+        $checkDate ??= new \DateTime();
 
         return $expirationDate < $checkDate;
     }
