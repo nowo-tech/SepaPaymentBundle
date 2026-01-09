@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4cc5590c6c166ced2a37752f2f8267fa",
+    "content-hash": "87b4cd5ca3421fe01c61826338721a0a",
     "packages": [
         {
             "name": "brick/math",
@@ -133,16 +133,16 @@
         },
         {
             "name": "nowo-tech/sepa-payment-bundle",
-            "version": "v1.2.0",
+            "version": "v1.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nowo-tech/SepaPaymentBundle.git",
-                "reference": "2cdb05a3e705500b3145e760f31ded5f07543b7b"
+                "reference": "19c062e16643e4bfa87583b7da62f85ef65f4513"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nowo-tech/SepaPaymentBundle/zipball/2cdb05a3e705500b3145e760f31ded5f07543b7b",
-                "reference": "2cdb05a3e705500b3145e760f31ded5f07543b7b",
+                "url": "https://api.github.com/repos/nowo-tech/SepaPaymentBundle/zipball/19c062e16643e4bfa87583b7da62f85ef65f4513",
+                "reference": "19c062e16643e4bfa87583b7da62f85ef65f4513",
                 "shasum": ""
             },
             "require": {
@@ -203,7 +203,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-01-09T12:43:19+00:00"
+            "time": "2026-01-09T12:50:21+00:00"
         },
         {
             "name": "psr/cache",
