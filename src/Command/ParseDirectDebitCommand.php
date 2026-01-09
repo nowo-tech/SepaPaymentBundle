@@ -134,10 +134,15 @@ class ParseDirectDebitCommand extends Command
         } else {
             $rows = [];
             foreach ($transactions as $index => $transaction) {
+                $amount = $transaction['amount'] ?? 'N/A';
+                if (is_numeric($amount)) {
+                    $amount = number_format((float) $amount, 2, '.', '');
+                }
+
                 $rows[] = [
                     'Transaction ' . ($index + 1),
                     $transaction['endToEndId'] ?? 'N/A',
-                    $transaction['amount'] ?? 'N/A',
+                    $amount,
                     $transaction['currency'] ?? 'N/A',
                     $transaction['debtorName'] ?? 'N/A',
                     $transaction['debtorIban'] ?? 'N/A',

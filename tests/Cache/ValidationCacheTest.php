@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nowo\SepaPaymentBundle\Tests\Cache;
 
 use Nowo\SepaPaymentBundle\Cache\ValidationCache;
+use Nowo\SepaPaymentBundle\Tests\Cache\ArrayCache;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -20,7 +21,7 @@ class ValidationCacheTest extends TestCase
      */
     public function testGetSet(): void
     {
-        $cache = new \ArrayObject();
+        $cache = new ArrayCache();
         $validationCache = new ValidationCache($cache);
 
         $this->assertNull($validationCache->get('test_key'));
@@ -55,7 +56,7 @@ class ValidationCacheTest extends TestCase
      */
     public function testDelete(): void
     {
-        $cache = new \ArrayObject();
+        $cache = new ArrayCache();
         $validationCache = new ValidationCache($cache);
 
         $validationCache->set('test_key', true);
@@ -71,7 +72,7 @@ class ValidationCacheTest extends TestCase
      */
     public function testClear(): void
     {
-        $cache = new \ArrayObject();
+        $cache = new ArrayCache();
         $validationCache = new ValidationCache($cache);
 
         $validationCache->set('key1', true);
@@ -89,7 +90,7 @@ class ValidationCacheTest extends TestCase
      */
     public function testCustomTtl(): void
     {
-        $cache = new \ArrayObject();
+        $cache = new ArrayCache();
         $validationCache = new ValidationCache($cache, 7200);
 
         // Should not throw exception
@@ -102,7 +103,7 @@ class ValidationCacheTest extends TestCase
      */
     public function testKeyNormalization(): void
     {
-        $cache = new \ArrayObject();
+        $cache = new ArrayCache();
         $validationCache = new ValidationCache($cache);
 
         $validationCache->set('test_key', true);

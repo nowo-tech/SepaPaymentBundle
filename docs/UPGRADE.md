@@ -2,6 +2,27 @@
 
 This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
+## Upgrading from 1.2.1 to 1.2.2
+
+### 🐛 Bug Fixes (1.2.2)
+
+- **Fixed ValidationCache Tests**: Improved cache implementation for better test compatibility
+  - Created `ArrayCache` class for testing that properly implements PSR-16 SimpleCache interface
+  - Fixed `ValidationCache::get()` logic for better cache adapter compatibility
+- **Fixed ParseDirectDebitCommand Tests**: Removed deprecated Symfony API usage
+  - Removed `Application::add()` calls (not needed in Symfony 6+)
+  - Commands with `#[AsCommand]` are automatically registered
+- **Fixed ParseDirectDebitCommand Output**: Improved amount formatting
+  - Amount values now display with 2 decimal places consistently
+
+### Backward Compatibility
+
+- No breaking changes
+- All functionality remains the same
+- Only test and internal improvements
+
+---
+
 ## Upgrading from 1.2.0 to 1.2.1
 
 ### 🐛 Bug Fixes (1.2.1)
