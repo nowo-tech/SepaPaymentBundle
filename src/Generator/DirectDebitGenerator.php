@@ -58,7 +58,7 @@ class DirectDebitGenerator
      * Creates an HTTP Response with XML content for download.
      *
      * @param string $xmlData  The XML content
-     * @param string $filename The filename for the download (e.g., "remesa-cobro.xml")
+     * @param string $filename The filename for the download (e.g., "direct-debit.xml")
      *
      * @return Response The HTTP response with XML content
      */

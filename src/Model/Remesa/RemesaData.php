@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Nowo\SepaPaymentBundle\Model\Remesa;
 
 /**
- * Remesa data container.
+ * Credit Transfer data container.
  * Contains all information needed to generate a SEPA Credit Transfer.
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.com>

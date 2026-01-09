@@ -41,7 +41,7 @@ class RemesaGenerator
     /**
      * Generates a SEPA Credit Transfer XML file from array data.
      *
-     * @param array<string, mixed> $data The remesa data in array format
+     * @param array<string, mixed> $data The credit transfer data in array format
      *
      * @throws \InvalidArgumentException If the data is invalid
      *
@@ -57,7 +57,7 @@ class RemesaGenerator
     /**
      * Generates a SEPA Credit Transfer XML file.
      *
-     * @param RemesaData $remesaData The remesa data
+     * @param RemesaData $remesaData The credit transfer data
      *
      * @throws \InvalidArgumentException If the data is invalid
      *
@@ -136,7 +136,7 @@ class RemesaGenerator
      * Creates an HTTP Response with XML content for download.
      *
      * @param string $xmlData  The XML content
-     * @param string $filename The filename for the download (e.g., "remesa-pago.xml")
+     * @param string $filename The filename for the download (e.g., "credit-transfer.xml")
      *
      * @return Response The HTTP response with XML content
      */
@@ -149,7 +149,7 @@ class RemesaGenerator
     }
 
     /**
-     * Creates RemesaData from array format.
+     * Creates Credit Transfer data from array format.
      * Supports both camelCase and snake_case field names.
      *
      * @param array<string, mixed> $data The data in array format
@@ -442,7 +442,7 @@ class RemesaGenerator
      * This ensures addresses are included even if the library doesn't support them directly.
      *
      * @param string      $xml        The generated XML
-     * @param RemesaData  $remesaData The remesa data with addresses
+     * @param RemesaData  $remesaData The credit transfer data with addresses
      *
      * @return string The XML with addresses added
      */
@@ -615,9 +615,9 @@ class RemesaGenerator
     }
 
     /**
-     * Validates remesa data.
+     * Validates credit transfer data.
      *
-     * @param RemesaData $remesaData The remesa data to validate
+     * @param RemesaData $remesaData The credit transfer data to validate
      *
      * @throws \InvalidArgumentException If the data is invalid
      *

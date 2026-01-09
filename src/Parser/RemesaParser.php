@@ -7,7 +7,7 @@ namespace Nowo\SepaPaymentBundle\Parser;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 /**
- * SEPA remesa XML parser.
+ * SEPA Credit Transfer XML parser.
  * Parses SEPA XML files to extract information.
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
