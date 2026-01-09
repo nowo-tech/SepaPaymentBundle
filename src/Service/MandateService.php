@@ -93,9 +93,9 @@ class MandateService
      * @param string $mandateId    Mandate identifier
      * @param string $sequenceType New sequence type
      *
-     * @return Mandate The updated mandate
-     *
      * @throws \InvalidArgumentException If mandate not found or transition is invalid
+     *
+     * @return Mandate The updated mandate
      */
     public function updateSequenceType(string $mandateId, string $sequenceType): Mandate
     {
@@ -135,9 +135,9 @@ class MandateService
      * @param string      $mandateId Mandate identifier
      * @param string|null $reason    Optional revocation reason
      *
-     * @return Mandate The revoked mandate
-     *
      * @throws \InvalidArgumentException If mandate not found
+     *
+     * @return Mandate The revoked mandate
      */
     public function revokeMandate(string $mandateId, ?string $reason = null): Mandate
     {
@@ -168,9 +168,9 @@ class MandateService
      *
      * @param string $mandateId Mandate identifier
      *
-     * @return Mandate The suspended mandate
-     *
      * @throws \InvalidArgumentException If mandate not found
+     *
+     * @return Mandate The suspended mandate
      */
     public function suspendMandate(string $mandateId): Mandate
     {
@@ -201,10 +201,10 @@ class MandateService
      *
      * @param string $mandateId Mandate identifier
      *
-     * @return Mandate The reactivated mandate
-     *
      * @throws \InvalidArgumentException If mandate not found
-     * @throws \RuntimeException        If mandate is expired
+     * @throws \RuntimeException         If mandate is expired
+     *
+     * @return Mandate The reactivated mandate
      */
     public function reactivateMandate(string $mandateId): Mandate
     {

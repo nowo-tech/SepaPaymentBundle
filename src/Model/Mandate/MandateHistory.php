@@ -16,12 +16,12 @@ class MandateHistory
     /**
      * Constructor.
      *
-     * @param string             $mandateId    Mandate identifier
-     * @param \DateTimeInterface $timestamp    Timestamp of the change
-     * @param string             $eventType    Type of event (status_change, sequence_change, etc.)
-     * @param string             $oldValue     Old value
-     * @param string             $newValue     New value
-     * @param string|null        $description  Optional description
+     * @param string             $mandateId   Mandate identifier
+     * @param \DateTimeInterface $timestamp   Timestamp of the change
+     * @param string             $eventType   Type of event (status_change, sequence_change, etc.)
+     * @param string             $oldValue    Old value
+     * @param string             $newValue    New value
+     * @param string|null        $description Optional description
      */
     public function __construct(
         private string $mandateId,

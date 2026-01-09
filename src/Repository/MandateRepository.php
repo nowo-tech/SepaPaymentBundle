@@ -6,7 +6,6 @@ namespace Nowo\SepaPaymentBundle\Repository;
 
 use Nowo\SepaPaymentBundle\Model\Mandate\Mandate;
 use Nowo\SepaPaymentBundle\Model\Mandate\MandateHistory;
-use Nowo\SepaPaymentBundle\Model\Mandate\MandateStatus;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 /**
