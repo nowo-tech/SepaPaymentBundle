@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Nowo\SepaPaymentBundle\Tests\Cache;
 
 use Nowo\SepaPaymentBundle\Cache\ValidationCache;
-use Nowo\SepaPaymentBundle\Tests\Cache\ArrayCache;
 use PHPUnit\Framework\TestCase;
 
 /**
