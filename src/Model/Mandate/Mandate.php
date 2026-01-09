@@ -28,6 +28,34 @@ class Mandate
     private bool $active = true;
 
     /**
+     * Mandate status.
+     *
+     * @var MandateStatus
+     */
+    private MandateStatus $status = MandateStatus::ACTIVE;
+
+    /**
+     * Expiration date (optional, defaults to 36 months after signature date).
+     *
+     * @var \DateTimeInterface|null
+     */
+    private ?\DateTimeInterface $expirationDate = null;
+
+    /**
+     * Revocation date (if revoked).
+     *
+     * @var \DateTimeInterface|null
+     */
+    private ?\DateTimeInterface $revocationDate = null;
+
+    /**
+     * Revocation reason (if revoked).
+     *
+     * @var string|null
+     */
+    private ?string $revocationReason = null;
+
+    /**
      * Constructor.
      *
      * @param string             $mandateId     Mandate identifier
@@ -167,5 +195,150 @@ class Mandate
     public function isActive(): bool
     {
         return $this->active;
+    }
+
+    /**
+     * Gets the mandate status.
+     *
+     * @return MandateStatus The mandate status
+     */
+    public function getStatus(): MandateStatus
+    {
+        return $this->status;
+    }
+
+    /**
+     * Sets the mandate status.
+     *
+     * @param MandateStatus $status The mandate status
+     *
+     * @return self
+     */
+    public function setStatus(MandateStatus $status): self
+    {
+        $this->status = $status;
+        $this->active = ($status === MandateStatus::ACTIVE);
+
+        return $this;
+    }
+
+    /**
+     * Gets the expiration date.
+     *
+     * @return \DateTimeInterface|null The expiration date or null if not set
+     */
+    public function getExpirationDate(): ?\DateTimeInterface
+    {
+        if ($this->expirationDate === null) {
+            // Default: 36 months after signature date
+            $expirationDate = clone $this->signatureDate;
+            $expirationDate->modify('+36 months');
+
+            return $expirationDate;
+        }
+
+        return $this->expirationDate;
+    }
+
+    /**
+     * Sets the expiration date.
+     *
+     * @param \DateTimeInterface|null $expirationDate The expiration date
+     *
+     * @return self
+     */
+    public function setExpirationDate(?\DateTimeInterface $expirationDate): self
+    {
+        $this->expirationDate = $expirationDate;
+
+        return $this;
+    }
+
+    /**
+     * Checks if the mandate is expired.
+     *
+     * @param \DateTimeInterface|null $checkDate Optional date to check against (defaults to now)
+     *
+     * @return bool True if expired, false otherwise
+     */
+    public function isExpired(?\DateTimeInterface $checkDate = null): bool
+    {
+        $expirationDate = $this->getExpirationDate();
+        if ($expirationDate === null) {
+            return false;
+        }
+
+        $checkDate = $checkDate ?? new \DateTime();
+
+        return $expirationDate < $checkDate;
+    }
+
+    /**
+     * Gets the revocation date.
+     *
+     * @return \DateTimeInterface|null The revocation date or null if not revoked
+     */
+    public function getRevocationDate(): ?\DateTimeInterface
+    {
+        return $this->revocationDate;
+    }
+
+    /**
+     * Gets the revocation reason.
+     *
+     * @return string|null The revocation reason or null if not revoked
+     */
+    public function getRevocationReason(): ?string
+    {
+        return $this->revocationReason;
+    }
+
+    /**
+     * Revokes the mandate.
+     *
+     * @param string|null $reason Optional revocation reason
+     *
+     * @return self
+     */
+    public function revoke(?string $reason = null): self
+    {
+        $this->status = MandateStatus::REVOKED;
+        $this->active = false;
+        $this->revocationDate = new \DateTime();
+        $this->revocationReason = $reason;
+
+        return $this;
+    }
+
+    /**
+     * Suspends the mandate.
+     *
+     * @return self
+     */
+    public function suspend(): self
+    {
+        $this->status = MandateStatus::SUSPENDED;
+        $this->active = false;
+
+        return $this;
+    }
+
+    /**
+     * Reactivates the mandate.
+     *
+     * @return self
+     */
+    public function reactivate(): self
+    {
+        if ($this->isExpired()) {
+            throw new \RuntimeException('Cannot reactivate an expired mandate');
+        }
+
+        $this->status = MandateStatus::ACTIVE;
+        $this->active = true;
+        $this->revocationDate = null;
+        $this->revocationReason = null;
+
+        return $this;
     }
 }

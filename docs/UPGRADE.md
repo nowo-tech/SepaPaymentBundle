@@ -2,11 +2,79 @@
 
 This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
-## Upgrading from 1.0.0 to Unreleased
+## Upgrading from 1.1.0 to Unreleased
 
 ### ✨ New Features (Unreleased)
 
 The following features are available in the current development version but have not been released yet:
+
+1. **Mandate Management**: Complete mandate lifecycle management system for SEPA Direct Debit
+
+### Mandate Management
+
+The new `MandateService` provides complete lifecycle management for SEPA Direct Debit mandates:
+
+```php
+use Nowo\SepaPaymentBundle\Service\MandateService;
+use Nowo\SepaPaymentBundle\Repository\MandateRepository;
+
+$repository = new MandateRepository();
+$mandateService = new MandateService($repository);
+
+// Create a new mandate
+$mandate = $mandateService->createMandate(
+    'MANDATE-001',
+    new \DateTime('2024-01-15'),
+    'ES9121000418450200051332',
+    'John Doe',
+    'CORE',
+    'FRST'
+);
+
+// Update sequence type (validates transition)
+$mandateService->updateSequenceType('MANDATE-001', 'RCUR');
+
+// Suspend mandate
+$mandateService->suspendMandate('MANDATE-001');
+
+// Reactivate mandate
+$mandateService->reactivateMandate('MANDATE-001');
+
+// Revoke mandate
+$mandateService->revokeMandate('MANDATE-001', 'Customer request');
+
+// Validate mandate for transaction
+$isValid = $mandateService->validateMandateForTransaction('MANDATE-001', 'RCUR');
+
+// Get mandate history
+$history = $mandateService->getMandateHistory('MANDATE-001');
+```
+
+**Key Features:**
+- Status tracking (ACTIVE, EXPIRED, REVOKED, SUSPENDED)
+- Expiration date validation (defaults to 36 months after signature)
+- Sequence type transition validation (FRST → RCUR/FNAL, RCUR → RCUR/FNAL, etc.)
+- Complete history tracking for all changes
+- Find mandates by debtor IBAN, status, or expiration date
+- In-memory repository (can be extended with database implementation)
+
+**Sequence Type Rules:**
+- FRST (First) → RCUR (Recurring) or FNAL (Final)
+- RCUR (Recurring) → RCUR or FNAL
+- OOFF (One-off) → FNAL
+- FNAL (Final) is terminal (no further transitions allowed)
+
+### Backward Compatibility
+
+- All existing functionality remains unchanged
+- Mandate management is optional and doesn't affect existing code
+- No breaking changes
+
+---
+
+## Upgrading from 1.0.0 to 1.1.0
+
+### ✨ New Features (1.1.0)
 
 1. **BIC Lookup Service**: Automatically look up BIC codes from IBANs
 
@@ -103,6 +171,7 @@ $bicLookup = new BicLookupService($ibanValidator, $cache, 86400); // 24 hour TTL
 
 ### Additional New Features (Unreleased)
 
+1. **Mandate Management**: Complete mandate lifecycle management system
 2. **Validation Caching**: Cache validation results for improved performance
 3. **Console Command for Direct Debit Parsing**: Parse Direct Debit XML files from command line
 4. **Validation Events**: Event system for validation operations
@@ -231,6 +300,31 @@ All log entries include contextual data like messageId, transactionCount, and er
 ### Backward Compatibility
 
 - All existing functionality remains unchanged
+- Mandate management is optional and doesn't affect existing code
+- No breaking changes
+
+---
+
+## Upgrading from 1.0.0 to 1.1.0
+
+### ✨ New Features (1.1.0)
+
+The following features were added in version 1.1.0:
+
+1. **BIC Lookup Service**: Automatically look up BIC codes from IBANs
+2. **Validation Caching**: Cache validation results for improved performance
+3. **Console Command for Direct Debit Parsing**: Parse Direct Debit XML files from command line
+4. **Validation Events**: Event system for validation operations
+5. **Export Service**: Export SEPA payment data to JSON and CSV formats
+6. **Symfony Events**: Event system for extensibility
+7. **Structured Logging**: Comprehensive logging for SEPA operations
+8. **SEPA String Sanitization**: Validate and sanitize strings according to SEPA character rules
+9. **SEPA Country Validation**: Validate SEPA member countries
+10. **SEPA Business Rules Validation**: Validate SEPA limits and business rules
+
+### Backward Compatibility
+
+- All existing functionality remains unchanged
 - Generators accept optional `EventDispatcherInterface` parameter (backward compatible)
 - Generators accept optional `SepaPaymentLogger` parameter (backward compatible)
 - Export service is optional and doesn't affect existing code
@@ -242,9 +336,9 @@ All log entries include contextual data like messageId, transactionCount, and er
 **Note**: The following changes are planned for future versions but have not been released yet:
 
 - **Version 2.0.0 (Planned)**: All "Remesa" classes will be removed (deprecated since 1.1.0)
-- **Version 1.1.0 (Planned)**: All "Remesa" classes will be deprecated in favor of "CreditTransfer" classes
+- **Version 1.1.0**: All "Remesa" classes were deprecated in favor of "CreditTransfer" classes
 
-These changes are documented here for reference, but they are not yet available in any released version.
+These changes are documented here for reference.
 
 #### Class Renames (Planned)
 
