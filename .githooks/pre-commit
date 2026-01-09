@@ -1,0 +1,54 @@
+#!/bin/sh
+# Pre-commit hook: runs cs-check and tests before allowing commit
+# Install: git config core.hooksPath .githooks
+
+echo "🔍 Running pre-commit checks..."
+
+# Check if Docker is running
+if docker-compose ps 2>/dev/null | grep -q "Up"; then
+    echo "📦 Using Docker container..."
+    
+    # Run CS check
+    echo "🎨 Checking code style..."
+    docker-compose exec -T php composer cs-check
+    if [ $? -ne 0 ]; then
+        echo "❌ Code style check failed. Run 'make cs-fix' to fix issues."
+        exit 1
+    fi
+    
+    # Run tests
+    echo "🧪 Running tests..."
+    docker-compose exec -T php composer test
+    if [ $? -ne 0 ]; then
+        echo "❌ Tests failed."
+        exit 1
+    fi
+else
+    # Try without Docker
+    if command -v composer >/dev/null 2>&1; then
+        echo "💻 Using local Composer..."
+        
+        # Run CS check
+        echo "🎨 Checking code style..."
+        composer cs-check
+        if [ $? -ne 0 ]; then
+            echo "❌ Code style check failed. Run 'composer cs-fix' to fix issues."
+            exit 1
+        fi
+        
+        # Run tests
+        echo "🧪 Running tests..."
+        composer test
+        if [ $? -ne 0 ]; then
+            echo "❌ Tests failed."
+            exit 1
+        fi
+    else
+        echo "⚠️  Skipping local checks (Docker not running, Composer not found)"
+        echo "   Checks will run on GitHub Actions after push."
+    fi
+fi
+
+echo "✅ All checks passed!"
+exit 0
+
