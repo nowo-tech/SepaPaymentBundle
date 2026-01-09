@@ -218,7 +218,7 @@ class DirectDebitParser
      * Extracts address information from a parent node.
      *
      * @param \DOMXPath $xpath      The XPath object
-     * @param \DOMNode   $parentNode The parent node containing address information
+     * @param \DOMNode  $parentNode The parent node containing address information
      *
      * @return array<string, string> Address array with keys: street, city, postalCode, country
      */
