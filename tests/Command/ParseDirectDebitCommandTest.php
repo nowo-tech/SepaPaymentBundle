@@ -7,7 +7,6 @@ namespace Nowo\SepaPaymentBundle\Tests\Command;
 use Nowo\SepaPaymentBundle\Command\ParseDirectDebitCommand;
 use Nowo\SepaPaymentBundle\Parser\DirectDebitParser;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 
 /**
@@ -25,8 +24,6 @@ class ParseDirectDebitCommandTest extends TestCase
     {
         $parser = new DirectDebitParser();
         $command = new ParseDirectDebitCommand($parser);
-        $application = new Application();
-        $application->add($command);
 
         $commandTester = new CommandTester($command);
 
@@ -129,8 +126,6 @@ class ParseDirectDebitCommandTest extends TestCase
     {
         $parser = new DirectDebitParser();
         $command = new ParseDirectDebitCommand($parser);
-        $application = new Application();
-        $application->add($command);
 
         $commandTester = new CommandTester($command);
 
@@ -216,8 +211,6 @@ class ParseDirectDebitCommandTest extends TestCase
     {
         $parser = new DirectDebitParser();
         $command = new ParseDirectDebitCommand($parser);
-        $application = new Application();
-        $application->add($command);
 
         $commandTester = new CommandTester($command);
 
@@ -233,8 +226,6 @@ class ParseDirectDebitCommandTest extends TestCase
     {
         $parser = new DirectDebitParser();
         $command = new ParseDirectDebitCommand($parser);
-        $application = new Application();
-        $application->add($command);
 
         $commandTester = new CommandTester($command);
 

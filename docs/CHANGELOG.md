@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.2] - 2026-01-09
+
+### Fixed
+- **ValidationCache Tests**: Fixed cache implementation for tests
+  - Created `ArrayCache` class for testing that properly implements PSR-16 SimpleCache interface methods
+  - Fixed `ValidationCache::get()` logic to check `has()` before calling `get()` for better compatibility
+  - All ValidationCache tests now pass correctly
+- **ParseDirectDebitCommand Tests**: Fixed Symfony 6+ compatibility
+  - Removed deprecated `Application::add()` calls from tests (not needed in Symfony 6+)
+  - Commands with `#[AsCommand]` attribute are automatically registered
+  - All ParseDirectDebitCommand tests now pass correctly
+- **ParseDirectDebitCommand Output**: Fixed amount formatting
+  - Amount values are now formatted with 2 decimal places using `number_format()`
+  - Ensures consistent display format (e.g., "100.50" instead of "100.5")
+
 ## [1.2.1] - 2026-01-09
 
 ### Fixed
