@@ -35,10 +35,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Snake_case and camelCase field name support
   - Automatic address inclusion in XML
 - **Demo Applications**: Updated all demo applications (Symfony 6, 7, 8) with new endpoints:
-  - `/demo-remesa-pago-array` - Generate from array (camelCase)
-  - `/demo-remesa-pago-with-addresses` - Generate from array with addresses
-  - `/demo-remesa-pago-snake-case` - Generate from array (snake_case)
-  - Updated existing `/demo-remesa-pago` to include address examples
+  - `/demo-credit-transfer-array` - Generate from array (camelCase)
+  - `/demo-credit-transfer-with-addresses` - Generate from array with addresses
+  - `/demo-credit-transfer-snake-case` - Generate from array (snake_case)
+  - Updated existing `/demo-credit-transfer` to include address examples
 - **Test Coverage**: Added comprehensive test coverage for new `RemesaGenerator` features:
   - Tests for `generateFromArray()` method with camelCase and snake_case formats
   - Tests for address handling (creditor and debtor) in both array and object formats
@@ -50,10 +50,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Moved demo information to `docs/DEMOS.md`
   - Moved development guidelines to `docs/DEVELOPMENT.md`
   - Main `README.md` now provides concise overview with references
-- **Internationalization**: All demo templates now use English text:
-  - Replaced "Remesa de Pago" with "Credit Transfer"
-  - Replaced "Remesa de Cobro" with "Direct Debit"
-  - All user-facing text in demo applications is now in English
+- **Internationalization**: All demo routes and templates now use English:
+  - **Routes translated to English**:
+    - `/demo-remesa-pago` → `/demo-credit-transfer`
+    - `/demo-remesa-pago-array` → `/demo-credit-transfer-array`
+    - `/demo-remesa-pago-with-addresses` → `/demo-credit-transfer-with-addresses`
+    - `/demo-remesa-pago-snake-case` → `/demo-credit-transfer-snake-case`
+    - `/demo-remesa-cobro` → `/demo-direct-debit`
+    - `/demo-remesa-cobro-snake-case` → `/demo-direct-debit-snake-case`
+    - `/demo-remesa-cobro-with-addresses` → `/demo-direct-debit-with-addresses`
+  - **Route names translated**: All route names now use English (e.g., `demo_credit_transfer` instead of `demo_remesa_pago`)
+  - **File names translated**: Generated XML files now use English names (e.g., `credit-transfer.xml` instead of `remesa-pago.xml`)
+  - **Templates translated**: All demo templates now use English text:
+    - Replaced "Remesa de Pago" with "Credit Transfer"
+    - Replaced "Remesa de Cobro" with "Direct Debit"
+    - All user-facing text in demo applications is now in English
 
 ## [0.0.11] - 2025-12-19
 
@@ -113,7 +124,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Returns a Symfony `Response` object with proper headers for XML file download
   - Automatically sets `Content-Type: application/xml` and `Content-Disposition: attachment; filename="..."`
   - Simplifies controller code by eliminating manual Response creation
-  - Example usage: `$generator->createResponse($xml, 'remesa-cobro.xml')`
+  - Example usage: `$generator->createResponse($xml, 'direct-debit.xml')`
 
 ### Added
 - **Additional Fields Support for DirectDebit Transactions**:
@@ -292,7 +303,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Tests verify that additional data is stored but not included in generated XML
 
 - **Demo Applications**:
-  - Added `/demo-remesa-cobro-snake-case` endpoint to all demo applications (Symfony 6, 7, 8)
+  - Added `/demo-direct-debit-snake-case` endpoint to all demo applications (Symfony 6, 7, 8)
   - Demonstrates usage of snake_case format with real-world example
 
 ### Fixed

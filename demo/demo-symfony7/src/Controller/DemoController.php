@@ -94,7 +94,7 @@ class DemoController extends AbstractController
      * @param IbanValidator   $validator IBAN validator
      * @return Response
      */
-    #[Route('/demo-remesa-pago', name: 'demo_remesa_pago')]
+    #[Route('/demo-credit-transfer', name: 'demo_credit_transfer')]
     public function demoRemesaPago(RemesaGenerator $generator, IbanValidator $validator): Response
     {
         $remesaData = new RemesaData(
@@ -140,7 +140,7 @@ class DemoController extends AbstractController
         try {
             $xml = $generator->generate($remesaData);
 
-            return $generator->createResponse($xml, 'remesa-pago.xml');
+            return $generator->createResponse($xml, 'credit-transfer.xml');
         } catch (\Exception $e) {
             return new Response('Error: ' . $e->getMessage(), 500);
         }
@@ -153,7 +153,7 @@ class DemoController extends AbstractController
      * @param RemesaGenerator $generator Remesa generator
      * @return Response
      */
-    #[Route('/demo-remesa-pago-array', name: 'demo_remesa_pago_array')]
+    #[Route('/demo-credit-transfer-array', name: 'demo_credit_transfer_array')]
     public function demoRemesaPagoArray(RemesaGenerator $generator): Response
     {
         $data = [
@@ -181,7 +181,7 @@ class DemoController extends AbstractController
         try {
             $xml = $generator->generateFromArray($data);
 
-            return $generator->createResponse($xml, 'remesa-pago-array.xml');
+            return $generator->createResponse($xml, 'credit-transfer-array.xml');
         } catch (\Exception $e) {
             return new Response('Error: ' . $e->getMessage(), 500);
         }
@@ -194,7 +194,7 @@ class DemoController extends AbstractController
      * @param RemesaGenerator $generator Remesa generator
      * @return Response
      */
-    #[Route('/demo-remesa-pago-with-addresses', name: 'demo_remesa_pago_with_addresses')]
+    #[Route('/demo-credit-transfer-with-addresses', name: 'demo_credit_transfer_with_addresses')]
     public function demoRemesaPagoWithAddresses(RemesaGenerator $generator): Response
     {
         // Example with creditor and debtor addresses
@@ -238,7 +238,7 @@ class DemoController extends AbstractController
         try {
             $xml = $generator->generateFromArray($data);
 
-            return $generator->createResponse($xml, 'remesa-pago-with-addresses.xml');
+            return $generator->createResponse($xml, 'credit-transfer-with-addresses.xml');
         } catch (\Exception $e) {
             return new Response('Error: ' . $e->getMessage(), 500);
         }
@@ -251,7 +251,7 @@ class DemoController extends AbstractController
      * @param RemesaGenerator $generator Remesa generator
      * @return Response
      */
-    #[Route('/demo-remesa-pago-snake-case', name: 'demo_remesa_pago_snake_case')]
+    #[Route('/demo-credit-transfer-snake-case', name: 'demo_credit_transfer_snake_case')]
     public function demoRemesaPagoSnakeCase(RemesaGenerator $generator): Response
     {
         // Example using snake_case format (also supports camelCase)
@@ -280,7 +280,7 @@ class DemoController extends AbstractController
         try {
             $xml = $generator->generateFromArray($data);
 
-            return $generator->createResponse($xml, 'remesa-pago-snake-case.xml');
+            return $generator->createResponse($xml, 'credit-transfer-snake-case.xml');
         } catch (\Exception $e) {
             return new Response('Error: ' . $e->getMessage(), 500);
         }
@@ -292,7 +292,7 @@ class DemoController extends AbstractController
      * @param DirectDebitGenerator $generator Direct debit generator
      * @return Response
      */
-    #[Route('/demo-remesa-cobro', name: 'demo_remesa_cobro')]
+    #[Route('/demo-direct-debit', name: 'demo_direct_debit')]
     public function demoRemesaCobro(DirectDebitGenerator $generator): Response
     {
         $data = [
@@ -322,7 +322,7 @@ class DemoController extends AbstractController
         try {
             $xml = $generator->generateFromArray($data);
 
-            return $generator->createResponse($xml, 'remesa-cobro.xml');
+            return $generator->createResponse($xml, 'direct-debit.xml');
         } catch (\Exception $e) {
             return new Response('Error: ' . $e->getMessage(), 500);
         }
@@ -430,7 +430,7 @@ class DemoController extends AbstractController
      * @param DirectDebitGenerator $generator Direct debit generator
      * @return Response
      */
-    #[Route('/demo-remesa-cobro-snake-case', name: 'demo_remesa_cobro_snake_case')]
+    #[Route('/demo-direct-debit-snake-case', name: 'demo_direct_debit_snake_case')]
     public function demoRemesaCobroSnakeCase(DirectDebitGenerator $generator): Response
     {
         // Example using snake_case format (also supports camelCase)
@@ -462,7 +462,7 @@ class DemoController extends AbstractController
         try {
             $xml = $generator->generateFromArray($data);
 
-            return $generator->createResponse($xml, 'remesa-cobro-snake-case.xml');
+            return $generator->createResponse($xml, 'direct-debit-snake-case.xml');
         } catch (\Exception $e) {
             return new Response('Error: ' . $e->getMessage(), 500);
         }
@@ -475,7 +475,7 @@ class DemoController extends AbstractController
      * @param DirectDebitGenerator $generator Direct debit generator
      * @return Response
      */
-    #[Route('/demo-remesa-cobro-with-addresses', name: 'demo_remesa_cobro_with_addresses')]
+    #[Route('/demo-direct-debit-with-addresses', name: 'demo_direct_debit_with_addresses')]
     public function demoRemesaCobroWithAddresses(DirectDebitGenerator $generator): Response
     {
         // Example with creditor and debtor addresses
@@ -522,7 +522,7 @@ class DemoController extends AbstractController
         try {
             $xml = $generator->generateFromArray($data);
 
-            return $generator->createResponse($xml, 'remesa-cobro-with-addresses.xml');
+            return $generator->createResponse($xml, 'direct-debit-with-addresses.xml');
         } catch (\Exception $e) {
             return new Response('Error: ' . $e->getMessage(), 500);
         }

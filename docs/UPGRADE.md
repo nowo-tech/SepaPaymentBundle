@@ -315,14 +315,14 @@ Both `DirectDebitGenerator` and `RemesaGenerator` now include a `createResponse(
 $xml = $generator->generateFromArray($data);
 return new Response($xml, 200, [
     'Content-Type' => 'application/xml',
-    'Content-Disposition' => 'attachment; filename="remesa-cobro.xml"',
+    'Content-Disposition' => 'attachment; filename="direct-debit.xml"',
 ]);
 ```
 
 **After:**
 ```php
 $xml = $generator->generateFromArray($data);
-return $generator->createResponse($xml, 'remesa-cobro.xml');
+return $generator->createResponse($xml, 'direct-debit.xml');
 ```
 
 This is a **non-breaking change** - existing code will continue to work. The new method is optional and provides a more convenient way to create HTTP responses.

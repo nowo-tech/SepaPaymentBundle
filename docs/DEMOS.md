@@ -24,16 +24,16 @@ Each demo application includes the following endpoints to showcase bundle functi
 - `/generate-identifier` - Generate various types of identifiers (message, payment, end-to-end, mandate)
 - `/demo-mandate` - Demo SEPA mandate creation
 
-### Credit Transfer (Remesa de Pago)
-- `/demo-remesa-pago` - Generate and download SEPA Credit Transfer XML (with addresses)
-- `/demo-remesa-pago-array` - Generate from array (camelCase format)
-- `/demo-remesa-pago-with-addresses` - Generate from array with addresses
-- `/demo-remesa-pago-snake-case` - Generate from array (snake_case format)
+### Credit Transfer
+- `/demo-credit-transfer` - Generate and download SEPA Credit Transfer XML (with addresses)
+- `/demo-credit-transfer-array` - Generate from array (camelCase format)
+- `/demo-credit-transfer-with-addresses` - Generate from array with addresses
+- `/demo-credit-transfer-snake-case` - Generate from array (snake_case format)
 
-### Direct Debit (Remesa de Cobro)
-- `/demo-remesa-cobro` - Generate and download SEPA Direct Debit XML (from array - camelCase)
-- `/demo-remesa-cobro-snake-case` - Generate from array (snake_case format)
-- `/demo-remesa-cobro-with-addresses` - Generate from array with addresses
+### Direct Debit
+- `/demo-direct-debit` - Generate and download SEPA Direct Debit XML (from array - camelCase)
+- `/demo-direct-debit-snake-case` - Generate from array (snake_case format)
+- `/demo-direct-debit-with-addresses` - Generate from array with addresses
 
 ## Quick Start with Docker
 

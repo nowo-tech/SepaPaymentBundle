@@ -44,7 +44,7 @@ class DemoControllerTest extends WebTestCase
     public function testDemoRemesaPago(): void
     {
         $client = static::createClient();
-        $client->request('GET', '/demo-remesa-pago');
+        $client->request('GET', '/demo-credit-transfer');
 
         $this->assertResponseIsSuccessful();
         $this->assertStringContainsString('<?xml', $client->getResponse()->getContent());
@@ -54,7 +54,7 @@ class DemoControllerTest extends WebTestCase
     public function testDemoRemesaCobro(): void
     {
         $client = static::createClient();
-        $client->request('GET', '/demo-remesa-cobro');
+        $client->request('GET', '/demo-direct-debit');
 
         $this->assertResponseIsSuccessful();
         $this->assertStringContainsString('<?xml', $client->getResponse()->getContent());

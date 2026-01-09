@@ -401,7 +401,7 @@ file_put_contents('remesa.xml', $xml);
 
 // Or return as HTTP Response (for Symfony controllers)
 use Symfony\Component\HttpFoundation\Response;
-$response = $generator->createResponse($xml, 'remesa-pago.xml');
+$response = $generator->createResponse($xml, 'credit-transfer.xml');
 return $response;
 ```
 
@@ -606,7 +606,7 @@ $xml = $generator->generate($directDebitData);
 
 // Or return as HTTP Response (for Symfony controllers)
 use Symfony\Component\HttpFoundation\Response;
-$response = $generator->createResponse($xml, 'remesa-cobro.xml');
+$response = $generator->createResponse($xml, 'direct-debit.xml');
 return $response;
 ```
 
@@ -650,7 +650,7 @@ class MyService
     public function generateRemesaCobroResponse(array $data): \Symfony\Component\HttpFoundation\Response
     {
         $xml = $this->directDebitGenerator->generateFromArray($data);
-        return $this->directDebitGenerator->createResponse($xml, 'remesa-cobro.xml');
+        return $this->directDebitGenerator->createResponse($xml, 'direct-debit.xml');
     }
 }
 ```
