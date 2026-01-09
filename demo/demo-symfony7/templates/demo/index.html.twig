@@ -29,10 +29,15 @@
         <ul>
             <li><a href="{{ path('demo_generate_identifier') }}">Generate Identifier</a></li>
             <li><a href="{{ path('demo_mandate') }}">Demo Mandate</a></li>
-            <li><a href="{{ path('demo_remesa_pago') }}">Demo Remesa de Pago (Credit Transfer)</a></li>
-            <li><a href="{{ path('demo_remesa_cobro') }}">Demo Remesa de Cobro (Direct Debit - camelCase)</a></li>
-            <li><a href="{{ path('demo_remesa_cobro_snake_case') }}">Demo Remesa de Cobro (Direct Debit - snake_case)</a></li>
-            <li><a href="{{ path('demo_remesa_cobro_with_addresses') }}">Demo Remesa de Cobro (with Addresses)</a></li>
+            <li><strong>Credit Transfer:</strong></li>
+            <li><a href="{{ path('demo_remesa_pago') }}">Demo Credit Transfer (with Addresses)</a></li>
+            <li><a href="{{ path('demo_remesa_pago_array') }}">Demo Credit Transfer (from Array - camelCase)</a></li>
+            <li><a href="{{ path('demo_remesa_pago_with_addresses') }}">Demo Credit Transfer (from Array with Addresses)</a></li>
+            <li><a href="{{ path('demo_remesa_pago_snake_case') }}">Demo Credit Transfer (from Array - snake_case)</a></li>
+            <li><strong>Direct Debit:</strong></li>
+            <li><a href="{{ path('demo_remesa_cobro') }}">Demo Direct Debit (from Array - camelCase)</a></li>
+            <li><a href="{{ path('demo_remesa_cobro_snake_case') }}">Demo Direct Debit (from Array - snake_case)</a></li>
+            <li><a href="{{ path('demo_remesa_cobro_with_addresses') }}">Demo Direct Debit (from Array with Addresses)</a></li>
         </ul>
     </div>
 {% endblock %}

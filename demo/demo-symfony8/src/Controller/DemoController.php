@@ -109,6 +109,13 @@ class DemoController extends AbstractController
 
         $remesaData->setCreditorBic('CAIXESBBXXX');
         $remesaData->setBatchBooking(true);
+        // Set creditor address (will be included in XML)
+        $remesaData->setCreditorAddress([
+            'street' => '123 Business Street',
+            'city' => 'Madrid',
+            'postalCode' => '28001',
+            'country' => 'ES',
+        ]);
 
         $transaction = new Transaction(
             'E2E-001',
@@ -120,6 +127,13 @@ class DemoController extends AbstractController
 
         $transaction->setDebtorBic('WESTGB22');
         $transaction->setRemittanceInformation('Invoice 12345');
+        // Set debtor address (will be included in XML)
+        $transaction->setDebtorAddress([
+            'street' => '456 Customer Avenue',
+            'city' => 'London',
+            'postalCode' => 'SW1A 1AA',
+            'country' => 'GB',
+        ]);
 
         $remesaData->addTransaction($transaction);
 
@@ -127,6 +141,146 @@ class DemoController extends AbstractController
             $xml = $generator->generate($remesaData);
 
             return $generator->createResponse($xml, 'remesa-pago.xml');
+        } catch (\Exception $e) {
+            return new Response('Error: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Demo remesa de pago from array (Credit Transfer).
+     * Demonstrates generateFromArray() method with camelCase format.
+     *
+     * @param RemesaGenerator $generator Remesa generator
+     * @return Response
+     */
+    #[Route('/demo-remesa-pago-array', name: 'demo_remesa_pago_array')]
+    public function demoRemesaPagoArray(RemesaGenerator $generator): Response
+    {
+        $data = [
+            'reference' => 'MSG-001',
+            'initiatingPartyName' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'creditorIban' => 'ES9121000418450200051332',
+            'creditorName' => 'My Company Name',
+            'requestedExecutionDate' => '2024-01-20',
+            'creditorBic' => 'CAIXESBBXXX',
+            'batchBooking' => true,
+            'transactions' => [
+                [
+                    'amount' => 100.50,
+                    'currency' => 'EUR',
+                    'debtorIban' => 'GB82WEST12345698765432',
+                    'debtorName' => 'John Doe',
+                    'endToEndId' => 'E2E-001',
+                    'debtorBic' => 'WESTGB22',
+                    'remittanceInformation' => 'Invoice 12345',
+                ],
+            ],
+        ];
+
+        try {
+            $xml = $generator->generateFromArray($data);
+
+            return $generator->createResponse($xml, 'remesa-pago-array.xml');
+        } catch (\Exception $e) {
+            return new Response('Error: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Demo remesa de pago with addresses from array (Credit Transfer).
+     * Demonstrates address support in generateFromArray().
+     *
+     * @param RemesaGenerator $generator Remesa generator
+     * @return Response
+     */
+    #[Route('/demo-remesa-pago-with-addresses', name: 'demo_remesa_pago_with_addresses')]
+    public function demoRemesaPagoWithAddresses(RemesaGenerator $generator): Response
+    {
+        // Example with creditor and debtor addresses
+        // Addresses will be included in the generated XML
+        $data = [
+            'reference' => 'MSG-001',
+            'initiatingPartyName' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'creditorIban' => 'ES9121000418450200051332',
+            'creditorName' => 'My Company Name',
+            'requestedExecutionDate' => '2024-01-20',
+            'creditorBic' => 'CAIXESBBXXX',
+            'batchBooking' => true,
+            // Creditor address (will be included in XML)
+            'creditorAddress' => [
+                'street' => '123 Business Street',
+                'city' => 'Madrid',
+                'postalCode' => '28001',
+                'country' => 'ES',
+            ],
+            'transactions' => [
+                [
+                    'amount' => 100.50,
+                    'currency' => 'EUR',
+                    'debtorIban' => 'GB82WEST12345698765432',
+                    'debtorName' => 'John Doe',
+                    'endToEndId' => 'E2E-001',
+                    'debtorBic' => 'WESTGB22',
+                    'remittanceInformation' => 'Invoice 12345',
+                    // Debtor address (will be included in XML)
+                    'debtorAddress' => [
+                        'street' => '456 Customer Avenue',
+                        'city' => 'London',
+                        'postalCode' => 'SW1A 1AA',
+                        'country' => 'GB',
+                    ],
+                ],
+            ],
+        ];
+
+        try {
+            $xml = $generator->generateFromArray($data);
+
+            return $generator->createResponse($xml, 'remesa-pago-with-addresses.xml');
+        } catch (\Exception $e) {
+            return new Response('Error: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Demo remesa de pago with snake_case format (Credit Transfer).
+     * Demonstrates support for snake_case field names.
+     *
+     * @param RemesaGenerator $generator Remesa generator
+     * @return Response
+     */
+    #[Route('/demo-remesa-pago-snake-case', name: 'demo_remesa_pago_snake_case')]
+    public function demoRemesaPagoSnakeCase(RemesaGenerator $generator): Response
+    {
+        // Example using snake_case format (also supports camelCase)
+        $data = [
+            'message_id' => 'MSG-001',
+            'initiating_party_name' => 'My Company',
+            'payment_info_id' => 'PMT-001',
+            'creditor_iban' => 'ES9121000418450200051332',
+            'creditor_name' => 'My Company Name',
+            'requested_execution_date' => '2024-01-20',
+            'creditor_bic' => 'CAIXESBBXXX',
+            'batch_booking' => true,
+            'items' => [
+                [
+                    'instruction_id' => 'E2E-001',
+                    'amount' => 100.50,
+                    'currency' => 'EUR',
+                    'debtor_iban' => 'GB82WEST12345698765432',
+                    'debtor_name' => 'John Doe',
+                    'debtor_bic' => 'WESTGB22',
+                    'remittance_information' => 'Invoice 12345',
+                ],
+            ],
+        ];
+
+        try {
+            $xml = $generator->generateFromArray($data);
+
+            return $generator->createResponse($xml, 'remesa-pago-snake-case.xml');
         } catch (\Exception $e) {
             return new Response('Error: ' . $e->getMessage(), 500);
         }

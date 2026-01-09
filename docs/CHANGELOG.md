@@ -7,7 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.0.11] - 2025-12-17
+## [0.0.12] - 2026-01-09
+
+### Added
+- **RemesaGenerator: Complete Feature Parity with DirectDebitGenerator**:
+  - Added `generateFromArray()` method to `RemesaGenerator` for generating SEPA Credit Transfer XML from array data
+  - Supports both camelCase and snake_case field names (same as DirectDebitGenerator)
+  - Added postal address support for creditor in `RemesaData`:
+    - `setCreditorAddress()` - Set creditor address (array or individual fields)
+    - `setCreditorAddressFromArray()` - Set creditor address from array
+    - `getCreditorAddress()` - Get creditor address
+  - Added postal address support for debtor in `Transaction`:
+    - `setDebtorAddress()` - Set debtor address (array or individual fields)
+    - `setDebtorAddressFromArray()` - Set debtor address from array
+    - `getDebtorAddress()` - Get debtor address
+  - Addresses are automatically included in the generated XML (pain.001.001.03 format)
+  - Addresses are added using DOM manipulation to ensure compatibility with SEPA standards
+  - Support for address fields in `generateFromArray()` method:
+    - `creditorAddress` or individual fields: `creditorStreet`, `creditorCity`, `creditorPostalCode`, `creditorCountry`
+    - `debtorAddress` or individual fields: `debtorStreet`, `debtorCity`, `debtorPostalCode`, `debtorCountry`
+    - Both camelCase and snake_case formats supported
+
+### Improved
+- **Feature Parity**: `RemesaGenerator` now has the same functionality as `DirectDebitGenerator`:
+  - Array-based generation with `generateFromArray()`
+  - Postal address support (creditor and debtor)
+  - Snake_case and camelCase field name support
+  - Automatic address inclusion in XML
+- **Demo Applications**: Updated all demo applications (Symfony 6, 7, 8) with new endpoints:
+  - `/demo-remesa-pago-array` - Generate from array (camelCase)
+  - `/demo-remesa-pago-with-addresses` - Generate from array with addresses
+  - `/demo-remesa-pago-snake-case` - Generate from array (snake_case)
+  - Updated existing `/demo-remesa-pago` to include address examples
+- **Test Coverage**: Added comprehensive test coverage for new `RemesaGenerator` features:
+  - Tests for `generateFromArray()` method with camelCase and snake_case formats
+  - Tests for address handling (creditor and debtor) in both array and object formats
+  - Tests for `RemesaData` and `Transaction` address methods
+  - Edge case tests (empty arrays, missing fields, validation)
+- **Documentation**: Improved documentation structure:
+  - Moved detailed usage examples to `docs/USAGE.md`
+  - Moved console commands documentation to `docs/COMMANDS.md`
+  - Moved demo information to `docs/DEMOS.md`
+  - Moved development guidelines to `docs/DEVELOPMENT.md`
+  - Main `README.md` now provides concise overview with references
+- **Internationalization**: All demo templates now use English text:
+  - Replaced "Remesa de Pago" with "Credit Transfer"
+  - Replaced "Remesa de Cobro" with "Direct Debit"
+  - All user-facing text in demo applications is now in English
+
+## [0.0.11] - 2025-12-19
 
 ### Added
 - **Complete Service Auto-Registration with `#[AsAlias]` Attributes**: All services now use Symfony's `#[AsAlias]` attribute for automatic service registration

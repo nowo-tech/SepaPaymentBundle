@@ -2,6 +2,101 @@
 
 This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
+## Upgrading to 0.0.12
+
+### RemesaGenerator: New Features and Feature Parity
+
+`RemesaGenerator` now has complete feature parity with `DirectDebitGenerator`, including array-based generation and postal address support.
+
+#### What's New
+
+1. **`generateFromArray()` Method**: You can now generate SEPA Credit Transfer XML directly from arrays
+2. **Postal Address Support**: Both creditor and debtor addresses can be included in the XML
+3. **Snake_case Support**: Field names can be in either camelCase or snake_case format
+
+#### New Features
+
+**Array-Based Generation:**
+
+```php
+// Before (only object-based)
+$remesaData = new RemesaData(/* ... */);
+$xml = $generator->generate($remesaData);
+
+// Now (array-based, also available)
+$data = [
+    'reference' => 'MSG-001',
+    'initiatingPartyName' => 'My Company',
+    // ...
+];
+$xml = $generator->generateFromArray($data);
+```
+
+**Postal Address Support:**
+
+```php
+// Creditor address
+$remesaData->setCreditorAddress([
+    'street' => '123 Business Street',
+    'city' => 'Madrid',
+    'postalCode' => '28001',
+    'country' => 'ES',
+]);
+
+// Debtor address in transaction
+$transaction->setDebtorAddress([
+    'street' => '456 Customer Avenue',
+    'city' => 'London',
+    'postalCode' => 'SW1A 1AA',
+    'country' => 'GB',
+]);
+```
+
+**Using with Arrays:**
+
+```php
+$data = [
+    'reference' => 'MSG-001',
+    // ...
+    'creditorAddress' => [
+        'street' => '123 Business Street',
+        'city' => 'Madrid',
+        'postalCode' => '28001',
+        'country' => 'ES',
+    ],
+    'transactions' => [
+        [
+            'amount' => 100.50,
+            // ...
+            'debtorAddress' => [
+                'street' => '456 Customer Avenue',
+                'city' => 'London',
+                'postalCode' => 'SW1A 1AA',
+                'country' => 'GB',
+            ],
+        ],
+    ],
+];
+$xml = $generator->generateFromArray($data);
+```
+
+#### Impact Assessment
+
+**✅ No breaking changes - this is a non-breaking addition:**
+
+1. **Existing code continues to work**: The `generate()` method with objects still works exactly as before
+2. **New methods are optional**: You can continue using the object-based approach or switch to arrays
+3. **Addresses are optional**: If you don't provide addresses, the XML is generated without them (same as before)
+
+#### Benefits
+
+- **Consistency**: Both generators (`RemesaGenerator` and `DirectDebitGenerator`) now have the same API
+- **Flexibility**: Choose between object-based or array-based generation
+- **Address Support**: Include postal addresses in Credit Transfer XML files
+- **Snake_case Support**: Use either naming convention for field names
+
+**No action required**: Existing code will continue to work without any changes. The new features are optional additions.
+
 ## Upgrading to 0.0.11
 
 ### Service Auto-Registration with `#[AsAlias]` Attributes

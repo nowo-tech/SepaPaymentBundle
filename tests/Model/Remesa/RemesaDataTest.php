@@ -150,6 +150,75 @@ class RemesaDataTest extends TestCase
     }
 
     /**
+     * Tests setting creditor address.
+     *
+     * @return void
+     */
+    public function testSetCreditorAddress(): void
+    {
+        $remesaData = $this->createRemesaData();
+
+        $this->assertNull($remesaData->getCreditorAddress());
+
+        $remesaData->setCreditorAddress('123 Business St', 'Madrid', '28001', 'ES');
+        $address = $remesaData->getCreditorAddress();
+
+        $this->assertNotNull($address);
+        $this->assertEquals('123 Business St', $address['street']);
+        $this->assertEquals('Madrid', $address['city']);
+        $this->assertEquals('28001', $address['postalCode']);
+        $this->assertEquals('ES', $address['country']);
+    }
+
+    /**
+     * Tests setting creditor address from array.
+     *
+     * @return void
+     */
+    public function testSetCreditorAddressFromArray(): void
+    {
+        $remesaData = $this->createRemesaData();
+
+        $remesaData->setCreditorAddressFromArray([
+            'street' => '456 Corporate Avenue',
+            'city' => 'Barcelona',
+            'postalCode' => '08001',
+            'country' => 'ES',
+        ]);
+
+        $address = $remesaData->getCreditorAddress();
+        $this->assertNotNull($address);
+        $this->assertEquals('456 Corporate Avenue', $address['street']);
+        $this->assertEquals('Barcelona', $address['city']);
+        $this->assertEquals('08001', $address['postalCode']);
+        $this->assertEquals('ES', $address['country']);
+    }
+
+    /**
+     * Tests setting creditor address from array with snake_case keys.
+     *
+     * @return void
+     */
+    public function testSetCreditorAddressFromArraySnakeCase(): void
+    {
+        $remesaData = $this->createRemesaData();
+
+        $remesaData->setCreditorAddressFromArray([
+            'address' => '789 Office Plaza',
+            'city' => 'Valencia',
+            'postal_code' => '46001',
+            'country' => 'ES',
+        ]);
+
+        $address = $remesaData->getCreditorAddress();
+        $this->assertNotNull($address);
+        $this->assertEquals('789 Office Plaza', $address['street']);
+        $this->assertEquals('Valencia', $address['city']);
+        $this->assertEquals('46001', $address['postalCode']);
+        $this->assertEquals('ES', $address['country']);
+    }
+
+    /**
      * Creates a remesa data instance for testing.
      *
      * @return RemesaData The remesa data instance

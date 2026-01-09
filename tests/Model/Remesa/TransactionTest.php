@@ -82,4 +82,91 @@ class TransactionTest extends TestCase
         $transaction->setRemittanceInformation(null);
         $this->assertNull($transaction->getRemittanceInformation());
     }
+
+    /**
+     * Tests setting debtor address.
+     *
+     * @return void
+     */
+    public function testSetDebtorAddress(): void
+    {
+        $transaction = new Transaction(
+            'E2E-001',
+            100.50,
+            'EUR',
+            'ES9121000418450200051332',
+            'John Doe'
+        );
+
+        $this->assertNull($transaction->getDebtorAddress());
+
+        $transaction->setDebtorAddress('123 Main St', 'London', 'SW1A 1AA', 'GB');
+        $address = $transaction->getDebtorAddress();
+
+        $this->assertNotNull($address);
+        $this->assertEquals('123 Main St', $address['street']);
+        $this->assertEquals('London', $address['city']);
+        $this->assertEquals('SW1A 1AA', $address['postalCode']);
+        $this->assertEquals('GB', $address['country']);
+    }
+
+    /**
+     * Tests setting debtor address from array.
+     *
+     * @return void
+     */
+    public function testSetDebtorAddressFromArray(): void
+    {
+        $transaction = new Transaction(
+            'E2E-001',
+            100.50,
+            'EUR',
+            'ES9121000418450200051332',
+            'John Doe'
+        );
+
+        $transaction->setDebtorAddressFromArray([
+            'street' => '456 Oak Avenue',
+            'city' => 'Madrid',
+            'postalCode' => '28001',
+            'country' => 'ES',
+        ]);
+
+        $address = $transaction->getDebtorAddress();
+        $this->assertNotNull($address);
+        $this->assertEquals('456 Oak Avenue', $address['street']);
+        $this->assertEquals('Madrid', $address['city']);
+        $this->assertEquals('28001', $address['postalCode']);
+        $this->assertEquals('ES', $address['country']);
+    }
+
+    /**
+     * Tests setting debtor address from array with snake_case keys.
+     *
+     * @return void
+     */
+    public function testSetDebtorAddressFromArraySnakeCase(): void
+    {
+        $transaction = new Transaction(
+            'E2E-001',
+            100.50,
+            'EUR',
+            'ES9121000418450200051332',
+            'John Doe'
+        );
+
+        $transaction->setDebtorAddressFromArray([
+            'address' => '789 Pine Street',
+            'city' => 'Barcelona',
+            'postal_code' => '08001',
+            'country' => 'ES',
+        ]);
+
+        $address = $transaction->getDebtorAddress();
+        $this->assertNotNull($address);
+        $this->assertEquals('789 Pine Street', $address['street']);
+        $this->assertEquals('Barcelona', $address['city']);
+        $this->assertEquals('08001', $address['postalCode']);
+        $this->assertEquals('ES', $address['country']);
+    }
 }
