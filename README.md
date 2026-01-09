@@ -1,6 +1,6 @@
 # SEPA Payment Bundle
 
-![CI](https://github.com/nowo-tech/SepaPpaymentBundle/actions/workflows/ci.yml/badge.svg) ![Latest Stable Version](https://poser.pugx.org/nowo-tech/sepa-payment-bundle/v) ![License](https://poser.pugx.org/nowo-tech/sepa-payment-bundle/license) ![PHP Version Require](https://poser.pugx.org/nowo-tech/sepa-payment-bundle/require/php) ![GitHub stars](https://img.shields.io/github/stars/nowo-tech/sepa-payment-bundle.svg?style=social&label=Star)
+![CI](https://github.com/nowo-tech/SepaPaymentBundle/actions/workflows/ci.yml/badge.svg) ![Latest Stable Version](https://poser.pugx.org/nowo-tech/sepa-payment-bundle/v) ![License](https://poser.pugx.org/nowo-tech/sepa-payment-bundle/license) ![PHP Version Require](https://poser.pugx.org/nowo-tech/sepa-payment-bundle/require/php) ![GitHub stars](https://img.shields.io/github/stars/nowo-tech/sepa-payment-bundle.svg?style=social&label=Star)
 
 > ⭐ **Found this project useful?** Give it a star on GitHub! It helps us maintain and improve the project.
 
@@ -16,11 +16,11 @@ Symfony bundle for SEPA payment management: IBAN validation, mandate management,
 - ✅ **Identifier Generation**: Generate unique identifiers for messages, payments, and transactions
 - ✅ **SEPA XML Parser**: Parse and validate SEPA XML files
 - ✅ **SEPA Mandates**: Manage SEPA Direct Debit mandates with full support
-- ✅ **Credit Transfer (Remesas de Pago)**: Generate SEPA Credit Transfer XML files (pain.001.001.03 format) using Digitick\Sepa library
-- ✅ **Direct Debit (Remesas de Cobro)**: Generate SEPA Direct Debit XML files (pain.008.001.02 format) using Digitick\Sepa library
-- ✅ **Array-based API**: Generate both types of remesas from simple array format
-- ✅ **Object-based API**: Generate remesas using typed objects for better type safety
-- ✅ **Multiple Transactions**: Support for batch payments in a single remesa
+- ✅ **Credit Transfer**: Generate SEPA Credit Transfer XML files (pain.001.001.03 format) using Digitick\Sepa library
+- ✅ **Direct Debit**: Generate SEPA Direct Debit XML files (pain.008.001.02 format) using Digitick\Sepa library
+- ✅ **Array-based API**: Generate both types of payment files from simple array format
+- ✅ **Object-based API**: Generate payment files using typed objects for better type safety
+- ✅ **Multiple Transactions**: Support for batch payments in a single file
 - ✅ **Full Validation**: Automatic validation of IBANs before XML generation
 - ✅ **Type Safety**: Full type hints and strict types throughout
 - ✅ **Console Commands**: CLI tools for IBAN validation, CCC conversion, and credit card validation

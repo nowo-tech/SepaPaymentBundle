@@ -97,6 +97,30 @@ $xml = $generator->generateFromArray($data);
 
 **No action required**: Existing code will continue to work without any changes. The new features are optional additions.
 
+### Demo Routes Translation
+
+All demo application routes have been translated from Spanish to English:
+
+**Before (Spanish routes):**
+- `/demo-remesa-pago` → **Now**: `/demo-credit-transfer`
+- `/demo-remesa-pago-array` → **Now**: `/demo-credit-transfer-array`
+- `/demo-remesa-pago-with-addresses` → **Now**: `/demo-credit-transfer-with-addresses`
+- `/demo-remesa-pago-snake-case` → **Now**: `/demo-credit-transfer-snake-case`
+- `/demo-remesa-cobro` → **Now**: `/demo-direct-debit`
+- `/demo-remesa-cobro-snake-case` → **Now**: `/demo-direct-debit-snake-case`
+- `/demo-remesa-cobro-with-addresses` → **Now**: `/demo-direct-debit-with-addresses`
+
+**Impact**: If you have bookmarks or links to demo endpoints, update them to use the new English routes. Route names have also changed (e.g., `demo_remesa_pago` → `demo_credit_transfer`).
+
+### Code Documentation
+
+All PHPDoc comments have been translated to English for consistency:
+- Class descriptions now use English terminology
+- Parameter descriptions use English
+- Example filenames in comments use English names
+
+**No code changes required**: This is a documentation-only change that doesn't affect functionality.
+
 ## Upgrading to 0.0.11
 
 ### Service Auto-Registration with `#[AsAlias]` Attributes

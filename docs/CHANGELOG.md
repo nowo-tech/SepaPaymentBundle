@@ -44,6 +44,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Tests for address handling (creditor and debtor) in both array and object formats
   - Tests for `RemesaData` and `Transaction` address methods
   - Edge case tests (empty arrays, missing fields, validation)
+  - Additional tests for DateTimeInterface support (requestedExecutionDate, creationDate)
+  - Tests for amount conversion from cents (> 10000)
+  - Tests for optional fields (creditorBic, debtorBic, remittanceInformation, currency, batchBooking)
+  - Tests for date type validation (invalid types)
+  - Tests for multiple transactions with addresses
+  - Total of 30 tests for `RemesaGenerator` (12 new tests added)
+  - Test coverage improved to 83.08% lines for `RemesaGenerator`
+  - Overall test suite: 173 tests, 608 assertions
 - **Documentation**: Improved documentation structure:
   - Moved detailed usage examples to `docs/USAGE.md`
   - Moved console commands documentation to `docs/COMMANDS.md`
@@ -65,6 +73,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Replaced "Remesa de Pago" with "Credit Transfer"
     - Replaced "Remesa de Cobro" with "Direct Debit"
     - All user-facing text in demo applications is now in English
+- **Code Documentation**: All PHPDoc comments translated to English:
+  - Replaced "remesa data" with "credit transfer data" in all PHPDoc comments
+  - Updated example filenames in PHPDoc: `remesa-pago.xml` → `credit-transfer.xml`
+  - Updated example filenames in PHPDoc: `remesa-cobro.xml` → `direct-debit.xml`
+  - Updated class descriptions to use English terminology
+  - All PHPDoc comments now consistently use English
 
 ## [0.0.11] - 2025-12-19
 

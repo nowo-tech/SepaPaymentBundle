@@ -34,19 +34,33 @@ composer qa
 
 ## Testing
 
-The bundle has comprehensive test coverage with **100% code coverage**. All tests are located in the `tests/` directory and cover:
+The bundle has comprehensive test coverage. All tests are located in the `tests/` directory and cover:
 
 - **Validators**: `IbanValidator`, `BicValidator`, `CreditCardValidator`
 - **Converters**: `CccConverter`
 - **Generators**: `RemesaGenerator`, `DirectDebitGenerator`, `IdentifierGenerator`
+  - `RemesaGenerator` includes extensive test coverage (30 tests, 83.08% line coverage):
+    - Array-based generation with camelCase and snake_case formats
+    - DateTimeInterface support for dates
+    - Amount conversion from cents
+    - Optional fields (BIC, remittance information, currency, batch booking)
+    - Address handling (creditor and debtor)
+    - Multiple transactions with addresses
+    - Validation and edge cases
   - `DirectDebitGenerator` includes extensive test coverage for all code paths:
     - Array-based generation with various data types
     - Validation of required fields
     - Optional fields handling
     - Edge cases (empty transactions, amount conversion, etc.)
 - **Models**: `RemesaData`, `Transaction`, `DirectDebitData`, `DirectDebitTransaction`, `Mandate`
+  - All models have 100% test coverage
 - **Parsers**: `RemesaParser`
 - **Commands**: All console commands
+
+**Current Test Statistics:**
+- Total tests: 173
+- Total assertions: 608
+- Overall coverage: 87.95% lines, 86.42% methods
 
 ### Running Tests
 
