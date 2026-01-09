@@ -1,6 +1,6 @@
 # SEPA Payment Bundle
 
-![CI](https://github.com/nowo-tech/SepaPaymentBundle/actions/workflows/ci.yml/badge.svg) ![Latest Stable Version](https://poser.pugx.org/nowo-tech/sepa-payment-bundle/v) ![License](https://poser.pugx.org/nowo-tech/sepa-payment-bundle/license) ![PHP Version Require](https://poser.pugx.org/nowo-tech/sepa-payment-bundle/require/php) ![GitHub stars](https://img.shields.io/github/stars/nowo-tech/sepa-payment-bundle.svg?style=social&label=Star)
+![CI](https://github.com/nowo-tech/SepaPaymentBundle/actions/workflows/ci.yml/badge.svg) ![Latest Stable Version](https://poser.pugx.org/nowo-tech/sepa-payment-bundle/v) ![License](https://poser.pugx.org/nowo-tech/sepa-payment-bundle/license) ![PHP Version](https://img.shields.io/packagist/php-v/nowo-tech/sepa-payment-bundle) ![GitHub stars](https://img.shields.io/github/stars/nowo-tech/sepa-payment-bundle.svg?style=social&label=Star)
 
 > ⭐ **Found this project useful?** Give it a star on GitHub! It helps us maintain and improve the project.
 
