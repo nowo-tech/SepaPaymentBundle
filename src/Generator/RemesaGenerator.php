@@ -442,12 +442,10 @@ class RemesaGenerator
      * This ensures addresses are included even if the library doesn't support them directly.
      *
 <<<<<<< HEAD
-     * @param string      $xml        The generated XML
-     * @param RemesaData  $remesaData The credit transfer data with addresses
-=======
+     * @param string     $xml        The generated XML
+     * @param RemesaData $remesaData The credit transfer data with addresses
      * @param string     $xml        The generated XML
      * @param RemesaData $remesaData The remesa data with addresses
->>>>>>> 179ca0733d9563c7a77fb272b7861da5d301b8c6
      *
      * @return string The XML with addresses added
      */
