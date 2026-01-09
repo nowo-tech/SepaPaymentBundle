@@ -2,6 +2,66 @@
 
 This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
+## Upgrading to 1.0.0
+
+### 🎉 First Stable Release
+
+This is the first stable release (1.0.0) of the SEPA Payment Bundle. The bundle is now considered production-ready with comprehensive features, extensive test coverage, and complete documentation.
+
+### What's New
+
+1. **DirectDebitParser**: Complete SEPA Direct Debit XML parser
+   - Parse SEPA Direct Debit XML files (pain.008.001.02 format)
+   - Extract all payment and transaction information
+   - Validate XML structure
+   - Full address support (creditor and debtor)
+
+2. **Enhanced Test Coverage**: Additional test cases for both parsers
+   - Better edge case coverage
+   - Improved validation testing
+   - More comprehensive scenarios
+
+3. **Documentation Improvements**: Enhanced examples and documentation
+   - Parser examples in all demo applications
+   - Improved code documentation
+
+### Breaking Changes
+
+**None** - This release is fully backward compatible with 0.0.12.
+
+### Migration Steps
+
+No migration required. Simply update your `composer.json`:
+
+```bash
+composer require nowo-tech/sepa-payment-bundle:^1.0
+```
+
+### New Features You Can Use
+
+**DirectDebitParser** - Parse SEPA Direct Debit XML files:
+
+```php
+use Nowo\SepaPaymentBundle\Parser\DirectDebitParser;
+
+$parser = new DirectDebitParser();
+
+// Parse a Direct Debit XML file
+$data = $parser->parseDirectDebit($xml);
+
+// Access parsed data
+echo $data['messageId'];
+echo $data['creditorName'];
+echo $data['transactions'][0]['amount'];
+
+// Validate XML
+if ($parser->isValidDirectDebit($xml)) {
+    // Process the file
+}
+```
+
+See [docs/USAGE.md](docs/USAGE.md) for complete examples.
+
 ## Upgrading to 0.0.12
 
 ### RemesaGenerator: New Features and Feature Parity
