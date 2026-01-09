@@ -88,6 +88,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added new demo endpoints for export/import functionality, BIC lookup, string sanitization, country validation, business rules validation, and validation caching
   - Added `/demo-validation-cache-iban` - Demonstrates IBAN validation caching with performance comparison
   - Added `/demo-validation-cache-bic` - Demonstrates BIC validation caching with performance comparison
+  - Added `/demo-sepa-string-sanitizer` - Demonstrates SEPA string sanitization
+  - Added `/demo-sepa-country-validator` - Demonstrates SEPA country validation
+  - Added `/demo-sepa-business-rules` - Demonstrates SEPA business rules validation
+  - Fixed JsonResponse usage in all demo endpoints (proper encoding options with `setEncodingOptions()`)
+  - All demo endpoints now properly format JSON output with pretty print and unicode support
 - **Documentation**: 
   - Updated `USAGE.md` with comprehensive examples for all new services
   - Updated `FUTURE.md` to mark Validation Caching as completed

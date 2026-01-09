@@ -583,12 +583,15 @@ class DemoController extends AbstractController
             // Parse the XML
             $parsedData = $parser->parseCreditTransfer($xml);
 
-            return new JsonResponse([
+            $response = new JsonResponse([
                 'message' => 'Successfully generated and parsed Credit Transfer XML',
                 'isValid' => $isValid,
                 'generatedXml' => $xml,
                 'parsedData' => $parsedData,
-            ], 200, [], JSON_PRETTY_PRINT);
+            ]);
+            $response->setEncodingOptions(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
+            return $response;
         } catch (\Exception $e) {
             return new JsonResponse([
                 'error' => $e->getMessage(),
@@ -654,12 +657,15 @@ class DemoController extends AbstractController
             // Parse the XML
             $parsedData = $parser->parseDirectDebit($xml);
 
-            return new JsonResponse([
+            $response = new JsonResponse([
                 'message' => 'Successfully generated and parsed Direct Debit XML',
                 'isValid' => $isValid,
                 'generatedXml' => $xml,
                 'parsedData' => $parsedData,
-            ], 200, [], JSON_PRETTY_PRINT);
+            ]);
+            $response->setEncodingOptions(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
+            return $response;
         } catch (\Exception $e) {
             return new JsonResponse([
                 'error' => $e->getMessage(),
@@ -793,13 +799,16 @@ class DemoController extends AbstractController
             $isValid = $parser->isValidCreditTransfer($xml);
             $parsedData = $parser->parseCreditTransfer($xml);
 
-            return new JsonResponse([
+            $response = new JsonResponse([
                 'message' => 'Successfully parsed XML using deprecated RemesaParser (backward compatibility)',
                 'isValid' => $isValid,
                 'generatedXml' => $xml,
                 'parsedData' => $parsedData,
                 'note' => 'This endpoint uses deprecated RemesaParser. It still works but shows deprecation warnings. Use CreditTransferParser instead.',
-            ], 200, [], JSON_PRETTY_PRINT);
+            ]);
+            $response->setEncodingOptions(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
+            return $response;
         } catch (\Exception $e) {
             return new JsonResponse([
                 'error' => $e->getMessage(),
@@ -868,7 +877,10 @@ class DemoController extends AbstractController
                     'note' => 'Both generators produce identical XML. The deprecated class still works but shows deprecation warnings.',
                 ],
                 'recommendation' => 'Migrate to CreditTransferGenerator before upgrading to v2.0.0',
-            ], 200, [], JSON_PRETTY_PRINT);
+            ]);
+            $response->setEncodingOptions(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
+            return $response;
         } catch (\Exception $e) {
             return new JsonResponse([
                 'error' => $e->getMessage(),
@@ -922,7 +934,10 @@ class DemoController extends AbstractController
                 'parsedData' => $parsedData,
                 'json' => $json,
                 'jsonDecoded' => json_decode($json, true),
-            ], 200, [], JSON_PRETTY_PRINT);
+            ]);
+            $response->setEncodingOptions(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
+            return $response;
         } catch (\Exception $e) {
             return new JsonResponse([
                 'error' => $e->getMessage(),
@@ -1040,7 +1055,10 @@ class DemoController extends AbstractController
                 'parsedData' => $parsedData,
                 'json' => $json,
                 'jsonDecoded' => json_decode($json, true),
-            ], 200, [], JSON_PRETTY_PRINT);
+            ]);
+            $response->setEncodingOptions(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
+            return $response;
         } catch (\Exception $e) {
             return new JsonResponse([
                 'error' => $e->getMessage(),
@@ -1137,11 +1155,14 @@ class DemoController extends AbstractController
         try {
             $data = $exporter->importCreditTransferFromJson($json);
 
-            return new JsonResponse([
+            $response = new JsonResponse([
                 'message' => 'Successfully imported Credit Transfer from JSON',
                 'importedData' => $data,
                 'note' => 'This data can now be used with CreditTransferGenerator::generateFromArray()',
-            ], 200, [], JSON_PRETTY_PRINT);
+            ]);
+            $response->setEncodingOptions(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
+            return $response;
         } catch (\Exception $e) {
             return new JsonResponse([
                 'error' => $e->getMessage(),
@@ -1196,7 +1217,10 @@ class DemoController extends AbstractController
                 'cached' => false,
             ],
             'note' => 'Cached validator uses cache on second call, improving performance for repeated validations',
-        ], 200, [], JSON_PRETTY_PRINT);
+        ]);
+        $response->setEncodingOptions(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
+        return $response;
     }
 
     /**
@@ -1246,7 +1270,99 @@ class DemoController extends AbstractController
                 'cached' => false,
             ],
             'note' => 'Cached validator uses cache on second call, improving performance for repeated validations',
-        ], 200, [], JSON_PRETTY_PRINT);
+        ]);
+        $response->setEncodingOptions(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
+        return $response;
+    }
+
+    /**
+     * Demo SEPA String Sanitizer.
+     *
+     * @param Request            $request  Request object
+     * @param SepaStringSanitizer $sanitizer String sanitizer
+     * @return JsonResponse
+     */
+    #[Route('/demo-sepa-string-sanitizer', name: 'demo_sepa_string_sanitizer')]
+    public function demoSepaStringSanitizer(Request $request, SepaStringSanitizer $sanitizer): JsonResponse
+    {
+        $input = $request->query->get('input', 'José García & Company');
+
+        $response = new JsonResponse([
+            'input' => $input,
+            'sanitized' => $sanitizer->sanitize($input),
+            'isValid' => $sanitizer->isValid($input),
+            'maxLength' => 70,
+            'note' => 'SEPA allows only specific characters. Invalid characters are sanitized automatically.',
+        ]);
+        $response->setEncodingOptions(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
+        return $response;
+    }
+
+    /**
+     * Demo SEPA Country Validator.
+     *
+     * @param Request            $request  Request object
+     * @param SepaCountryValidator $validator Country validator
+     * @return JsonResponse
+     */
+    #[Route('/demo-sepa-country-validator', name: 'demo_sepa_country_validator')]
+    public function demoSepaCountryValidator(Request $request, SepaCountryValidator $validator): JsonResponse
+    {
+        $country = $request->query->get('country', 'ES');
+        $iban = $request->query->get('iban', 'ES9121000418450200051332');
+
+        $ibanValidator = new IbanValidator();
+        $countryFromIban = $ibanValidator->getCountryCode($iban);
+
+        $response = new JsonResponse([
+            'country' => $country,
+            'isSepaCountry' => $validator->isSepaCountry($country),
+            'countryName' => $validator->getCountryName($country),
+            'iban' => $iban,
+            'countryFromIban' => $countryFromIban,
+            'isSepaCountryFromIban' => $validator->isSepaCountryFromIban($iban),
+            'note' => 'Validates if a country is a SEPA member. Currently 34 countries are supported.',
+        ]);
+        $response->setEncodingOptions(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
+        return $response;
+    }
+
+    /**
+     * Demo SEPA Business Rules Validator.
+     *
+     * @param Request                  $request  Request object
+     * @param SepaBusinessRulesValidator $validator Business rules validator
+     * @return JsonResponse
+     */
+    #[Route('/demo-sepa-business-rules', name: 'demo_sepa_business_rules')]
+    public function demoSepaBusinessRules(Request $request, SepaBusinessRulesValidator $validator): JsonResponse
+    {
+        $amount = (float) $request->query->get('amount', '100.50');
+        $count = (int) $request->query->get('count', '1');
+        $currency = $request->query->get('currency', 'EUR');
+        $dateStr = $request->query->get('date', 'tomorrow');
+        $date = new \DateTime($dateStr);
+
+        $response = new JsonResponse([
+            'amount' => $amount,
+            'isValidTransactionAmount' => $validator->isValidTransactionAmount($amount),
+            'transactionCount' => $count,
+            'isValidTransactionCount' => $validator->isValidTransactionCount($count),
+            'currency' => $currency,
+            'isValidSepaCurrency' => $validator->isValidSepaCurrency($currency),
+            'executionDate' => $date->format('Y-m-d'),
+            'isValidExecutionDate' => $validator->isValidExecutionDate($date),
+            'isBusinessDay' => $validator->isBusinessDay($date),
+            'maxAmount' => 999999999.99,
+            'maxTransactionCount' => 99999,
+            'note' => 'Validates SEPA business rules and limits according to SEPA standards.',
+        ]);
+        $response->setEncodingOptions(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
+        return $response;
     }
 }
 
