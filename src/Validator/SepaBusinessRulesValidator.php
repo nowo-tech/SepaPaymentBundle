@@ -61,7 +61,7 @@ class SepaBusinessRulesValidator
      * Validates if an execution date is valid (must be a future date or today).
      *
      * @param \DateTimeInterface $executionDate The execution date
-     * @param bool                $allowToday    Whether to allow today's date (default: true)
+     * @param bool               $allowToday    Whether to allow today's date (default: true)
      *
      * @return bool True if valid, false otherwise
      */
@@ -149,10 +149,10 @@ class SepaBusinessRulesValidator
     /**
      * Validates all business rules for a credit transfer.
      *
-     * @param float               $amount           Transaction amount
-     * @param int                 $transactionCount Number of transactions
-     * @param \DateTimeInterface  $executionDate    Execution date
-     * @param string              $currency         Currency code
+     * @param float              $amount           Transaction amount
+     * @param int                $transactionCount Number of transactions
+     * @param \DateTimeInterface $executionDate    Execution date
+     * @param string             $currency         Currency code
      *
      * @return array<string, string> Array of validation errors (empty if valid)
      */
@@ -182,11 +182,11 @@ class SepaBusinessRulesValidator
     /**
      * Validates all business rules for a direct debit.
      *
-     * @param float               $amount           Transaction amount
-     * @param int                 $transactionCount Number of transactions
-     * @param \DateTimeInterface  $dueDate         Due date
-     * @param string              $currency         Currency code
-     * @param string              $sequenceType     Sequence type (FRST, RCUR, OOFF, FNAL)
+     * @param float                   $amount                Transaction amount
+     * @param int                     $transactionCount      Number of transactions
+     * @param \DateTimeInterface      $dueDate               Due date
+     * @param string                  $currency              Currency code
+     * @param string                  $sequenceType          Sequence type (FRST, RCUR, OOFF, FNAL)
      * @param \DateTimeInterface|null $mandateExpirationDate Mandate expiration date (optional)
      *
      * @return array<string, string> Array of validation errors (empty if valid)

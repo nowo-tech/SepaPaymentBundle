@@ -40,9 +40,9 @@ class SepaPaymentLogger
     /**
      * Logs Credit Transfer generation start.
      *
-     * @param string $messageId Message ID
-     * @param int    $transactionCount Number of transactions
-     * @param array<string, mixed> $context Additional context
+     * @param string               $messageId        Message ID
+     * @param int                  $transactionCount Number of transactions
+     * @param array<string, mixed> $context          Additional context
      *
      * @return void
      */
@@ -59,10 +59,10 @@ class SepaPaymentLogger
     /**
      * Logs Credit Transfer generation success.
      *
-     * @param string $messageId Message ID
-     * @param int    $transactionCount Number of transactions
-     * @param int    $xmlLength XML length in bytes
-     * @param array<string, mixed> $context Additional context
+     * @param string               $messageId        Message ID
+     * @param int                  $transactionCount Number of transactions
+     * @param int                  $xmlLength        XML length in bytes
+     * @param array<string, mixed> $context          Additional context
      *
      * @return void
      */
@@ -80,9 +80,9 @@ class SepaPaymentLogger
     /**
      * Logs Credit Transfer generation failure.
      *
-     * @param string $messageId Message ID
-     * @param string $error Error message
-     * @param array<string, mixed> $context Additional context
+     * @param string               $messageId Message ID
+     * @param string               $error     Error message
+     * @param array<string, mixed> $context   Additional context
      *
      * @return void
      */
@@ -99,9 +99,9 @@ class SepaPaymentLogger
     /**
      * Logs Direct Debit generation start.
      *
-     * @param string $messageId Message ID
-     * @param int    $transactionCount Number of transactions
-     * @param array<string, mixed> $context Additional context
+     * @param string               $messageId        Message ID
+     * @param int                  $transactionCount Number of transactions
+     * @param array<string, mixed> $context          Additional context
      *
      * @return void
      */
@@ -118,10 +118,10 @@ class SepaPaymentLogger
     /**
      * Logs Direct Debit generation success.
      *
-     * @param string $messageId Message ID
-     * @param int    $transactionCount Number of transactions
-     * @param int    $xmlLength XML length in bytes
-     * @param array<string, mixed> $context Additional context
+     * @param string               $messageId        Message ID
+     * @param int                  $transactionCount Number of transactions
+     * @param int                  $xmlLength        XML length in bytes
+     * @param array<string, mixed> $context          Additional context
      *
      * @return void
      */
@@ -139,9 +139,9 @@ class SepaPaymentLogger
     /**
      * Logs Direct Debit generation failure.
      *
-     * @param string $messageId Message ID
-     * @param string $error Error message
-     * @param array<string, mixed> $context Additional context
+     * @param string               $messageId Message ID
+     * @param string               $error     Error message
+     * @param array<string, mixed> $context   Additional context
      *
      * @return void
      */
@@ -158,8 +158,8 @@ class SepaPaymentLogger
     /**
      * Logs IBAN validation.
      *
-     * @param string $iban IBAN to validate
-     * @param bool   $isValid Validation result
+     * @param string               $iban    IBAN to validate
+     * @param bool                 $isValid Validation result
      * @param array<string, mixed> $context Additional context
      *
      * @return void
@@ -177,8 +177,8 @@ class SepaPaymentLogger
     /**
      * Logs BIC validation.
      *
-     * @param string $bic BIC to validate
-     * @param bool   $isValid Validation result
+     * @param string               $bic     BIC to validate
+     * @param bool                 $isValid Validation result
      * @param array<string, mixed> $context Additional context
      *
      * @return void
@@ -196,8 +196,8 @@ class SepaPaymentLogger
     /**
      * Logs business rules validation.
      *
-     * @param string $rule Rule name
-     * @param bool   $isValid Validation result
+     * @param string               $rule    Rule name
+     * @param bool                 $isValid Validation result
      * @param array<string, mixed> $context Additional context
      *
      * @return void
@@ -215,9 +215,9 @@ class SepaPaymentLogger
     /**
      * Logs Credit Transfer parsing.
      *
-     * @param string $messageId Parsed message ID
-     * @param int    $transactionCount Number of transactions parsed
-     * @param array<string, mixed> $context Additional context
+     * @param string               $messageId        Parsed message ID
+     * @param int                  $transactionCount Number of transactions parsed
+     * @param array<string, mixed> $context          Additional context
      *
      * @return void
      */
@@ -233,9 +233,9 @@ class SepaPaymentLogger
     /**
      * Logs Direct Debit parsing.
      *
-     * @param string $messageId Parsed message ID
-     * @param int    $transactionCount Number of transactions parsed
-     * @param array<string, mixed> $context Additional context
+     * @param string               $messageId        Parsed message ID
+     * @param int                  $transactionCount Number of transactions parsed
+     * @param array<string, mixed> $context          Additional context
      *
      * @return void
      */
@@ -251,7 +251,7 @@ class SepaPaymentLogger
     /**
      * Logs parsing error.
      *
-     * @param string $error Error message
+     * @param string               $error   Error message
      * @param array<string, mixed> $context Additional context
      *
      * @return void
@@ -268,8 +268,8 @@ class SepaPaymentLogger
     /**
      * Logs XSD validation.
      *
-     * @param string $type Validation type (credit_transfer or direct_debit)
-     * @param bool   $isValid Validation result
+     * @param string               $type    Validation type (credit_transfer or direct_debit)
+     * @param bool                 $isValid Validation result
      * @param array<string, mixed> $context Additional context
      *
      * @return void
