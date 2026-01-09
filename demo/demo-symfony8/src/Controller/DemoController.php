@@ -1019,7 +1019,7 @@ class DemoController extends AbstractController
             // Generate XML
             $data = [
                 'reference' => 'MSG-EXPORT-DD-001',
-                'initiatingPartyName' => 'Direct Debit Export Demo',
+                'bankAccountOwner' => 'Direct Debit Export Demo',
                 'paymentInfoId' => 'PMT-EXPORT-DD-001',
                 'creditorIban' => 'ES9121000418450200051332',
                 'creditorName' => 'Direct Debit Export Company',
@@ -1081,7 +1081,7 @@ class DemoController extends AbstractController
             // Generate XML
             $data = [
                 'reference' => 'MSG-EXPORT-DD-CSV-001',
-                'initiatingPartyName' => 'Direct Debit CSV Export',
+                'bankAccountOwner' => 'Direct Debit CSV Export',
                 'paymentInfoId' => 'PMT-EXPORT-DD-CSV-001',
                 'creditorIban' => 'ES9121000418450200051332',
                 'creditorName' => 'Direct Debit CSV Company',
