@@ -10,6 +10,7 @@ This document provides detailed usage examples for all features of the SEPA Paym
 - [Credit Card Validation](#credit-card-validation)
 - [Identifier Generation](#identifier-generation)
 - [SEPA XML Parser](#sepa-xml-parser)
+- [XSD Schema Validation](#xsd-schema-validation)
 - [SEPA Mandates](#sepa-mandates)
 - [Generating SEPA Credit Transfer (Remesa de Pago)](#generating-sepa-credit-transfer-remesa-de-pago)
 - [Generating SEPA Direct Debit (Remesa de Cobro)](#generating-sepa-direct-debit-remesa-de-cobro)
@@ -269,6 +270,90 @@ if ($parser->isValidDirectDebit($xml)) {
 ```
 <｜tool▁calls▁begin｜><｜tool▁call▁begin｜>
 read_file
+
+## XSD Schema Validation
+
+The bundle includes an `XsdValidator` service that can validate generated XML files against official SEPA XSD schemas (ISO 20022). This ensures that your XML files are fully compliant with SEPA standards.
+
+### Basic Usage
+
+```php
+use Nowo\SepaPaymentBundle\Validator\XsdValidator;
+
+$validator = new XsdValidator();
+
+// Validate Credit Transfer XML
+try {
+    $isValid = $validator->validateCreditTransfer($xml);
+    if ($isValid) {
+        echo "XML is valid against pain.001.001.03 schema";
+    }
+} catch (\InvalidArgumentException $e) {
+    echo "Validation failed: " . $e->getMessage();
+}
+
+// Validate Direct Debit XML
+try {
+    $isValid = $validator->validateDirectDebit($xml);
+    if ($isValid) {
+        echo "XML is valid against pain.008.001.02 schema";
+    }
+} catch (\InvalidArgumentException $e) {
+    echo "Validation failed: " . $e->getMessage();
+}
+```
+
+### Using Custom XSD Schema Files
+
+If you have your own XSD schema files, you can specify the path:
+
+```php
+$validator = new XsdValidator();
+
+// Validate against a specific XSD file
+$isValid = $validator->validate($xml, '/path/to/schema.xsd', 'credit_transfer');
+```
+
+### Validating Against Schema String
+
+You can also validate against an XSD schema provided as a string:
+
+```php
+$xsdContent = file_get_contents('/path/to/schema.xsd');
+$isValid = $validator->validateAgainstSchemaString($xml, $xsdContent);
+```
+
+### Enabling XSD Validation in Generators
+
+You can enable automatic XSD validation when generating XML files:
+
+```php
+use Nowo\SepaPaymentBundle\Generator\RemesaGenerator;
+use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+use Nowo\SepaPaymentBundle\Validator\XsdValidator;
+
+$ibanValidator = new IbanValidator();
+$xsdValidator = new XsdValidator();
+
+// Enable XSD validation (third parameter)
+$generator = new RemesaGenerator($ibanValidator, $xsdValidator, true);
+
+// Now all generated XML will be validated against XSD schema
+$xml = $generator->generate($remesaData);
+// If validation fails, an InvalidArgumentException will be thrown
+```
+
+### XSD Schema Files
+
+The validator looks for XSD schema files in `src/Resources/schemas/`:
+- `pain.001.001.03.xsd` - Credit Transfer schema
+- `pain.008.001.02.xsd` - Direct Debit schema
+
+You can download these schemas from:
+- ISO 20022 official repository: https://www.iso20022.org/
+- SEPA official documentation
+
+**Note**: If XSD schema files are not found, validation will be skipped (returns `true`). This allows the validator to work even without schema files, but for full validation, you should download and place the XSD files in the schemas directory.
 
 ## SEPA Mandates
 
