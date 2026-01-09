@@ -103,12 +103,15 @@ $bicLookup = new BicLookupService($ibanValidator, $cache, 86400); // 24 hour TTL
 
 ### Additional New Features (Unreleased)
 
-2. **Export Service**: Export SEPA payment data to JSON and CSV formats
-3. **Symfony Events**: Event system for extensibility
-4. **Structured Logging**: Comprehensive logging for SEPA operations
-5. **SEPA String Sanitization**: Validate and sanitize strings according to SEPA character rules
-6. **SEPA Country Validation**: Validate SEPA member countries
-7. **SEPA Business Rules Validation**: Validate SEPA limits and business rules
+2. **Validation Caching**: Cache validation results for improved performance
+3. **Console Command for Direct Debit Parsing**: Parse Direct Debit XML files from command line
+4. **Validation Events**: Event system for validation operations
+5. **Export Service**: Export SEPA payment data to JSON and CSV formats
+6. **Symfony Events**: Event system for extensibility
+7. **Structured Logging**: Comprehensive logging for SEPA operations
+8. **SEPA String Sanitization**: Validate and sanitize strings according to SEPA character rules
+9. **SEPA Country Validation**: Validate SEPA member countries
+10. **SEPA Business Rules Validation**: Validate SEPA limits and business rules
 
 ### Export Service
 
