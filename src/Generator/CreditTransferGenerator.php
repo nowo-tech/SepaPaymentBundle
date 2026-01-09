@@ -11,8 +11,8 @@ use Digitick\Sepa\TransferFile\CustomerCreditTransferFile;
 use Digitick\Sepa\TransferInformation\CustomerCreditTransferInformation;
 use Nowo\SepaPaymentBundle\Event\AfterCreditTransferGenerationEvent;
 use Nowo\SepaPaymentBundle\Event\BeforeCreditTransferGenerationEvent;
-use Nowo\SepaPaymentBundle\Lookup\BicLookupServiceInterface;
 use Nowo\SepaPaymentBundle\Logger\SepaPaymentLogger;
+use Nowo\SepaPaymentBundle\Lookup\BicLookupServiceInterface;
 use Nowo\SepaPaymentBundle\Model\CreditTransfer\CreditTransferData;
 use Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
@@ -72,11 +72,11 @@ class CreditTransferGenerator
     /**
      * Constructor.
      *
-     * @param IbanValidator                $ibanValidator     IBAN validator instance
-     * @param XsdValidator|null           $xsdValidator     Optional XSD validator instance
-     * @param bool                        $validateXsd      Whether to enable XSD validation (default: false)
-     * @param EventDispatcherInterface|null $eventDispatcher Optional event dispatcher for Symfony events
-     * @param SepaPaymentLogger|null      $logger           Optional logger for structured logging
+     * @param IbanValidator                  $ibanValidator    IBAN validator instance
+     * @param XsdValidator|null              $xsdValidator     Optional XSD validator instance
+     * @param bool                           $validateXsd      Whether to enable XSD validation (default: false)
+     * @param EventDispatcherInterface|null  $eventDispatcher  Optional event dispatcher for Symfony events
+     * @param SepaPaymentLogger|null         $logger           Optional logger for structured logging
      * @param BicLookupServiceInterface|null $bicLookupService Optional BIC lookup service for auto-filling BIC
      */
     public function __construct(
@@ -140,114 +140,115 @@ class CreditTransferGenerator
             $this->validateCreditTransferData($creditTransferData);
 
             // Create and configure group header
-                $groupHeader = new GroupHeader(
-                    $creditTransferData->getMessageId(),
-                    $creditTransferData->getInitiatingPartyName()
-                );
+            $groupHeader = new GroupHeader(
+                $creditTransferData->getMessageId(),
+                $creditTransferData->getInitiatingPartyName()
+            );
 
-                // Create transfer file (pain.001.001.03 format) with group header
-                $transferFile = new CustomerCreditTransferFile($groupHeader);
+            // Create transfer file (pain.001.001.03 format) with group header
+            $transferFile = new CustomerCreditTransferFile($groupHeader);
 
-                // Auto-fill creditor BIC if missing
-                $creditorBic = $creditTransferData->getCreditorBic();
-                if (null === $creditorBic && null !== $this->bicLookupService) {
-                    $lookedUpBic = $this->bicLookupService->lookupBic($creditTransferData->getCreditorIban());
-                    if (null !== $lookedUpBic) {
-                        $creditorBic = $lookedUpBic;
-                    }
+            // Auto-fill creditor BIC if missing
+            $creditorBic = $creditTransferData->getCreditorBic();
+            if (null === $creditorBic && null !== $this->bicLookupService) {
+                $lookedUpBic = $this->bicLookupService->lookupBic($creditTransferData->getCreditorIban());
+                if (null !== $lookedUpBic) {
+                    $creditorBic = $lookedUpBic;
                 }
-
-                // Create payment information
-                $paymentInformation = new PaymentInformation(
-                    $creditTransferData->getPaymentInfoId(),
-                    $this->ibanValidator->normalize($creditTransferData->getCreditorIban()),
-                    $creditorBic ?? '',
-                    $creditTransferData->getCreditorName(),
-                    'EUR'
-                );
-                // Payment method is automatically set based on the transfer file type (CustomerCreditTransferFile)
-                $paymentInformation->setBatchBooking($creditTransferData->isBatchBooking());
-                $paymentInformation->setDueDate($creditTransferData->getRequestedExecutionDate());
-
-                // Set creditor address if available
-                $creditorAddress = $creditTransferData->getCreditorAddress();
-                if (null !== $creditorAddress) {
-                    $this->setCreditorPostalAddress($paymentInformation, $creditorAddress);
-                }
-
-                // Add transactions
-                foreach ($creditTransferData->getTransactions() as $transaction) {
-                    $transferInformation = new CustomerCreditTransferInformation(
-                        (int) round($transaction->getAmount() * 100), // Convert to cents
-                        $this->ibanValidator->normalize($transaction->getDebtorIban()),
-                        $transaction->getDebtorName(),
-                        $transaction->getEndToEndId()
-                    );
-
-                    // Auto-fill debtor BIC if missing
-                    $debtorBic = $transaction->getDebtorBic();
-                    if (null === $debtorBic && null !== $this->bicLookupService) {
-                        $lookedUpBic = $this->bicLookupService->lookupBic($transaction->getDebtorIban());
-                        if (null !== $lookedUpBic) {
-                            $debtorBic = $lookedUpBic;
-                        }
-                    }
-
-                    if (null !== $debtorBic) {
-                        $transferInformation->setBic($debtorBic);
-                    }
-
-                    if (null !== $transaction->getRemittanceInformation()) {
-                        $transferInformation->setRemittanceInformation($transaction->getRemittanceInformation());
-                    }
-
-                    // Set debtor address if available
-                    $debtorAddress = $transaction->getDebtorAddress();
-                    if (null !== $debtorAddress) {
-                        $this->setPostalAddress($transferInformation, $debtorAddress);
-                    }
-
-                    $paymentInformation->addTransfer($transferInformation);
-                }
-
-                $transferFile->addPaymentInformation($paymentInformation);
-
-                // Generate XML
-                $domBuilder = DomBuilderFactory::createDomBuilder($transferFile);
-                $xml = $domBuilder->asXml();
-
-                // Add addresses to XML if they were provided
-                $xml = $this->addAddressesToXml($xml, $creditTransferData);
-
-                // Validate against XSD schema if enabled
-                if ($this->validateXsd && null !== $this->xsdValidator) {
-                    try {
-                        $this->xsdValidator->validateCreditTransfer($xml);
-                    } catch (\InvalidArgumentException $e) {
-                        throw new \InvalidArgumentException('Generated XML failed XSD validation: ' . $e->getMessage(), 0, $e);
-                    }
-                }
-
-                // Dispatch after generation event
-                if (null !== $this->eventDispatcher) {
-                    $afterEvent = new AfterCreditTransferGenerationEvent($xml, $creditTransferData->getMessageId());
-                    $this->eventDispatcher->dispatch($afterEvent);
-                    $xml = $afterEvent->getXml();
-                }
-
-                // Log generation success
-                if (null !== $this->logger) {
-                    $this->logger->logCreditTransferGenerationSuccess($messageId, $transactionCount, strlen($xml));
-                }
-
-                return $xml;
-            } catch (\Exception $e) {
-                // Log generation failure
-                if (null !== $this->logger) {
-                    $this->logger->logCreditTransferGenerationFailure($messageId, $e->getMessage());
-                }
-                throw $e;
             }
+
+            // Create payment information
+            $paymentInformation = new PaymentInformation(
+                $creditTransferData->getPaymentInfoId(),
+                $this->ibanValidator->normalize($creditTransferData->getCreditorIban()),
+                $creditorBic ?? '',
+                $creditTransferData->getCreditorName(),
+                'EUR'
+            );
+            // Payment method is automatically set based on the transfer file type (CustomerCreditTransferFile)
+            $paymentInformation->setBatchBooking($creditTransferData->isBatchBooking());
+            $paymentInformation->setDueDate($creditTransferData->getRequestedExecutionDate());
+
+            // Set creditor address if available
+            $creditorAddress = $creditTransferData->getCreditorAddress();
+            if (null !== $creditorAddress) {
+                $this->setCreditorPostalAddress($paymentInformation, $creditorAddress);
+            }
+
+            // Add transactions
+            foreach ($creditTransferData->getTransactions() as $transaction) {
+                $transferInformation = new CustomerCreditTransferInformation(
+                    (int) round($transaction->getAmount() * 100), // Convert to cents
+                    $this->ibanValidator->normalize($transaction->getDebtorIban()),
+                    $transaction->getDebtorName(),
+                    $transaction->getEndToEndId()
+                );
+
+                // Auto-fill debtor BIC if missing
+                $debtorBic = $transaction->getDebtorBic();
+                if (null === $debtorBic && null !== $this->bicLookupService) {
+                    $lookedUpBic = $this->bicLookupService->lookupBic($transaction->getDebtorIban());
+                    if (null !== $lookedUpBic) {
+                        $debtorBic = $lookedUpBic;
+                    }
+                }
+
+                if (null !== $debtorBic) {
+                    $transferInformation->setBic($debtorBic);
+                }
+
+                if (null !== $transaction->getRemittanceInformation()) {
+                    $transferInformation->setRemittanceInformation($transaction->getRemittanceInformation());
+                }
+
+                // Set debtor address if available
+                $debtorAddress = $transaction->getDebtorAddress();
+                if (null !== $debtorAddress) {
+                    $this->setPostalAddress($transferInformation, $debtorAddress);
+                }
+
+                $paymentInformation->addTransfer($transferInformation);
+            }
+
+            $transferFile->addPaymentInformation($paymentInformation);
+
+            // Generate XML
+            $domBuilder = DomBuilderFactory::createDomBuilder($transferFile);
+            $xml = $domBuilder->asXml();
+
+            // Add addresses to XML if they were provided
+            $xml = $this->addAddressesToXml($xml, $creditTransferData);
+
+            // Validate against XSD schema if enabled
+            if ($this->validateXsd && null !== $this->xsdValidator) {
+                try {
+                    $this->xsdValidator->validateCreditTransfer($xml);
+                } catch (\InvalidArgumentException $e) {
+                    throw new \InvalidArgumentException('Generated XML failed XSD validation: ' . $e->getMessage(), 0, $e);
+                }
+            }
+
+            // Dispatch after generation event
+            if (null !== $this->eventDispatcher) {
+                $afterEvent = new AfterCreditTransferGenerationEvent($xml, $creditTransferData->getMessageId());
+                $this->eventDispatcher->dispatch($afterEvent);
+                $xml = $afterEvent->getXml();
+            }
+
+            // Log generation success
+            if (null !== $this->logger) {
+                $this->logger->logCreditTransferGenerationSuccess($messageId, $transactionCount, strlen($xml));
+            }
+
+            return $xml;
+        } catch (\Exception $e) {
+            // Log generation failure
+            if (null !== $this->logger) {
+                $this->logger->logCreditTransferGenerationFailure($messageId, $e->getMessage());
+            }
+
+            throw $e;
+        }
     }
 
     /**
@@ -260,9 +261,9 @@ class CreditTransferGenerator
      */
     public function createResponse(string $xmlData, string $filename): Response
     {
-            return new Response($xmlData, Response::HTTP_OK, [
-                'Content-Type' => 'application/xml',
-            'Content-Disposition' => sprintf('attachment; filename="%s"', $filename),
+        return new Response($xmlData, Response::HTTP_OK, [
+            'Content-Type' => 'application/xml',
+        'Content-Disposition' => sprintf('attachment; filename="%s"', $filename),
         ]);
     }
 
@@ -570,8 +571,8 @@ class CreditTransferGenerator
      * This method ensures addresses are included in the final XML even if the Digitick\Sepa
      * library doesn't support them directly through its API methods.
      *
-     * @param string              $xml                The generated XML from the library
-     * @param CreditTransferData  $creditTransferData The credit transfer data containing creditor and debtor addresses
+     * @param string             $xml                The generated XML from the library
+     * @param CreditTransferData $creditTransferData The credit transfer data containing creditor and debtor addresses
      *
      * @return string The XML with addresses added via DOM manipulation
      */

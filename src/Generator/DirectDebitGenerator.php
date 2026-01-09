@@ -11,8 +11,8 @@ use Digitick\Sepa\TransferFile\CustomerDirectDebitTransferFile;
 use Digitick\Sepa\TransferInformation\CustomerDirectDebitTransferInformation;
 use Nowo\SepaPaymentBundle\Event\AfterDirectDebitGenerationEvent;
 use Nowo\SepaPaymentBundle\Event\BeforeDirectDebitGenerationEvent;
-use Nowo\SepaPaymentBundle\Lookup\BicLookupServiceInterface;
 use Nowo\SepaPaymentBundle\Logger\SepaPaymentLogger;
+use Nowo\SepaPaymentBundle\Lookup\BicLookupServiceInterface;
 use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitData;
 use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitTransaction;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
@@ -72,11 +72,11 @@ class DirectDebitGenerator
     /**
      * Constructor.
      *
-     * @param IbanValidator                $ibanValidator     IBAN validator instance
-     * @param XsdValidator|null           $xsdValidator     Optional XSD validator instance
-     * @param bool                        $validateXsd      Whether to enable XSD validation (default: false)
-     * @param EventDispatcherInterface|null $eventDispatcher Optional event dispatcher for Symfony events
-     * @param SepaPaymentLogger|null      $logger           Optional logger for structured logging
+     * @param IbanValidator                  $ibanValidator    IBAN validator instance
+     * @param XsdValidator|null              $xsdValidator     Optional XSD validator instance
+     * @param bool                           $validateXsd      Whether to enable XSD validation (default: false)
+     * @param EventDispatcherInterface|null  $eventDispatcher  Optional event dispatcher for Symfony events
+     * @param SepaPaymentLogger|null         $logger           Optional logger for structured logging
      * @param BicLookupServiceInterface|null $bicLookupService Optional BIC lookup service for auto-filling BIC
      */
     public function __construct(
@@ -267,6 +267,7 @@ class DirectDebitGenerator
             if (null !== $this->logger) {
                 $this->logger->logDirectDebitGenerationFailure($messageId, $e->getMessage());
             }
+
             throw $e;
         }
     }

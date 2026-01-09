@@ -22,8 +22,8 @@ class CachedBicValidator
     /**
      * Constructor.
      *
-     * @param BicValidator              $bicValidator BIC validator instance
-     * @param ValidationCacheInterface $cache         Optional cache instance
+     * @param BicValidator             $bicValidator BIC validator instance
+     * @param ValidationCacheInterface $cache        Optional cache instance
      */
     public function __construct(
         private BicValidator $bicValidator,

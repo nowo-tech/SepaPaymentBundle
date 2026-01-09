@@ -922,7 +922,7 @@ class DirectDebitParserTest extends TestCase
         // Empty string should return false (loadXML will fail)
         $result1 = $this->parser->isValidDirectDebit('');
         $this->assertFalse($result1);
-        
+
         // Whitespace only should return false
         $result2 = $this->parser->isValidDirectDebit('   ');
         $this->assertFalse($result2);
