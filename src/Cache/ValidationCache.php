@@ -60,21 +60,21 @@ class ValidationCache implements ValidationCacheInterface
         }
 
         $normalizedKey = $this->normalizeKey($key);
-        
+
         // First check if key exists (for caches that support has() method)
         if (method_exists($this->cache, 'has')) {
             if (!$this->cache->has($normalizedKey)) {
                 return null; // Key doesn't exist
             }
         }
-        
+
         $result = $this->cache->get($normalizedKey);
-        
+
         // If result is null and we couldn't check existence, assume it doesn't exist
         if (null === $result && !method_exists($this->cache, 'has')) {
             return null;
         }
-        
+
         // If we have a result (even if it's false), return it as bool
         // Note: false is a valid cached value, null means not cached
         // Since we already checked has(), if result is null here, it means the key exists but value is null
@@ -82,7 +82,7 @@ class ValidationCache implements ValidationCacheInterface
         if (null === $result) {
             return null;
         }
-        
+
         return (bool) $result;
     }
 
