@@ -358,8 +358,9 @@ class RemesaGenerator
     }
 
     /**
-     * Sets postal address on transfer information (debtor address).
-     * Uses available methods from the Digitick\Sepa library.
+     * Attempts to set postal address on transfer information (debtor address).
+     * Note: The Digitick\Sepa library may not support this directly, so addresses
+     * are also added via DOM manipulation in addAddressesToXml() method.
      *
      * @param CustomerCreditTransferInformation $transferInformation The transfer information object
      * @param array<string, string|null>        $address             Address array with keys: street, city, postalCode, country
@@ -370,8 +371,10 @@ class RemesaGenerator
         CustomerCreditTransferInformation $transferInformation,
         array $address
     ): void {
-        // Try to set postal address using available methods
+        // Try to set postal address using available methods from the library
+        // If these methods don't exist, addresses will be added via DOM manipulation
         if (method_exists($transferInformation, 'setPostalAddress')) {
+            /** @phpstan-ignore-next-line */
             $transferInformation->setPostalAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
@@ -379,6 +382,7 @@ class RemesaGenerator
                 $address['country'] ?? ''
             );
         } elseif (method_exists($transferInformation, 'setDebtorPostalAddress')) {
+            /** @phpstan-ignore-next-line */
             $transferInformation->setDebtorPostalAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
@@ -386,6 +390,7 @@ class RemesaGenerator
                 $address['country'] ?? ''
             );
         } elseif (method_exists($transferInformation, 'setAddress')) {
+            /** @phpstan-ignore-next-line */
             $transferInformation->setAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
@@ -393,13 +398,14 @@ class RemesaGenerator
                 $address['country'] ?? ''
             );
         }
-        // Note: If the library doesn't support addresses in this format,
-        // the address is still stored internally for internal use
+        // Note: Addresses are always added to XML via DOM manipulation in addAddressesToXml()
+        // even if the library methods don't exist, ensuring addresses are included in the final XML
     }
 
     /**
-     * Sets creditor postal address on payment information.
-     * Uses available methods from the Digitick\Sepa library.
+     * Attempts to set creditor postal address on payment information.
+     * Note: The Digitick\Sepa library may not support this directly, so addresses
+     * are also added via DOM manipulation in addAddressesToXml() method.
      *
      * @param PaymentInformation         $paymentInformation The payment information object
      * @param array<string, string|null> $address            Address array with keys: street, city, postalCode, country
@@ -410,8 +416,10 @@ class RemesaGenerator
         PaymentInformation $paymentInformation,
         array $address
     ): void {
-        // Try to set creditor postal address using available methods
+        // Try to set creditor postal address using available methods from the library
+        // If these methods don't exist, addresses will be added via DOM manipulation
         if (method_exists($paymentInformation, 'setCreditorPostalAddress')) {
+            /** @phpstan-ignore-next-line */
             $paymentInformation->setCreditorPostalAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
@@ -419,6 +427,7 @@ class RemesaGenerator
                 $address['country'] ?? ''
             );
         } elseif (method_exists($paymentInformation, 'setPostalAddress')) {
+            /** @phpstan-ignore-next-line */
             $paymentInformation->setPostalAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
@@ -426,6 +435,7 @@ class RemesaGenerator
                 $address['country'] ?? ''
             );
         } elseif (method_exists($paymentInformation, 'setAddress')) {
+            /** @phpstan-ignore-next-line */
             $paymentInformation->setAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
@@ -433,18 +443,19 @@ class RemesaGenerator
                 $address['country'] ?? ''
             );
         }
-        // Note: If the library doesn't support addresses in this format,
-        // the address is still stored internally for internal use
+        // Note: Addresses are always added to XML via DOM manipulation in addAddressesToXml()
+        // even if the library methods don't exist, ensuring addresses are included in the final XML
     }
 
     /**
      * Adds addresses to the generated XML using DOM manipulation.
-     * This ensures addresses are included even if the library doesn't support them directly.
+     * This method ensures addresses are included in the final XML even if the Digitick\Sepa
+     * library doesn't support them directly through its API methods.
      *
-     * @param string      $xml        The generated XML
-     * @param RemesaData  $remesaData The credit transfer data with addresses
+     * @param string     $xml        The generated XML from the library
+     * @param RemesaData $remesaData The credit transfer data containing creditor and debtor addresses
      *
-     * @return string The XML with addresses added
+     * @return string The XML with addresses added via DOM manipulation
      */
     private function addAddressesToXml(string $xml, RemesaData $remesaData): string
     {
