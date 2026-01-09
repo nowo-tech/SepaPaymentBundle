@@ -53,7 +53,7 @@ class RemesaGenerator
      *
      * @return string The generated XML
      */
-    #[Deprecated('Use CreditTransferGenerator::generateFromArray() instead', since: '1.1.0', replacement: 'CreditTransferGenerator::generateFromArray()')]
+    #[Deprecated(reason: 'Use CreditTransferGenerator::generateFromArray() instead', since: '1.1.0')]
     public function generateFromArray(array $data): string
     {
         @trigger_error('RemesaGenerator is deprecated since 1.1.0. Use CreditTransferGenerator instead.', \E_USER_DEPRECATED);
@@ -70,7 +70,7 @@ class RemesaGenerator
      *
      * @return string The generated XML
      */
-    #[Deprecated('Use CreditTransferGenerator::generate() instead', since: '1.1.0', replacement: 'CreditTransferGenerator::generate()')]
+    #[Deprecated(reason: 'Use CreditTransferGenerator::generate() instead', since: '1.1.0')]
     public function generate(RemesaData|CreditTransferData $remesaData): string
     {
         @trigger_error('RemesaGenerator is deprecated since 1.1.0. Use CreditTransferGenerator instead.', \E_USER_DEPRECATED);
@@ -95,7 +95,7 @@ class RemesaGenerator
      *
      * @return Response The HTTP response
      */
-    #[Deprecated('Use CreditTransferGenerator::createResponse() instead', since: '1.1.0', replacement: 'CreditTransferGenerator::createResponse()')]
+    #[Deprecated(reason: 'Use CreditTransferGenerator::createResponse() instead', since: '1.1.0')]
     public function createResponse(string $xml, string $filename = 'credit-transfer.xml'): Response
     {
         @trigger_error('RemesaGenerator is deprecated since 1.1.0. Use CreditTransferGenerator instead.', \E_USER_DEPRECATED);
