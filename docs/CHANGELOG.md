@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-01-09
+
+### Fixed
+- **Deprecated Attribute**: Fixed incorrect usage of `#[Deprecated]` attribute with invalid `replacement` parameter
+  - Removed invalid `replacement` parameter from `#[Deprecated]` attribute in `RemesaGenerator` methods
+  - Removed invalid `replacement` parameter from `#[Deprecated]` attribute in `RemesaParser` methods
+  - Corrected attribute syntax to use only valid parameters: `reason` and `since`
+  - The `replacement` parameter only exists in PHPDoc `@deprecated` annotations, not in PHP `#[Deprecated]` attribute
+
 ## [1.2.0] - 2026-01-09
 
 ### Added

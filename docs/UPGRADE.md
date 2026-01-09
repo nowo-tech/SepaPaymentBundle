@@ -2,6 +2,22 @@
 
 This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
+## Upgrading from 1.2.0 to 1.2.1
+
+### 🐛 Bug Fixes (1.2.1)
+
+- **Fixed Deprecated Attribute Syntax**: Corrected invalid usage of `#[Deprecated]` attribute
+  - The `#[Deprecated]` attribute in PHP only accepts `reason` and `since` parameters
+  - The `replacement` parameter was incorrectly used and has been removed
+  - This fix resolves PHP errors when using deprecated classes/methods
+
+### Backward Compatibility
+
+- No breaking changes
+- All functionality remains the same
+
+---
+
 ## Upgrading from 1.1.0 to 1.2.0
 
 ### ✨ New Features (1.2.0)
