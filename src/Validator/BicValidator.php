@@ -17,6 +17,7 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 class BicValidator
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.validator.bic_validator';
+
     /**
      * Validates a BIC according to ISO 13616 standard.
      * BIC format: 4 letters (bank code) + 2 letters (country code) + 2 alphanumeric (location) + 3 alphanumeric (branch, optional)

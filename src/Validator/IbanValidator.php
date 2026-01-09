@@ -17,6 +17,7 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 class IbanValidator
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.validator.iban_validator';
+
     /**
      * Validates an IBAN according to ISO 13616 standard.
      *

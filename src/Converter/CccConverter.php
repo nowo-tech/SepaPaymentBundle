@@ -18,6 +18,7 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 class CccConverter
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.converter.ccc_converter';
+
     /**
      * Constructor.
      *
