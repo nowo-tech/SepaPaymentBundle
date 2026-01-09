@@ -890,4 +890,87 @@ class DirectDebitParserTest extends TestCase
         $this->assertCount(1, $data['transactions']);
         $this->assertArrayNotHasKey('debtorName', $data['transactions'][0]);
     }
+
+    /**
+     * Tests isValidDirectDebit with valid XML but wrong namespace.
+     *
+     * @return void
+     */
+    public function testIsValidDirectDebitWithWrongNamespace(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
+                <CstmrCdtTrfInitn>
+                    <GrpHdr>
+                        <MsgId>MSG-001</MsgId>
+                    </GrpHdr>
+                </CstmrCdtTrfInitn>
+            </Document>
+            XML;
+
+        $this->assertFalse($this->parser->isValidDirectDebit($xml));
+    }
+
+    /**
+     * Tests isValidDirectDebit with empty XML.
+     *
+     * @return void
+     */
+    public function testIsValidDirectDebitWithEmptyXml(): void
+    {
+        // Empty string should return false (loadXML will fail)
+        $result1 = $this->parser->isValidDirectDebit('');
+        $this->assertFalse($result1);
+        
+        // Whitespace only should return false
+        $result2 = $this->parser->isValidDirectDebit('   ');
+        $this->assertFalse($result2);
+    }
+
+    /**
+     * Tests parsing Direct Debit with all optional fields missing.
+     *
+     * @return void
+     */
+    public function testParseDirectDebitWithMinimalData(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.001.02">
+                <CstmrDrctDbtInitn>
+                    <GrpHdr>
+                        <MsgId>MSG-MIN-001</MsgId>
+                        <CreDtTm>2024-01-15T10:00:00</CreDtTm>
+                    </GrpHdr>
+                    <PmtInf>
+                        <PmtInfId>PMT-MIN-001</PmtInfId>
+                        <PmtMtd>DD</PmtMtd>
+                        <DrctDbtTxInf>
+                            <EndToEndId>E2E-MIN-001</EndToEndId>
+                            <InstdAmt Ccy="EUR">100.50</InstdAmt>
+                            <DrctDbtTx>
+                                <MndtRltdInf>
+                                    <MndtId>MANDATE-MIN-001</MndtId>
+                                    <DtOfSgntr>2023-12-01</DtOfSgntr>
+                                </MndtRltdInf>
+                            </DrctDbtTx>
+                            <DbtrAcct>
+                                <Id>
+                                    <IBAN>GB82WEST12345698765432</IBAN>
+                                </Id>
+                            </DbtrAcct>
+                        </DrctDbtTxInf>
+                    </PmtInf>
+                </CstmrDrctDbtInitn>
+            </Document>
+            XML;
+
+        $data = $this->parser->parseDirectDebit($xml);
+
+        $this->assertEquals('MSG-MIN-001', $data['messageId']);
+        $this->assertCount(1, $data['transactions']);
+        $this->assertEquals('E2E-MIN-001', $data['transactions'][0]['endToEndId']);
+        $this->assertEquals('MANDATE-MIN-001', $data['transactions'][0]['mandateId']);
+    }
 }

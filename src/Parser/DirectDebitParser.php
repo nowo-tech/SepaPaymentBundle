@@ -262,6 +262,11 @@ class DirectDebitParser
     public function isValidDirectDebit(string $xml): bool
     {
         try {
+            // Empty string check
+            if (trim($xml) === '') {
+                return false;
+            }
+
             $dom = new \DOMDocument();
             if (!@$dom->loadXML($xml)) {
                 return false;

@@ -4,23 +4,23 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Tests\Parser;
 
-use Nowo\SepaPaymentBundle\Parser\RemesaParser;
+use Nowo\SepaPaymentBundle\Parser\CreditTransferParser;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Test cases for RemesaParser.
+ * Test cases for CreditTransferParser.
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
  * @copyright 2025 Nowo.tech
  */
-class RemesaParserTest extends TestCase
+class CreditTransferParserTest extends TestCase
 {
     /**
-     * Remesa parser instance.
+     * Credit transfer parser instance.
      *
-     * @var RemesaParser
+     * @var CreditTransferParser
      */
-    private RemesaParser $parser;
+    private CreditTransferParser $parser;
 
     /**
      * Sets up the test environment.
@@ -29,7 +29,7 @@ class RemesaParserTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->parser = new RemesaParser();
+        $this->parser = new CreditTransferParser();
     }
 
     /**
@@ -267,7 +267,7 @@ class RemesaParserTest extends TestCase
 
         $data = $this->parser->parseCreditTransfer($xml);
 
-        // Note: RemesaParser doesn't currently extract addresses
+        // Note: CreditTransferParser doesn't currently extract addresses
         // This test verifies it doesn't break when addresses are present
         $this->assertEquals('MSG-003', $data['messageId']);
         $this->assertCount(1, $data['transactions']);
@@ -361,5 +361,130 @@ class RemesaParserTest extends TestCase
 
         $this->assertEquals('USD', $data['transactions'][0]['currency']);
         $this->assertEquals(100.50, $data['transactions'][0]['amount']);
+    }
+
+    /**
+     * Tests isValidCreditTransfer with valid XML but wrong namespace.
+     *
+     * @return void
+     */
+    public function testIsValidCreditTransferWithWrongNamespace(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.001.02">
+                <CstmrDrctDbtInitn>
+                    <GrpHdr>
+                        <MsgId>MSG-001</MsgId>
+                    </GrpHdr>
+                </CstmrDrctDbtInitn>
+            </Document>
+            XML;
+
+        $this->assertFalse($this->parser->isValidCreditTransfer($xml));
+    }
+
+    /**
+     * Tests isValidCreditTransfer with empty XML.
+     *
+     * @return void
+     */
+    public function testIsValidCreditTransferWithEmptyXml(): void
+    {
+        // Empty string should return false (loadXML will fail)
+        $result1 = $this->parser->isValidCreditTransfer('');
+        $this->assertFalse($result1);
+        
+        // Whitespace only should return false
+        $result2 = $this->parser->isValidCreditTransfer('   ');
+        $this->assertFalse($result2);
+    }
+
+    /**
+     * Tests isValidCreditTransfer with XML missing required elements.
+     *
+     * @return void
+     */
+    public function testIsValidCreditTransferMissingRequiredElements(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
+                <CstmrCdtTrfInitn>
+                    <GrpHdr>
+                        <!-- Missing MsgId -->
+                    </GrpHdr>
+                </CstmrCdtTrfInitn>
+            </Document>
+            XML;
+
+        $this->assertFalse($this->parser->isValidCreditTransfer($xml));
+    }
+
+    /**
+     * Tests parsing with BIC information.
+     *
+     * @return void
+     */
+    public function testParseCreditTransferWithBic(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
+                <CstmrCdtTrfInitn>
+                    <GrpHdr>
+                        <MsgId>MSG-BIC-001</MsgId>
+                        <CreDtTm>2024-01-15T10:00:00</CreDtTm>
+                        <InitgPty>
+                            <Nm>My Company</Nm>
+                        </InitgPty>
+                    </GrpHdr>
+                    <PmtInf>
+                        <PmtInfId>PMT-BIC-001</PmtInfId>
+                        <Cdtr>
+                            <Nm>Creditor Name</Nm>
+                        </Cdtr>
+                        <CdtrAcct>
+                            <Id>
+                                <IBAN>ES9121000418450200051332</IBAN>
+                            </Id>
+                        </CdtrAcct>
+                        <CdtrAgt>
+                            <FinInstnId>
+                                <BIC>CAIXESBBXXX</BIC>
+                            </FinInstnId>
+                        </CdtrAgt>
+                        <CdtTrfTxInf>
+                            <EndToEndId>E2E-BIC-001</EndToEndId>
+                            <InstdAmt Ccy="EUR">100.50</InstdAmt>
+                            <CdtrAcct>
+                                <Id>
+                                    <IBAN>ES9121000418450200051332</IBAN>
+                                </Id>
+                            </CdtrAcct>
+                            <Cdtr>
+                                <Nm>John Doe</Nm>
+                            </Cdtr>
+                            <DbtrAcct>
+                                <Id>
+                                    <IBAN>GB82WEST12345698765432</IBAN>
+                                </Id>
+                            </DbtrAcct>
+                            <DbtrAgt>
+                                <FinInstnId>
+                                    <BIC>WESTGB22</BIC>
+                                </FinInstnId>
+                            </DbtrAgt>
+                        </CdtTrfTxInf>
+                    </PmtInf>
+                </CstmrCdtTrfInitn>
+            </Document>
+            XML;
+
+        $data = $this->parser->parseCreditTransfer($xml);
+
+        $this->assertEquals('MSG-BIC-001', $data['messageId']);
+        $this->assertCount(1, $data['transactions']);
+        $this->assertEquals('E2E-BIC-001', $data['transactions'][0]['endToEndId']);
     }
 }

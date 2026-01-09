@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Nowo\SepaPaymentBundle\Tests\Model\Remesa;
+namespace Nowo\SepaPaymentBundle\Tests\Model\CreditTransfer;
 
-use Nowo\SepaPaymentBundle\Model\Remesa\Transaction;
+use Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction;
 use PHPUnit\Framework\TestCase;
 
 /**

@@ -4,26 +4,28 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Tests\Generator;
 
-use Nowo\SepaPaymentBundle\Generator\RemesaGenerator;
-use Nowo\SepaPaymentBundle\Model\Remesa\RemesaData;
-use Nowo\SepaPaymentBundle\Model\Remesa\Transaction;
+use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
+use Nowo\SepaPaymentBundle\Logger\SepaPaymentLogger;
+use Nowo\SepaPaymentBundle\Model\CreditTransfer\CreditTransferData;
+use Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction;
+use Nowo\SepaPaymentBundle\Tests\Logger\TestLogger;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Test cases for RemesaGenerator.
+ * Test cases for CreditTransferGenerator.
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
  * @copyright 2025 Nowo.tech
  */
-class RemesaGeneratorTest extends TestCase
+class CreditTransferGeneratorTest extends TestCase
 {
     /**
-     * Remesa generator instance.
+     * Credit transfer generator instance.
      *
-     * @var RemesaGenerator
+     * @var CreditTransferGenerator
      */
-    private RemesaGenerator $generator;
+    private CreditTransferGenerator $generator;
 
     /**
      * Sets up the test environment.
@@ -33,7 +35,7 @@ class RemesaGeneratorTest extends TestCase
     protected function setUp(): void
     {
         $ibanValidator = new IbanValidator();
-        $this->generator = new RemesaGenerator($ibanValidator);
+        $this->generator = new CreditTransferGenerator($ibanValidator);
     }
 
     /**
@@ -43,7 +45,7 @@ class RemesaGeneratorTest extends TestCase
      */
     public function testGenerateXml(): void
     {
-        $remesaData = new RemesaData(
+        $creditTransferData = new CreditTransferData(
             'MSG-001',
             new \DateTime('2024-01-15 10:00:00'),
             'My Company',
@@ -53,8 +55,8 @@ class RemesaGeneratorTest extends TestCase
             new \DateTime('2024-01-20')
         );
 
-        $remesaData->setCreditorBic('CAIXESBBXXX');
-        $remesaData->setBatchBooking(true);
+        $creditTransferData->setCreditorBic('CAIXESBBXXX');
+        $creditTransferData->setBatchBooking(true);
 
         $transaction = new Transaction(
             'E2E-001',
@@ -67,9 +69,9 @@ class RemesaGeneratorTest extends TestCase
         $transaction->setDebtorBic('WESTGB22');
         $transaction->setRemittanceInformation('Invoice 12345');
 
-        $remesaData->addTransaction($transaction);
+        $creditTransferData->addTransaction($transaction);
 
-        $xml = $this->generator->generate($remesaData);
+        $xml = $this->generator->generate($creditTransferData);
 
         $this->assertStringContainsString('<?xml', $xml);
         $this->assertStringContainsString('CstmrCdtTrfInitn', $xml);
@@ -92,7 +94,7 @@ class RemesaGeneratorTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid creditor IBAN');
 
-        $remesaData = new RemesaData(
+        $creditTransferData = new CreditTransferData(
             'MSG-001',
             new \DateTime('2024-01-15 10:00:00'),
             'My Company',
@@ -102,7 +104,7 @@ class RemesaGeneratorTest extends TestCase
             new \DateTime('2024-01-20')
         );
 
-        $this->generator->generate($remesaData);
+        $this->generator->generate($creditTransferData);
     }
 
     /**
@@ -115,7 +117,7 @@ class RemesaGeneratorTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid debtor IBAN');
 
-        $remesaData = new RemesaData(
+        $creditTransferData = new CreditTransferData(
             'MSG-001',
             new \DateTime('2024-01-15 10:00:00'),
             'My Company',
@@ -133,9 +135,9 @@ class RemesaGeneratorTest extends TestCase
             'John Doe'
         );
 
-        $remesaData->addTransaction($transaction);
+        $creditTransferData->addTransaction($transaction);
 
-        $this->generator->generate($remesaData);
+        $this->generator->generate($creditTransferData);
     }
 
     /**
@@ -145,7 +147,7 @@ class RemesaGeneratorTest extends TestCase
      */
     public function testGenerateXmlWithMultipleTransactions(): void
     {
-        $remesaData = new RemesaData(
+        $creditTransferData = new CreditTransferData(
             'MSG-001',
             new \DateTime('2024-01-15 10:00:00'),
             'My Company',
@@ -155,7 +157,7 @@ class RemesaGeneratorTest extends TestCase
             new \DateTime('2024-01-20')
         );
 
-        $remesaData->addTransaction(new Transaction(
+        $creditTransferData->addTransaction(new Transaction(
             'E2E-001',
             100.50,
             'EUR',
@@ -163,7 +165,7 @@ class RemesaGeneratorTest extends TestCase
             'John Doe'
         ));
 
-        $remesaData->addTransaction(new Transaction(
+        $creditTransferData->addTransaction(new Transaction(
             'E2E-002',
             200.75,
             'EUR',
@@ -171,7 +173,7 @@ class RemesaGeneratorTest extends TestCase
             'Jane Smith'
         ));
 
-        $xml = $this->generator->generate($remesaData);
+        $xml = $this->generator->generate($creditTransferData);
 
         $this->assertStringContainsString('NbOfTxs', $xml);
         $this->assertStringContainsString('2', $xml);
@@ -187,7 +189,7 @@ class RemesaGeneratorTest extends TestCase
      */
     public function testGenerateXmlWithoutBic(): void
     {
-        $remesaData = new RemesaData(
+        $creditTransferData = new CreditTransferData(
             'MSG-001',
             new \DateTime('2024-01-15 10:00:00'),
             'My Company',
@@ -205,9 +207,9 @@ class RemesaGeneratorTest extends TestCase
             'John Doe'
         );
 
-        $remesaData->addTransaction($transaction);
+        $creditTransferData->addTransaction($transaction);
 
-        $xml = $this->generator->generate($remesaData);
+        $xml = $this->generator->generate($creditTransferData);
 
         // XML should be valid and contain transaction data
         $this->assertStringContainsString('E2E-001', $xml);
@@ -221,7 +223,7 @@ class RemesaGeneratorTest extends TestCase
      */
     public function testGenerateXmlWithSpecialCharacters(): void
     {
-        $remesaData = new RemesaData(
+        $creditTransferData = new CreditTransferData(
             'MSG-001',
             new \DateTime('2024-01-15 10:00:00'),
             'My Company & Co.',
@@ -241,9 +243,9 @@ class RemesaGeneratorTest extends TestCase
 
         $transaction->setRemittanceInformation('Invoice & Payment <2024>');
 
-        $remesaData->addTransaction($transaction);
+        $creditTransferData->addTransaction($transaction);
 
-        $xml = $this->generator->generate($remesaData);
+        $xml = $this->generator->generate($creditTransferData);
 
         // Should properly escape special characters in XML
         // The XML should not contain unescaped special characters that would break XML structure
@@ -435,7 +437,7 @@ class RemesaGeneratorTest extends TestCase
      */
     public function testGenerateXmlWithCreditorAddress(): void
     {
-        $remesaData = new RemesaData(
+        $creditTransferData = new CreditTransferData(
             'MSG-001',
             new \DateTime('2024-01-15 10:00:00'),
             'My Company',
@@ -445,7 +447,7 @@ class RemesaGeneratorTest extends TestCase
             new \DateTime('2024-01-20')
         );
 
-        $remesaData->setCreditorAddress([
+        $creditTransferData->setCreditorAddress([
             'street' => '789 Business Road',
             'city' => 'Barcelona',
             'postalCode' => '08001',
@@ -460,9 +462,9 @@ class RemesaGeneratorTest extends TestCase
             'John Doe'
         );
 
-        $remesaData->addTransaction($transaction);
+        $creditTransferData->addTransaction($transaction);
 
-        $xml = $this->generator->generate($remesaData);
+        $xml = $this->generator->generate($creditTransferData);
 
         $this->assertStringContainsString('<?xml', $xml);
         $this->assertStringContainsString('CstmrCdtTrfInitn', $xml);
@@ -479,7 +481,7 @@ class RemesaGeneratorTest extends TestCase
      */
     public function testGenerateXmlWithDebtorAddress(): void
     {
-        $remesaData = new RemesaData(
+        $creditTransferData = new CreditTransferData(
             'MSG-001',
             new \DateTime('2024-01-15 10:00:00'),
             'My Company',
@@ -504,9 +506,9 @@ class RemesaGeneratorTest extends TestCase
             'country' => 'GB',
         ]);
 
-        $remesaData->addTransaction($transaction);
+        $creditTransferData->addTransaction($transaction);
 
-        $xml = $this->generator->generate($remesaData);
+        $xml = $this->generator->generate($creditTransferData);
 
         $this->assertStringContainsString('<?xml', $xml);
         $this->assertStringContainsString('CstmrCdtTrfInitn', $xml);
@@ -523,7 +525,7 @@ class RemesaGeneratorTest extends TestCase
      */
     public function testGenerateXmlWithBothAddresses(): void
     {
-        $remesaData = new RemesaData(
+        $creditTransferData = new CreditTransferData(
             'MSG-001',
             new \DateTime('2024-01-15 10:00:00'),
             'My Company',
@@ -533,7 +535,7 @@ class RemesaGeneratorTest extends TestCase
             new \DateTime('2024-01-20')
         );
 
-        $remesaData->setCreditorAddress([
+        $creditTransferData->setCreditorAddress([
             'street' => '111 Creditor Ave',
             'city' => 'Valencia',
             'postalCode' => '46001',
@@ -555,9 +557,9 @@ class RemesaGeneratorTest extends TestCase
             'country' => 'GB',
         ]);
 
-        $remesaData->addTransaction($transaction);
+        $creditTransferData->addTransaction($transaction);
 
-        $xml = $this->generator->generate($remesaData);
+        $xml = $this->generator->generate($creditTransferData);
 
         $this->assertStringContainsString('<?xml', $xml);
         $this->assertStringContainsString('CstmrCdtTrfInitn', $xml);
@@ -1090,5 +1092,152 @@ class RemesaGeneratorTest extends TestCase
         $this->assertEquals($xml, $response->getContent());
         $this->assertEquals('application/xml', $response->headers->get('Content-Type'));
         $this->assertEquals('attachment; filename="test-credit-transfer.xml"', $response->headers->get('Content-Disposition'));
+    }
+
+    /**
+     * Tests generation with logger integration.
+     *
+     * @return void
+     */
+    public function testGenerateWithLogger(): void
+    {
+        $testLogger = new TestLogger();
+        $sepaLogger = new SepaPaymentLogger($testLogger);
+        $generator = new CreditTransferGenerator(new IbanValidator(), null, false, null, $sepaLogger);
+
+        $creditTransferData = new CreditTransferData(
+            'MSG-LOG-001',
+            new \DateTime(),
+            'Test Company',
+            'PMT-LOG-001',
+            'ES9121000418450200051332',
+            'Test Company Name',
+            new \DateTime('tomorrow')
+        );
+
+        $transaction = new Transaction(
+            'E2E-LOG-001',
+            100.50,
+            'EUR',
+            'GB82WEST12345698765432',
+            'John Doe'
+        );
+        $creditTransferData->addTransaction($transaction);
+
+        $xml = $generator->generate($creditTransferData);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertCount(2, $testLogger->logs); // Start and success logs
+        $this->assertEquals('SEPA Credit Transfer generation started', $testLogger->logs[0]['message']);
+        $this->assertEquals('SEPA Credit Transfer generation completed successfully', $testLogger->logs[1]['message']);
+        $this->assertEquals('MSG-LOG-001', $testLogger->logs[0]['context']['message_id']);
+    }
+
+    /**
+     * Tests generation failure logging.
+     *
+     * @return void
+     */
+    public function testGenerateFailureWithLogger(): void
+    {
+        $testLogger = new TestLogger();
+        $sepaLogger = new SepaPaymentLogger($testLogger);
+        $generator = new CreditTransferGenerator(new IbanValidator(), null, false, null, $sepaLogger);
+
+        $creditTransferData = new CreditTransferData(
+            'MSG-LOG-002',
+            new \DateTime(),
+            'Test Company',
+            'PMT-LOG-002',
+            'INVALID-IBAN', // Invalid IBAN will cause validation failure
+            'Test Company Name',
+            new \DateTime('tomorrow')
+        );
+
+        try {
+            $generator->generate($creditTransferData);
+            $this->fail('Expected InvalidArgumentException');
+        } catch (\InvalidArgumentException $e) {
+            $this->assertCount(2, $testLogger->logs); // Start and failure logs
+            $this->assertEquals('SEPA Credit Transfer generation started', $testLogger->logs[0]['message']);
+            $this->assertEquals('SEPA Credit Transfer generation failed', $testLogger->logs[1]['message']);
+            $this->assertEquals('error', $testLogger->logs[1]['level']);
+        }
+    }
+
+    /**
+     * Tests generation with empty transactions list.
+     * Should throw an exception because at least one transaction is required.
+     *
+     * @return void
+     */
+    public function testGenerateWithEmptyTransactions(): void
+    {
+        $this->expectException(\Digitick\Sepa\Exception\InvalidTransferFileConfiguration::class);
+        $this->expectExceptionMessage('PaymentInformation must at least contain one payment');
+
+        $creditTransferData = new CreditTransferData(
+            'MSG-EMPTY-001',
+            new \DateTime(),
+            'Test Company',
+            'PMT-EMPTY-001',
+            'ES9121000418450200051332',
+            'Test Company Name',
+            new \DateTime('tomorrow')
+        );
+
+        // No transactions added - this should cause an exception
+
+        $this->generator->generate($creditTransferData);
+    }
+
+    /**
+     * Tests generateFromArray with all optional fields.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayWithAllOptionalFields(): void
+    {
+        $data = [
+            'reference' => 'MSG-ALL-001',
+            'creationDate' => new \DateTime(),
+            'initiatingPartyName' => 'Test Company',
+            'paymentInfoId' => 'PMT-ALL-001',
+            'creditorIban' => 'ES9121000418450200051332',
+            'creditorName' => 'Test Company Name',
+            'requestedExecutionDate' => new \DateTime('tomorrow'),
+            'creditorBic' => 'CAIXESBBXXX',
+            'batchBooking' => true,
+            'creditorAddress' => [
+                'street' => '123 Test Street',
+                'city' => 'Madrid',
+                'postalCode' => '28001',
+                'country' => 'ES',
+            ],
+            'transactions' => [
+                [
+                    'amount' => 100.50,
+                    'currency' => 'EUR',
+                    'debtorIban' => 'GB82WEST12345698765432',
+                    'debtorName' => 'John Doe',
+                    'endToEndId' => 'E2E-ALL-001',
+                    'debtorBic' => 'WESTGB22',
+                    'remittanceInformation' => 'Test Invoice',
+                    'debtorAddress' => [
+                        'street' => '456 Test Avenue',
+                        'city' => 'London',
+                        'postalCode' => 'SW1A 1AA',
+                        'country' => 'GB',
+                    ],
+                ],
+            ],
+        ];
+
+        $xml = $this->generator->generateFromArray($data);
+
+        $this->assertStringContainsString('<?xml', $xml);
+        $this->assertStringContainsString('MSG-ALL-001', $xml);
+        $this->assertStringContainsString('123 Test Street', $xml);
+        $this->assertStringContainsString('456 Test Avenue', $xml);
     }
 }

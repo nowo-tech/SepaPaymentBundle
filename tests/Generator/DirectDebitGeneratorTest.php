@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Nowo\SepaPaymentBundle\Tests\Generator;
 
 use Nowo\SepaPaymentBundle\Generator\DirectDebitGenerator;
+use Nowo\SepaPaymentBundle\Logger\SepaPaymentLogger;
 use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitData;
 use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitTransaction;
+use Nowo\SepaPaymentBundle\Tests\Logger\TestLogger;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use PHPUnit\Framework\TestCase;
 
@@ -1346,7 +1348,7 @@ class DirectDebitGeneratorTest extends TestCase
     public function testCreateResponse(): void
     {
         $xml = '<?xml version="1.0" encoding="UTF-8"?><test>XML Content</test>';
-        $filename = 'test-remesa.xml';
+        $filename = 'test-direct-debit.xml';
 
         $response = $this->generator->createResponse($xml, $filename);
 
@@ -1354,6 +1356,6 @@ class DirectDebitGeneratorTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertEquals($xml, $response->getContent());
         $this->assertEquals('application/xml', $response->headers->get('Content-Type'));
-        $this->assertEquals('attachment; filename="test-remesa.xml"', $response->headers->get('Content-Disposition'));
+        $this->assertEquals('attachment; filename="test-direct-debit.xml"', $response->headers->get('Content-Disposition'));
     }
 }

@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Model\Remesa;
 
+use Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction as CreditTransferTransaction;
+
 /**
- * Transaction data for a SEPA Credit Transfer.
+ * Transaction data for a SEPA Credit Transfer (deprecated).
+ *
+ * @deprecated Since 1.1.0, use CreditTransfer\Transaction instead. This class will be removed in 2.0.0.
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
  * @copyright 2025 Nowo.tech
@@ -13,25 +17,11 @@ namespace Nowo\SepaPaymentBundle\Model\Remesa;
 class Transaction
 {
     /**
-     * Debtor BIC (optional).
+     * Credit transfer transaction instance.
      *
-     * @var string|null
+     * @var CreditTransferTransaction
      */
-    private ?string $debtorBic = null;
-
-    /**
-     * Remittance information (optional).
-     *
-     * @var string|null
-     */
-    private ?string $remittanceInformation = null;
-
-    /**
-     * Debtor address (optional, included in XML if provided).
-     *
-     * @var array<string, string|null>|null
-     */
-    private ?array $debtorAddress = null;
+    private CreditTransferTransaction $creditTransferTransaction;
 
     /**
      * Constructor.
@@ -43,12 +33,21 @@ class Transaction
      * @param string $debtorName Debtor name
      */
     public function __construct(
-        private string $endToEndId,
-        private float $amount,
-        private string $currency,
-        private string $debtorIban,
-        private string $debtorName
+        string $endToEndId,
+        float $amount,
+        string $currency,
+        string $debtorIban,
+        string $debtorName
     ) {
+        @trigger_error('Remesa\Transaction is deprecated since 1.1.0. Use CreditTransfer\Transaction instead.', \E_USER_DEPRECATED);
+
+        $this->creditTransferTransaction = new CreditTransferTransaction(
+            $endToEndId,
+            $amount,
+            $currency,
+            $debtorIban,
+            $debtorName
+        );
     }
 
     /**
@@ -58,7 +57,7 @@ class Transaction
      */
     public function getEndToEndId(): string
     {
-        return $this->endToEndId;
+        return $this->creditTransferTransaction->getEndToEndId();
     }
 
     /**
@@ -68,7 +67,7 @@ class Transaction
      */
     public function getAmount(): float
     {
-        return $this->amount;
+        return $this->creditTransferTransaction->getAmount();
     }
 
     /**
@@ -78,7 +77,7 @@ class Transaction
      */
     public function getCurrency(): string
     {
-        return $this->currency;
+        return $this->creditTransferTransaction->getCurrency();
     }
 
     /**
@@ -88,7 +87,7 @@ class Transaction
      */
     public function getDebtorIban(): string
     {
-        return $this->debtorIban;
+        return $this->creditTransferTransaction->getDebtorIban();
     }
 
     /**
@@ -100,7 +99,7 @@ class Transaction
      */
     public function setDebtorBic(?string $debtorBic): self
     {
-        $this->debtorBic = $debtorBic;
+        $this->creditTransferTransaction->setDebtorBic($debtorBic);
 
         return $this;
     }
@@ -112,7 +111,7 @@ class Transaction
      */
     public function getDebtorBic(): ?string
     {
-        return $this->debtorBic;
+        return $this->creditTransferTransaction->getDebtorBic();
     }
 
     /**
@@ -122,7 +121,7 @@ class Transaction
      */
     public function getDebtorName(): string
     {
-        return $this->debtorName;
+        return $this->creditTransferTransaction->getDebtorName();
     }
 
     /**
@@ -134,7 +133,7 @@ class Transaction
      */
     public function setRemittanceInformation(?string $remittanceInformation): self
     {
-        $this->remittanceInformation = $remittanceInformation;
+        $this->creditTransferTransaction->setRemittanceInformation($remittanceInformation);
 
         return $this;
     }
@@ -146,12 +145,11 @@ class Transaction
      */
     public function getRemittanceInformation(): ?string
     {
-        return $this->remittanceInformation;
+        return $this->creditTransferTransaction->getRemittanceInformation();
     }
 
     /**
      * Sets the debtor address.
-     * Address will be included in the generated XML.
      *
      * @param array<string, string|null>|string|null $street     Address array or street address
      * @param string|null                            $city       City (ignored if first param is array)
@@ -162,16 +160,7 @@ class Transaction
      */
     public function setDebtorAddress(array|string|null $street = null, ?string $city = null, ?string $postalCode = null, ?string $country = null): self
     {
-        if (is_array($street)) {
-            return $this->setDebtorAddressFromArray($street);
-        }
-
-        $this->debtorAddress = [
-            'street' => $street,
-            'city' => $city,
-            'postalCode' => $postalCode,
-            'country' => $country,
-        ];
+        $this->creditTransferTransaction->setDebtorAddress($street, $city, $postalCode, $country);
 
         return $this;
     }
@@ -185,12 +174,7 @@ class Transaction
      */
     public function setDebtorAddressFromArray(array $address): self
     {
-        $this->debtorAddress = [
-            'street' => $address['street'] ?? $address['address'] ?? null,
-            'city' => $address['city'] ?? null,
-            'postalCode' => $address['postalCode'] ?? $address['postal_code'] ?? null,
-            'country' => $address['country'] ?? null,
-        ];
+        $this->creditTransferTransaction->setDebtorAddressFromArray($address);
 
         return $this;
     }
@@ -202,6 +186,19 @@ class Transaction
      */
     public function getDebtorAddress(): ?array
     {
-        return $this->debtorAddress;
+        return $this->creditTransferTransaction->getDebtorAddress();
+    }
+
+    /**
+     * Gets the underlying CreditTransferTransaction instance.
+     * Internal use only.
+     *
+     * @return CreditTransferTransaction
+     *
+     * @internal
+     */
+    public function getCreditTransferTransaction(): CreditTransferTransaction
+    {
+        return $this->creditTransferTransaction;
     }
 }
