@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-01-09
+
+### Added
+- **DirectDebitParser**: Complete SEPA Direct Debit XML parser for feature parity with Credit Transfer parser
+  - `parseDirectDebit()` method to extract all information from SEPA Direct Debit XML files
+  - `isValidDirectDebit()` method to validate XML structure
+  - Full support for parsing:
+    - Group header (message ID, creation date, initiating party)
+    - Payment information (payment info ID, sequence type, due date, local instrument code)
+    - Creditor information (name, IBAN, BIC, creditor ID)
+    - Transaction details (end-to-end ID, amount, currency, debtor information, mandate details)
+    - Creditor and debtor postal addresses (full and partial)
+  - Supports pain.008.001.02 format
+  - Comprehensive test coverage with 7 test cases
+
+### Improved
+- **Test Coverage**: Added comprehensive test cases for both parsers:
+  - RemesaParser: Added 4 new test cases (multiple transactions, addresses, optional fields, different currencies)
+  - DirectDebitParser: Added 5 new test cases (sequence types, missing BIC, missing remittance info, B2B instrument, optional fields)
+  - Total test suite: 182+ tests with comprehensive coverage
+- **Documentation**: Enhanced documentation with parser examples in all demo applications
+- **Badge Fix**: Replaced PUGX PHP version badge with shields.io for better reliability
+
+### Fixed
+- Fixed PHP version badge not displaying correctly by switching from PUGX to shields.io
+
 ## [0.0.12] - 2026-01-09
 
 ### Added
