@@ -2,6 +2,376 @@
 
 This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
+## Upgrading from 1.0.0 to Unreleased
+
+### ✨ New Features (Unreleased)
+
+The following features are available in the current development version but have not been released yet:
+
+1. **BIC Lookup Service**: Automatically look up BIC codes from IBANs
+
+### BIC Lookup Service
+
+The new `BicLookupService` automatically finds BIC codes when only IBANs are provided. This improves user experience by reducing manual work and errors.
+
+**Basic Usage:**
+
+```php
+use Nowo\SepaPaymentBundle\Lookup\BicLookupService;
+use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+
+$ibanValidator = new IbanValidator();
+$bicLookup = new BicLookupService($ibanValidator);
+
+// Look up BIC from IBAN
+$iban = 'ES9121000418450200051332';
+$bic = $bicLookup->lookupBic($iban);
+// Returns: 'CAIXESBB' (if found)
+
+// Check if lookup is available for an IBAN
+if ($bicLookup->isAvailable($iban)) {
+    $bic = $bicLookup->lookupBic($iban);
+}
+```
+
+**Automatic Integration in Generators:**
+
+When you inject `BicLookupService` into generators, BIC codes are automatically filled when missing:
+
+```php
+use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
+use Nowo\SepaPaymentBundle\Lookup\BicLookupService;
+use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+
+$ibanValidator = new IbanValidator();
+$bicLookup = new BicLookupService($ibanValidator);
+$generator = new CreditTransferGenerator($ibanValidator, null, false, null, null, $bicLookup);
+
+// Create data without BIC
+$creditTransferData = new CreditTransferData(
+    'MSG-001',
+    new \DateTime(),
+    'My Company',
+    'PMT-001',
+    'ES9121000418450200051332', // IBAN only, no BIC
+    'My Company Name',
+    new \DateTime('tomorrow')
+);
+
+// BIC will be automatically looked up and included in XML
+$xml = $generator->generate($creditTransferData);
+```
+
+**Supported Countries:**
+
+The service includes mappings for major banks in:
+- 🇪🇸 Spain (ES)
+- 🇩🇪 Germany (DE)
+- 🇫🇷 France (FR)
+- 🇮🇹 Italy (IT)
+- 🇬🇧 United Kingdom (GB)
+- 🇳🇱 Netherlands (NL)
+- 🇧🇪 Belgium (BE)
+- 🇵🇹 Portugal (PT)
+
+**Adding Custom Mappings:**
+
+You can add custom bank mappings for banks not in the default database:
+
+```php
+$bicLookup->addMapping('ES', '9999', 'CUSTOMBIC');
+// Now IBANs with bank code 9999 will return 'CUSTOMBIC'
+```
+
+**Cache Support (Optional):**
+
+You can use a PSR-16 compatible cache to cache lookup results:
+
+```php
+use Psr\SimpleCache\CacheInterface;
+
+$cache = /* your cache implementation */;
+$bicLookup = new BicLookupService($ibanValidator, $cache, 86400); // 24 hour TTL
+```
+
+### Backward Compatibility
+
+- BIC lookup is **completely optional** - existing code works without changes
+- Generators accept optional `BicLookupServiceInterface` parameter (backward compatible)
+- If BIC lookup service is not provided, generators work exactly as before
+- No breaking changes
+
+### Additional New Features (Unreleased)
+
+2. **Export Service**: Export SEPA payment data to JSON and CSV formats
+3. **Symfony Events**: Event system for extensibility
+4. **Structured Logging**: Comprehensive logging for SEPA operations
+5. **SEPA String Sanitization**: Validate and sanitize strings according to SEPA character rules
+6. **SEPA Country Validation**: Validate SEPA member countries
+7. **SEPA Business Rules Validation**: Validate SEPA limits and business rules
+
+### Export Service
+
+The new `ExportService` allows you to export parsed SEPA data to various formats:
+
+```php
+use Nowo\SepaPaymentBundle\Exporter\ExportService;
+use Nowo\SepaPaymentBundle\Parser\CreditTransferParser;
+
+$parser = new CreditTransferParser();
+$exporter = new ExportService();
+
+// Parse XML
+$data = $parser->parseCreditTransfer($xml);
+
+// Export to JSON
+$json = $exporter->exportCreditTransferToJson($data, true);
+
+// Export to CSV
+$csv = $exporter->exportCreditTransferToCsv($data);
+```
+
+The service is automatically registered and can be injected via dependency injection.
+
+### Symfony Events
+
+The bundle now dispatches events before and after XML generation. You can listen to these events to modify data or XML:
+
+```php
+use Nowo\SepaPaymentBundle\Event\BeforeCreditTransferGenerationEvent;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+
+class SepaPaymentSubscriber implements EventSubscriberInterface
+{
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            BeforeCreditTransferGenerationEvent::class => 'onBeforeGeneration',
+        ];
+    }
+
+    public function onBeforeGeneration(BeforeCreditTransferGenerationEvent $event): void
+    {
+        $data = $event->getCreditTransferData();
+        // Modify data before generation
+        $event->setCreditTransferData($data);
+    }
+}
+```
+
+Register your event subscriber in `config/services.yaml`:
+
+```yaml
+services:
+    App\EventListener\SepaPaymentSubscriber:
+        tags:
+            - { name: kernel.event_subscriber }
+```
+
+### Structured Logging
+
+The new `SepaPaymentLogger` service provides structured logging for all SEPA operations. It integrates with PSR-3 logging interfaces for maximum compatibility.
+
+**Basic Usage:**
+
+```php
+use Nowo\SepaPaymentBundle\Logger\SepaPaymentLogger;
+use Psr\Log\LoggerInterface;
+
+// Logger is automatically registered and can be injected
+$logger = new SepaPaymentLogger($psrLogger); // Optional: defaults to NullLogger
+
+// Or inject via dependency injection
+class PaymentService
+{
+    public function __construct(
+        private SepaPaymentLogger $logger
+    ) {
+    }
+}
+```
+
+**Automatic Integration in Generators:**
+
+When you inject `SepaPaymentLogger` into generators, operations are automatically logged:
+
+```php
+use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
+use Nowo\SepaPaymentBundle\Logger\SepaPaymentLogger;
+use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+
+$ibanValidator = new IbanValidator();
+$logger = new SepaPaymentLogger($psrLogger); // Your PSR-3 logger
+
+$generator = new CreditTransferGenerator(
+    $ibanValidator,
+    null, // XSD validator (optional)
+    false, // validate XSD (optional)
+    null, // event dispatcher (optional)
+    $logger // logger (optional)
+);
+
+// Generation events are automatically logged
+$xml = $generator->generate($creditTransferData);
+```
+
+**Logging Methods:**
+
+The logger provides structured methods for:
+- Credit Transfer generation (start, success, failure)
+- Direct Debit generation (start, success, failure)
+- Validation events (IBAN, BIC, XSD)
+- Parsing events (Credit Transfer and Direct Debit)
+
+All log entries include contextual data like messageId, transactionCount, and error messages.
+
+### Backward Compatibility
+
+- All existing functionality remains unchanged
+- Generators accept optional `EventDispatcherInterface` parameter (backward compatible)
+- Generators accept optional `SepaPaymentLogger` parameter (backward compatible)
+- Export service is optional and doesn't affect existing code
+- Logger service is optional and doesn't affect existing code
+- No breaking changes
+
+### Planned Breaking Changes (Future Versions)
+
+**Note**: The following changes are planned for future versions but have not been released yet:
+
+- **Version 2.0.0 (Planned)**: All "Remesa" classes will be removed (deprecated since 1.1.0)
+- **Version 1.1.0 (Planned)**: All "Remesa" classes will be deprecated in favor of "CreditTransfer" classes
+
+These changes are documented here for reference, but they are not yet available in any released version.
+
+#### Class Renames (Planned)
+
+**Generators and Parsers:**
+- `RemesaGenerator` → `CreditTransferGenerator`
+- `RemesaParser` → `CreditTransferParser`
+
+**Models:**
+- `RemesaData` → `CreditTransferData`
+- Namespace `Model\Remesa` → `Model\CreditTransfer`
+- `Transaction` class moved to `Model\CreditTransfer` namespace
+
+**Service Aliases:**
+- `nowo_sepa_payment.generator.remesa_generator` → `nowo_sepa_payment.generator.credit_transfer_generator`
+- `nowo_sepa_payment.parser.remesa_parser` → `nowo_sepa_payment.parser.credit_transfer_parser`
+
+#### Migration Steps
+
+1. **Update imports:**
+```php
+// Before
+use Nowo\SepaPaymentBundle\Generator\RemesaGenerator;
+use Nowo\SepaPaymentBundle\Parser\RemesaParser;
+use Nowo\SepaPaymentBundle\Model\Remesa\RemesaData;
+use Nowo\SepaPaymentBundle\Model\Remesa\Transaction;
+
+// After
+use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
+use Nowo\SepaPaymentBundle\Parser\CreditTransferParser;
+use Nowo\SepaPaymentBundle\Model\CreditTransfer\CreditTransferData;
+use Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction;
+```
+
+2. **Update class instantiations:**
+```php
+// Before
+$generator = new RemesaGenerator($ibanValidator);
+$parser = new RemesaParser();
+$data = new RemesaData(/* ... */);
+
+// After
+$generator = new CreditTransferGenerator($ibanValidator);
+$parser = new CreditTransferParser();
+$data = new CreditTransferData(/* ... */);
+```
+
+3. **Update variable names (optional but recommended):**
+```php
+// Before
+$remesaData = new RemesaData(/* ... */);
+$xml = $generator->generate($remesaData);
+
+// After
+$creditTransferData = new CreditTransferData(/* ... */);
+$xml = $generator->generate($creditTransferData);
+```
+
+4. **Update service aliases in configuration (if used):**
+```yaml
+# Before
+services:
+    my_service:
+        arguments:
+            $generator: '@nowo_sepa_payment.generator.remesa_generator'
+            $parser: '@nowo_sepa_payment.parser.remesa_parser'
+
+# After
+services:
+    my_service:
+        arguments:
+            $generator: '@nowo_sepa_payment.generator.credit_transfer_generator'
+            $parser: '@nowo_sepa_payment.parser.credit_transfer_parser'
+```
+
+5. **Update dependency injection (if using type hints):**
+```php
+// Before
+public function __construct(
+    private RemesaGenerator $remesaGenerator,
+    private RemesaParser $remesaParser
+) {}
+
+// After
+public function __construct(
+    private CreditTransferGenerator $creditTransferGenerator,
+    private CreditTransferParser $creditTransferParser
+) {}
+```
+
+#### Why This Change?
+
+This change improves code clarity and consistency by using standard English terminology ("Credit Transfer") instead of the Spanish term "Remesa". This makes the bundle more accessible to international developers and aligns with SEPA documentation standards.
+
+#### Timeline
+
+- **Version 1.1.0** (Current): Old classes are deprecated but still functional
+- **Version 2.0.0** (Future): Old classes will be completely removed
+
+**Recommendation**: Start migrating to the new classes now to avoid issues when upgrading to version 2.0.0.
+
+#### Impact Assessment
+
+- **Low Immediate Impact**: Old classes still work but will show deprecation warnings
+- **Medium Long-term Impact**: Old classes will be removed in version 2.0.0, so migration is recommended
+- **Service Aliases**: Old service aliases still work but are deprecated. Update to new aliases when possible
+- **Type Hints**: Update type hints in constructors and method signatures to avoid deprecation warnings
+- **Variable Names**: While variable names are optional to update, it's recommended for consistency
+
+#### Deprecation Warnings
+
+When using deprecated classes, you will see PHP deprecation warnings like:
+```
+Deprecated: RemesaGenerator is deprecated since 1.1.0. Use CreditTransferGenerator instead.
+```
+
+To suppress these warnings temporarily (not recommended for production), you can:
+- Set `error_reporting` to exclude `E_USER_DEPRECATED`
+- Use `@` operator to suppress warnings (not recommended)
+- **Best practice**: Migrate to new classes as soon as possible
+
+#### Automated Migration
+
+You can use find-and-replace in your IDE to quickly update:
+- Find: `RemesaGenerator` → Replace: `CreditTransferGenerator`
+- Find: `RemesaParser` → Replace: `CreditTransferParser`
+- Find: `RemesaData` → Replace: `CreditTransferData`
+- Find: `Model\Remesa` → Replace: `Model\CreditTransfer`
+- Find: `remesa_generator` → Replace: `credit_transfer_generator`
+- Find: `remesa_parser` → Replace: `credit_transfer_parser`
+
 ## Upgrading to 1.0.0
 
 ### 🎉 First Stable Release
@@ -64,9 +434,9 @@ See [docs/USAGE.md](docs/USAGE.md) for complete examples.
 
 ## Upgrading to 0.0.12
 
-### RemesaGenerator: New Features and Feature Parity
+### CreditTransferGenerator: New Features and Feature Parity
 
-`RemesaGenerator` now has complete feature parity with `DirectDebitGenerator`, including array-based generation and postal address support.
+`CreditTransferGenerator` (formerly `RemesaGenerator` in versions < 2.0.0) now has complete feature parity with `DirectDebitGenerator`, including array-based generation and postal address support.
 
 #### What's New
 
@@ -96,7 +466,7 @@ $xml = $generator->generateFromArray($data);
 
 ```php
 // Creditor address
-$remesaData->setCreditorAddress([
+$creditTransferData->setCreditorAddress([
     'street' => '123 Business Street',
     'city' => 'Madrid',
     'postalCode' => '28001',
@@ -150,7 +520,7 @@ $xml = $generator->generateFromArray($data);
 
 #### Benefits
 
-- **Consistency**: Both generators (`RemesaGenerator` and `DirectDebitGenerator`) now have the same API
+- **Consistency**: Both generators (`CreditTransferGenerator` and `DirectDebitGenerator`) now have the same API
 - **Flexibility**: Choose between object-based or array-based generation
 - **Address Support**: Include postal addresses in Credit Transfer XML files
 - **Snake_case Support**: Use either naming convention for field names
@@ -323,12 +693,12 @@ All services are available via these aliases:
 - `nowo_sepa_payment.converter.ccc_converter` - CCC to IBAN converter
 
 **Generators:**
-- `nowo_sepa_payment.generator.remesa_generator` - Remesa (credit transfer) generator
+- `nowo_sepa_payment.generator.credit_transfer_generator` - Credit transfer generator
 - `nowo_sepa_payment.generator.direct_debit_generator` - Direct debit generator
 - `nowo_sepa_payment.generator.identifier_generator` - Identifier generator
 
 **Parsers:**
-- `nowo_sepa_payment.parser.remesa_parser` - Remesa parser
+- `nowo_sepa_payment.parser.credit_transfer_parser` - Credit transfer parser
 
 #### Migration Example
 
@@ -393,7 +763,7 @@ class PaymentService
 
 #### HTTP Response Helper Method
 
-Both `DirectDebitGenerator` and `RemesaGenerator` now include a `createResponse()` method that simplifies returning XML files as HTTP responses in Symfony controllers.
+Both `DirectDebitGenerator` and `CreditTransferGenerator` now include a `createResponse()` method that simplifies returning XML files as HTTP responses in Symfony controllers.
 
 **Before:**
 ```php
@@ -585,7 +955,7 @@ Fixed constant type declarations that caused syntax errors in PHP 8.2. If you we
 Services now use Symfony attributes for automatic registration. If you were manually retrieving services by alias, the aliases remain the same:
 
 - `nowo_sepa_payment.generator.direct_debit_generator`
-- `nowo_sepa_payment.generator.remesa_generator`
+- `nowo_sepa_payment.generator.credit_transfer_generator`
 - `nowo_sepa_payment.generator.identifier_generator`
 
 **No action required**: Services are automatically registered and can be injected via constructor.

@@ -17,6 +17,18 @@ services:
     Nowo\SepaPaymentBundle\Validator\:
         resource: '../../Validator/*'
 
+    Nowo\SepaPaymentBundle\Exporter\:
+        resource: '../../Exporter/*'
+
+    Nowo\SepaPaymentBundle\Logger\:
+        resource: '../../Logger/*'
+
+    Nowo\SepaPaymentBundle\Lookup\:
+        resource: '../../Lookup/*'
+
+    Nowo\SepaPaymentBundle\Cache\:
+        resource: '../../Cache/*'
+
     # Services are automatically registered via #[AsAlias] attributes
     # All services are public and can be autowired or retrieved by their aliases
 
@@ -37,3 +49,7 @@ services:
         arguments:
             $creditCardValidator: '@nowo_sepa_payment.validator.credit_card_validator'
 
+    Nowo\SepaPaymentBundle\Command\ParseDirectDebitCommand:
+        tags: ['console.command']
+        arguments:
+            $parser: '@nowo_sepa_payment.parser.direct_debit_parser'

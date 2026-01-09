@@ -6,14 +6,25 @@ use Nowo\SepaPaymentBundle\Converter\CccConverter;
 use Nowo\SepaPaymentBundle\Generator\DirectDebitGenerator;
 use Nowo\SepaPaymentBundle\Generator\IdentifierGenerator;
 use Nowo\SepaPaymentBundle\Parser\DirectDebitParser;
-use Nowo\SepaPaymentBundle\Parser\RemesaParser;
+use Nowo\SepaPaymentBundle\Parser\CreditTransferParser;
 use Nowo\SepaPaymentBundle\Validator\BicValidator;
 use Nowo\SepaPaymentBundle\Validator\CreditCardValidator;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+use Nowo\SepaPaymentBundle\Validator\SepaStringSanitizer;
+use Nowo\SepaPaymentBundle\Validator\SepaCountryValidator;
+use Nowo\SepaPaymentBundle\Validator\SepaBusinessRulesValidator;
+use Nowo\SepaPaymentBundle\Validator\CachedIbanValidator;
+use Nowo\SepaPaymentBundle\Validator\CachedBicValidator;
+use Nowo\SepaPaymentBundle\Cache\ValidationCache;
+use Nowo\SepaPaymentBundle\Exporter\ExportService;
 use Nowo\SepaPaymentBundle\Model\Mandate\Mandate;
-use Nowo\SepaPaymentBundle\Model\Remesa\RemesaData;
+use Nowo\SepaPaymentBundle\Model\CreditTransfer\CreditTransferData;
+use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
+use Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction;
 use Nowo\SepaPaymentBundle\Generator\RemesaGenerator;
-use Nowo\SepaPaymentBundle\Model\Remesa\Transaction;
+use Nowo\SepaPaymentBundle\Parser\RemesaParser;
+use Nowo\SepaPaymentBundle\Model\Remesa\RemesaData;
+use Nowo\SepaPaymentBundle\Model\Remesa\Transaction as RemesaTransaction;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -92,14 +103,14 @@ class DemoController extends AbstractController
     /**
      * Demo remesa de pago (Credit Transfer).
      *
-     * @param RemesaGenerator $generator Remesa generator
-     * @param IbanValidator   $validator IBAN validator
+     * @param CreditTransferGenerator $generator Credit transfer generator
+     * @param IbanValidator           $validator IBAN validator
      * @return Response
      */
     #[Route('/demo-credit-transfer', name: 'demo_credit_transfer')]
-    public function demoRemesaPago(RemesaGenerator $generator, IbanValidator $validator): Response
+    public function demoRemesaPago(CreditTransferGenerator $generator, IbanValidator $validator): Response
     {
-        $remesaData = new RemesaData(
+        $creditTransferData = new CreditTransferData(
             'MSG-001',
             new \DateTime('2024-01-15 10:00:00'),
             'My Company',
@@ -109,10 +120,10 @@ class DemoController extends AbstractController
             new \DateTime('2024-01-20')
         );
 
-        $remesaData->setCreditorBic('CAIXESBBXXX');
-        $remesaData->setBatchBooking(true);
+        $creditTransferData->setCreditorBic('CAIXESBBXXX');
+        $creditTransferData->setBatchBooking(true);
         // Set creditor address (will be included in XML)
-        $remesaData->setCreditorAddress([
+        $creditTransferData->setCreditorAddress([
             'street' => '123 Business Street',
             'city' => 'Madrid',
             'postalCode' => '28001',
@@ -137,10 +148,10 @@ class DemoController extends AbstractController
             'country' => 'GB',
         ]);
 
-        $remesaData->addTransaction($transaction);
+        $creditTransferData->addTransaction($transaction);
 
         try {
-            $xml = $generator->generate($remesaData);
+            $xml = $generator->generate($creditTransferData);
 
             return $generator->createResponse($xml, 'credit-transfer.xml');
         } catch (\Exception $e) {
@@ -152,11 +163,11 @@ class DemoController extends AbstractController
      * Demo remesa de pago from array (Credit Transfer).
      * Demonstrates generateFromArray() method with camelCase format.
      *
-     * @param RemesaGenerator $generator Remesa generator
+     * @param CreditTransferGenerator $generator Credit transfer generator
      * @return Response
      */
     #[Route('/demo-credit-transfer-array', name: 'demo_credit_transfer_array')]
-    public function demoRemesaPagoArray(RemesaGenerator $generator): Response
+    public function demoRemesaPagoArray(CreditTransferGenerator $generator): Response
     {
         $data = [
             'reference' => 'MSG-001',
@@ -193,11 +204,11 @@ class DemoController extends AbstractController
      * Demo remesa de pago with addresses from array (Credit Transfer).
      * Demonstrates address support in generateFromArray().
      *
-     * @param RemesaGenerator $generator Remesa generator
+     * @param CreditTransferGenerator $generator Credit transfer generator
      * @return Response
      */
     #[Route('/demo-credit-transfer-with-addresses', name: 'demo_credit_transfer_with_addresses')]
-    public function demoRemesaPagoWithAddresses(RemesaGenerator $generator): Response
+    public function demoRemesaPagoWithAddresses(CreditTransferGenerator $generator): Response
     {
         // Example with creditor and debtor addresses
         // Addresses will be included in the generated XML
@@ -250,11 +261,11 @@ class DemoController extends AbstractController
      * Demo remesa de pago with snake_case format (Credit Transfer).
      * Demonstrates support for snake_case field names.
      *
-     * @param RemesaGenerator $generator Remesa generator
+     * @param CreditTransferGenerator $generator Credit transfer generator
      * @return Response
      */
     #[Route('/demo-credit-transfer-snake-case', name: 'demo_credit_transfer_snake_case')]
-    public function demoRemesaPagoSnakeCase(RemesaGenerator $generator): Response
+    public function demoRemesaPagoSnakeCase(CreditTransferGenerator $generator): Response
     {
         // Example using snake_case format (also supports camelCase)
         $data = [
@@ -534,12 +545,12 @@ class DemoController extends AbstractController
      * Demo parsing SEPA Credit Transfer XML.
      * Generates a sample XML and then parses it to demonstrate the parser functionality.
      *
-     * @param RemesaGenerator $generator Credit transfer generator
-     * @param RemesaParser    $parser    Credit transfer parser
+     * @param CreditTransferGenerator $generator Credit transfer generator
+     * @param CreditTransferParser     $parser    Credit transfer parser
      * @return JsonResponse
      */
     #[Route('/demo-parse-credit-transfer', name: 'demo_parse_credit_transfer')]
-    public function demoParseCreditTransfer(RemesaGenerator $generator, RemesaParser $parser): JsonResponse
+    public function demoParseCreditTransfer(CreditTransferGenerator $generator, CreditTransferParser $parser): JsonResponse
     {
         try {
             // First, generate a sample XML
@@ -654,6 +665,588 @@ class DemoController extends AbstractController
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Demo deprecated RemesaGenerator (shows backward compatibility).
+     * This endpoint demonstrates that deprecated classes still work.
+     *
+     * @param RemesaGenerator $generator Deprecated remesa generator
+     * @param IbanValidator   $validator IBAN validator
+     * @return Response
+     */
+    #[Route('/demo-remesa-generator-deprecated', name: 'demo_remesa_generator_deprecated')]
+    public function demoRemesaGeneratorDeprecated(RemesaGenerator $generator, IbanValidator $validator): Response
+    {
+        // Using deprecated RemesaData class
+        $remesaData = new RemesaData(
+            'MSG-DEPRECATED-001',
+            new \DateTime(),
+            'Deprecated Demo Company',
+            'PMT-DEPRECATED-001',
+            'ES9121000418450200051332',
+            'Deprecated Demo Company Name',
+            new \DateTime('tomorrow')
+        );
+        $remesaData->setCreditorBic('CAIXESBBXXX');
+        $remesaData->setBatchBooking(true);
+
+        // Using deprecated Remesa\Transaction class
+        $transaction = new RemesaTransaction(
+            'E2E-DEPRECATED-001',
+            200.50,
+            'EUR',
+            'GB82WEST12345698765432',
+            'John Doe (Deprecated)'
+        );
+        $transaction->setDebtorBic('WESTGB22');
+        $transaction->setRemittanceInformation('Invoice using deprecated classes');
+        $remesaData->addTransaction($transaction);
+
+        try {
+            // Using deprecated RemesaGenerator (will show deprecation warning but works)
+            $xml = $generator->generate($remesaData);
+
+            return $generator->createResponse($xml, 'remesa-deprecated.xml');
+        } catch (\Exception $e) {
+            return new Response('Error: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Demo deprecated RemesaGenerator with generateFromArray (shows backward compatibility).
+     *
+     * @param RemesaGenerator $generator Deprecated remesa generator
+     * @return Response
+     */
+    #[Route('/demo-remesa-generator-array-deprecated', name: 'demo_remesa_generator_array_deprecated')]
+    public function demoRemesaGeneratorArrayDeprecated(RemesaGenerator $generator): Response
+    {
+        // Using deprecated RemesaGenerator with array format
+        $data = [
+            'reference' => 'MSG-DEPRECATED-ARRAY-001',
+            'initiatingPartyName' => 'Deprecated Array Demo',
+            'paymentInfoId' => 'PMT-DEPRECATED-ARRAY-001',
+            'creditorIban' => 'ES9121000418450200051332',
+            'creditorName' => 'Deprecated Array Company',
+            'requestedExecutionDate' => '2024-01-20',
+            'creditorBic' => 'CAIXESBBXXX',
+            'transactions' => [
+                [
+                    'amount' => 150.75,
+                    'currency' => 'EUR',
+                    'debtorIban' => 'GB82WEST12345698765432',
+                    'debtorName' => 'John Doe (Deprecated Array)',
+                    'endToEndId' => 'E2E-DEPRECATED-ARRAY-001',
+                    'debtorBic' => 'WESTGB22',
+                    'remittanceInformation' => 'Invoice using deprecated RemesaGenerator',
+                ],
+            ],
+        ];
+
+        try {
+            // Using deprecated RemesaGenerator (will show deprecation warning but works)
+            $xml = $generator->generateFromArray($data);
+
+            return $generator->createResponse($xml, 'remesa-array-deprecated.xml');
+        } catch (\Exception $e) {
+            return new Response('Error: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Demo deprecated RemesaParser (shows backward compatibility).
+     *
+     * @param CreditTransferGenerator $generator Credit transfer generator (to create sample XML)
+     * @param RemesaParser            $parser    Deprecated remesa parser
+     * @return JsonResponse
+     */
+    #[Route('/demo-remesa-parser-deprecated', name: 'demo_remesa_parser_deprecated')]
+    public function demoRemesaParserDeprecated(CreditTransferGenerator $generator, RemesaParser $parser): JsonResponse
+    {
+        try {
+            // First, generate a sample XML using new generator
+            $data = [
+                'reference' => 'MSG-PARSE-DEPRECATED-001',
+                'initiatingPartyName' => 'Deprecated Parser Demo',
+                'paymentInfoId' => 'PMT-PARSE-DEPRECATED-001',
+                'creditorIban' => 'ES9121000418450200051332',
+                'creditorName' => 'Deprecated Parser Company',
+                'requestedExecutionDate' => '2024-01-20',
+                'creditorBic' => 'CAIXESBBXXX',
+                'transactions' => [
+                    [
+                        'amount' => 175.25,
+                        'currency' => 'EUR',
+                        'debtorIban' => 'GB82WEST12345698765432',
+                        'debtorName' => 'John Doe (Deprecated Parser)',
+                        'endToEndId' => 'E2E-PARSE-DEPRECATED-001',
+                        'debtorBic' => 'WESTGB22',
+                        'remittanceInformation' => 'Invoice parsed with deprecated RemesaParser',
+                    ],
+                ],
+            ];
+
+            $xml = $generator->generateFromArray($data);
+
+            // Using deprecated RemesaParser (will show deprecation warning but works)
+            $isValid = $parser->isValidCreditTransfer($xml);
+            $parsedData = $parser->parseCreditTransfer($xml);
+
+            return new JsonResponse([
+                'message' => 'Successfully parsed XML using deprecated RemesaParser (backward compatibility)',
+                'isValid' => $isValid,
+                'generatedXml' => $xml,
+                'parsedData' => $parsedData,
+                'note' => 'This endpoint uses deprecated RemesaParser. It still works but shows deprecation warnings. Use CreditTransferParser instead.',
+            ], 200, [], JSON_PRETTY_PRINT);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Demo comparison: deprecated vs new classes side by side.
+     * Shows that both work identically.
+     *
+     * @param RemesaGenerator         $remesaGenerator         Deprecated generator
+     * @param CreditTransferGenerator $creditTransferGenerator New generator
+     * @return JsonResponse
+     */
+    #[Route('/demo-comparison-deprecated-vs-new', name: 'demo_comparison_deprecated_vs_new')]
+    public function demoComparisonDeprecatedVsNew(RemesaGenerator $remesaGenerator, CreditTransferGenerator $creditTransferGenerator): JsonResponse
+    {
+        $data = [
+            'reference' => 'MSG-COMPARISON-001',
+            'initiatingPartyName' => 'Comparison Demo',
+            'paymentInfoId' => 'PMT-COMPARISON-001',
+            'creditorIban' => 'ES9121000418450200051332',
+            'creditorName' => 'Comparison Company',
+            'requestedExecutionDate' => '2024-01-20',
+            'creditorBic' => 'CAIXESBBXXX',
+            'transactions' => [
+                [
+                    'amount' => 100.00,
+                    'currency' => 'EUR',
+                    'debtorIban' => 'GB82WEST12345698765432',
+                    'debtorName' => 'John Doe',
+                    'endToEndId' => 'E2E-COMPARISON-001',
+                    'debtorBic' => 'WESTGB22',
+                    'remittanceInformation' => 'Comparison invoice',
+                ],
+            ],
+        ];
+
+        try {
+            // Generate XML using deprecated RemesaGenerator
+            $xmlDeprecated = $remesaGenerator->generateFromArray($data);
+
+            // Generate XML using new CreditTransferGenerator
+            $xmlNew = $creditTransferGenerator->generateFromArray($data);
+
+            // Compare results
+            $areIdentical = $xmlDeprecated === $xmlNew;
+
+            return new JsonResponse([
+                'message' => 'Comparison between deprecated and new classes',
+                'deprecated' => [
+                    'class' => 'RemesaGenerator',
+                    'status' => 'deprecated since 1.1.0, will be removed in 2.0.0',
+                    'xmlLength' => strlen($xmlDeprecated),
+                    'works' => true,
+                ],
+                'new' => [
+                    'class' => 'CreditTransferGenerator',
+                    'status' => 'current, recommended',
+                    'xmlLength' => strlen($xmlNew),
+                    'works' => true,
+                ],
+                'comparison' => [
+                    'xmlsAreIdentical' => $areIdentical,
+                    'note' => 'Both generators produce identical XML. The deprecated class still works but shows deprecation warnings.',
+                ],
+                'recommendation' => 'Migrate to CreditTransferGenerator before upgrading to v2.0.0',
+            ], 200, [], JSON_PRETTY_PRINT);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Demo export Credit Transfer to JSON.
+     *
+     * @param CreditTransferGenerator $generator Credit transfer generator
+     * @param CreditTransferParser    $parser    Credit transfer parser
+     * @param ExportService           $exporter  Export service
+     * @return JsonResponse
+     */
+    #[Route('/demo-export-credit-transfer-json', name: 'demo_export_credit_transfer_json')]
+    public function demoExportCreditTransferJson(CreditTransferGenerator $generator, CreditTransferParser $parser, ExportService $exporter): JsonResponse
+    {
+        try {
+            // Generate XML
+            $data = [
+                'reference' => 'MSG-EXPORT-001',
+                'initiatingPartyName' => 'Export Demo Company',
+                'paymentInfoId' => 'PMT-EXPORT-001',
+                'creditorIban' => 'ES9121000418450200051332',
+                'creditorName' => 'Export Demo Company Name',
+                'requestedExecutionDate' => '2024-01-20',
+                'creditorBic' => 'CAIXESBBXXX',
+                'transactions' => [
+                    [
+                        'amount' => 150.75,
+                        'currency' => 'EUR',
+                        'debtorIban' => 'GB82WEST12345698765432',
+                        'debtorName' => 'John Doe',
+                        'endToEndId' => 'E2E-EXPORT-001',
+                        'debtorBic' => 'WESTGB22',
+                        'remittanceInformation' => 'Export Demo Invoice',
+                    ],
+                ],
+            ];
+
+            $xml = $generator->generateFromArray($data);
+            $parsedData = $parser->parseCreditTransfer($xml);
+
+            // Export to JSON
+            $json = $exporter->exportCreditTransferToJson($parsedData, true);
+
+            return new JsonResponse([
+                'message' => 'Successfully exported Credit Transfer to JSON',
+                'originalData' => $data,
+                'parsedData' => $parsedData,
+                'json' => $json,
+                'jsonDecoded' => json_decode($json, true),
+            ], 200, [], JSON_PRETTY_PRINT);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Demo export Credit Transfer to CSV.
+     *
+     * @param CreditTransferGenerator $generator Credit transfer generator
+     * @param CreditTransferParser    $parser    Credit transfer parser
+     * @param ExportService           $exporter  Export service
+     * @return Response
+     */
+    #[Route('/demo-export-credit-transfer-csv', name: 'demo_export_credit_transfer_csv')]
+    public function demoExportCreditTransferCsv(CreditTransferGenerator $generator, CreditTransferParser $parser, ExportService $exporter): Response
+    {
+        try {
+            // Generate XML
+            $data = [
+                'reference' => 'MSG-EXPORT-CSV-001',
+                'initiatingPartyName' => 'CSV Export Demo',
+                'paymentInfoId' => 'PMT-EXPORT-CSV-001',
+                'creditorIban' => 'ES9121000418450200051332',
+                'creditorName' => 'CSV Export Company',
+                'requestedExecutionDate' => '2024-01-20',
+                'creditorBic' => 'CAIXESBBXXX',
+                'transactions' => [
+                    [
+                        'amount' => 100.50,
+                        'currency' => 'EUR',
+                        'debtorIban' => 'GB82WEST12345698765432',
+                        'debtorName' => 'John Doe',
+                        'endToEndId' => 'E2E-EXPORT-CSV-001',
+                        'debtorBic' => 'WESTGB22',
+                        'remittanceInformation' => 'CSV Export Invoice',
+                    ],
+                    [
+                        'amount' => 200.75,
+                        'currency' => 'EUR',
+                        'debtorIban' => 'FR1420041010050500013M02606',
+                        'debtorName' => 'Jane Smith',
+                        'endToEndId' => 'E2E-EXPORT-CSV-002',
+                        'debtorBic' => 'BNPAFRPPXXX',
+                        'remittanceInformation' => 'CSV Export Invoice 2',
+                    ],
+                ],
+            ];
+
+            $xml = $generator->generateFromArray($data);
+            $parsedData = $parser->parseCreditTransfer($xml);
+
+            // Export to CSV
+            $csv = $exporter->exportCreditTransferToCsv($parsedData);
+
+            $response = new Response($csv);
+            $response->headers->set('Content-Type', 'text/csv');
+            $response->headers->set('Content-Disposition', 'attachment; filename="credit-transfer-export.csv"');
+
+            return $response;
+        } catch (\Exception $e) {
+            return new Response('Error: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Demo export Direct Debit to JSON.
+     *
+     * @param DirectDebitGenerator $generator Direct debit generator
+     * @param DirectDebitParser     $parser    Direct debit parser
+     * @param ExportService         $exporter Export service
+     * @return JsonResponse
+     */
+    #[Route('/demo-export-direct-debit-json', name: 'demo_export_direct_debit_json')]
+    public function demoExportDirectDebitJson(DirectDebitGenerator $generator, DirectDebitParser $parser, ExportService $exporter): JsonResponse
+    {
+        try {
+            // Generate XML
+            $data = [
+                'reference' => 'MSG-EXPORT-DD-001',
+                'initiatingPartyName' => 'Direct Debit Export Demo',
+                'paymentInfoId' => 'PMT-EXPORT-DD-001',
+                'creditorIban' => 'ES9121000418450200051332',
+                'creditorName' => 'Direct Debit Export Company',
+                'dueDate' => '2024-01-20',
+                'creditorBic' => 'CAIXESBBXXX',
+                'creditorId' => 'ES98ZZZ09999999999',
+                'seqType' => 'FRST',
+                'localInstrumentCode' => 'CORE',
+                'transactions' => [
+                    [
+                        'amount' => 150.50,
+                        'currency' => 'EUR',
+                        'debtorIban' => 'GB82WEST12345698765432',
+                        'debtorName' => 'John Doe',
+                        'endToEndId' => 'E2E-EXPORT-DD-001',
+                        'debtorBic' => 'WESTGB22',
+                        'debtorMandate' => 'MANDATE-EXPORT-001',
+                        'debtorMandateSignDate' => '2023-12-01',
+                        'remittanceInformation' => 'Direct Debit Export Invoice',
+                    ],
+                ],
+            ];
+
+            $xml = $generator->generateFromArray($data);
+            $parsedData = $parser->parseDirectDebit($xml);
+
+            // Export to JSON
+            $json = $exporter->exportDirectDebitToJson($parsedData, true);
+
+            return new JsonResponse([
+                'message' => 'Successfully exported Direct Debit to JSON',
+                'originalData' => $data,
+                'parsedData' => $parsedData,
+                'json' => $json,
+                'jsonDecoded' => json_decode($json, true),
+            ], 200, [], JSON_PRETTY_PRINT);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Demo export Direct Debit to CSV.
+     *
+     * @param DirectDebitGenerator $generator Direct debit generator
+     * @param DirectDebitParser     $parser    Direct debit parser
+     * @param ExportService         $exporter Export service
+     * @return Response
+     */
+    #[Route('/demo-export-direct-debit-csv', name: 'demo_export_direct_debit_csv')]
+    public function demoExportDirectDebitCsv(DirectDebitGenerator $generator, DirectDebitParser $parser, ExportService $exporter): Response
+    {
+        try {
+            // Generate XML
+            $data = [
+                'reference' => 'MSG-EXPORT-DD-CSV-001',
+                'initiatingPartyName' => 'Direct Debit CSV Export',
+                'paymentInfoId' => 'PMT-EXPORT-DD-CSV-001',
+                'creditorIban' => 'ES9121000418450200051332',
+                'creditorName' => 'Direct Debit CSV Company',
+                'dueDate' => '2024-01-20',
+                'creditorBic' => 'CAIXESBBXXX',
+                'creditorId' => 'ES98ZZZ09999999999',
+                'seqType' => 'FRST',
+                'localInstrumentCode' => 'CORE',
+                'transactions' => [
+                    [
+                        'amount' => 100.50,
+                        'currency' => 'EUR',
+                        'debtorIban' => 'GB82WEST12345698765432',
+                        'debtorName' => 'John Doe',
+                        'endToEndId' => 'E2E-EXPORT-DD-CSV-001',
+                        'debtorBic' => 'WESTGB22',
+                        'debtorMandate' => 'MANDATE-EXPORT-CSV-001',
+                        'debtorMandateSignDate' => '2023-12-01',
+                        'remittanceInformation' => 'Direct Debit CSV Invoice',
+                    ],
+                ],
+            ];
+
+            $xml = $generator->generateFromArray($data);
+            $parsedData = $parser->parseDirectDebit($xml);
+
+            // Export to CSV
+            $csv = $exporter->exportDirectDebitToCsv($parsedData);
+
+            $response = new Response($csv);
+            $response->headers->set('Content-Type', 'text/csv');
+            $response->headers->set('Content-Disposition', 'attachment; filename="direct-debit-export.csv"');
+
+            return $response;
+        } catch (\Exception $e) {
+            return new Response('Error: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Demo import from JSON.
+     *
+     * @param ExportService $exporter Export service
+     * @return JsonResponse
+     */
+    #[Route('/demo-import-from-json', name: 'demo_import_from_json')]
+    public function demoImportFromJson(ExportService $exporter): JsonResponse
+    {
+        $json = '{
+            "messageId": "MSG-IMPORT-001",
+            "creationDate": "2024-01-15T10:00:00",
+            "initiatingPartyName": "Import Demo Company",
+            "paymentInfoId": "PMT-IMPORT-001",
+            "creditorIban": "ES9121000418450200051332",
+            "creditorName": "Import Demo Company Name",
+            "requestedExecutionDate": "2024-01-20",
+            "creditorBic": "CAIXESBBXXX",
+            "transactions": [
+                {
+                    "endToEndId": "E2E-IMPORT-001",
+                    "amount": 250.00,
+                    "currency": "EUR",
+                    "debtorIban": "GB82WEST12345698765432",
+                    "debtorName": "John Doe",
+                    "debtorBic": "WESTGB22",
+                    "remittanceInformation": "Imported from JSON"
+                }
+            ]
+        }';
+
+        try {
+            $data = $exporter->importCreditTransferFromJson($json);
+
+            return new JsonResponse([
+                'message' => 'Successfully imported Credit Transfer from JSON',
+                'importedData' => $data,
+                'note' => 'This data can now be used with CreditTransferGenerator::generateFromArray()',
+            ], 200, [], JSON_PRETTY_PRINT);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Demo validation caching for IBAN.
+     *
+     * @param CachedIbanValidator $cachedValidator Cached IBAN validator
+     * @param IbanValidator       $validator       Regular IBAN validator
+     * @return JsonResponse
+     */
+    #[Route('/demo-validation-cache-iban', name: 'demo_validation_cache_iban')]
+    public function demoValidationCacheIban(CachedIbanValidator $cachedValidator, IbanValidator $validator): JsonResponse
+    {
+        $iban = 'ES9121000418450200051332';
+
+        // First call (will cache)
+        $start1 = microtime(true);
+        $result1 = $cachedValidator->isValid($iban);
+        $time1 = microtime(true) - $start1;
+
+        // Second call (from cache)
+        $start2 = microtime(true);
+        $result2 = $cachedValidator->isValid($iban);
+        $time2 = microtime(true) - $start2;
+
+        // Regular validator (no cache)
+        $start3 = microtime(true);
+        $result3 = $validator->isValid($iban);
+        $time3 = microtime(true) - $start3;
+
+        return new JsonResponse([
+            'iban' => $iban,
+            'cachedValidator' => [
+                'firstCall' => [
+                    'result' => $result1,
+                    'time' => round($time1 * 1000, 4) . ' ms',
+                    'cached' => false,
+                ],
+                'secondCall' => [
+                    'result' => $result2,
+                    'time' => round($time2 * 1000, 4) . ' ms',
+                    'cached' => true,
+                ],
+            ],
+            'regularValidator' => [
+                'result' => $result3,
+                'time' => round($time3 * 1000, 4) . ' ms',
+                'cached' => false,
+            ],
+            'note' => 'Cached validator uses cache on second call, improving performance for repeated validations',
+        ], 200, [], JSON_PRETTY_PRINT);
+    }
+
+    /**
+     * Demo validation caching for BIC.
+     *
+     * @param CachedBicValidator $cachedValidator Cached BIC validator
+     * @param BicValidator       $validator       Regular BIC validator
+     * @return JsonResponse
+     */
+    #[Route('/demo-validation-cache-bic', name: 'demo_validation_cache_bic')]
+    public function demoValidationCacheBic(CachedBicValidator $cachedValidator, BicValidator $validator): JsonResponse
+    {
+        $bic = 'CAIXESBBXXX';
+
+        // First call (will cache)
+        $start1 = microtime(true);
+        $result1 = $cachedValidator->isValid($bic);
+        $time1 = microtime(true) - $start1;
+
+        // Second call (from cache)
+        $start2 = microtime(true);
+        $result2 = $cachedValidator->isValid($bic);
+        $time2 = microtime(true) - $start2;
+
+        // Regular validator (no cache)
+        $start3 = microtime(true);
+        $result3 = $validator->isValid($bic);
+        $time3 = microtime(true) - $start3;
+
+        return new JsonResponse([
+            'bic' => $bic,
+            'cachedValidator' => [
+                'firstCall' => [
+                    'result' => $result1,
+                    'time' => round($time1 * 1000, 4) . ' ms',
+                    'cached' => false,
+                ],
+                'secondCall' => [
+                    'result' => $result2,
+                    'time' => round($time2 * 1000, 4) . ' ms',
+                    'cached' => true,
+                ],
+            ],
+            'regularValidator' => [
+                'result' => $result3,
+                'time' => round($time3 * 1000, 4) . ' ms',
+                'cached' => false,
+            ],
+            'note' => 'Cached validator uses cache on second call, improving performance for repeated validations',
+        ], 200, [], JSON_PRETTY_PRINT);
     }
 }
 

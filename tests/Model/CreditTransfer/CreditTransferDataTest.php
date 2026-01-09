@@ -2,31 +2,31 @@
 
 declare(strict_types=1);
 
-namespace Nowo\SepaPaymentBundle\Tests\Model\Remesa;
+namespace Nowo\SepaPaymentBundle\Tests\Model\CreditTransfer;
 
-use Nowo\SepaPaymentBundle\Model\Remesa\RemesaData;
-use Nowo\SepaPaymentBundle\Model\Remesa\Transaction;
+use Nowo\SepaPaymentBundle\Model\CreditTransfer\CreditTransferData;
+use Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Test cases for RemesaData.
+ * Test cases for CreditTransferData.
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
  * @copyright 2025 Nowo.tech
  */
-class RemesaDataTest extends TestCase
+class CreditTransferDataTest extends TestCase
 {
     /**
-     * Tests remesa data creation.
+     * Tests credit transfer data creation.
      *
      * @return void
      */
-    public function testRemesaDataCreation(): void
+    public function testCreditTransferDataCreation(): void
     {
         $creationDate = new \DateTime('2024-01-15 10:00:00');
         $executionDate = new \DateTime('2024-01-20');
 
-        $remesaData = new RemesaData(
+        $creditTransferData = new CreditTransferData(
             'MSG-001',
             $creationDate,
             'My Company',
@@ -36,14 +36,14 @@ class RemesaDataTest extends TestCase
             $executionDate
         );
 
-        $this->assertEquals('MSG-001', $remesaData->getMessageId());
-        $this->assertEquals($creationDate, $remesaData->getCreationDate());
-        $this->assertEquals('My Company', $remesaData->getInitiatingPartyName());
-        $this->assertEquals('PMT-001', $remesaData->getPaymentInfoId());
-        $this->assertEquals('ES9121000418450200051332', $remesaData->getCreditorIban());
-        $this->assertEquals('My Company Name', $remesaData->getCreditorName());
-        $this->assertEquals($executionDate, $remesaData->getRequestedExecutionDate());
-        $this->assertFalse($remesaData->isBatchBooking());
+        $this->assertEquals('MSG-001', $creditTransferData->getMessageId());
+        $this->assertEquals($creationDate, $creditTransferData->getCreationDate());
+        $this->assertEquals('My Company', $creditTransferData->getInitiatingPartyName());
+        $this->assertEquals('PMT-001', $creditTransferData->getPaymentInfoId());
+        $this->assertEquals('ES9121000418450200051332', $creditTransferData->getCreditorIban());
+        $this->assertEquals('My Company Name', $creditTransferData->getCreditorName());
+        $this->assertEquals($executionDate, $creditTransferData->getRequestedExecutionDate());
+        $this->assertFalse($creditTransferData->isBatchBooking());
     }
 
     /**
@@ -53,13 +53,13 @@ class RemesaDataTest extends TestCase
      */
     public function testSetCreditorBic(): void
     {
-        $remesaData = $this->createRemesaData();
+        $creditTransferData = $this->createCreditTransferData();
 
-        $remesaData->setCreditorBic('CAIXESBBXXX');
-        $this->assertEquals('CAIXESBBXXX', $remesaData->getCreditorBic());
+        $creditTransferData->setCreditorBic('CAIXESBBXXX');
+        $this->assertEquals('CAIXESBBXXX', $creditTransferData->getCreditorBic());
 
-        $remesaData->setCreditorBic(null);
-        $this->assertNull($remesaData->getCreditorBic());
+        $creditTransferData->setCreditorBic(null);
+        $this->assertNull($creditTransferData->getCreditorBic());
     }
 
     /**
@@ -69,10 +69,10 @@ class RemesaDataTest extends TestCase
      */
     public function testSetBatchBooking(): void
     {
-        $remesaData = $this->createRemesaData();
+        $creditTransferData = $this->createCreditTransferData();
 
-        $remesaData->setBatchBooking(true);
-        $this->assertTrue($remesaData->isBatchBooking());
+        $creditTransferData->setBatchBooking(true);
+        $this->assertTrue($creditTransferData->isBatchBooking());
     }
 
     /**
@@ -82,7 +82,7 @@ class RemesaDataTest extends TestCase
      */
     public function testAddTransaction(): void
     {
-        $remesaData = $this->createRemesaData();
+        $creditTransferData = $this->createCreditTransferData();
 
         $transaction1 = new Transaction(
             'E2E-001',
@@ -100,10 +100,10 @@ class RemesaDataTest extends TestCase
             'Jane Smith'
         );
 
-        $remesaData->addTransaction($transaction1);
-        $remesaData->addTransaction($transaction2);
+        $creditTransferData->addTransaction($transaction1);
+        $creditTransferData->addTransaction($transaction2);
 
-        $transactions = $remesaData->getTransactions();
+        $transactions = $creditTransferData->getTransactions();
         $this->assertCount(2, $transactions);
         $this->assertEquals($transaction1, $transactions[0]);
         $this->assertEquals($transaction2, $transactions[1]);
@@ -116,9 +116,9 @@ class RemesaDataTest extends TestCase
      */
     public function testGetTotalAmount(): void
     {
-        $remesaData = $this->createRemesaData();
+        $creditTransferData = $this->createCreditTransferData();
 
-        $remesaData->addTransaction(new Transaction(
+        $creditTransferData->addTransaction(new Transaction(
             'E2E-001',
             100.50,
             'EUR',
@@ -126,7 +126,7 @@ class RemesaDataTest extends TestCase
             'John Doe'
         ));
 
-        $remesaData->addTransaction(new Transaction(
+        $creditTransferData->addTransaction(new Transaction(
             'E2E-002',
             200.75,
             'EUR',
@@ -134,7 +134,7 @@ class RemesaDataTest extends TestCase
             'Jane Smith'
         ));
 
-        $this->assertEquals(301.25, $remesaData->getTotalAmount());
+        $this->assertEquals(301.25, $creditTransferData->getTotalAmount());
     }
 
     /**
@@ -144,9 +144,9 @@ class RemesaDataTest extends TestCase
      */
     public function testGetTotalAmountWithNoTransactions(): void
     {
-        $remesaData = $this->createRemesaData();
+        $creditTransferData = $this->createCreditTransferData();
 
-        $this->assertEquals(0.0, $remesaData->getTotalAmount());
+        $this->assertEquals(0.0, $creditTransferData->getTotalAmount());
     }
 
     /**
@@ -156,12 +156,12 @@ class RemesaDataTest extends TestCase
      */
     public function testSetCreditorAddress(): void
     {
-        $remesaData = $this->createRemesaData();
+        $creditTransferData = $this->createCreditTransferData();
 
-        $this->assertNull($remesaData->getCreditorAddress());
+        $this->assertNull($creditTransferData->getCreditorAddress());
 
-        $remesaData->setCreditorAddress('123 Business St', 'Madrid', '28001', 'ES');
-        $address = $remesaData->getCreditorAddress();
+        $creditTransferData->setCreditorAddress('123 Business St', 'Madrid', '28001', 'ES');
+        $address = $creditTransferData->getCreditorAddress();
 
         $this->assertNotNull($address);
         $this->assertEquals('123 Business St', $address['street']);
@@ -177,16 +177,16 @@ class RemesaDataTest extends TestCase
      */
     public function testSetCreditorAddressFromArray(): void
     {
-        $remesaData = $this->createRemesaData();
+        $creditTransferData = $this->createCreditTransferData();
 
-        $remesaData->setCreditorAddressFromArray([
+        $creditTransferData->setCreditorAddressFromArray([
             'street' => '456 Corporate Avenue',
             'city' => 'Barcelona',
             'postalCode' => '08001',
             'country' => 'ES',
         ]);
 
-        $address = $remesaData->getCreditorAddress();
+        $address = $creditTransferData->getCreditorAddress();
         $this->assertNotNull($address);
         $this->assertEquals('456 Corporate Avenue', $address['street']);
         $this->assertEquals('Barcelona', $address['city']);
@@ -201,16 +201,16 @@ class RemesaDataTest extends TestCase
      */
     public function testSetCreditorAddressFromArraySnakeCase(): void
     {
-        $remesaData = $this->createRemesaData();
+        $creditTransferData = $this->createCreditTransferData();
 
-        $remesaData->setCreditorAddressFromArray([
+        $creditTransferData->setCreditorAddressFromArray([
             'address' => '789 Office Plaza',
             'city' => 'Valencia',
             'postal_code' => '46001',
             'country' => 'ES',
         ]);
 
-        $address = $remesaData->getCreditorAddress();
+        $address = $creditTransferData->getCreditorAddress();
         $this->assertNotNull($address);
         $this->assertEquals('789 Office Plaza', $address['street']);
         $this->assertEquals('Valencia', $address['city']);
@@ -219,13 +219,13 @@ class RemesaDataTest extends TestCase
     }
 
     /**
-     * Creates a remesa data instance for testing.
+     * Creates a credit transfer data instance for testing.
      *
-     * @return RemesaData The remesa data instance
+     * @return CreditTransferData The credit transfer data instance
      */
-    private function createRemesaData(): RemesaData
+    private function createCreditTransferData(): CreditTransferData
     {
-        return new RemesaData(
+        return new CreditTransferData(
             'MSG-001',
             new \DateTime('2024-01-15 10:00:00'),
             'My Company',

@@ -7,11 +7,18 @@ This document provides detailed usage examples for all features of the SEPA Paym
 - [IBAN Validation](#iban-validation)
 - [CCC to IBAN Conversion](#ccc-to-iban-conversion)
 - [BIC Validation](#bic-validation)
+- [Automatic BIC Lookup by IBAN](#automatic-bic-lookup-by-iban)
 - [Credit Card Validation](#credit-card-validation)
 - [Identifier Generation](#identifier-generation)
 - [SEPA XML Parser](#sepa-xml-parser)
 - [XSD Schema Validation](#xsd-schema-validation)
+- [SEPA String Sanitization](#sepa-string-sanitization)
+- [SEPA Country Validation](#sepa-country-validation)
+- [SEPA Business Rules Validation](#sepa-business-rules-validation)
 - [SEPA Mandates](#sepa-mandates)
+- [Export to Other Formats](#export-to-other-formats)
+- [Symfony Events](#symfony-events)
+- [Structured Logging](#structured-logging)
 - [Generating SEPA Credit Transfer (Remesa de Pago)](#generating-sepa-credit-transfer-remesa-de-pago)
 - [Generating SEPA Direct Debit (Remesa de Cobro)](#generating-sepa-direct-debit-remesa-de-cobro)
 - [Using with Dependency Injection](#using-with-dependency-injection)
@@ -90,6 +97,195 @@ $bankCode = $validator->getBankCode('CAIXESBBXXX'); // CAIX
 $countryCode = $validator->getCountryCode('CAIXESBBXXX'); // ES
 $locationCode = $validator->getLocationCode('CAIXESBBXXX'); // BB
 $branchCode = $validator->getBranchCode('CAIXESBBXXX'); // XXX (or null if not present)
+```
+
+## Automatic BIC Lookup by IBAN
+
+The `BicLookupService` automatically finds BIC codes from IBANs, reducing manual work and errors.
+
+### Basic Usage
+
+```php
+use Nowo\SepaPaymentBundle\Lookup\BicLookupService;
+use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+
+$ibanValidator = new IbanValidator();
+$bicLookup = new BicLookupService($ibanValidator);
+
+// Look up BIC from IBAN
+$iban = 'ES9121000418450200051332';
+$bic = $bicLookup->lookupBic($iban);
+// Returns: 'CAIXESBB' (if found in database)
+
+// Check if lookup is available for a country
+if ($bicLookup->isAvailable($iban)) {
+    $bic = $bicLookup->lookupBic($iban);
+    if (null !== $bic) {
+        echo "BIC found: {$bic}";
+    } else {
+        echo "BIC not found in database";
+    }
+}
+```
+
+### Supported Countries
+
+The service includes mappings for major banks in:
+- 🇪🇸 **Spain (ES)**: Bank codes (first 4 digits of BBAN)
+- 🇩🇪 **Germany (DE)**: Bank codes (first 8 digits of BBAN)
+- 🇫🇷 **France (FR)**: Bank codes (first 5 digits of BBAN)
+- 🇮🇹 **Italy (IT)**: Bank codes (first 5 digits of BBAN)
+- 🇬🇧 **United Kingdom (GB)**: Sort codes (first 4 digits of BBAN)
+- 🇳🇱 **Netherlands (NL)**: Bank codes (first 4 characters of BBAN)
+- 🇧🇪 **Belgium (BE)**: Bank codes (first 3 digits of BBAN)
+- 🇵🇹 **Portugal (PT)**: Bank codes (first 4 digits of BBAN)
+
+### Adding Custom Mappings
+
+You can add custom bank mappings for banks not in the default database:
+
+```php
+// Add mapping for a Spanish bank with code 9999
+$bicLookup->addMapping('ES', '9999', 'CUSTOMBIC');
+
+// Now IBANs with bank code 9999 will return 'CUSTOMBIC'
+$iban = 'ES9121009999000000000000';
+$bic = $bicLookup->lookupBic($iban);
+// Returns: 'CUSTOMBIC'
+```
+
+### Cache Support (Optional)
+
+You can use a PSR-16 compatible cache to cache lookup results and improve performance:
+
+```php
+use Psr\SimpleCache\CacheInterface;
+
+// Your cache implementation (e.g., Symfony Cache)
+$cache = /* your cache implementation */;
+
+// Create lookup service with cache (24 hour TTL)
+$bicLookup = new BicLookupService($ibanValidator, $cache, 86400);
+
+// First lookup: queries database
+$bic1 = $bicLookup->lookupBic($iban);
+
+// Second lookup: uses cache
+$bic2 = $bicLookup->lookupBic($iban);
+```
+
+### Automatic Integration in Generators
+
+When you inject `BicLookupService` into generators, BIC codes are automatically filled when missing:
+
+```php
+use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
+use Nowo\SepaPaymentBundle\Lookup\BicLookupService;
+use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+
+$ibanValidator = new IbanValidator();
+$bicLookup = new BicLookupService($ibanValidator);
+
+// Inject BIC lookup service into generator
+$generator = new CreditTransferGenerator(
+    $ibanValidator,
+    null, // XSD validator (optional)
+    false, // validate XSD (optional)
+    null, // event dispatcher (optional)
+    null, // logger (optional)
+    $bicLookup // BIC lookup service (optional)
+);
+
+// Create data without BIC
+$creditTransferData = new CreditTransferData(
+    'MSG-001',
+    new \DateTime(),
+    'My Company',
+    'PMT-001',
+    'ES9121000418450200051332', // IBAN only, no BIC provided
+    'My Company Name',
+    new \DateTime('tomorrow')
+);
+
+// Add transaction without BIC
+$transaction = new Transaction(
+    'E2E-001',
+    100.50,
+    'EUR',
+    'GB82WEST12345698765432', // IBAN only, no BIC
+    'John Doe'
+);
+$creditTransferData->addTransaction($transaction);
+
+// BIC codes will be automatically looked up and included in XML
+$xml = $generator->generate($creditTransferData);
+```
+
+The same applies to `DirectDebitGenerator`:
+
+```php
+use Nowo\SepaPaymentBundle\Generator\DirectDebitGenerator;
+use Nowo\SepaPaymentBundle\Lookup\BicLookupService;
+
+$generator = new DirectDebitGenerator(
+    $ibanValidator,
+    null, // XSD validator (optional)
+    false, // validate XSD (optional)
+    null, // event dispatcher (optional)
+    null, // logger (optional)
+    $bicLookup // BIC lookup service (optional)
+);
+
+// BIC codes will be automatically filled when missing
+$xml = $generator->generate($directDebitData);
+```
+
+### Dependency Injection
+
+In Symfony, you can inject the service via dependency injection:
+
+```php
+use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
+use Nowo\SepaPaymentBundle\Lookup\BicLookupServiceInterface;
+
+class PaymentService
+{
+    public function __construct(
+        private CreditTransferGenerator $generator,
+        private BicLookupServiceInterface $bicLookup
+    ) {
+    }
+
+    public function generatePayment(array $data): string
+    {
+        // Generator will automatically use BIC lookup if BIC is missing
+        return $this->generator->generateFromArray($data);
+    }
+}
+```
+
+The service is automatically registered and can be injected:
+
+```yaml
+# config/services.yaml
+services:
+    App\Service\PaymentService:
+        arguments:
+            $generator: '@nowo_sepa_payment.generator.credit_transfer_generator'
+            $bicLookup: '@nowo_sepa_payment.lookup.bic_lookup_service'
+```
+
+Or use autowiring (recommended):
+
+```php
+class PaymentService
+{
+    public function __construct(
+        private CreditTransferGenerator $generator,
+        private BicLookupServiceInterface $bicLookup
+    ) {
+    }
+}
 ```
 
 ## Credit Card Validation
@@ -173,9 +369,9 @@ The bundle provides parsers for both SEPA Credit Transfer and SEPA Direct Debit 
 ### Parsing SEPA Credit Transfer
 
 ```php
-use Nowo\SepaPaymentBundle\Parser\RemesaParser;
+use Nowo\SepaPaymentBundle\Parser\CreditTransferParser;
 
-$parser = new RemesaParser();
+$parser = new CreditTransferParser();
 
 // Parse SEPA Credit Transfer XML
 $xml = file_get_contents('credit-transfer.xml');
@@ -328,7 +524,7 @@ $isValid = $validator->validateAgainstSchemaString($xml, $xsdContent);
 You can enable automatic XSD validation when generating XML files:
 
 ```php
-use Nowo\SepaPaymentBundle\Generator\RemesaGenerator;
+use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use Nowo\SepaPaymentBundle\Validator\XsdValidator;
 
@@ -336,10 +532,10 @@ $ibanValidator = new IbanValidator();
 $xsdValidator = new XsdValidator();
 
 // Enable XSD validation (third parameter)
-$generator = new RemesaGenerator($ibanValidator, $xsdValidator, true);
+$generator = new CreditTransferGenerator($ibanValidator, $xsdValidator, true);
 
 // Now all generated XML will be validated against XSD schema
-$xml = $generator->generate($remesaData);
+$xml = $generator->generate($creditTransferData);
 // If validation fails, an InvalidArgumentException will be thrown
 ```
 
@@ -354,6 +550,523 @@ You can download these schemas from:
 - SEPA official documentation
 
 **Note**: If XSD schema files are not found, validation will be skipped (returns `true`). This allows the validator to work even without schema files, but for full validation, you should download and place the XSD files in the schemas directory.
+
+## SEPA String Sanitization
+
+The `SepaStringSanitizer` validates and sanitizes strings according to SEPA character rules and field length limits.
+
+```php
+use Nowo\SepaPaymentBundle\Validator\SepaStringSanitizer;
+
+$sanitizer = new SepaStringSanitizer();
+
+// Validate if a string contains only allowed SEPA characters
+if ($sanitizer->isValid('John Doe')) {
+    echo "Valid SEPA string";
+}
+
+// Sanitize a string (removes invalid characters, replaces accented characters)
+$sanitized = $sanitizer->sanitize('José García & Company');
+// Returns: "Jose Garcia Company"
+
+// Validate field lengths
+$name = 'Very Long Company Name...';
+if ($sanitizer->isValidNameLength($name)) {
+    echo "Name length is valid (max 70 characters)";
+}
+
+// Truncate strings to maximum allowed length
+$longName = str_repeat('A', 100);
+$truncated = $sanitizer->truncateName($longName);
+// Returns: string of 70 characters
+```
+
+### Field Length Limits
+
+- **Name fields**: Maximum 70 characters
+- **Street address**: Maximum 70 characters
+- **City**: Maximum 35 characters
+- **Postal code**: Maximum 16 characters
+- **Remittance information**: Maximum 140 characters
+
+### Allowed Characters
+
+SEPA allows the following characters in names and addresses:
+- Letters: a-z, A-Z
+- Digits: 0-9
+- Special characters: `/ - ? ( ) . , ' + Space`
+
+Accented characters (á, é, í, ó, ú, ñ, etc.) are automatically converted to their ASCII equivalents.
+
+## SEPA Country Validation
+
+The `SepaCountryValidator` validates if a country is a SEPA member country.
+
+```php
+use Nowo\SepaPaymentBundle\Validator\SepaCountryValidator;
+
+$validator = new SepaCountryValidator();
+
+// Validate if a country is a SEPA member
+if ($validator->isSepaCountry('ES')) {
+    echo "Spain is a SEPA member";
+}
+
+// Validate country from IBAN
+if ($validator->isSepaCountryFromIban('ES9121000418450200051332')) {
+    echo "IBAN country is a SEPA member";
+}
+
+// Get all SEPA member countries
+$sepaCountries = $validator->getSepaCountries();
+// Returns: ['AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', ...]
+
+// Get country name
+$countryName = $validator->getCountryName('ES');
+// Returns: "Spain"
+```
+
+### SEPA Member Countries
+
+The validator includes all current SEPA member countries (34 countries as of 2025), including:
+- All EU member states
+- EEA countries (Iceland, Liechtenstein, Norway)
+- Switzerland
+- United Kingdom (still a SEPA member despite Brexit)
+- Monaco and San Marino
+
+## SEPA Business Rules Validation
+
+The `SepaBusinessRulesValidator` validates SEPA-specific business rules and limits.
+
+```php
+use Nowo\SepaPaymentBundle\Validator\SepaBusinessRulesValidator;
+
+$validator = new SepaBusinessRulesValidator();
+
+// Validate transaction amount (max: 999,999,999.99 EUR)
+if ($validator->isValidTransactionAmount(100.50)) {
+    echo "Transaction amount is valid";
+}
+
+// Validate transaction count (max: 99,999 per file)
+if ($validator->isValidTransactionCount(100)) {
+    echo "Transaction count is valid";
+}
+
+// Validate execution date (must be today or future)
+$executionDate = new \DateTime('tomorrow');
+if ($validator->isValidExecutionDate($executionDate)) {
+    echo "Execution date is valid";
+}
+
+// Check if date is a business day (Monday to Friday)
+if ($validator->isBusinessDay($executionDate)) {
+    echo "Execution date is a business day";
+}
+
+// Validate currency (EUR only for SEPA)
+if ($validator->isValidSepaCurrency('EUR')) {
+    echo "Currency is valid for SEPA";
+}
+
+// Validate sequence type transitions for Direct Debit
+$previousType = 'FRST';
+$newType = 'RCUR';
+if ($validator->isValidSequenceTypeTransition($previousType, $newType)) {
+    echo "Sequence type transition is valid";
+}
+
+// Validate all business rules for a credit transfer
+$errors = $validator->validateCreditTransfer(
+    100.50,                    // Amount
+    1,                         // Transaction count
+    new \DateTime('tomorrow'), // Execution date
+    'EUR'                      // Currency
+);
+
+if (empty($errors)) {
+    echo "All business rules are valid";
+} else {
+    foreach ($errors as $error) {
+        echo $error . "\n";
+    }
+}
+
+// Validate all business rules for a direct debit
+$errors = $validator->validateDirectDebit(
+    100.50,                    // Amount
+    1,                         // Transaction count
+    new \DateTime('tomorrow'), // Due date
+    'EUR',                     // Currency
+    'FRST',                    // Sequence type
+    new \DateTime('2025-12-31') // Mandate expiration date (optional)
+);
+```
+
+### Business Rules
+
+- **Maximum transaction amount**: 999,999,999.99 EUR
+- **Maximum transactions per file**: 99,999
+- **Execution date**: Must be today or in the future
+- **Currency**: Only EUR is allowed for SEPA
+- **Sequence type transitions**: 
+  - First transaction: FRST or OOFF
+  - FRST → RCUR or FNAL
+  - RCUR → RCUR or FNAL
+  - OOFF → OOFF only
+  - FNAL → FNAL only
+
+## Export to Other Formats
+
+The `ExportService` allows you to export SEPA payment data to JSON and CSV formats, and import from JSON.
+
+### JSON Export
+
+```php
+use Nowo\SepaPaymentBundle\Exporter\ExportService;
+use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
+use Nowo\SepaPaymentBundle\Parser\CreditTransferParser;
+use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+
+$generator = new CreditTransferGenerator(new IbanValidator());
+$parser = new CreditTransferParser();
+$exporter = new ExportService();
+
+// Generate XML
+$xml = $generator->generateFromArray([
+    'reference' => 'MSG-001',
+    'initiatingPartyName' => 'My Company',
+    'paymentInfoId' => 'PMT-001',
+    'creditorIban' => 'ES9121000418450200051332',
+    'creditorName' => 'My Company Name',
+    'requestedExecutionDate' => '2024-01-20',
+    'transactions' => [
+        [
+            'amount' => 100.50,
+            'currency' => 'EUR',
+            'debtorIban' => 'GB82WEST12345698765432',
+            'debtorName' => 'John Doe',
+            'endToEndId' => 'E2E-001',
+        ],
+    ],
+]);
+
+// Parse XML
+$parsedData = $parser->parseCreditTransfer($xml);
+
+// Export to JSON
+$json = $exporter->exportCreditTransferToJson($parsedData, true); // true = pretty print
+echo $json;
+
+// Export Direct Debit to JSON
+$json = $exporter->exportDirectDebitToJson($parsedData, true);
+```
+
+### CSV Export
+
+```php
+// Export Credit Transfer to CSV
+$csv = $exporter->exportCreditTransferToCsv($parsedData);
+file_put_contents('credit-transfer.csv', $csv);
+
+// Export Direct Debit to CSV
+$csv = $exporter->exportDirectDebitToCsv($parsedData);
+file_put_contents('direct-debit.csv', $csv);
+
+// Custom delimiter and enclosure
+$csv = $exporter->exportCreditTransferToCsv($parsedData, ';', '"');
+```
+
+### JSON Import
+
+```php
+// Import from JSON
+$json = '{
+    "messageId": "MSG-001",
+    "creationDate": "2024-01-15T10:00:00",
+    "initiatingPartyName": "My Company",
+    "paymentInfoId": "PMT-001",
+    "creditorIban": "ES9121000418450200051332",
+    "creditorName": "My Company Name",
+    "requestedExecutionDate": "2024-01-20",
+    "transactions": [
+        {
+            "endToEndId": "E2E-001",
+            "amount": 100.50,
+            "currency": "EUR",
+            "debtorIban": "GB82WEST12345698765432",
+            "debtorName": "John Doe"
+        }
+    ]
+}';
+
+$data = $exporter->importCreditTransferFromJson($json);
+
+// Use the imported data with generator
+$xml = $generator->generateFromArray($data);
+```
+
+## Symfony Events
+
+The bundle dispatches Symfony events that allow you to extend functionality without modifying the bundle code.
+
+### Available Events
+
+- `BeforeCreditTransferGenerationEvent`: Dispatched before Credit Transfer XML generation
+- `AfterCreditTransferGenerationEvent`: Dispatched after Credit Transfer XML generation
+- `BeforeDirectDebitGenerationEvent`: Dispatched before Direct Debit XML generation
+- `AfterDirectDebitGenerationEvent`: Dispatched after Direct Debit XML generation
+
+### Event Listeners
+
+```php
+use Nowo\SepaPaymentBundle\Event\BeforeCreditTransferGenerationEvent;
+use Nowo\SepaPaymentBundle\Event\AfterCreditTransferGenerationEvent;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+
+class SepaPaymentSubscriber implements EventSubscriberInterface
+{
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            BeforeCreditTransferGenerationEvent::class => 'onBeforeGeneration',
+            AfterCreditTransferGenerationEvent::class => 'onAfterGeneration',
+        ];
+    }
+
+    public function onBeforeGeneration(BeforeCreditTransferGenerationEvent $event): void
+    {
+        $data = $event->getCreditTransferData();
+        
+        // Modify data before generation
+        // For example, add a custom transaction or modify creditor name
+        $data->setCreditorName('Modified Company Name');
+        
+        $event->setCreditTransferData($data);
+    }
+
+    public function onAfterGeneration(AfterCreditTransferGenerationEvent $event): void
+    {
+        $xml = $event->getXml();
+        
+        // Modify XML after generation
+        // For example, add custom elements or modify existing ones
+        $xml = str_replace('Original', 'Modified', $xml);
+        
+        $event->setXml($xml);
+    }
+}
+```
+
+### Registering Event Listeners
+
+In `config/services.yaml`:
+
+```yaml
+services:
+    App\EventListener\SepaPaymentSubscriber:
+        tags:
+            - { name: kernel.event_subscriber }
+```
+
+### Using Event Dispatcher in Generators
+
+The generators automatically use the event dispatcher if it's available via dependency injection:
+
+```php
+use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
+use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+
+// The event dispatcher is automatically injected if available
+$generator = new CreditTransferGenerator(
+    new IbanValidator(),
+    null, // XsdValidator (optional)
+    false, // validateXsd
+    $eventDispatcher // EventDispatcherInterface (optional)
+);
+```
+
+## Structured Logging
+
+The `SepaPaymentLogger` service provides structured logging for all SEPA operations, integrating with PSR-3 logging interfaces for maximum compatibility.
+
+### Basic Usage
+
+```php
+use Nowo\SepaPaymentBundle\Logger\SepaPaymentLogger;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
+
+// Create logger with PSR-3 logger (or use NullLogger if not provided)
+$psrLogger = /* your PSR-3 logger implementation */;
+$logger = new SepaPaymentLogger($psrLogger);
+
+// Or use without logger (defaults to NullLogger)
+$logger = new SepaPaymentLogger();
+```
+
+### Automatic Integration in Generators
+
+When you inject `SepaPaymentLogger` into generators, operations are automatically logged:
+
+```php
+use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
+use Nowo\SepaPaymentBundle\Logger\SepaPaymentLogger;
+use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+
+$ibanValidator = new IbanValidator();
+$logger = new SepaPaymentLogger($psrLogger); // Your PSR-3 logger
+
+$generator = new CreditTransferGenerator(
+    $ibanValidator,
+    null, // XSD validator (optional)
+    false, // validate XSD (optional)
+    null, // event dispatcher (optional)
+    $logger // logger (optional)
+);
+
+// Generation events are automatically logged
+$xml = $generator->generate($creditTransferData);
+```
+
+### Logging Methods
+
+The logger provides structured methods for different operations:
+
+**Credit Transfer Generation:**
+
+```php
+// Log generation start
+$logger->logCreditTransferGenerationStart('MSG-001', 5);
+
+// Log generation success
+$logger->logCreditTransferGenerationSuccess('MSG-001', 5, 1024); // messageId, count, xmlSize
+
+// Log generation failure
+$logger->logCreditTransferGenerationFailure('MSG-001', 5, 'Error message');
+```
+
+**Direct Debit Generation:**
+
+```php
+// Log generation start
+$logger->logDirectDebitGenerationStart('MSG-001', 3);
+
+// Log generation success
+$logger->logDirectDebitGenerationSuccess('MSG-001', 3, 2048);
+
+// Log generation failure
+$logger->logDirectDebitGenerationFailure('MSG-001', 3, 'Error message');
+```
+
+**Validation Events:**
+
+```php
+// Log IBAN validation
+$logger->logIbanValidation('ES9121000418450200051332', true);
+
+// Log BIC validation
+$logger->logBicValidation('CAIXESBBXXX', true);
+
+// Log XSD validation
+$logger->logXsdValidation('credit_transfer', true, 'Validation successful');
+```
+
+**Parsing Events:**
+
+```php
+// Log Credit Transfer parsing
+$logger->logCreditTransferParsing('MSG-001', 5, true);
+
+// Log Direct Debit parsing
+$logger->logDirectDebitParsing('MSG-001', 3, true);
+```
+
+### Context Data
+
+All log entries include contextual data:
+
+```php
+// Log entries automatically include:
+// - messageId: The SEPA message identifier
+// - transactionCount: Number of transactions
+// - event: Event type (e.g., 'credit_transfer.generation.start')
+// - Additional context based on the operation
+```
+
+### Dependency Injection
+
+In Symfony, you can inject the logger service:
+
+```php
+use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
+use Nowo\SepaPaymentBundle\Logger\SepaPaymentLogger;
+
+class PaymentService
+{
+    public function __construct(
+        private CreditTransferGenerator $generator,
+        private SepaPaymentLogger $logger
+    ) {
+    }
+
+    public function generatePayment(array $data): string
+    {
+        // Generator will automatically use logger if injected
+        return $this->generator->generateFromArray($data);
+    }
+}
+```
+
+The service is automatically registered and can be injected:
+
+```yaml
+# config/services.yaml
+services:
+    App\Service\PaymentService:
+        arguments:
+            $generator: '@nowo_sepa_payment.generator.credit_transfer_generator'
+            $logger: '@nowo_sepa_payment.logger.sepa_payment_logger'
+```
+
+Or use autowiring (recommended):
+
+```php
+class PaymentService
+{
+    public function __construct(
+        private CreditTransferGenerator $generator,
+        private SepaPaymentLogger $logger
+    ) {
+    }
+}
+```
+
+### Custom Logger Integration
+
+You can use any PSR-3 compatible logger:
+
+```php
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
+use Nowo\SepaPaymentBundle\Logger\SepaPaymentLogger;
+
+// Create Monolog logger
+$monolog = new Logger('sepa_payment');
+$monolog->pushHandler(new StreamHandler('path/to/your.log', Logger::DEBUG));
+
+// Use with SepaPaymentLogger
+$logger = new SepaPaymentLogger($monolog);
+```
+
+### Log Levels
+
+The logger uses appropriate PSR-3 log levels:
+- **Info**: Generation start, success, validation success
+- **Warning**: Validation warnings
+- **Error**: Generation failures, validation failures
 
 ## SEPA Mandates
 
@@ -385,10 +1098,10 @@ The `generateFromArray()` method supports both **camelCase** and **snake_case** 
 **Using camelCase (default):**
 
 ```php
-use Nowo\SepaPaymentBundle\Generator\RemesaGenerator;
+use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 
-$generator = new RemesaGenerator(new IbanValidator());
+$generator = new CreditTransferGenerator(new IbanValidator());
 
 $data = [
     'reference' => 'MSG-001',                    // Message ID (unique)
@@ -439,7 +1152,7 @@ $data = [
 ];
 
 $xml = $generator->generateFromArray($data);
-file_put_contents('remesa.xml', $xml);
+file_put_contents('credit-transfer.xml', $xml);
 ```
 
 **Note about Addresses:**
@@ -497,12 +1210,12 @@ You can also use the object-based approach for more control:
 
 ```php
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
-use Nowo\SepaPaymentBundle\Model\Remesa\RemesaData;
-use Nowo\SepaPaymentBundle\Generator\RemesaGenerator;
-use Nowo\SepaPaymentBundle\Model\Remesa\Transaction;
+use Nowo\SepaPaymentBundle\Model\CreditTransfer\CreditTransferData;
+use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
+use Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction;
 
-// Create remesa data
-$remesaData = new RemesaData(
+// Create credit transfer data
+$creditTransferData = new CreditTransferData(
     'MSG-001',                                    // Message ID (unique)
     new \DateTime('2024-01-15 10:00:00'),        // Creation date
     'My Company',                                 // Initiating party name
@@ -512,11 +1225,11 @@ $remesaData = new RemesaData(
     new \DateTime('2024-01-20')                   // Requested execution date
 );
 
-$remesaData->setCreditorBic('CAIXESBBXXX');
-$remesaData->setBatchBooking(true);
+$creditTransferData->setCreditorBic('CAIXESBBXXX');
+$creditTransferData->setBatchBooking(true);
 
 // Set creditor address (will be included in XML)
-$remesaData->setCreditorAddress([
+$creditTransferData->setCreditorAddress([
     'street' => '123 Business Street',
     'city' => 'Madrid',
     'postalCode' => '28001',
@@ -543,7 +1256,7 @@ $transaction1->setDebtorAddress([
 ]);
 $transaction1->setRemittanceInformation('Invoice 12345');
 
-$remesaData->addTransaction($transaction1);
+$creditTransferData->addTransaction($transaction1);
 
 // Add more transactions if needed
 $transaction2 = new Transaction(
@@ -553,15 +1266,15 @@ $transaction2 = new Transaction(
     'FR1420041010050500013M02606',
     'Jane Smith'
 );
-$remesaData->addTransaction($transaction2);
+$creditTransferData->addTransaction($transaction2);
 
 // Generate XML
 $ibanValidator = new IbanValidator();
-$generator = new RemesaGenerator($ibanValidator);
-$xml = $generator->generate($remesaData);
+$generator = new CreditTransferGenerator($ibanValidator);
+$xml = $generator->generate($creditTransferData);
 
 // Save to file
-file_put_contents('remesa.xml', $xml);
+file_put_contents('credit-transfer.xml', $xml);
 
 // Or return as HTTP Response (for Symfony controllers)
 use Symfony\Component\HttpFoundation\Response;
@@ -780,38 +1493,38 @@ The bundle registers services automatically using Symfony service attributes. Al
 
 ```php
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
-use Nowo\SepaPaymentBundle\Generator\RemesaGenerator;
+use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
 use Nowo\SepaPaymentBundle\Generator\DirectDebitGenerator;
 use Nowo\SepaPaymentBundle\Validator\CreditCardValidator;
-use Nowo\SepaPaymentBundle\Model\Remesa\RemesaData;
+use Nowo\SepaPaymentBundle\Model\CreditTransfer\CreditTransferData;
 
 class MyService
 {
     public function __construct(
         private IbanValidator $ibanValidator,
-        private RemesaGenerator $remesaGenerator,
+        private CreditTransferGenerator $creditTransferGenerator,
         private DirectDebitGenerator $directDebitGenerator,
         private CreditCardValidator $creditCardValidator
     ) {
     }
 
-    public function generateRemesaPago(): string
+    public function generateCreditTransfer(): string
     {
-        $remesaData = new RemesaData(/* ... */);
-        return $this->remesaGenerator->generate($remesaData);
+        $creditTransferData = new CreditTransferData(/* ... */);
+        return $this->creditTransferGenerator->generate($creditTransferData);
     }
 
-    public function generateRemesaPagoFromArray(array $data): string
+    public function generateCreditTransferFromArray(array $data): string
     {
-        return $this->remesaGenerator->generateFromArray($data);
+        return $this->creditTransferGenerator->generateFromArray($data);
     }
 
-    public function generateRemesaCobro(array $data): string
+    public function generateDirectDebit(array $data): string
     {
         return $this->directDebitGenerator->generateFromArray($data);
     }
 
-    public function generateRemesaCobroResponse(array $data): \Symfony\Component\HttpFoundation\Response
+    public function generateDirectDebitResponse(array $data): \Symfony\Component\HttpFoundation\Response
     {
         $xml = $this->directDebitGenerator->generateFromArray($data);
         return $this->directDebitGenerator->createResponse($xml, 'direct-debit.xml');
@@ -845,9 +1558,12 @@ class MyService
 - `nowo_sepa_payment.validator.bic_validator` - BIC validator
 - `nowo_sepa_payment.validator.credit_card_validator` - Credit card validator
 - `nowo_sepa_payment.converter.ccc_converter` - CCC to IBAN converter
-- `nowo_sepa_payment.generator.remesa_generator` - Remesa (credit transfer) generator
+- `nowo_sepa_payment.generator.credit_transfer_generator` - Credit transfer generator
 - `nowo_sepa_payment.generator.direct_debit_generator` - Direct debit generator
 - `nowo_sepa_payment.generator.identifier_generator` - Identifier generator
-- `nowo_sepa_payment.parser.remesa_parser` - Remesa parser
+- `nowo_sepa_payment.parser.credit_transfer_parser` - Credit transfer parser
+- `nowo_sepa_payment.validator.sepa_string_sanitizer` - SEPA string sanitizer
+- `nowo_sepa_payment.validator.sepa_country_validator` - SEPA country validator
+- `nowo_sepa_payment.validator.sepa_business_rules_validator` - SEPA business rules validator
 
 All services are public and available for dependency injection via autowiring (type-hinting) or explicit alias retrieval.

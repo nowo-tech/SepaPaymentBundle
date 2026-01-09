@@ -9,11 +9,16 @@ use Digitick\Sepa\GroupHeader;
 use Digitick\Sepa\PaymentInformation;
 use Digitick\Sepa\TransferFile\CustomerDirectDebitTransferFile;
 use Digitick\Sepa\TransferInformation\CustomerDirectDebitTransferInformation;
+use Nowo\SepaPaymentBundle\Event\AfterDirectDebitGenerationEvent;
+use Nowo\SepaPaymentBundle\Event\BeforeDirectDebitGenerationEvent;
+use Nowo\SepaPaymentBundle\Lookup\BicLookupServiceInterface;
+use Nowo\SepaPaymentBundle\Logger\SepaPaymentLogger;
 use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitData;
 use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitTransaction;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use Nowo\SepaPaymentBundle\Validator\XsdValidator;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -44,19 +49,49 @@ class DirectDebitGenerator
     private ?XsdValidator $xsdValidator = null;
 
     /**
+     * Event dispatcher instance (optional).
+     *
+     * @var EventDispatcherInterface|null
+     */
+    private ?EventDispatcherInterface $eventDispatcher = null;
+
+    /**
+     * Logger instance (optional).
+     *
+     * @var SepaPaymentLogger|null
+     */
+    private ?SepaPaymentLogger $logger = null;
+
+    /**
+     * BIC lookup service instance (optional).
+     *
+     * @var BicLookupServiceInterface|null
+     */
+    private ?BicLookupServiceInterface $bicLookupService = null;
+
+    /**
      * Constructor.
      *
-     * @param IbanValidator      $ibanValidator IBAN validator instance
-     * @param XsdValidator|null  $xsdValidator Optional XSD validator instance
-     * @param bool               $validateXsd  Whether to enable XSD validation (default: false)
+     * @param IbanValidator                $ibanValidator     IBAN validator instance
+     * @param XsdValidator|null           $xsdValidator     Optional XSD validator instance
+     * @param bool                        $validateXsd      Whether to enable XSD validation (default: false)
+     * @param EventDispatcherInterface|null $eventDispatcher Optional event dispatcher for Symfony events
+     * @param SepaPaymentLogger|null      $logger           Optional logger for structured logging
+     * @param BicLookupServiceInterface|null $bicLookupService Optional BIC lookup service for auto-filling BIC
      */
     public function __construct(
         private IbanValidator $ibanValidator,
         ?XsdValidator $xsdValidator = null,
-        bool $validateXsd = false
+        bool $validateXsd = false,
+        ?EventDispatcherInterface $eventDispatcher = null,
+        ?SepaPaymentLogger $logger = null,
+        ?BicLookupServiceInterface $bicLookupService = null
     ) {
         $this->xsdValidator = $xsdValidator;
         $this->validateXsd = $validateXsd && null !== $xsdValidator;
+        $this->eventDispatcher = $eventDispatcher;
+        $this->logger = $logger;
+        $this->bicLookupService = $bicLookupService;
     }
 
     /**
@@ -102,85 +137,138 @@ class DirectDebitGenerator
      */
     public function generate(DirectDebitData $directDebitData): string
     {
-        $this->validateDirectDebitData($directDebitData);
+        $transactionCount = count($directDebitData->getTransactions());
+        $messageId = $directDebitData->getMessageId();
 
-        // Create and configure group header
-        $groupHeader = new GroupHeader(
-            $directDebitData->getMessageId(),
-            $directDebitData->getInitiatingPartyName()
-        );
-
-        // Create transfer file (pain.008.001.02 format) with group header
-        $transferFile = new CustomerDirectDebitTransferFile($groupHeader);
-
-        // Create payment information
-        $paymentInformation = new PaymentInformation(
-            $directDebitData->getPaymentInfoId(),
-            $this->ibanValidator->normalize($directDebitData->getCreditorIban()),
-            $directDebitData->getCreditorBic() ?? '',
-            $directDebitData->getCreditorName(),
-            'EUR'
-        );
-        // Payment method is automatically set based on the transfer file type (CustomerDirectDebitTransferFile)
-        $paymentInformation->setDueDate($directDebitData->getDueDate());
-        $paymentInformation->setCreditorId($directDebitData->getCreditorId());
-        $paymentInformation->setSequenceType($directDebitData->getSequenceType());
-        $paymentInformation->setLocalInstrumentCode($directDebitData->getLocalInstrumentCode());
-
-        // Set creditor address if available
-        $creditorAddress = $directDebitData->getCreditorAddress();
-        if (null !== $creditorAddress) {
-            $this->setCreditorPostalAddress($paymentInformation, $creditorAddress);
+        // Log generation start
+        if (null !== $this->logger) {
+            $this->logger->logDirectDebitGenerationStart($messageId, $transactionCount);
         }
 
-        // Add transactions
-        foreach ($directDebitData->getTransactions() as $transaction) {
-            $transferInformation = new CustomerDirectDebitTransferInformation(
-                (int) round($transaction->getAmount() * 100), // Convert to cents
-                $this->ibanValidator->normalize($transaction->getDebtorIban()),
-                $transaction->getDebtorName(),
-                $transaction->getEndToEndId()
+        try {
+            // Dispatch before generation event
+            if (null !== $this->eventDispatcher) {
+                $beforeEvent = new BeforeDirectDebitGenerationEvent($directDebitData);
+                $this->eventDispatcher->dispatch($beforeEvent);
+                $directDebitData = $beforeEvent->getDirectDebitData();
+            }
+
+            $this->validateDirectDebitData($directDebitData);
+
+            // Create and configure group header
+            $groupHeader = new GroupHeader(
+                $directDebitData->getMessageId(),
+                $directDebitData->getInitiatingPartyName()
             );
 
-            $transferInformation->setMandateId($transaction->getDebtorMandate());
-            $transferInformation->setMandateSignDate($transaction->getDebtorMandateSignDate());
+            // Create transfer file (pain.008.001.02 format) with group header
+            $transferFile = new CustomerDirectDebitTransferFile($groupHeader);
 
-            if (null !== $transaction->getRemittanceInformation()) {
-                $transferInformation->setRemittanceInformation($transaction->getRemittanceInformation());
+            // Auto-fill creditor BIC if missing
+            $creditorBic = $directDebitData->getCreditorBic();
+            if (null === $creditorBic && null !== $this->bicLookupService) {
+                $lookedUpBic = $this->bicLookupService->lookupBic($directDebitData->getCreditorIban());
+                if (null !== $lookedUpBic) {
+                    $creditorBic = $lookedUpBic;
+                }
             }
 
-            // Set debtor BIC if available
-            if (null !== $transaction->getDebtorBic()) {
-                $transferInformation->setBic($transaction->getDebtorBic());
+            // Create payment information
+            $paymentInformation = new PaymentInformation(
+                $directDebitData->getPaymentInfoId(),
+                $this->ibanValidator->normalize($directDebitData->getCreditorIban()),
+                $creditorBic ?? '',
+                $directDebitData->getCreditorName(),
+                'EUR'
+            );
+            // Payment method is automatically set based on the transfer file type (CustomerDirectDebitTransferFile)
+            $paymentInformation->setDueDate($directDebitData->getDueDate());
+            $paymentInformation->setCreditorId($directDebitData->getCreditorId());
+            $paymentInformation->setSequenceType($directDebitData->getSequenceType());
+            $paymentInformation->setLocalInstrumentCode($directDebitData->getLocalInstrumentCode());
+
+            // Set creditor address if available
+            $creditorAddress = $directDebitData->getCreditorAddress();
+            if (null !== $creditorAddress) {
+                $this->setCreditorPostalAddress($paymentInformation, $creditorAddress);
             }
 
-            // Apply additional data if available
-            // Note: This allows for future extensibility. Additional fields can be set
-            // using methods available in CustomerDirectDebitTransferInformation
-            $this->applyAdditionalData($transferInformation, $transaction);
+            // Add transactions
+            foreach ($directDebitData->getTransactions() as $transaction) {
+                $transferInformation = new CustomerDirectDebitTransferInformation(
+                    (int) round($transaction->getAmount() * 100), // Convert to cents
+                    $this->ibanValidator->normalize($transaction->getDebtorIban()),
+                    $transaction->getDebtorName(),
+                    $transaction->getEndToEndId()
+                );
 
-            $paymentInformation->addTransfer($transferInformation);
+                $transferInformation->setMandateId($transaction->getDebtorMandate());
+                $transferInformation->setMandateSignDate($transaction->getDebtorMandateSignDate());
+
+                if (null !== $transaction->getRemittanceInformation()) {
+                    $transferInformation->setRemittanceInformation($transaction->getRemittanceInformation());
+                }
+
+                // Auto-fill debtor BIC if missing
+                $debtorBic = $transaction->getDebtorBic();
+                if (null === $debtorBic && null !== $this->bicLookupService) {
+                    $lookedUpBic = $this->bicLookupService->lookupBic($transaction->getDebtorIban());
+                    if (null !== $lookedUpBic) {
+                        $debtorBic = $lookedUpBic;
+                    }
+                }
+
+                // Set debtor BIC if available
+                if (null !== $debtorBic) {
+                    $transferInformation->setBic($debtorBic);
+                }
+
+                // Apply additional data if available
+                // Note: This allows for future extensibility. Additional fields can be set
+                // using methods available in CustomerDirectDebitTransferInformation
+                $this->applyAdditionalData($transferInformation, $transaction);
+
+                $paymentInformation->addTransfer($transferInformation);
+            }
+
+            $transferFile->addPaymentInformation($paymentInformation);
+
+            // Generate XML
+            $domBuilder = DomBuilderFactory::createDomBuilder($transferFile);
+            $xml = $domBuilder->asXml();
+
+            // Add addresses to XML if they were provided
+            $xml = $this->addAddressesToXml($xml, $directDebitData);
+
+            // Validate against XSD schema if enabled
+            if ($this->validateXsd && null !== $this->xsdValidator) {
+                try {
+                    $this->xsdValidator->validateDirectDebit($xml);
+                } catch (\InvalidArgumentException $e) {
+                    throw new \InvalidArgumentException('Generated XML failed XSD validation: ' . $e->getMessage(), 0, $e);
+                }
+            }
+
+            // Dispatch after generation event
+            if (null !== $this->eventDispatcher) {
+                $afterEvent = new AfterDirectDebitGenerationEvent($xml, $directDebitData->getMessageId());
+                $this->eventDispatcher->dispatch($afterEvent);
+                $xml = $afterEvent->getXml();
+            }
+
+            // Log generation success
+            if (null !== $this->logger) {
+                $this->logger->logDirectDebitGenerationSuccess($messageId, $transactionCount, strlen($xml));
+            }
+
+            return $xml;
+        } catch (\Exception $e) {
+            // Log generation failure
+            if (null !== $this->logger) {
+                $this->logger->logDirectDebitGenerationFailure($messageId, $e->getMessage());
+            }
+            throw $e;
         }
-
-        $transferFile->addPaymentInformation($paymentInformation);
-
-        // Generate XML
-        $domBuilder = DomBuilderFactory::createDomBuilder($transferFile);
-        $xml = $domBuilder->asXml();
-
-        // Add addresses to XML if they were provided
-        $xml = $this->addAddressesToXml($xml, $directDebitData);
-
-        // Validate against XSD schema if enabled
-        if ($this->validateXsd && null !== $this->xsdValidator) {
-            try {
-                $this->xsdValidator->validateDirectDebit($xml);
-            } catch (\InvalidArgumentException $e) {
-                throw new \InvalidArgumentException('Generated XML failed XSD validation: ' . $e->getMessage(), 0, $e);
-            }
-        }
-
-        return $xml;
     }
 
     /**

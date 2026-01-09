@@ -13,9 +13,9 @@ This document serves as a checklist for future improvements and new features to 
 - [x] Support for multiple transactions
 - [x] Add comprehensive tests
 - [x] Update documentation (USAGE.md, README.md)
-- [ ] Add console command for parsing Direct Debit files (optional)
+- [x] Add console command for parsing Direct Debit files (`nowo:sepa:parse-direct-debit`)
 
-**Rationale**: Currently only `RemesaParser` exists for Credit Transfer. Adding Direct Debit parser provides feature parity.
+**Rationale**: Currently only `CreditTransferParser` exists for Credit Transfer. Adding Direct Debit parser provides feature parity.
 
 ---
 
@@ -35,31 +35,31 @@ This document serves as a checklist for future improvements and new features to 
 
 ---
 
-### 3. Automatic BIC Lookup by IBAN
-- [ ] Research BIC lookup services/APIs (e.g., SWIFT, IBAN.com)
-- [ ] Create `BicLookupService` interface and implementation
-- [ ] Implement fallback mechanism (cache, database, API)
+### 3. Automatic BIC Lookup by IBAN ✅
+- [x] Research BIC lookup services/APIs (e.g., SWIFT, IBAN.com)
+- [x] Create `BicLookupService` interface and implementation
+- [x] Implement fallback mechanism (cache, database, API)
 - [ ] Add configuration for BIC lookup providers
-- [ ] Integrate into generators to auto-fill missing BIC
-- [ ] Add caching mechanism for BIC lookups
-- [ ] Add comprehensive tests
-- [ ] Update documentation
+- [x] Integrate into generators to auto-fill missing BIC
+- [x] Add caching mechanism for BIC lookups
+- [x] Add comprehensive tests
+- [x] Update documentation
 
 **Rationale**: Improves user experience by automatically filling BIC when only IBAN is provided. Reduces errors and manual work.
 
 ---
 
-### 4. SEPA Limits and Business Rules Validation
-- [ ] Validate maximum transaction amount limits
-- [ ] Validate maximum number of transactions per file
-- [ ] Validate execution date rules (must be future date, business days only, etc.)
-- [ ] Validate mandate expiration dates
-- [ ] Validate sequence type transitions (FRST → RCUR, etc.)
-- [ ] Validate currency restrictions (EUR only for SEPA)
-- [ ] Create `SepaBusinessRulesValidator` service
+### 4. SEPA Limits and Business Rules Validation ✅
+- [x] Validate maximum transaction amount limits
+- [x] Validate maximum number of transactions per file
+- [x] Validate execution date rules (must be future date, business days only, etc.)
+- [x] Validate mandate expiration dates
+- [x] Validate sequence type transitions (FRST → RCUR, etc.)
+- [x] Validate currency restrictions (EUR only for SEPA)
+- [x] Create `SepaBusinessRulesValidator` service
 - [ ] Add configuration for custom limits
-- [ ] Add comprehensive tests
-- [ ] Update documentation
+- [x] Add comprehensive tests
+- [x] Update documentation
 
 **Rationale**: Prevents common SEPA compliance errors before XML generation, reducing rejections by banks.
 
@@ -67,77 +67,77 @@ This document serves as a checklist for future improvements and new features to 
 
 ## Priority: Medium 🟡
 
-### 5. Symfony Events
-- [ ] Create event classes:
-  - [ ] `BeforeCreditTransferGenerationEvent`
-  - [ ] `AfterCreditTransferGenerationEvent`
-  - [ ] `BeforeDirectDebitGenerationEvent`
-  - [ ] `AfterDirectDebitGenerationEvent`
-  - [ ] `BeforeValidationEvent`
-  - [ ] `AfterValidationEvent`
-- [ ] Dispatch events in generators
-- [ ] Allow event listeners to modify data before generation
-- [ ] Allow event listeners to modify XML after generation
+### 5. Symfony Events ✅
+- [x] Create event classes:
+  - [x] `BeforeCreditTransferGenerationEvent`
+  - [x] `AfterCreditTransferGenerationEvent`
+  - [x] `BeforeDirectDebitGenerationEvent`
+  - [x] `AfterDirectDebitGenerationEvent`
+  - [x] `BeforeValidationEvent`
+  - [x] `AfterValidationEvent`
+- [x] Dispatch events in generators
+- [x] Allow event listeners to modify data before generation
+- [x] Allow event listeners to modify XML after generation
 - [ ] Add event documentation with examples
-- [ ] Add comprehensive tests
+- [x] Add comprehensive tests
 - [ ] Update documentation
 
 **Rationale**: Provides extensibility without modifying bundle code. Allows integration with logging, monitoring, and custom business logic.
 
 ---
 
-### 6. Structured Logging
-- [ ] Integrate with Symfony's LoggerInterface
-- [ ] Log generation events (start, success, failure)
-- [ ] Log validation events (IBAN, BIC, business rules)
-- [ ] Log parsing events
-- [ ] Add log levels (info, warning, error)
-- [ ] Include context data (message ID, transaction count, etc.)
+### 6. Structured Logging ✅
+- [x] Integrate with Symfony's LoggerInterface
+- [x] Log generation events (start, success, failure)
+- [x] Log validation events (IBAN, BIC, business rules)
+- [x] Log parsing events
+- [x] Add log levels (info, warning, error)
+- [x] Include context data (message ID, transaction count, etc.)
 - [ ] Add configuration for log levels
-- [ ] Add comprehensive tests
+- [x] Add comprehensive tests
 - [ ] Update documentation
 
 **Rationale**: Improves debugging and monitoring capabilities. Essential for production environments.
 
 ---
 
-### 7. SEPA Character Validation and Sanitization
-- [ ] Validate allowed characters in names according to SEPA rules
-- [ ] Sanitize invalid characters automatically
-- [ ] Validate maximum field lengths
-- [ ] Handle special characters (accents, umlauts, etc.)
-- [ ] Create `SepaStringSanitizer` service
+### 7. SEPA Character Validation and Sanitization ✅
+- [x] Validate allowed characters in names according to SEPA rules
+- [x] Sanitize invalid characters automatically
+- [x] Validate maximum field lengths
+- [x] Handle special characters (accents, umlauts, etc.)
+- [x] Create `SepaStringSanitizer` service
 - [ ] Add configuration for sanitization behavior
-- [ ] Add comprehensive tests
-- [ ] Update documentation
+- [x] Add comprehensive tests
+- [x] Update documentation
 
 **Rationale**: Prevents XML generation failures due to invalid characters. Ensures SEPA compliance.
 
 ---
 
-### 8. Export to Other Formats
-- [ ] Add JSON export for Credit Transfer data
-- [ ] Add JSON export for Direct Debit data
-- [ ] Add CSV export for reporting
+### 8. Export to Other Formats ✅
+- [x] Add JSON export for Credit Transfer data
+- [x] Add JSON export for Direct Debit data
+- [x] Add CSV export for reporting
 - [ ] Add Excel export (optional, requires additional dependency)
-- [ ] Create `ExportService` interface and implementations
-- [ ] Support import from JSON/CSV back to array format
-- [ ] Add comprehensive tests
+- [x] Create `ExportService` interface and implementations
+- [x] Support import from JSON/CSV back to array format
+- [x] Add comprehensive tests
 - [ ] Update documentation
 
 **Rationale**: Provides flexibility for reporting, data analysis, and integration with other systems.
 
 ---
 
-### 9. SEPA Country Validation
-- [ ] Create list of SEPA member countries
-- [ ] Validate country codes in IBANs
-- [ ] Validate country codes in addresses
-- [ ] Warn/error for non-SEPA countries
-- [ ] Create `SepaCountryValidator` service
+### 9. SEPA Country Validation ✅
+- [x] Create list of SEPA member countries
+- [x] Validate country codes in IBANs
+- [x] Validate country codes in addresses
+- [x] Warn/error for non-SEPA countries
+- [x] Create `SepaCountryValidator` service
 - [ ] Keep country list up-to-date
-- [ ] Add comprehensive tests
-- [ ] Update documentation
+- [x] Add comprehensive tests
+- [x] Update documentation
 
 **Rationale**: Ensures only valid SEPA countries are used in transactions.
 
@@ -160,15 +160,15 @@ This document serves as a checklist for future improvements and new features to 
 
 ---
 
-### 11. Validation Caching
-- [ ] Add cache for IBAN validations
-- [ ] Add cache for BIC validations
-- [ ] Add cache for BIC lookups
-- [ ] Use Symfony Cache component
-- [ ] Add configuration for cache TTL
-- [ ] Add cache invalidation strategies
-- [ ] Add comprehensive tests
-- [ ] Update documentation
+### 11. Validation Caching ✅
+- [x] Add cache for IBAN validations
+- [x] Add cache for BIC validations
+- [x] Add cache for BIC lookups (already implemented in BicLookupService)
+- [x] Use Symfony Cache component (PSR-16 SimpleCache compatible)
+- [x] Add configuration for cache TTL
+- [x] Add cache invalidation strategies (clear, delete methods)
+- [x] Add comprehensive tests
+- [x] Update documentation
 
 **Rationale**: Improves performance for repeated validations, especially in high-traffic scenarios.
 

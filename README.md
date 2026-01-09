@@ -12,10 +12,17 @@ Symfony bundle for SEPA payment management: IBAN validation, mandate management,
 - ✅ **IBAN Utilities**: Format, normalize, extract country code, check digits, and BBAN
 - ✅ **CCC to IBAN Conversion**: Convert Spanish CCC (Código Cuenta Cliente) to IBAN format
 - ✅ **BIC Validation**: Validate BIC (Business Identifier Code) format
+- ✅ **Automatic BIC Lookup**: Automatically look up BIC codes from IBANs (supports 8 countries)
 - ✅ **Credit Card Validation**: Validate credit card numbers using Luhn algorithm and detect card types (Visa, Mastercard, Amex, Discover, etc.)
 - ✅ **Identifier Generation**: Generate unique identifiers for messages, payments, and transactions
 - ✅ **SEPA XML Parser**: Parse and validate SEPA XML files (Credit Transfer and Direct Debit)
 - ✅ **XSD Schema Validation**: Validate XML files against official SEPA XSD schemas (ISO 20022)
+- ✅ **SEPA String Sanitization**: Validate and sanitize strings according to SEPA character rules
+- ✅ **SEPA Country Validation**: Validate SEPA member countries
+- ✅ **SEPA Business Rules Validation**: Validate SEPA limits and business rules (amounts, dates, currencies, sequence types)
+- ✅ **Export to Other Formats**: Export SEPA payment data to JSON and CSV formats, import from JSON
+- ✅ **Symfony Events**: Event system for extensibility (before/after generation events)
+- ✅ **Structured Logging**: Comprehensive logging for SEPA operations with PSR-3 integration
 - ✅ **SEPA Mandates**: Manage SEPA Direct Debit mandates with full support
 - ✅ **Credit Transfer**: Generate SEPA Credit Transfer XML files (pain.001.001.03 format) using Digitick\Sepa library
 - ✅ **Direct Debit**: Generate SEPA Direct Debit XML files (pain.008.001.02 format) using Digitick\Sepa library
@@ -51,10 +58,10 @@ For detailed usage examples and API documentation, see [docs/USAGE.md](docs/USAG
 
 **Generate SEPA Credit Transfer from array:**
 ```php
-use Nowo\SepaPaymentBundle\Generator\RemesaGenerator;
+use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 
-$generator = new RemesaGenerator(new IbanValidator());
+$generator = new CreditTransferGenerator(new IbanValidator());
 $xml = $generator->generateFromArray([
     'reference' => 'MSG-001',
     'initiatingPartyName' => 'My Company',

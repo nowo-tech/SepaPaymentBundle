@@ -14,6 +14,9 @@
             <li><a href="{{ path('demo_validate_iban', {iban: 'ES9121000418450200051332'}) }}">Validate IBAN</a></li>
             <li><a href="{{ path('demo_validate_bic', {bic: 'ESPBESMM'}) }}">Validate BIC</a></li>
             <li><a href="{{ path('demo_validate_credit_card', {card: '4532015112830366'}) }}">Validate Credit Card</a></li>
+            <li><a href="{{ path('demo_sepa_string_sanitizer', {input: 'José García & Company'}) }}">SEPA String Sanitizer</a></li>
+            <li><a href="{{ path('demo_sepa_country_validator', {country: 'ES', iban: 'ES9121000418450200051332'}) }}">SEPA Country Validator</a></li>
+            <li><a href="{{ path('demo_sepa_business_rules', {amount: '100.50', count: '1', currency: 'EUR', date: 'tomorrow'}) }}">SEPA Business Rules Validator</a></li>
         </ul>
     </div>
 
@@ -29,11 +32,15 @@
         <ul>
             <li><a href="{{ path('demo_generate_identifier') }}">Generate Identifier</a></li>
             <li><a href="{{ path('demo_mandate') }}">Demo Mandate</a></li>
-            <li><strong>Credit Transfer:</strong></li>
+            <li><strong>Credit Transfer (New - Recommended):</strong></li>
             <li><a href="{{ path('demo_credit_transfer') }}">Demo Credit Transfer (with Addresses)</a></li>
             <li><a href="{{ path('demo_credit_transfer_array') }}">Demo Credit Transfer (from Array - camelCase)</a></li>
             <li><a href="{{ path('demo_credit_transfer_with_addresses') }}">Demo Credit Transfer (from Array with Addresses)</a></li>
             <li><a href="{{ path('demo_credit_transfer_snake_case') }}">Demo Credit Transfer (from Array - snake_case)</a></li>
+            <li><strong>Credit Transfer (Deprecated - Still Works):</strong></li>
+            <li><a href="{{ path('demo_remesa_generator_deprecated') }}">⚠️ Demo RemesaGenerator (Deprecated)</a></li>
+            <li><a href="{{ path('demo_remesa_generator_array_deprecated') }}">⚠️ Demo RemesaGenerator Array (Deprecated)</a></li>
+            <li><a href="{{ path('demo_comparison_deprecated_vs_new') }}">🔍 Comparison: Deprecated vs New</a></li>
             <li><strong>Direct Debit:</strong></li>
             <li><a href="{{ path('demo_direct_debit') }}">Demo Direct Debit (from Array - camelCase)</a></li>
             <li><a href="{{ path('demo_direct_debit_snake_case') }}">Demo Direct Debit (from Array - snake_case)</a></li>
@@ -44,8 +51,26 @@
     <div class="endpoint-group">
         <h3>Parsers</h3>
         <ul>
+            <li><strong>Credit Transfer Parser (New - Recommended):</strong></li>
             <li><a href="{{ path('demo_parse_credit_transfer') }}">Parse Credit Transfer XML</a></li>
+            <li><strong>Credit Transfer Parser (Deprecated - Still Works):</strong></li>
+            <li><a href="{{ path('demo_remesa_parser_deprecated') }}">⚠️ Parse with RemesaParser (Deprecated)</a></li>
+            <li><strong>Direct Debit Parser:</strong></li>
             <li><a href="{{ path('demo_parse_direct_debit') }}">Parse Direct Debit XML</a></li>
+        </ul>
+    </div>
+
+    <div class="endpoint-group">
+        <h3>Export/Import</h3>
+        <ul>
+            <li><strong>Credit Transfer Export:</strong></li>
+            <li><a href="{{ path('demo_export_credit_transfer_json') }}">Export Credit Transfer to JSON</a></li>
+            <li><a href="{{ path('demo_export_credit_transfer_csv') }}">Export Credit Transfer to CSV</a></li>
+            <li><strong>Direct Debit Export:</strong></li>
+            <li><a href="{{ path('demo_export_direct_debit_json') }}">Export Direct Debit to JSON</a></li>
+            <li><a href="{{ path('demo_export_direct_debit_csv') }}">Export Direct Debit to CSV</a></li>
+            <li><strong>Import:</strong></li>
+            <li><a href="{{ path('demo_import_from_json') }}">Import from JSON</a></li>
         </ul>
     </div>
 {% endblock %}

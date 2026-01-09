@@ -7,6 +7,98 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Validation Caching**: New caching system for validation results to improve performance
+  - `ValidationCacheInterface` and `ValidationCache` - Service for caching validation results (PSR-16 SimpleCache compatible)
+  - `CachedIbanValidator` - Cached wrapper for IBAN validation
+  - `CachedBicValidator` - Cached wrapper for BIC validation
+  - Optional cache adapter support (works without cache, backward compatible)
+  - Configurable TTL for cached results
+  - Cache key normalization and management
+- **Console Command for Direct Debit Parsing**: New command to parse SEPA Direct Debit XML files
+  - `nowo:sepa:parse-direct-debit` - Parse and display Direct Debit XML information
+  - JSON output option (`--json`)
+  - Displays group header, payment information, and transaction details
+  - Validates XML structure before parsing
+- **Validation Events**: Event system for validation operations
+  - `BeforeValidationEvent` - Dispatched before validation (allows custom validation logic)
+  - `AfterValidationEvent` - Dispatched after validation (for logging and monitoring)
+  - Full integration with Symfony EventDispatcher
+- **Automatic BIC Lookup by IBAN**: New `BicLookupService` for automatically looking up BIC codes from IBANs
+  - `BicLookupServiceInterface` - Interface for BIC lookup services
+  - `BicLookupService` - Implementation with local database of IBAN to BIC mappings
+  - Support for 8 countries: ES (Spain), DE (Germany), FR (France), IT (Italy), GB (UK), NL (Netherlands), BE (Belgium), PT (Portugal)
+  - Automatic BIC lookup in `CreditTransferGenerator` and `DirectDebitGenerator` when BIC is missing
+  - Optional cache support (PSR-16 SimpleCache compatible)
+  - `lookupBic()` - Look up BIC code for a given IBAN
+  - `isAvailable()` - Check if BIC lookup is available for a given IBAN
+  - `addMapping()` - Add custom IBAN to BIC mappings for bank-specific codes
+  - Country-specific bank code extraction patterns for accurate BIC lookup
+  - Comprehensive local database with common bank mappings
+- **Export to Other Formats**: New `ExportService` for exporting SEPA payment data to various formats
+  - `exportCreditTransferToJson()` - Export Credit Transfer data to JSON format (with pretty print option)
+  - `exportDirectDebitToJson()` - Export Direct Debit data to JSON format (with pretty print option)
+  - `exportCreditTransferToCsv()` - Export Credit Transfer data to CSV format (customizable delimiter and enclosure)
+  - `exportDirectDebitToCsv()` - Export Direct Debit data to CSV format (customizable delimiter and enclosure)
+  - `importCreditTransferFromJson()` - Import Credit Transfer data from JSON format
+  - `importDirectDebitFromJson()` - Import Direct Debit data from JSON format
+  - Full support for multiple transactions in CSV exports
+  - Comprehensive CSV headers for both Credit Transfer and Direct Debit formats
+- **Symfony Events**: Event system for extensibility without modifying bundle code
+  - `BeforeCreditTransferGenerationEvent` - Dispatched before Credit Transfer XML generation (allows data modification)
+  - `AfterCreditTransferGenerationEvent` - Dispatched after Credit Transfer XML generation (allows XML modification)
+  - `BeforeDirectDebitGenerationEvent` - Dispatched before Direct Debit XML generation (allows data modification)
+  - `AfterDirectDebitGenerationEvent` - Dispatched after Direct Debit XML generation (allows XML modification)
+  - Event dispatcher integration in `CreditTransferGenerator` and `DirectDebitGenerator` (optional dependency injection)
+  - Full support for event listeners and subscribers to modify data and XML
+- **Structured Logging**: New `SepaPaymentLogger` service for structured logging of SEPA operations
+  - Integration with `Psr\Log\LoggerInterface` for flexible logging backends
+  - Structured logging methods for Credit Transfer and Direct Debit generation (start, success, failure)
+  - Structured logging methods for validation events (IBAN, BIC, XSD validation)
+  - Structured logging methods for parsing events (Credit Transfer and Direct Debit parsing)
+  - Context data included in all log entries (messageId, transactionCount, etc.)
+  - Optional logger injection in generators (backward compatible)
+  - Automatic logging of generation lifecycle events
+- **SEPA String Sanitization**: New `SepaStringSanitizer` service for validating and sanitizing strings according to SEPA character rules
+  - Validates allowed characters in SEPA names and addresses
+  - Sanitizes invalid characters and replaces accented characters with ASCII equivalents
+  - Validates and truncates field lengths (names, addresses, remittance information)
+  - Supports maximum length validation for all SEPA fields
+- **SEPA Country Validation**: New `SepaCountryValidator` service for validating SEPA member countries
+  - Validates if a country code is a SEPA member (34 countries supported)
+  - Validates country from IBAN
+  - Provides country names for all SEPA member countries
+  - Includes all current SEPA members (EU, EEA, Switzerland, UK, Monaco, San Marino)
+- **SEPA Business Rules Validation**: New `SepaBusinessRulesValidator` service for validating SEPA business rules and limits
+  - Validates transaction amount limits (max: 999,999,999.99 EUR)
+  - Validates transaction count limits (max: 99,999 per file)
+  - Validates execution date rules (must be today or future)
+  - Validates business day rules (Monday to Friday)
+  - Validates currency restrictions (EUR only for SEPA)
+  - Validates mandate expiration dates
+  - Validates sequence type transitions for Direct Debit (FRST → RCUR, etc.)
+  - Comprehensive validation methods for Credit Transfer and Direct Debit
+
+### Improved
+- **Generators**: 
+  - `CreditTransferGenerator` now auto-fills creditor and debtor BIC when missing (if `BicLookupService` is injected)
+  - `DirectDebitGenerator` now auto-fills creditor and debtor BIC when missing (if `BicLookupService` is injected)
+  - BIC lookup is optional and backward compatible (only works if service is injected)
+- **Demo Applications**: 
+  - Added new demo endpoints for export/import functionality, BIC lookup, string sanitization, country validation, business rules validation, and validation caching
+  - Added `/demo-validation-cache-iban` - Demonstrates IBAN validation caching with performance comparison
+  - Added `/demo-validation-cache-bic` - Demonstrates BIC validation caching with performance comparison
+- **Documentation**: 
+  - Updated `USAGE.md` with comprehensive examples for all new services
+  - Updated `FUTURE.md` to mark Validation Caching as completed
+- **Test Coverage**: 
+  - Added 5 new tests for `ValidationCache` (`ValidationCacheTest.php`)
+  - Added 4 new tests for `CachedIbanValidator` (`CachedIbanValidatorTest.php`)
+  - Added 4 new tests for `CachedBicValidator` (`CachedBicValidatorTest.php`)
+  - Added 4 new tests for `ParseDirectDebitCommand` (`ParseDirectDebitCommandTest.php`)
+  - Added 2 new tests for validation events (`ValidationEventTest.php`)
+  - Total: 323 tests, 1030+ assertions
+
 ## [1.0.0] - 2026-01-09
 
 ### Added
@@ -193,94 +285,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Changed to untyped constants with literal string values
   - Fixed in `Configuration::ALIAS`, `DirectDebitGenerator::SERVICE_NAME`, `RemesaGenerator::SERVICE_NAME`, `IdentifierGenerator::SERVICE_NAME`
 
-## [0.0.6] - 2025-12-16
-
-### Added
-- **Service Registration with Attributes**: `DirectDebitGenerator` now uses Symfony `#[AsAlias]` attribute for automatic service registration
-  - Service is registered with alias `nowo_sepa_payment.generator.direct_debit_generator`
-  - Service is marked as public for explicit service retrieval
-  - Added `SERVICE_NAME` constant using `Configuration::ALIAS` for consistent naming
-
-- **Enhanced Test Coverage for DirectDebitGenerator**: Added comprehensive test cases to improve code coverage
-  - Tests for `generateFromArray()` with `DateTimeInterface` objects
-  - Tests for amount conversion from cents (> 10000)
-  - Tests for optional fields (`creditorBic`, `remittanceInformation`, `debtorMandateSignDate`)
-  - Tests for missing required fields validation
-  - Tests for invalid data types validation
-  - Tests for edge cases (empty transactions, missing transactions)
-  - Total of 14 new test methods covering all code paths
-
-## [0.0.5] - 2025-12-16
-
-### Fixed
-- Removed `setPaymentMethod()` calls from `RemesaGenerator` and `DirectDebitGenerator`
-  - Payment method is now automatically set by Digitick\Sepa v3.0 based on transfer file type
-- Fixed `testGenerateFromArray` test to use correct field names (`reference`, `bankAccountOwner`, `seqType`)
-- Updated CHANGELOG documentation
-
-## [0.0.4] - 2025-12-16
-
-### Fixed
-- **Complete Digitick\Sepa v3.0 API compatibility**:
-  - Updated `PaymentInformation` constructor usage
-  - Updated transaction creation with `CustomerCreditTransferInformation` and `CustomerDirectDebitTransferInformation`
-  - Fixed transaction amounts to use integers (cents)
-  - Updated method names to match v3.0 API
-  - Removed deprecated methods (`setCreationDateTime`, `setNumberOfTransactions`, `setControlSum`)
-  - Updated documentation and CHANGELOG
-  - Updated README with dependency information
-
-## [0.0.3] - 2025-01-23
-
-### Fixed
-- **Full compatibility with Digitick\Sepa v3.0 API changes**:
-  - Fixed `GroupHeader` constructor to pass required parameters (`messageId` and `initiatingPartyName`)
-  - Removed `setCreationDateTime()` calls (creation date is now set automatically by GroupHeader)
-  - Updated `PaymentInformation` constructor to use required parameters (`id`, `originAccountIBAN`, `originAgentBIC`, `originName`, `originAccountCurrency`)
-  - Updated transaction creation to use `CustomerCreditTransferInformation` and `CustomerDirectDebitTransferInformation` constructors
-  - Changed transaction amounts to be passed as integers (cents) instead of floats
-  - Updated method names to match v3.0 API:
-    - `setRequestedExecutionDate()` → `setDueDate()`
-    - `setRequestedCollectionDate()` → `setDueDate()`
-    - `setCreditorSchemeIdentification()` → `setCreditorId()`
-    - `setMandateIdentification()` → `setMandateId()`
-    - `setDateOfSignature()` → `setMandateSignDate()`
-    - `addCreditTransferTransaction()` → `addTransfer()` with `CustomerCreditTransferInformation`
-    - `addTransferInformation()` → `addTransfer()` with `CustomerDirectDebitTransferInformation`
-  - Removed automatic calculation methods (`setNumberOfTransactions`, `setControlSum`) as they are now calculated automatically
-
-## [0.0.2] - 2025-01-23
-
-### Fixed
-- Updated `RemesaGenerator` and `DirectDebitGenerator` to use `GroupHeader` in constructor instead of format string
-- Fixed footer display in demo templates using flexbox layout for proper positioning
-
-### Changed
-- Updated demo `composer.json` files to use `@dev` version for local development with path repositories
-
-## [0.0.1] - 2025-01-23
-
-### Added
-- Initial release of SEPA Payment Bundle
-- Full SEPA payment management functionality
-
-## [0.0.6] - 2025-12-16
-
-### Added
-- **Service Registration with Attributes**: `DirectDebitGenerator` now uses Symfony `#[AsAlias]` attribute for automatic service registration
-  - Service is registered with alias `nowo_sepa_payment.generator.direct_debit_generator`
-  - Service is marked as public for explicit service retrieval
-  - Added `SERVICE_NAME` constant using `Configuration::ALIAS` for consistent naming
-
-- **Enhanced Test Coverage for DirectDebitGenerator**: Added comprehensive test cases to improve code coverage
-  - Tests for `generateFromArray()` with `DateTimeInterface` objects
-  - Tests for amount conversion from cents (> 10000)
-  - Tests for optional fields (`creditorBic`, `remittanceInformation`, `debtorMandateSignDate`)
-  - Tests for missing required fields validation
-  - Tests for invalid data types validation
-  - Tests for edge cases (empty transactions, missing transactions)
-  - Total of 14 new test methods covering all code paths
-
 ## [0.0.8] - 2025-12-17
 
 ### Added
@@ -354,53 +358,92 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Changed to untyped constants with literal string values
   - Fixed in `Configuration::ALIAS`, `DirectDebitGenerator::SERVICE_NAME`, `RemesaGenerator::SERVICE_NAME`, `IdentifierGenerator::SERVICE_NAME`
 
-- **Credit Card Validation**: Complete credit card number validation using Luhn algorithm
-  - `CreditCardValidator::isValid()` - Validate credit card number using Luhn algorithm
-  - `CreditCardValidator::normalize()` - Normalize card number (remove spaces and dashes)
-  - `CreditCardValidator::format()` - Format card number with spaces every 4 digits
-  - `CreditCardValidator::getCardType()` - Detect card type (Visa, Mastercard, Amex, Discover, Diners Club, JCB)
-  - `CreditCardValidator::getBin()` - Extract BIN (Bank Identification Number - first 6 digits)
-  - `CreditCardValidator::getLastFour()` - Extract last 4 digits
-  - `CreditCardValidator::mask()` - Mask card number showing only last 4 digits
-  - `CreditCardValidator::isValidForType()` - Validate card number for specific card type
-  - `sepa:validate-credit-card` console command for CLI validation
+## [0.0.6] - 2025-12-16
 
-- **Comprehensive Test Suite**: Complete test coverage for all bundle features
-  - Tests for `CccConverter` with CCC validation and conversion
-  - Tests for `BicValidator` with BIC format validation
-  - Tests for `CreditCardValidator` with Luhn algorithm and card type detection
-  - Tests for `DirectDebitGenerator` with XML generation and validation
-  - Tests for `IdentifierGenerator` with identifier generation
-  - Tests for `DirectDebitData` and `DirectDebitTransaction` models
-  - Tests for `RemesaParser` with XML parsing and validation
-  - All tests follow PHPUnit best practices with proper assertions
+### Added
+- **Service Registration with Attributes**: `DirectDebitGenerator` now uses Symfony `#[AsAlias]` attribute for automatic service registration
+  - Service is registered with alias `nowo_sepa_payment.generator.direct_debit_generator`
+  - Service is marked as public for explicit service retrieval
+  - Added `SERVICE_NAME` constant using `Configuration::ALIAS` for consistent naming
 
-- **Enhanced Demo Applications**: Updated demo applications for Symfony 6, 7, and 8
-  - Added endpoints for BIC validation (`/validate-bic`)
-  - Added endpoints for credit card validation (`/validate-credit-card`)
-  - Added endpoints for CCC to IBAN conversion (`/convert-ccc`)
-  - Added endpoints for identifier generation (`/generate-identifier`)
-  - Improved demo homepage with organized endpoint categories
-  - All demos showcase complete bundle functionality
+- **Enhanced Test Coverage for DirectDebitGenerator**: Added comprehensive test cases to improve code coverage
+  - Tests for `generateFromArray()` with `DateTimeInterface` objects
+  - Tests for amount conversion from cents (> 10000)
+  - Tests for optional fields (`creditorBic`, `remittanceInformation`, `debtorMandateSignDate`)
+  - Tests for missing required fields validation
+  - Tests for invalid data types validation
+  - Tests for edge cases (empty transactions, missing transactions)
+  - Total of 14 new test methods covering all code paths
+
+## [0.0.5] - 2025-12-16
+
+### Fixed
+- Removed `setPaymentMethod()` calls from `RemesaGenerator` and `DirectDebitGenerator`
+  - Payment method is now automatically set by Digitick\Sepa v3.0 based on transfer file type
+- Fixed `testGenerateFromArray` test to use correct field names (`reference`, `bankAccountOwner`, `seqType`)
+- Updated CHANGELOG documentation
+
+## [0.0.4] - 2025-12-16
+
+### Fixed
+- **Complete Digitick\Sepa v3.0 API compatibility**:
+  - Updated `PaymentInformation` constructor usage
+  - Updated transaction creation with `CustomerCreditTransferInformation` and `CustomerDirectDebitTransferInformation`
+  - Fixed transaction amounts to use integers (cents)
+  - Updated method names to match v3.0 API
+  - Removed deprecated methods (`setCreationDateTime`, `setNumberOfTransactions`, `setControlSum`)
+  - Updated documentation and CHANGELOG
+  - Updated README with dependency information
+
+## [0.0.3] - 2025-01-23
+
+### Fixed
+- **Full compatibility with Digitick\Sepa v3.0 API changes**:
+  - Fixed `GroupHeader` constructor to pass required parameters (`messageId` and `initiatingPartyName`)
+  - Removed `setCreationDateTime()` calls (creation date is now set automatically by GroupHeader)
+  - Updated `PaymentInformation` constructor to use required parameters (`id`, `originAccountIBAN`, `originAgentBIC`, `originName`, `originAccountCurrency`)
+  - Updated transaction creation to use `CustomerCreditTransferInformation` and `CustomerDirectDebitTransferInformation` constructors
+  - Changed transaction amounts to be passed as integers (cents) instead of floats
+  - Updated method names to match v3.0 API:
+    - `setRequestedExecutionDate()` → `setDueDate()`
+    - `setRequestedCollectionDate()` → `setDueDate()`
+    - `setCreditorSchemeIdentification()` → `setCreditorId()`
+    - `setMandateIdentification()` → `setMandateId()`
+    - `setDateOfSignature()` → `setMandateSignDate()`
+    - `addCreditTransferTransaction()` → `addTransfer()` with `CustomerCreditTransferInformation`
+    - `addTransferInformation()` → `addTransfer()` with `CustomerDirectDebitTransferInformation`
+  - Removed automatic calculation methods (`setNumberOfTransactions`, `setControlSum`) as they are now calculated automatically
+
+## [0.0.2] - 2025-01-23
+
+### Fixed
+- Updated `RemesaGenerator` and `DirectDebitGenerator` to use `GroupHeader` in constructor instead of format string
+- Fixed footer display in demo templates using flexbox layout for proper positioning
 
 ### Changed
-- **Code Organization**: Reorganized bundle structure for better separation of concerns
-  - Moved validators (`IbanValidator`, `BicValidator`, `CreditCardValidator`) from `Services/` to `Validator/`
-  - Moved converters (`CccConverter`) from `Services/` to `Converter/`
-  - Moved generators (`RemesaGenerator`, `DirectDebitGenerator`, `IdentifierGenerator`) from `Services/` to `Generator/`
-  - Moved parsers (`RemesaParser`) from `Services/` to `Parser/`
-  - Moved models/DTOs (`RemesaData`, `Transaction`, `DirectDebitData`, `DirectDebitTransaction`, `Mandate`) from `Services/` to `Model/`
-  - Updated all namespaces and imports throughout the codebase
-  - Updated service definitions in `services.yaml`
-  - Updated documentation and examples
+- Updated demo `composer.json` files to use `@dev` version for local development with path repositories
 
-- **Modern PHP Syntax**: Updated all classes to use PHP 8.0+ constructor property promotion
-  - Replaced traditional property declaration and constructor assignment with constructor property promotion
-  - Improved code readability and reduced boilerplate
-  - All classes now use modern PHP syntax while maintaining backward compatibility
+## [0.0.1] - 2025-01-23
 
-- Updated `digitick/sepa-xml` dependency from `^2.0` to `^3.0`
-  - Improved support for multiple ISO 20022 pain.001 and pain.008 versions
-  - Better compatibility with latest SEPA standards
-  - **Note**: Version 3.0 requires breaking changes in GroupHeader and TransferFile constructors (addressed in v0.0.2, v0.0.3, v0.0.4, and v0.0.5)
+### Added
+- Initial release of SEPA Payment Bundle
+- Full SEPA payment management functionality
+- IBAN validation and utilities
+- CCC to IBAN conversion
+- BIC validation
+- Credit Card validation
+- Identifier generation
+- SEPA Credit Transfer XML generation (pain.001.001.03)
+- SEPA Direct Debit XML generation (pain.008.001.02)
+- SEPA XML parsing (Credit Transfer)
+- Basic demo applications
+- IBAN validation and utilities
+- CCC to IBAN conversion
+- BIC validation
+- Credit Card validation
+- Identifier generation
+- SEPA Credit Transfer XML generation (pain.001.001.03)
+- SEPA Direct Debit XML generation (pain.008.001.02)
+- SEPA XML parsing (Credit Transfer)
+- Basic demo applications
 
