@@ -135,4 +135,231 @@ class RemesaParserTest extends TestCase
         $this->assertFalse($this->parser->isValidCreditTransfer('Invalid XML'));
         $this->assertFalse($this->parser->isValidCreditTransfer('<xml></xml>'));
     }
+
+    /**
+     * Tests parsing Credit Transfer XML with multiple transactions.
+     *
+     * @return void
+     */
+    public function testParseCreditTransferWithMultipleTransactions(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
+                <CstmrCdtTrfInitn>
+                    <GrpHdr>
+                        <MsgId>MSG-002</MsgId>
+                        <CreDtTm>2024-01-15T10:00:00</CreDtTm>
+                        <InitgPty>
+                            <Nm>My Company</Nm>
+                        </InitgPty>
+                    </GrpHdr>
+                    <PmtInf>
+                        <PmtInfId>PMT-002</PmtInfId>
+                        <NbOfTxs>2</NbOfTxs>
+                        <CtrlSum>250.75</CtrlSum>
+                        <CdtTrfTxInf>
+                            <EndToEndId>E2E-001</EndToEndId>
+                            <InstdAmt Ccy="EUR">100.50</InstdAmt>
+                            <CdtrAcct>
+                                <Id>
+                                    <IBAN>ES9121000418450200051332</IBAN>
+                                </Id>
+                            </CdtrAcct>
+                            <Cdtr>
+                                <Nm>John Doe</Nm>
+                            </Cdtr>
+                        </CdtTrfTxInf>
+                        <CdtTrfTxInf>
+                            <EndToEndId>E2E-002</EndToEndId>
+                            <InstdAmt Ccy="EUR">150.25</InstdAmt>
+                            <CdtrAcct>
+                                <Id>
+                                    <IBAN>FR1420041010050500013M02606</IBAN>
+                                </Id>
+                            </CdtrAcct>
+                            <Cdtr>
+                                <Nm>Jane Smith</Nm>
+                            </Cdtr>
+                        </CdtTrfTxInf>
+                    </PmtInf>
+                </CstmrCdtTrfInitn>
+            </Document>
+            XML;
+
+        $data = $this->parser->parseCreditTransfer($xml);
+
+        $this->assertEquals('MSG-002', $data['messageId']);
+        $this->assertEquals(2, $data['numberOfTransactions']);
+        $this->assertEquals(250.75, $data['controlSum']);
+        $this->assertCount(2, $data['transactions']);
+
+        $this->assertEquals('E2E-001', $data['transactions'][0]['endToEndId']);
+        $this->assertEquals(100.50, $data['transactions'][0]['amount']);
+        $this->assertEquals('John Doe', $data['transactions'][0]['name']);
+
+        $this->assertEquals('E2E-002', $data['transactions'][1]['endToEndId']);
+        $this->assertEquals(150.25, $data['transactions'][1]['amount']);
+        $this->assertEquals('Jane Smith', $data['transactions'][1]['name']);
+    }
+
+    /**
+     * Tests parsing Credit Transfer XML with addresses.
+     *
+     * @return void
+     */
+    public function testParseCreditTransferWithAddresses(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
+                <CstmrCdtTrfInitn>
+                    <GrpHdr>
+                        <MsgId>MSG-003</MsgId>
+                        <CreDtTm>2024-01-15T10:00:00</CreDtTm>
+                        <InitgPty>
+                            <Nm>My Company</Nm>
+                        </InitgPty>
+                    </GrpHdr>
+                    <PmtInf>
+                        <PmtInfId>PMT-003</PmtInfId>
+                        <NbOfTxs>1</NbOfTxs>
+                        <CtrlSum>100.50</CtrlSum>
+                        <Cdtr>
+                            <Nm>My Company Name</Nm>
+                            <PstlAdr>
+                                <StrtNm>123 Business Street</StrtNm>
+                                <TwnNm>Madrid</TwnNm>
+                                <PstCd>28001</PstCd>
+                                <Ctry>ES</Ctry>
+                            </PstlAdr>
+                        </Cdtr>
+                        <CdtTrfTxInf>
+                            <EndToEndId>E2E-001</EndToEndId>
+                            <InstdAmt Ccy="EUR">100.50</InstdAmt>
+                            <CdtrAcct>
+                                <Id>
+                                    <IBAN>ES9121000418450200051332</IBAN>
+                                </Id>
+                            </CdtrAcct>
+                            <Cdtr>
+                                <Nm>John Doe</Nm>
+                            </Cdtr>
+                            <Dbtr>
+                                <Nm>Jane Smith</Nm>
+                                <PstlAdr>
+                                    <StrtNm>456 Customer Avenue</StrtNm>
+                                    <TwnNm>London</TwnNm>
+                                    <PstCd>SW1A 1AA</PstCd>
+                                    <Ctry>GB</Ctry>
+                                </PstlAdr>
+                            </Dbtr>
+                            <DbtrAcct>
+                                <Id>
+                                    <IBAN>GB82WEST12345698765432</IBAN>
+                                </Id>
+                            </DbtrAcct>
+                        </CdtTrfTxInf>
+                    </PmtInf>
+                </CstmrCdtTrfInitn>
+            </Document>
+            XML;
+
+        $data = $this->parser->parseCreditTransfer($xml);
+
+        // Note: RemesaParser doesn't currently extract addresses
+        // This test verifies it doesn't break when addresses are present
+        $this->assertEquals('MSG-003', $data['messageId']);
+        $this->assertCount(1, $data['transactions']);
+        $this->assertEquals('E2E-001', $data['transactions'][0]['endToEndId']);
+    }
+
+    /**
+     * Tests parsing Credit Transfer XML with optional fields missing.
+     *
+     * @return void
+     */
+    public function testParseCreditTransferWithOptionalFieldsMissing(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
+                <CstmrCdtTrfInitn>
+                    <GrpHdr>
+                        <MsgId>MSG-004</MsgId>
+                        <CreDtTm>2024-01-15T10:00:00</CreDtTm>
+                    </GrpHdr>
+                    <PmtInf>
+                        <PmtInfId>PMT-004</PmtInfId>
+                        <CdtTrfTxInf>
+                            <EndToEndId>E2E-001</EndToEndId>
+                            <InstdAmt Ccy="EUR">100.50</InstdAmt>
+                            <CdtrAcct>
+                                <Id>
+                                    <IBAN>ES9121000418450200051332</IBAN>
+                                </Id>
+                            </CdtrAcct>
+                        </CdtTrfTxInf>
+                    </PmtInf>
+                </CstmrCdtTrfInitn>
+            </Document>
+            XML;
+
+        $data = $this->parser->parseCreditTransfer($xml);
+
+        $this->assertEquals('MSG-004', $data['messageId']);
+        $this->assertEquals('2024-01-15T10:00:00', $data['creationDate']);
+        $this->assertArrayNotHasKey('initiatingPartyName', $data);
+        $this->assertArrayNotHasKey('numberOfTransactions', $data);
+        $this->assertArrayNotHasKey('controlSum', $data);
+        $this->assertCount(1, $data['transactions']);
+        $this->assertEquals('E2E-001', $data['transactions'][0]['endToEndId']);
+        $this->assertArrayNotHasKey('name', $data['transactions'][0]);
+        $this->assertArrayNotHasKey('remittanceInformation', $data['transactions'][0]);
+    }
+
+    /**
+     * Tests parsing Credit Transfer XML with different currency.
+     *
+     * @return void
+     */
+    public function testParseCreditTransferWithDifferentCurrency(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
+                <CstmrCdtTrfInitn>
+                    <GrpHdr>
+                        <MsgId>MSG-005</MsgId>
+                        <CreDtTm>2024-01-15T10:00:00</CreDtTm>
+                        <InitgPty>
+                            <Nm>My Company</Nm>
+                        </InitgPty>
+                    </GrpHdr>
+                    <PmtInf>
+                        <PmtInfId>PMT-005</PmtInfId>
+                        <NbOfTxs>1</NbOfTxs>
+                        <CtrlSum>100.50</CtrlSum>
+                        <CdtTrfTxInf>
+                            <EndToEndId>E2E-001</EndToEndId>
+                            <InstdAmt Ccy="USD">100.50</InstdAmt>
+                            <CdtrAcct>
+                                <Id>
+                                    <IBAN>ES9121000418450200051332</IBAN>
+                                </Id>
+                            </CdtrAcct>
+                            <Cdtr>
+                                <Nm>John Doe</Nm>
+                            </Cdtr>
+                        </CdtTrfTxInf>
+                    </PmtInf>
+                </CstmrCdtTrfInitn>
+            </Document>
+            XML;
+
+        $data = $this->parser->parseCreditTransfer($xml);
+
+        $this->assertEquals('USD', $data['transactions'][0]['currency']);
+        $this->assertEquals(100.50, $data['transactions'][0]['amount']);
+    }
 }

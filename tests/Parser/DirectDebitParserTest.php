@@ -502,4 +502,392 @@ class DirectDebitParserTest extends TestCase
         $this->assertEquals('SW1A 1AA', $data['transactions'][0]['debtorAddress']['postalCode']);
         $this->assertEquals('GB', $data['transactions'][0]['debtorAddress']['country']);
     }
+
+    /**
+     * Tests parsing Direct Debit XML with different sequence types.
+     *
+     * @return void
+     */
+    public function testParseDirectDebitWithDifferentSequenceTypes(): void
+    {
+        $sequenceTypes = ['FRST', 'RCUR', 'OOFF', 'FNAL'];
+
+        foreach ($sequenceTypes as $seqType) {
+            $xml = <<<XML
+                <?xml version="1.0" encoding="UTF-8"?>
+                <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.001.02">
+                    <CstmrDrctDbtInitn>
+                        <GrpHdr>
+                            <MsgId>MSG-{$seqType}</MsgId>
+                            <CreDtTm>2024-01-15T10:00:00</CreDtTm>
+                            <InitgPty>
+                                <Nm>My Company</Nm>
+                            </InitgPty>
+                        </GrpHdr>
+                        <PmtInf>
+                            <PmtInfId>PMT-{$seqType}</PmtInfId>
+                            <PmtMtd>DD</PmtMtd>
+                            <NbOfTxs>1</NbOfTxs>
+                            <CtrlSum>100.50</CtrlSum>
+                            <PmtTpInf>
+                                <SvcLvl>
+                                    <Cd>SEPA</Cd>
+                                </SvcLvl>
+                                <LclInstrm>
+                                    <Cd>CORE</Cd>
+                                </LclInstrm>
+                                <SeqTp>{$seqType}</SeqTp>
+                            </PmtTpInf>
+                            <ReqdColltnDt>2024-01-20</ReqdColltnDt>
+                            <Cdtr>
+                                <Nm>My Company Name</Nm>
+                            </Cdtr>
+                            <CdtrAcct>
+                                <Id>
+                                    <IBAN>ES9121000418450200051332</IBAN>
+                                </Id>
+                            </CdtrAcct>
+                            <CdtrSchmeId>
+                                <Id>
+                                    <PrvtId>
+                                        <Othr>
+                                            <Id>ES1234567890123456789012</Id>
+                                        </Othr>
+                                    </PrvtId>
+                                </Id>
+                            </CdtrSchmeId>
+                            <DrctDbtTxInf>
+                                <PmtId>
+                                    <EndToEndId>E2E-001</EndToEndId>
+                                </PmtId>
+                                <InstdAmt Ccy="EUR">100.50</InstdAmt>
+                                <MndtRltdInf>
+                                    <MndtId>MANDATE-001</MndtId>
+                                    <DtOfSgntr>2023-12-01</DtOfSgntr>
+                                </MndtRltdInf>
+                                <Dbtr>
+                                    <Nm>John Doe</Nm>
+                                </Dbtr>
+                                <DbtrAcct>
+                                    <Id>
+                                        <IBAN>GB82WEST12345698765432</IBAN>
+                                    </Id>
+                                </DbtrAcct>
+                            </DrctDbtTxInf>
+                        </PmtInf>
+                    </CstmrDrctDbtInitn>
+                </Document>
+                XML;
+
+            $data = $this->parser->parseDirectDebit($xml);
+            $this->assertEquals($seqType, $data['sequenceType'], "Failed to parse sequence type: {$seqType}");
+        }
+    }
+
+    /**
+     * Tests parsing Direct Debit XML without BIC.
+     *
+     * @return void
+     */
+    public function testParseDirectDebitWithoutBic(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.001.02">
+                <CstmrDrctDbtInitn>
+                    <GrpHdr>
+                        <MsgId>MSG-005</MsgId>
+                        <CreDtTm>2024-01-15T10:00:00</CreDtTm>
+                        <InitgPty>
+                            <Nm>My Company</Nm>
+                        </InitgPty>
+                    </GrpHdr>
+                    <PmtInf>
+                        <PmtInfId>PMT-005</PmtInfId>
+                        <PmtMtd>DD</PmtMtd>
+                        <NbOfTxs>1</NbOfTxs>
+                        <CtrlSum>100.50</CtrlSum>
+                        <PmtTpInf>
+                            <SvcLvl>
+                                <Cd>SEPA</Cd>
+                            </SvcLvl>
+                            <LclInstrm>
+                                <Cd>CORE</Cd>
+                            </LclInstrm>
+                            <SeqTp>FRST</SeqTp>
+                        </PmtTpInf>
+                        <ReqdColltnDt>2024-01-20</ReqdColltnDt>
+                        <Cdtr>
+                            <Nm>My Company Name</Nm>
+                        </Cdtr>
+                        <CdtrAcct>
+                            <Id>
+                                <IBAN>ES9121000418450200051332</IBAN>
+                            </Id>
+                        </CdtrAcct>
+                        <CdtrSchmeId>
+                            <Id>
+                                <PrvtId>
+                                    <Othr>
+                                        <Id>ES1234567890123456789012</Id>
+                                    </Othr>
+                                </PrvtId>
+                            </Id>
+                        </CdtrSchmeId>
+                        <DrctDbtTxInf>
+                            <PmtId>
+                                <EndToEndId>E2E-001</EndToEndId>
+                            </PmtId>
+                            <InstdAmt Ccy="EUR">100.50</InstdAmt>
+                            <MndtRltdInf>
+                                <MndtId>MANDATE-001</MndtId>
+                                <DtOfSgntr>2023-12-01</DtOfSgntr>
+                            </MndtRltdInf>
+                            <Dbtr>
+                                <Nm>John Doe</Nm>
+                            </Dbtr>
+                            <DbtrAcct>
+                                <Id>
+                                    <IBAN>GB82WEST12345698765432</IBAN>
+                                </Id>
+                            </DbtrAcct>
+                        </DrctDbtTxInf>
+                    </PmtInf>
+                </CstmrDrctDbtInitn>
+            </Document>
+            XML;
+
+        $data = $this->parser->parseDirectDebit($xml);
+
+        $this->assertArrayNotHasKey('debtorBic', $data['transactions'][0]);
+    }
+
+    /**
+     * Tests parsing Direct Debit XML without remittance information.
+     *
+     * @return void
+     */
+    public function testParseDirectDebitWithoutRemittanceInformation(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.001.02">
+                <CstmrDrctDbtInitn>
+                    <GrpHdr>
+                        <MsgId>MSG-006</MsgId>
+                        <CreDtTm>2024-01-15T10:00:00</CreDtTm>
+                        <InitgPty>
+                            <Nm>My Company</Nm>
+                        </InitgPty>
+                    </GrpHdr>
+                    <PmtInf>
+                        <PmtInfId>PMT-006</PmtInfId>
+                        <PmtMtd>DD</PmtMtd>
+                        <NbOfTxs>1</NbOfTxs>
+                        <CtrlSum>100.50</CtrlSum>
+                        <PmtTpInf>
+                            <SvcLvl>
+                                <Cd>SEPA</Cd>
+                            </SvcLvl>
+                            <LclInstrm>
+                                <Cd>CORE</Cd>
+                            </LclInstrm>
+                            <SeqTp>FRST</SeqTp>
+                        </PmtTpInf>
+                        <ReqdColltnDt>2024-01-20</ReqdColltnDt>
+                        <Cdtr>
+                            <Nm>My Company Name</Nm>
+                        </Cdtr>
+                        <CdtrAcct>
+                            <Id>
+                                <IBAN>ES9121000418450200051332</IBAN>
+                            </Id>
+                        </CdtrAcct>
+                        <CdtrSchmeId>
+                            <Id>
+                                <PrvtId>
+                                    <Othr>
+                                        <Id>ES1234567890123456789012</Id>
+                                    </Othr>
+                                </PrvtId>
+                            </Id>
+                        </CdtrSchmeId>
+                        <DrctDbtTxInf>
+                            <PmtId>
+                                <EndToEndId>E2E-001</EndToEndId>
+                            </PmtId>
+                            <InstdAmt Ccy="EUR">100.50</InstdAmt>
+                            <MndtRltdInf>
+                                <MndtId>MANDATE-001</MndtId>
+                                <DtOfSgntr>2023-12-01</DtOfSgntr>
+                            </MndtRltdInf>
+                            <Dbtr>
+                                <Nm>John Doe</Nm>
+                            </Dbtr>
+                            <DbtrAcct>
+                                <Id>
+                                    <IBAN>GB82WEST12345698765432</IBAN>
+                                </Id>
+                            </DbtrAcct>
+                        </DrctDbtTxInf>
+                    </PmtInf>
+                </CstmrDrctDbtInitn>
+            </Document>
+            XML;
+
+        $data = $this->parser->parseDirectDebit($xml);
+
+        $this->assertArrayNotHasKey('remittanceInformation', $data['transactions'][0]);
+    }
+
+    /**
+     * Tests parsing Direct Debit XML with B2B local instrument code.
+     *
+     * @return void
+     */
+    public function testParseDirectDebitWithB2BInstrumentCode(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.001.02">
+                <CstmrDrctDbtInitn>
+                    <GrpHdr>
+                        <MsgId>MSG-007</MsgId>
+                        <CreDtTm>2024-01-15T10:00:00</CreDtTm>
+                        <InitgPty>
+                            <Nm>My Company</Nm>
+                        </InitgPty>
+                    </GrpHdr>
+                    <PmtInf>
+                        <PmtInfId>PMT-007</PmtInfId>
+                        <PmtMtd>DD</PmtMtd>
+                        <NbOfTxs>1</NbOfTxs>
+                        <CtrlSum>100.50</CtrlSum>
+                        <PmtTpInf>
+                            <SvcLvl>
+                                <Cd>SEPA</Cd>
+                            </SvcLvl>
+                            <LclInstrm>
+                                <Cd>B2B</Cd>
+                            </LclInstrm>
+                            <SeqTp>FRST</SeqTp>
+                        </PmtTpInf>
+                        <ReqdColltnDt>2024-01-20</ReqdColltnDt>
+                        <Cdtr>
+                            <Nm>My Company Name</Nm>
+                        </Cdtr>
+                        <CdtrAcct>
+                            <Id>
+                                <IBAN>ES9121000418450200051332</IBAN>
+                            </Id>
+                        </CdtrAcct>
+                        <CdtrSchmeId>
+                            <Id>
+                                <PrvtId>
+                                    <Othr>
+                                        <Id>ES1234567890123456789012</Id>
+                                    </Othr>
+                                </PrvtId>
+                            </Id>
+                        </CdtrSchmeId>
+                        <DrctDbtTxInf>
+                            <PmtId>
+                                <EndToEndId>E2E-001</EndToEndId>
+                            </PmtId>
+                            <InstdAmt Ccy="EUR">100.50</InstdAmt>
+                            <MndtRltdInf>
+                                <MndtId>MANDATE-001</MndtId>
+                                <DtOfSgntr>2023-12-01</DtOfSgntr>
+                            </MndtRltdInf>
+                            <Dbtr>
+                                <Nm>John Doe</Nm>
+                            </Dbtr>
+                            <DbtrAcct>
+                                <Id>
+                                    <IBAN>GB82WEST12345698765432</IBAN>
+                                </Id>
+                            </DbtrAcct>
+                        </DrctDbtTxInf>
+                    </PmtInf>
+                </CstmrDrctDbtInitn>
+            </Document>
+            XML;
+
+        $data = $this->parser->parseDirectDebit($xml);
+
+        $this->assertEquals('B2B', $data['localInstrumentCode']);
+    }
+
+    /**
+     * Tests parsing Direct Debit XML with optional fields missing.
+     *
+     * @return void
+     */
+    public function testParseDirectDebitWithOptionalFieldsMissing(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.001.02">
+                <CstmrDrctDbtInitn>
+                    <GrpHdr>
+                        <MsgId>MSG-008</MsgId>
+                        <CreDtTm>2024-01-15T10:00:00</CreDtTm>
+                    </GrpHdr>
+                    <PmtInf>
+                        <PmtInfId>PMT-008</PmtInfId>
+                        <PmtMtd>DD</PmtMtd>
+                        <PmtTpInf>
+                            <SvcLvl>
+                                <Cd>SEPA</Cd>
+                            </SvcLvl>
+                            <LclInstrm>
+                                <Cd>CORE</Cd>
+                            </LclInstrm>
+                            <SeqTp>FRST</SeqTp>
+                        </PmtTpInf>
+                        <ReqdColltnDt>2024-01-20</ReqdColltnDt>
+                        <CdtrAcct>
+                            <Id>
+                                <IBAN>ES9121000418450200051332</IBAN>
+                            </Id>
+                        </CdtrAcct>
+                        <CdtrSchmeId>
+                            <Id>
+                                <PrvtId>
+                                    <Othr>
+                                        <Id>ES1234567890123456789012</Id>
+                                    </Othr>
+                                </PrvtId>
+                            </Id>
+                        </CdtrSchmeId>
+                        <DrctDbtTxInf>
+                            <PmtId>
+                                <EndToEndId>E2E-001</EndToEndId>
+                            </PmtId>
+                            <InstdAmt Ccy="EUR">100.50</InstdAmt>
+                            <MndtRltdInf>
+                                <MndtId>MANDATE-001</MndtId>
+                                <DtOfSgntr>2023-12-01</DtOfSgntr>
+                            </MndtRltdInf>
+                            <DbtrAcct>
+                                <Id>
+                                    <IBAN>GB82WEST12345698765432</IBAN>
+                                </Id>
+                            </DbtrAcct>
+                        </DrctDbtTxInf>
+                    </PmtInf>
+                </CstmrDrctDbtInitn>
+            </Document>
+            XML;
+
+        $data = $this->parser->parseDirectDebit($xml);
+
+        $this->assertEquals('MSG-008', $data['messageId']);
+        $this->assertArrayNotHasKey('initiatingPartyName', $data);
+        $this->assertArrayNotHasKey('numberOfTransactions', $data);
+        $this->assertArrayNotHasKey('controlSum', $data);
+        $this->assertArrayNotHasKey('creditorName', $data);
+        $this->assertCount(1, $data['transactions']);
+        $this->assertArrayNotHasKey('debtorName', $data['transactions'][0]);
+    }
 }
