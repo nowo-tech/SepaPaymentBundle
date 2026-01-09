@@ -24,7 +24,7 @@ class BicLookupService implements BicLookupServiceInterface
      *
      * @var object|null
      */
-    private $cache = null;
+    private $cache;
 
     /**
      * Cache TTL in seconds (default: 86400 = 24 hours).
@@ -215,34 +215,42 @@ class BicLookupService implements BicLookupServiceInterface
         switch ($countryCode) {
             case 'ES': // Spain: first 4 digits (bank code)
                 $bankCode = substr($bban, 0, 4);
+
                 return $countryDatabase[$bankCode] ?? null;
 
             case 'DE': // Germany: first 8 digits (bank code)
                 $bankCode = substr($bban, 0, 8);
+
                 return $countryDatabase[$bankCode] ?? null;
 
             case 'FR': // France: first 5 digits (bank code)
                 $bankCode = substr($bban, 0, 5);
+
                 return $countryDatabase[$bankCode] ?? null;
 
             case 'IT': // Italy: first 5 digits (bank code)
                 $bankCode = substr($bban, 0, 5);
+
                 return $countryDatabase[$bankCode] ?? null;
 
             case 'GB': // UK: first 4 digits (sort code)
                 $bankCode = substr($bban, 0, 4);
+
                 return $countryDatabase[$bankCode] ?? null;
 
             case 'NL': // Netherlands: first 4 characters (bank code)
                 $bankCode = substr($bban, 0, 4);
+
                 return $countryDatabase[$bankCode] ?? null;
 
             case 'BE': // Belgium: first 3 digits (bank code)
                 $bankCode = substr($bban, 0, 3);
+
                 return $countryDatabase[$bankCode] ?? null;
 
             case 'PT': // Portugal: first 4 digits (bank code)
                 $bankCode = substr($bban, 0, 4);
+
                 return $countryDatabase[$bankCode] ?? null;
 
             default:

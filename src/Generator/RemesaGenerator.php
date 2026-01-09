@@ -36,8 +36,8 @@ class RemesaGenerator
      * Constructor.
      *
      * @param IbanValidator     $ibanValidator IBAN validator instance
-     * @param XsdValidator|null $xsdValidator Optional XSD validator instance
-     * @param bool              $validateXsd  Whether to validate XML against XSD schema
+     * @param XsdValidator|null $xsdValidator  Optional XSD validator instance
+     * @param bool              $validateXsd   Whether to validate XML against XSD schema
      */
     public function __construct(IbanValidator $ibanValidator, ?XsdValidator $xsdValidator = null, bool $validateXsd = false)
     {

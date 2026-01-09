@@ -394,7 +394,7 @@ class CreditTransferParserTest extends TestCase
         // Empty string should return false (loadXML will fail)
         $result1 = $this->parser->isValidCreditTransfer('');
         $this->assertFalse($result1);
-        
+
         // Whitespace only should return false
         $result2 = $this->parser->isValidCreditTransfer('   ');
         $this->assertFalse($result2);

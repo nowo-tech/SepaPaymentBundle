@@ -21,8 +21,8 @@ class ExportService
     /**
      * Exports Credit Transfer data to JSON format.
      *
-     * @param array<string, mixed> $data The credit transfer data (from parser or array format)
-     * @param bool                $prettyPrint Whether to pretty print JSON (default: true)
+     * @param array<string, mixed> $data        The credit transfer data (from parser or array format)
+     * @param bool                 $prettyPrint Whether to pretty print JSON (default: true)
      *
      * @return string JSON string
      */
@@ -40,8 +40,8 @@ class ExportService
     /**
      * Exports Direct Debit data to JSON format.
      *
-     * @param array<string, mixed> $data The direct debit data (from parser or array format)
-     * @param bool                $prettyPrint Whether to pretty print JSON (default: true)
+     * @param array<string, mixed> $data        The direct debit data (from parser or array format)
+     * @param bool                 $prettyPrint Whether to pretty print JSON (default: true)
      *
      * @return string JSON string
      */
@@ -53,16 +53,16 @@ class ExportService
     /**
      * Exports Credit Transfer data to CSV format.
      *
-     * @param array<string, mixed> $data The credit transfer data (from parser or array format)
-     * @param string              $delimiter CSV delimiter (default: ',')
-     * @param string              $enclosure CSV enclosure (default: '"')
+     * @param array<string, mixed> $data      The credit transfer data (from parser or array format)
+     * @param string               $delimiter CSV delimiter (default: ',')
+     * @param string               $enclosure CSV enclosure (default: '"')
      *
      * @return string CSV string
      */
     public function exportCreditTransferToCsv(array $data, string $delimiter = ',', string $enclosure = '"'): string
     {
         $rows = [];
-        
+
         // Header row
         $header = [
             'Message ID',
@@ -131,16 +131,16 @@ class ExportService
     /**
      * Exports Direct Debit data to CSV format.
      *
-     * @param array<string, mixed> $data The direct debit data (from parser or array format)
-     * @param string              $delimiter CSV delimiter (default: ',')
-     * @param string              $enclosure CSV enclosure (default: '"')
+     * @param array<string, mixed> $data      The direct debit data (from parser or array format)
+     * @param string               $delimiter CSV delimiter (default: ',')
+     * @param string               $enclosure CSV enclosure (default: '"')
      *
      * @return string CSV string
      */
     public function exportDirectDebitToCsv(array $data, string $delimiter = ',', string $enclosure = '"'): string
     {
         $rows = [];
-        
+
         // Header row
         $header = [
             'Message ID',
@@ -258,9 +258,9 @@ class ExportService
     /**
      * Converts an array to CSV format.
      *
-     * @param array<int, array<int, mixed>> $rows Array of rows
-     * @param string                       $delimiter CSV delimiter
-     * @param string                       $enclosure CSV enclosure
+     * @param array<int, array<int, mixed>> $rows      Array of rows
+     * @param string                        $delimiter CSV delimiter
+     * @param string                        $enclosure CSV enclosure
      *
      * @return string CSV string
      */

@@ -31,8 +31,8 @@ class XsdValidator
     /**
      * Validates XML content against an XSD schema.
      *
-     * @param string      $xml      The XML content to validate
-     * @param string|null $xsdPath  Path to the XSD schema file (optional, will use default if null)
+     * @param string      $xml        The XML content to validate
+     * @param string|null $xsdPath    Path to the XSD schema file (optional, will use default if null)
      * @param string      $schemaType Type of schema: 'credit_transfer' or 'direct_debit'
      *
      * @throws \InvalidArgumentException If the XML is invalid or schema file is not found
@@ -42,7 +42,7 @@ class XsdValidator
     public function validate(string $xml, ?string $xsdPath = null, string $schemaType = 'credit_transfer'): bool
     {
         $dom = new \DOMDocument();
-        
+
         // Load XML with error handling
         libxml_use_internal_errors(true);
         $loaded = @$dom->loadXML($xml);
@@ -51,7 +51,8 @@ class XsdValidator
         libxml_use_internal_errors(false);
 
         if (!$loaded) {
-            $errorMessages = array_map(fn($error) => trim($error->message), $errors);
+            $errorMessages = array_map(fn ($error) => trim($error->message), $errors);
+
             throw new \InvalidArgumentException('Invalid XML format: ' . implode('; ', $errorMessages));
         }
 
@@ -69,7 +70,8 @@ class XsdValidator
             libxml_use_internal_errors(false);
 
             if (!$valid && !empty($errors)) {
-                $errorMessages = array_map(fn($error) => trim($error->message), $errors);
+                $errorMessages = array_map(fn ($error) => trim($error->message), $errors);
+
                 throw new \InvalidArgumentException('XSD validation failed: ' . implode('; ', $errorMessages));
             }
 
@@ -121,7 +123,7 @@ class XsdValidator
     private function getDefaultSchemaPath(string $schemaType): ?string
     {
         $basePath = __DIR__ . '/../../Resources/schemas/';
-        
+
         $schemas = [
             'credit_transfer' => $basePath . 'pain.001.001.03.xsd',
             'direct_debit' => $basePath . 'pain.008.001.02.xsd',
@@ -135,7 +137,7 @@ class XsdValidator
     /**
      * Validates XML content against an XSD schema string.
      *
-     * @param string $xml      The XML content to validate
+     * @param string $xml        The XML content to validate
      * @param string $xsdContent The XSD schema content as string
      *
      * @throws \InvalidArgumentException If the XML is invalid
@@ -145,7 +147,7 @@ class XsdValidator
     public function validateAgainstSchemaString(string $xml, string $xsdContent): bool
     {
         $dom = new \DOMDocument();
-        
+
         // Load XML with error handling
         libxml_use_internal_errors(true);
         $loaded = @$dom->loadXML($xml);
@@ -154,7 +156,8 @@ class XsdValidator
         libxml_use_internal_errors(false);
 
         if (!$loaded) {
-            $errorMessages = array_map(fn($error) => trim($error->message), $errors);
+            $errorMessages = array_map(fn ($error) => trim($error->message), $errors);
+
             throw new \InvalidArgumentException('Invalid XML format: ' . implode('; ', $errorMessages));
         }
 
@@ -166,7 +169,8 @@ class XsdValidator
         libxml_use_internal_errors(false);
 
         if (!$valid && !empty($errors)) {
-            $errorMessages = array_map(fn($error) => trim($error->message), $errors);
+            $errorMessages = array_map(fn ($error) => trim($error->message), $errors);
+
             throw new \InvalidArgumentException('XSD validation failed: ' . implode('; ', $errorMessages));
         }
 
