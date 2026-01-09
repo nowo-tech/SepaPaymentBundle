@@ -8,6 +8,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Mandate Management**: Complete mandate lifecycle management system for SEPA Direct Debit
+  - `MandateService` - Service for managing mandate lifecycle (create, suspend, reactivate, revoke)
+  - `MandateRepositoryInterface` and `MandateRepository` - Repository pattern for mandate storage
+  - `MandateStatus` enum - Status enumeration (ACTIVE, EXPIRED, REVOKED, SUSPENDED)
+  - `MandateHistory` - History tracking for mandate changes
+  - Enhanced `Mandate` model with status, expiration date, and revocation support
+  - Mandate expiration date validation (defaults to 36 months after signature date)
+  - Mandate sequence type transition validation (FRST → RCUR/FNAL, RCUR → RCUR/FNAL, etc.)
+  - Mandate history tracking for all status and sequence type changes
+  - `createMandate()` - Create new mandates
+  - `updateSequenceType()` - Update mandate sequence type with validation
+  - `revokeMandate()` - Revoke mandates with optional reason
+  - `suspendMandate()` - Suspend mandates temporarily
+  - `reactivateMandate()` - Reactivate suspended mandates
+  - `validateMandateForTransaction()` - Validate mandates before use in transactions
+  - `isValidSequenceTransition()` - Check if sequence type transitions are valid
+  - `findMandatesByDebtorIban()` - Find all mandates for a debtor
+  - `findActiveMandates()` - Find all active mandates
+  - `findExpiredMandates()` - Find expired mandates
+  - `getMandateHistory()` - Get complete history for a mandate
+  - In-memory repository implementation (can be extended with database-backed implementation)
+  - Comprehensive test coverage with 12 test cases
+  - Demo endpoints: `/demo-mandate-management`, `/demo-mandate-lifecycle`, `/demo-mandate-sequence-transitions`
+
+## [1.1.0] - 2026-01-09
+
+### Added
 - **Validation Caching**: New caching system for validation results to improve performance
   - `ValidationCacheInterface` and `ValidationCache` - Service for caching validation results (PSR-16 SimpleCache compatible)
   - `CachedIbanValidator` - Cached wrapper for IBAN validation
@@ -85,24 +112,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `DirectDebitGenerator` now auto-fills creditor and debtor BIC when missing (if `BicLookupService` is injected)
   - BIC lookup is optional and backward compatible (only works if service is injected)
 - **Demo Applications**: 
-  - Added new demo endpoints for export/import functionality, BIC lookup, string sanitization, country validation, business rules validation, and validation caching
+  - Added new demo endpoints for export/import functionality, BIC lookup, string sanitization, country validation, business rules validation, validation caching, and mandate management
   - Added `/demo-validation-cache-iban` - Demonstrates IBAN validation caching with performance comparison
   - Added `/demo-validation-cache-bic` - Demonstrates BIC validation caching with performance comparison
   - Added `/demo-sepa-string-sanitizer` - Demonstrates SEPA string sanitization
   - Added `/demo-sepa-country-validator` - Demonstrates SEPA country validation
   - Added `/demo-sepa-business-rules` - Demonstrates SEPA business rules validation
+  - Added `/demo-mandate-management` - Demonstrates mandate creation and management
+  - Added `/demo-mandate-lifecycle` - Demonstrates mandate lifecycle (create, suspend, reactivate, revoke)
+  - Added `/demo-mandate-sequence-transitions` - Demonstrates sequence type transition validation
   - Fixed JsonResponse usage in all demo endpoints (proper encoding options with `setEncodingOptions()`)
   - All demo endpoints now properly format JSON output with pretty print and unicode support
 - **Documentation**: 
   - Updated `USAGE.md` with comprehensive examples for all new services
-  - Updated `FUTURE.md` to mark Validation Caching as completed
+  - Updated `FUTURE.md` to mark Validation Caching and Mandate Management as completed
+  - Updated `UPGRADE.md` with Mandate Management documentation
 - **Test Coverage**: 
   - Added 5 new tests for `ValidationCache` (`ValidationCacheTest.php`)
   - Added 4 new tests for `CachedIbanValidator` (`CachedIbanValidatorTest.php`)
   - Added 4 new tests for `CachedBicValidator` (`CachedBicValidatorTest.php`)
   - Added 4 new tests for `ParseDirectDebitCommand` (`ParseDirectDebitCommandTest.php`)
   - Added 2 new tests for validation events (`ValidationEventTest.php`)
-  - Total: 323 tests, 1030+ assertions
+  - Added 12 new tests for `MandateService` (`MandateServiceTest.php`)
+  - Total: 335+ tests, 1042+ assertions
 
 ## [1.0.0] - 2026-01-09
 

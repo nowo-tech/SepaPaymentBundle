@@ -29,6 +29,12 @@ services:
     Nowo\SepaPaymentBundle\Cache\:
         resource: '../../Cache/*'
 
+    Nowo\SepaPaymentBundle\Repository\:
+        resource: '../../Repository/*'
+
+    Nowo\SepaPaymentBundle\Service\:
+        resource: '../../Service/*'
+
     # Services are automatically registered via #[AsAlias] attributes
     # All services are public and can be autowired or retrieved by their aliases
 

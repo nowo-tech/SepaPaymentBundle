@@ -201,15 +201,15 @@ This document serves as a checklist for future improvements and new features to 
 
 ---
 
-### 14. Mandate Management and Validation
-- [ ] Create mandate repository/service
-- [ ] Track mandate status (active, expired, revoked)
-- [ ] Validate mandate expiration dates
-- [ ] Validate mandate sequence type transitions
-- [ ] Store mandate history
-- [ ] Add database schema for mandates (optional)
-- [ ] Add comprehensive tests
-- [ ] Update documentation
+### 14. Mandate Management and Validation ✅
+- [x] Create mandate repository/service
+- [x] Track mandate status (active, expired, revoked)
+- [x] Validate mandate expiration dates
+- [x] Validate mandate sequence type transitions
+- [x] Store mandate history
+- [ ] Add database schema for mandates (optional - in-memory implementation provided)
+- [x] Add comprehensive tests
+- [x] Update documentation
 
 **Rationale**: Provides complete mandate lifecycle management, essential for Direct Debit operations.
 
