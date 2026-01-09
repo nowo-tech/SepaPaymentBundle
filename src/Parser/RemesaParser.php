@@ -46,7 +46,7 @@ class RemesaParser
      *
      * @return array<string, mixed> Parsed data
      */
-    #[Deprecated(reason: 'Use CreditTransferParser::parseCreditTransfer() instead', since: '1.1.0')]
+    #[Deprecated(message: 'Use CreditTransferParser::parseCreditTransfer() instead', since: '1.1.0')]
     public function parseCreditTransfer(string $xml): array
     {
         @trigger_error('RemesaParser is deprecated since 1.1.0. Use CreditTransferParser instead.', \E_USER_DEPRECATED);
@@ -63,7 +63,7 @@ class RemesaParser
      *
      * @return bool True if valid, false otherwise
      */
-    #[Deprecated(reason: 'Use CreditTransferParser::isValidCreditTransfer() instead', since: '1.1.0')]
+    #[Deprecated(message: 'Use CreditTransferParser::isValidCreditTransfer() instead', since: '1.1.0')]
     public function isValidCreditTransfer(string $xml): bool
     {
         @trigger_error('RemesaParser is deprecated since 1.1.0. Use CreditTransferParser instead.', \E_USER_DEPRECATED);

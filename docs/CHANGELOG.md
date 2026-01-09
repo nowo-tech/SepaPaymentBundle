@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.3] - 2026-01-09
+
+### Fixed
+- **Deprecated Attribute Parameter**: Fixed incorrect parameter name in `#[Deprecated]` attribute
+  - Changed `reason` parameter to `message` in `#[Deprecated]` attribute (correct PHP 8.1+ syntax)
+  - Updated `RemesaGenerator` methods: `generateFromArray()`, `generate()`, `createResponse()`
+  - Updated `RemesaParser` methods: `parseCreditTransfer()`, `isValidCreditTransfer()`
+  - The `#[Deprecated]` attribute uses `message` parameter, not `reason`
+
 ## [1.2.2] - 2026-01-09
 
 ### Fixed

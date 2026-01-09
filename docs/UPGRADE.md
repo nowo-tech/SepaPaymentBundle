@@ -2,6 +2,23 @@
 
 This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
+## Upgrading from 1.2.2 to 1.2.3
+
+### 🐛 Bug Fixes (1.2.3)
+
+- **Fixed Deprecated Attribute Parameter**: Corrected parameter name in `#[Deprecated]` attribute
+  - Changed `reason` to `message` parameter (correct PHP 8.1+ syntax)
+  - Updated in `RemesaGenerator` and `RemesaParser` deprecated methods
+  - The `#[Deprecated]` attribute in PHP uses `message` parameter, not `reason`
+
+### Backward Compatibility
+
+- No breaking changes
+- All functionality remains the same
+- Only internal attribute syntax correction
+
+---
+
 ## Upgrading from 1.2.1 to 1.2.2
 
 ### 🐛 Bug Fixes (1.2.2)
