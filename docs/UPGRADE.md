@@ -2,11 +2,11 @@
 
 This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
-## Upgrading from 1.1.0 to Unreleased
+## Upgrading from 1.1.0 to 1.2.0
 
-### ✨ New Features (Unreleased)
+### ✨ New Features (1.2.0)
 
-The following features are available in the current development version but have not been released yet:
+The following features were added in version 1.2.0:
 
 1. **Mandate Management**: Complete mandate lifecycle management system for SEPA Direct Debit
 
