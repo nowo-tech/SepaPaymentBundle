@@ -152,5 +152,6 @@ Created by [Héctor Franco Aceituno](https://github.com/HecFranco) at [Nowo.tech
 - **[Upgrade Guide](docs/UPGRADE.md)** - Instructions for upgrading between versions
 - **[Changelog](docs/CHANGELOG.md)** - Complete list of changes and version history
 - **[Deprecated Fields](docs/DEPRECATED_FIELDS.md)** - Information about deprecated fields
+- **[Future Improvements](docs/FUTURE.md)** - Planned features and improvements checklist
 - **[Contributing](docs/CONTRIBUTING.md)** - Code of conduct and contribution guidelines
 - **[Branching Strategy](docs/BRANCHING.md)** - Branching strategy and workflow
