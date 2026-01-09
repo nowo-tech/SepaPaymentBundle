@@ -23,7 +23,7 @@ class ValidationCache implements ValidationCacheInterface
      *
      * @var object|null
      */
-    private $cache = null;
+    private $cache;
 
     /**
      * Default cache TTL in seconds.
@@ -36,7 +36,7 @@ class ValidationCache implements ValidationCacheInterface
      * Constructor.
      *
      * @param object|null $cache      Optional cache adapter (PSR-16 SimpleCache compatible)
-     * @param int        $defaultTtl Default TTL in seconds (default: 3600 = 1 hour)
+     * @param int         $defaultTtl Default TTL in seconds (default: 3600 = 1 hour)
      */
     public function __construct(
         $cache = null,
@@ -82,7 +82,7 @@ class ValidationCache implements ValidationCacheInterface
             return;
         }
 
-        $ttl = $ttl ?? $this->defaultTtl;
+        $ttl ??= $this->defaultTtl;
         $this->cache->set($this->normalizeKey($key), $value, $ttl);
     }
 
