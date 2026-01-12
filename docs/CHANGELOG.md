@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.8] - 2026-01-13
+
+### Removed
+- **Catalan translations**: Removed Catalan translation files (`nowo_sepa_payment.ca.yaml` and `validators.ca.yaml`)
+  - These translation files had YAML syntax errors and are no longer maintained
+  - This cleanup helps streamline the translation resources in the project
+  - Catalan language support can be added back in the future if needed
+
+### Fixed
+- **CreditTransferGenerator**: Fixed incorrect usage of deprecated `debtor*` methods in `Transaction` objects
+  - Changed `getDebtorAddress()` to `getCreditorAddress()` in transaction address handling
+  - Changed `setDebtorBic()` to `setCreditorBic()` when setting transaction BIC
+  - Changed `setDebtorAddressFromArray()` to `setCreditorAddressFromArray()` when setting transaction address from array
+  - Changed `setDebtorAddress()` to `setCreditorAddress()` when setting transaction address
+  - Updated comments and variable names for consistency
+  - This fix ensures compatibility with the refactored `Transaction` class that now uses `creditor*` field names (changed in 1.2.4)
+
 ## [1.2.7] - 2026-01-13
 
 ### Removed
