@@ -1,0 +1,34 @@
+# SEPA Payment Bundle - Norwegian (Bokmål) Translations
+# Domain: nowo_sepa_payment
+
+# Validation errors
+validation.missing_required_field: 'Påkrevd felt mangler: %field%'
+validation.missing_required_transaction_field: 'Påkrevd transaksjonsfelt mangler: %field%'
+validation.invalid_creditor_iban: 'Ugyldig kreditors IBAN: %iban%'
+validation.invalid_debtor_iban: 'Ugyldig debitors IBAN: %iban%'
+validation.invalid_iban: 'Ugyldig IBAN: %iban%'
+validation.invalid_bic: 'Ugyldig BIC: %bic%'
+validation.invalid_creditor_identifier: 'Ugyldig SEPA Kreditor-ID: %identifier%'
+validation.invalid_xml_format: 'Ugyldig XML-format: %errors%'
+validation.xsd_validation_failed: 'XSD-validering mislyktes: %errors%'
+validation.generated_xml_failed_xsd: 'Den genererte XML-en bestod ikke XSD-valideringen: %error%'
+
+# Date validation errors
+validation.invalid_date_type: '%field% må være en streng eller DateTimeInterface'
+validation.invalid_creation_date: 'creationDate må være en streng eller DateTimeInterface'
+validation.invalid_execution_date: 'requestedExecutionDate må være en streng eller DateTimeInterface'
+
+# Array key validation errors
+validation.invalid_keys_top_level: 'Ugyldige nøkler på øverste nivå: %keys%. På øverste nivå (betalingsinformasjon) må du bruke "debtor*"-nøkler (f.eks. debtorIban, debtorName, debtorBic) for å representere selskapet som betaler. Foreslåtte nøkler: %suggestions%. Merk: "creditor*"-nøkler skal bare brukes i "transactions"-arrayet (for mottakere som mottar betalinger).'
+validation.invalid_keys_transaction: 'Ugyldige nøkler i transaksjonen: %keys%. I transaksjonsarrayet må du bruke "creditor*"-nøkler (f.eks. creditorIban, creditorName, creditorBic) for å representere mottakeren som mottar betalingen. Foreslåtte nøkler: %suggestions%. Merk: "debtor*"-nøkler skal bare brukes på øverste nivå (for selskapet som betaler).'
+
+# Business rules validation
+validation.invalid_transaction_amount: 'Transaksjonsbeløpet %amount% overstiger maksimalt tillatt beløp på %max_amount% EUR'
+validation.invalid_transaction_count: 'Antall transaksjoner %count% overstiger maksimalt tillatt antall på %max_count%'
+validation.invalid_execution_date_future: 'Utføringsdatoen må være i dag eller i fremtiden'
+validation.invalid_currency: 'Valutaen %currency% er ikke gyldig for SEPA. Kun EUR er tillatt.'
+validation.invalid_sequence_type: 'Ugyldig sekvenstype: %type%. Må være en av: %valid_types%'
+validation.invalid_mandate_expiration: 'Utløpsdatoen for fullmakten må være i fremtiden'
+
+# Converter errors
+validation.invalid_ccc_format: 'Ugyldig CCC-format. 20 siffer forventet.'

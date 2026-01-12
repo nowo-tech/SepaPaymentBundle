@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.6] - 2026-01-13
+
+### Changed
+- **TranslatorInterface is now required**: `TranslatorInterface` is now a mandatory dependency for error message translation
+  - `CreditTransferGenerator`: Constructor now requires `TranslatorInterface` as the second parameter (previously optional)
+  - `XsdValidator`: Constructor now requires `TranslatorInterface` as the first parameter (previously optional)
+  - Null-safe operators (`?->`) and English fallback messages have been removed
+  - All error messages now use translations from the `nowo_sepa_payment` domain
+  - **Breaking Change**: Code that instantiates these classes directly must now provide a `TranslatorInterface` instance
+  - **Migration**: Use Symfony's dependency injection to automatically inject the translator, or provide a translator instance when creating these classes manually
+- **Dependencies moved to require**: Moved Symfony dependencies from `require-dev` to `require` (production dependencies)
+  - `symfony/translation`: Now required in production (previously in `require-dev`)
+  - `symfony/validator`: Now required in production (previously in `require-dev`)
+  - `symfony/yaml`: Now required in production (previously in `require-dev`)
+  - These dependencies are needed at runtime, not just for development
+
+### Added
+- **Internationalized error messages**: Error messages in `CreditTransferGenerator` now use Symfony's translation system
+  - All validation error messages are translatable
+  - Supports 11 languages: `en_GB`, `en_US`, `es`, `pt`, `ca`, `de`, `fr`, `it`, `nb`, `pt_PT`, `ru`
+  - Translation domain: `nowo_sepa_payment`
+  - Error messages include proper parameter substitution (e.g., `%field%`, `%iban%`, `%error%`)
+
 ## [1.2.5] - 2026-01-12
 
 ### Added

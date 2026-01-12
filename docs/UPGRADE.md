@@ -2,10 +2,145 @@
 
 This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
+## Upgrading from 1.2.5 to 1.2.6
+
+### ⚠️ Breaking Changes (1.2.6)
+
+- **TranslatorInterface is now required**: `CreditTransferGenerator` and `XsdValidator` now require a `TranslatorInterface` instance
+- **Dependencies moved to require**: `symfony/translation`, `symfony/validator`, and `symfony/yaml` are now production dependencies
+
+#### TranslatorInterface Requirement
+
+**Before (1.2.5 and earlier):**
+```php
+use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
+use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+
+$ibanValidator = new IbanValidator();
+$generator = new CreditTransferGenerator($ibanValidator); // Translator was optional
+```
+
+**After (1.2.6):**
+```php
+use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
+use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+use Symfony\Contracts\Translation\TranslatorInterface;
+
+$ibanValidator = new IbanValidator();
+$translator = $container->get('translator'); // Or inject via DI
+$generator = new CreditTransferGenerator($ibanValidator, $translator); // Translator is required
+```
+
+**Using Symfony Dependency Injection (Recommended):**
+```php
+use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
+use Symfony\Contracts\Translation\TranslatorInterface;
+
+class MyService
+{
+    public function __construct(
+        private CreditTransferGenerator $generator,
+        private TranslatorInterface $translator
+    ) {
+        // Symfony automatically injects both services
+    }
+}
+```
+
+#### XsdValidator Migration
+
+**Before (1.2.5 and earlier):**
+```php
+use Nowo\SepaPaymentBundle\Validator\XsdValidator;
+
+$validator = new XsdValidator(); // Translator was optional
+```
+
+**After (1.2.6):**
+```php
+use Nowo\SepaPaymentBundle\Validator\XsdValidator;
+use Symfony\Contracts\Translation\TranslatorInterface;
+
+$translator = $container->get('translator');
+$validator = new XsdValidator($translator); // Translator is required
+```
+
+#### Dependencies Update
+
+The following dependencies are now required in production (moved from `require-dev` to `require`):
+
+- `symfony/translation`: ^6.0 || ^7.0 || ^8.0
+- `symfony/validator`: ^6.0 || ^7.0 || ^8.0
+- `symfony/yaml`: ^6.0 || ^7.0 || ^8.0
+
+**Action required**: Run `composer update` to install these dependencies in production:
+
+```bash
+composer update symfony/translation symfony/validator symfony/yaml
+```
+
+Or simply:
+```bash
+composer update
+```
+
+**Note**: If you're using Symfony Framework, these packages are usually already installed. This change only affects standalone usage of the bundle.
+
+#### Impact Assessment
+
+**✅ No action required if:**
+- You're using Symfony Framework with dependency injection (autowiring)
+- Services are injected via constructor type-hinting
+- You're not instantiating `CreditTransferGenerator` or `XsdValidator` manually
+
+**⚠️ Action required if:**
+- You're instantiating `CreditTransferGenerator` or `XsdValidator` manually (without DI)
+- You're using the bundle in a non-Symfony application
+- You have custom service configurations that manually instantiate these classes
+
+#### Migration Steps
+
+1. **Update composer dependencies:**
+   ```bash
+   composer update
+   ```
+
+2. **Update manual instantiation code:**
+   - Find all places where `CreditTransferGenerator` or `XsdValidator` are instantiated manually
+   - Add `TranslatorInterface` as a required parameter
+   - Use dependency injection where possible (recommended)
+
+3. **Update tests:**
+   - Mock `TranslatorInterface` in test setup
+   - Update test expectations if they rely on specific error messages
+
+#### Benefits
+
+- **Consistent error messages**: All error messages are now translatable and consistent
+- **Better internationalization**: Error messages can be translated to multiple languages
+- **Clearer dependencies**: Production dependencies are explicitly declared
+- **Better error messages**: Translated error messages are more user-friendly
+
+---
+
 ## Upgrading from 1.2.4 to 1.2.5
 
 ### ✨ New Features (1.2.5)
 
+- **SEPA Creditor Identifier Validator**: New validator for validating SEPA Creditor Identifiers
+  - Use `SepaCreditorIdentifierValidator` to validate creditor identifiers used in SEPA Direct Debit transactions
+  - Validates format, check digits (MOD97-10 algorithm), and structure
+  - Includes helper methods to extract country code and national identifier
+  - Supports validation of Spanish NIF/CIF format for use in Spanish identifiers
+  - Example usage:
+    ```php
+    use Nowo\SepaPaymentBundle\Validator\SepaCreditorIdentifierValidator;
+    
+    $validator = new SepaCreditorIdentifierValidator();
+    $isValid = $validator->isValid('ES97ZZZM12345678');
+    $countryCode = $validator->getCountryCode('ES97ZZZM12345678'); // 'ES'
+    $nif = $validator->getNationalIdentifier('ES97ZZZM12345678'); // 'M12345678'
+    ```
 - **Credit Transfer Generator Validation**: Added validation to detect incorrect key usage in `generateFromArray()` method
   - If you use `creditor*` keys at the top level (e.g., `creditorIban`, `creditorName`), you will now get a clear error message suggesting to use `debtor*` keys instead
   - If you use `debtor*` keys within transactions (e.g., `debtorIban`, `debtorName`), you will now get a clear error message suggesting to use `creditor*` keys instead

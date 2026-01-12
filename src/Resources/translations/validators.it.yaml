@@ -1,0 +1,17 @@
+# Symfony Validator Messages - Italian
+# Domain: validators
+
+iban:
+    invalid: 'Questo valore non è un IBAN valido.'
+
+bic:
+    invalid: 'Questo valore non è un BIC valido.'
+
+sepa_creditor_identifier:
+    invalid: 'Questo valore non è un Identificativo del Creditore SEPA valido.'
+
+credit_card:
+    invalid: 'Questo valore non è un numero di carta di credito valido.'
+
+sepa_country:
+    invalid: 'Questo valore non è un codice paese SEPA valido.'

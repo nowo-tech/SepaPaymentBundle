@@ -1,0 +1,34 @@
+# SEPA Payment Bundle - Spanish Translations
+# Domain: nowo_sepa_payment
+
+# Validation errors
+validation.missing_required_field: 'Campo requerido faltante: %field%'
+validation.missing_required_transaction_field: 'Campo requerido de transacción faltante: %field%'
+validation.invalid_creditor_iban: 'IBAN de acreedor inválido: %iban%'
+validation.invalid_debtor_iban: 'IBAN de deudor inválido: %iban%'
+validation.invalid_iban: 'IBAN inválido: %iban%'
+validation.invalid_bic: 'BIC inválido: %bic%'
+validation.invalid_creditor_identifier: 'Identificador de Acreedor SEPA inválido: %identifier%'
+validation.invalid_xml_format: 'Formato XML inválido: %errors%'
+validation.xsd_validation_failed: 'Validación XSD fallida: %errors%'
+validation.generated_xml_failed_xsd: 'El XML generado falló la validación XSD: %error%'
+
+# Date validation errors
+validation.invalid_date_type: '%field% debe ser una cadena o DateTimeInterface'
+validation.invalid_creation_date: 'creationDate debe ser una cadena o DateTimeInterface'
+validation.invalid_execution_date: 'requestedExecutionDate debe ser una cadena o DateTimeInterface'
+
+# Array key validation errors
+validation.invalid_keys_top_level: 'Clave(s) inválida(s) en el nivel superior: %keys%. En el nivel superior (información de pago), debe usar claves "debtor*" (ej., debtorIban, debtorName, debtorBic) para representar la empresa que paga. Claves sugeridas: %suggestions%. Nota: las claves "creditor*" solo deben usarse dentro del array "transactions" (para los beneficiarios que reciben los pagos).'
+validation.invalid_keys_transaction: 'Clave(s) inválida(s) en la transacción: %keys%. Dentro del array de transacciones, debe usar claves "creditor*" (ej., creditorIban, creditorName, creditorBic) para representar el beneficiario que recibe el pago. Claves sugeridas: %suggestions%. Nota: las claves "debtor*" solo deben usarse en el nivel superior (para la empresa que paga).'
+
+# Business rules validation
+validation.invalid_transaction_amount: 'El importe de la transacción %amount% excede el importe máximo permitido de %max_amount% EUR'
+validation.invalid_transaction_count: 'El número de transacciones %count% excede el número máximo permitido de %max_count%'
+validation.invalid_execution_date_future: 'La fecha de ejecución debe ser hoy o en el futuro'
+validation.invalid_currency: 'La moneda %currency% no es válida para SEPA. Solo se permite EUR.'
+validation.invalid_sequence_type: 'Tipo de secuencia inválido: %type%. Debe ser uno de: %valid_types%'
+validation.invalid_mandate_expiration: 'La fecha de expiración del mandato debe ser en el futuro'
+
+# Converter errors
+validation.invalid_ccc_format: 'Formato CCC inválido. Se esperaban 20 dígitos.'

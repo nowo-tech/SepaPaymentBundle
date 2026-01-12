@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nowo\SepaPaymentBundle\Validator;
 
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * XSD Schema validator for SEPA XML files.
@@ -19,6 +20,13 @@ class XsdValidator
     public const SERVICE_NAME = 'nowo_sepa_payment.validator.xsd_validator';
 
     /**
+     * Translator instance.
+     *
+     * @var TranslatorInterface
+     */
+    private TranslatorInterface $translator;
+
+    /**
      * XSD schema path for Credit Transfer (pain.001.001.03).
      */
     public const XSD_CREDIT_TRANSFER = 'pain.001.001.03';
@@ -27,6 +35,16 @@ class XsdValidator
      * XSD schema path for Direct Debit (pain.008.001.02).
      */
     public const XSD_DIRECT_DEBIT = 'pain.008.001.02';
+
+    /**
+     * Constructor.
+     *
+     * @param TranslatorInterface $translator Translator for internationalized error messages
+     */
+    public function __construct(TranslatorInterface $translator)
+    {
+        $this->translator = $translator;
+    }
 
     /**
      * Validates XML content against an XSD schema.
@@ -52,8 +70,9 @@ class XsdValidator
 
         if (!$loaded) {
             $errorMessages = array_map(fn ($error) => trim($error->message), $errors);
-
-            throw new \InvalidArgumentException('Invalid XML format: ' . implode('; ', $errorMessages));
+            $errorsString = implode('; ', $errorMessages);
+            $message = $this->translator->trans('validation.invalid_xml_format', ['%errors%' => $errorsString], 'nowo_sepa_payment');
+            throw new \InvalidArgumentException($message);
         }
 
         // If no XSD path provided, try to use default schema
@@ -71,8 +90,9 @@ class XsdValidator
 
             if (!$valid && !empty($errors)) {
                 $errorMessages = array_map(fn ($error) => trim($error->message), $errors);
-
-                throw new \InvalidArgumentException('XSD validation failed: ' . implode('; ', $errorMessages));
+                $errorsString = implode('; ', $errorMessages);
+                $message = $this->translator->trans('validation.xsd_validation_failed', ['%errors%' => $errorsString], 'nowo_sepa_payment');
+                throw new \InvalidArgumentException($message);
             }
 
             return $valid;
@@ -157,8 +177,9 @@ class XsdValidator
 
         if (!$loaded) {
             $errorMessages = array_map(fn ($error) => trim($error->message), $errors);
-
-            throw new \InvalidArgumentException('Invalid XML format: ' . implode('; ', $errorMessages));
+            $errorsString = implode('; ', $errorMessages);
+            $message = $this->translator->trans('validation.invalid_xml_format', ['%errors%' => $errorsString], 'nowo_sepa_payment');
+            throw new \InvalidArgumentException($message);
         }
 
         // Validate against XSD schema string
@@ -170,8 +191,9 @@ class XsdValidator
 
         if (!$valid && !empty($errors)) {
             $errorMessages = array_map(fn ($error) => trim($error->message), $errors);
-
-            throw new \InvalidArgumentException('XSD validation failed: ' . implode('; ', $errorMessages));
+            $errorsString = implode('; ', $errorMessages);
+            $message = $this->translator->trans('validation.xsd_validation_failed', ['%errors%' => $errorsString], 'nowo_sepa_payment');
+            throw new \InvalidArgumentException($message);
         }
 
         return $valid;

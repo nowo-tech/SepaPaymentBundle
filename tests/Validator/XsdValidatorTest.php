@@ -6,6 +6,7 @@ namespace Nowo\SepaPaymentBundle\Tests\Validator;
 
 use Nowo\SepaPaymentBundle\Validator\XsdValidator;
 use PHPUnit\Framework\TestCase;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Test cases for XsdValidator.
@@ -29,7 +30,11 @@ class XsdValidatorTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->validator = new XsdValidator();
+        $translator = $this->createMock(TranslatorInterface::class);
+        $translator->method('trans')->willReturnCallback(
+            \Nowo\SepaPaymentBundle\Tests\Helper\TranslationHelper::createTranslatorCallback()
+        );
+        $this->validator = new XsdValidator($translator);
     }
 
     /**
@@ -162,7 +167,7 @@ class XsdValidatorTest extends TestCase
     public function testValidateInvalidXml(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Invalid XML format');
+        $this->expectExceptionMessageMatches('/^Invalid XML format/');
 
         $this->validator->validate('Invalid XML');
     }
@@ -175,7 +180,7 @@ class XsdValidatorTest extends TestCase
     public function testValidateMalformedXml(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Invalid XML format');
+        $this->expectExceptionMessageMatches('/^Invalid XML format/');
 
         $xml = <<<'XML'
             <?xml version="1.0" encoding="UTF-8"?>
@@ -269,7 +274,7 @@ class XsdValidatorTest extends TestCase
             XSD;
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('XSD validation failed');
+        $this->expectExceptionMessageMatches('/^XSD validation failed/');
 
         $this->validator->validateAgainstSchemaString($xml, $xsd);
     }

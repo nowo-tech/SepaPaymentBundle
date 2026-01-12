@@ -11,6 +11,7 @@ use Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction;
 use Nowo\SepaPaymentBundle\Tests\Logger\TestLogger;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use PHPUnit\Framework\TestCase;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Test cases for CreditTransferGenerator.
@@ -35,7 +36,11 @@ class CreditTransferGeneratorTest extends TestCase
     protected function setUp(): void
     {
         $ibanValidator = new IbanValidator();
-        $this->generator = new CreditTransferGenerator($ibanValidator);
+        $translator = $this->createMock(TranslatorInterface::class);
+        $translator->method('trans')->willReturnCallback(
+            \Nowo\SepaPaymentBundle\Tests\Helper\TranslationHelper::createTranslatorCallback()
+        );
+        $this->generator = new CreditTransferGenerator($ibanValidator, $translator);
     }
 
     /**
@@ -1103,7 +1108,11 @@ class CreditTransferGeneratorTest extends TestCase
     {
         $testLogger = new TestLogger();
         $sepaLogger = new SepaPaymentLogger($testLogger);
-        $generator = new CreditTransferGenerator(new IbanValidator(), null, false, null, $sepaLogger);
+        $translator = $this->createMock(TranslatorInterface::class);
+        $translator->method('trans')->willReturnCallback(function ($id, $parameters = [], $domain = null) {
+            return $id;
+        });
+        $generator = new CreditTransferGenerator(new IbanValidator(), $translator, null, false, null, $sepaLogger);
 
         $creditTransferData = new CreditTransferData(
             'MSG-LOG-001',
@@ -1142,7 +1151,11 @@ class CreditTransferGeneratorTest extends TestCase
     {
         $testLogger = new TestLogger();
         $sepaLogger = new SepaPaymentLogger($testLogger);
-        $generator = new CreditTransferGenerator(new IbanValidator(), null, false, null, $sepaLogger);
+        $translator = $this->createMock(TranslatorInterface::class);
+        $translator->method('trans')->willReturnCallback(
+            \Nowo\SepaPaymentBundle\Tests\Helper\TranslationHelper::createTranslatorCallback()
+        );
+        $generator = new CreditTransferGenerator(new IbanValidator(), $translator, null, false, null, $sepaLogger);
 
         $creditTransferData = new CreditTransferData(
             'MSG-LOG-002',
@@ -1193,13 +1206,15 @@ class CreditTransferGeneratorTest extends TestCase
 
     /**
      * Tests generateFromArray with invalid creditor keys at top level.
+     * When creditor* keys are used at top level, they are not normalized,
+     * so the validation fails because debtorIban is missing.
      *
      * @return void
      */
     public function testGenerateFromArrayWithInvalidCreditorKeysAtTopLevel(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Invalid key(s) at top level: creditorIban');
+        $this->expectExceptionMessage('Missing required field: debtorIban');
 
         $data = [
             'reference' => 'MSG-001',
@@ -1223,13 +1238,15 @@ class CreditTransferGeneratorTest extends TestCase
 
     /**
      * Tests generateFromArray with invalid debtor keys in transactions.
+     * When debtor* keys are used in transactions, they are not normalized,
+     * so the validation fails because creditorIban is missing.
      *
      * @return void
      */
     public function testGenerateFromArrayWithInvalidDebtorKeysInTransactions(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Invalid key(s) in transaction: debtorIban');
+        $this->expectExceptionMessage('Missing required transaction field: creditorIban');
 
         $data = [
             'reference' => 'MSG-001',

@@ -1,0 +1,34 @@
+# SEPA Payment Bundle - Catalan Translations
+# Domain: nowo_sepa_payment
+
+# Validation errors
+validation.missing_required_field: 'Camp obligatori faltant: %field%'
+validation.missing_required_transaction_field: 'Camp obligatori de transacció faltant: %field%'
+validation.invalid_creditor_iban: 'IBAN de creditor invàlid: %iban%'
+validation.invalid_debtor_iban: 'IBAN de deutor invàlid: %iban%'
+validation.invalid_iban: 'IBAN invàlid: %iban%'
+validation.invalid_bic: 'BIC invàlid: %bic%'
+validation.invalid_creditor_identifier: 'Identificador de Creditor SEPA invàlid: %identifier%'
+validation.invalid_xml_format: 'Format XML invàlid: %errors%'
+validation.xsd_validation_failed: 'Validació XSD fallida: %errors%'
+validation.generated_xml_failed_xsd: 'El XML generat ha fallat la validació XSD: %error%'
+
+# Date validation errors
+validation.invalid_date_type: '%field% ha de ser una cadena o DateTimeInterface'
+validation.invalid_creation_date: 'creationDate ha de ser una cadena o DateTimeInterface'
+validation.invalid_execution_date: 'requestedExecutionDate ha de ser una cadena o DateTimeInterface'
+
+# Array key validation errors
+validation.invalid_keys_top_level: 'Clau(s) invàlida(s) al nivell superior: %keys%. Al nivell superior (informació de pagament), ha d\'utilitzar claus "debtor*" (ex., debtorIban, debtorName, debtorBic) per representar l\'empresa que paga. Claus suggerides: %suggestions%. Nota: les claus "creditor*" només han d\'utilitzar-se dins de l\'array "transactions" (per als beneficiaris que reben els pagaments).'
+validation.invalid_keys_transaction: 'Clau(s) invàlida(s) a la transacció: %keys%. Dins de l\'array de transaccions, ha d\'utilitzar claus "creditor*" (ex., creditorIban, creditorName, creditorBic) per representar el beneficiari que rep el pagament. Claus suggerides: %suggestions%. Nota: les claus "debtor*" només han d\'utilitzar-se al nivell superior (per a l\'empresa que paga).'
+
+# Business rules validation
+validation.invalid_transaction_amount: 'L\'import de la transacció %amount% excedeix l\'import màxim permès de %max_amount% EUR'
+validation.invalid_transaction_count: 'El nombre de transaccions %count% excedeix el nombre màxim permès de %max_count%'
+validation.invalid_execution_date_future: 'La data d\'execució ha de ser avui o en el futur'
+validation.invalid_currency: 'La moneda %currency% no és vàlida per a SEPA. Només es permet EUR.'
+validation.invalid_sequence_type: 'Tipus de seqüència invàlid: %type%. Ha de ser un de: %valid_types%'
+validation.invalid_mandate_expiration: 'La data de venciment del mandat ha de ser en el futur'
+
+# Converter errors
+validation.invalid_ccc_format: 'Format CCC invàlid. S\'esperaven 20 dígits.'

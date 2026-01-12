@@ -1,0 +1,34 @@
+# SEPA Payment Bundle - Russian Translations
+# Domain: nowo_sepa_payment
+
+# Validation errors
+validation.missing_required_field: 'Отсутствует обязательное поле: %field%'
+validation.missing_required_transaction_field: 'Отсутствует обязательное поле транзакции: %field%'
+validation.invalid_creditor_iban: 'Недействительный IBAN кредитора: %iban%'
+validation.invalid_debtor_iban: 'Недействительный IBAN должника: %iban%'
+validation.invalid_iban: 'Недействительный IBAN: %iban%'
+validation.invalid_bic: 'Недействительный BIC: %bic%'
+validation.invalid_creditor_identifier: 'Недействительный идентификатор кредитора SEPA: %identifier%'
+validation.invalid_xml_format: 'Недействительный формат XML: %errors%'
+validation.xsd_validation_failed: 'Проверка XSD не выполнена: %errors%'
+validation.generated_xml_failed_xsd: 'Сгенерированный XML не прошел проверку XSD: %error%'
+
+# Date validation errors
+validation.invalid_date_type: '%field% должно быть строкой или DateTimeInterface'
+validation.invalid_creation_date: 'creationDate должно быть строкой или DateTimeInterface'
+validation.invalid_execution_date: 'requestedExecutionDate должно быть строкой или DateTimeInterface'
+
+# Array key validation errors
+validation.invalid_keys_top_level: 'Недействительные ключи на верхнем уровне: %keys%. На верхнем уровне (информация о платеже) необходимо использовать ключи "debtor*" (например, debtorIban, debtorName, debtorBic) для представления компании, которая платит. Предлагаемые ключи: %suggestions%. Примечание: ключи "creditor*" должны использоваться только в массиве "transactions" (для получателей, которые получают платежи).'
+validation.invalid_keys_transaction: 'Недействительные ключи в транзакции: %keys%. В массиве транзакций необходимо использовать ключи "creditor*" (например, creditorIban, creditorName, creditorBic) для представления получателя, который получает платеж. Предлагаемые ключи: %suggestions%. Примечание: ключи "debtor*" должны использоваться только на верхнем уровне (для компании, которая платит).'
+
+# Business rules validation
+validation.invalid_transaction_amount: 'Сумма транзакции %amount% превышает максимально допустимую сумму %max_amount% EUR'
+validation.invalid_transaction_count: 'Количество транзакций %count% превышает максимально допустимое количество %max_count%'
+validation.invalid_execution_date_future: 'Дата исполнения должна быть сегодня или в будущем'
+validation.invalid_currency: 'Валюта %currency% недействительна для SEPA. Разрешен только EUR.'
+validation.invalid_sequence_type: 'Недействительный тип последовательности: %type%. Должен быть одним из: %valid_types%'
+validation.invalid_mandate_expiration: 'Дата истечения мандата должна быть в будущем'
+
+# Converter errors
+validation.invalid_ccc_format: 'Недействительный формат CCC. Ожидается 20 цифр.'
