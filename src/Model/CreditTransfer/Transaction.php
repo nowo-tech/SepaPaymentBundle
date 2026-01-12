@@ -37,11 +37,11 @@ class Transaction
     /**
      * Constructor.
      *
-     * @param string $endToEndId    End-to-end identifier
-     * @param float  $amount        Amount to transfer
-     * @param string $currency      Currency code (ISO 4217)
-     * @param string $creditorIban  Creditor IBAN (beneficiary that receives)
-     * @param string $creditorName  Creditor name (beneficiary that receives)
+     * @param string $endToEndId   End-to-end identifier
+     * @param float  $amount       Amount to transfer
+     * @param string $currency     Currency code (ISO 4217)
+     * @param string $creditorIban Creditor IBAN (beneficiary that receives)
+     * @param string $creditorName Creditor name (beneficiary that receives)
      */
     public function __construct(
         private string $endToEndId,
