@@ -30,6 +30,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Translation domain: `nowo_sepa_payment`
   - Error messages include proper parameter substitution (e.g., `%field%`, `%iban%`, `%error%`)
 
+### Fixed
+- **CreditTransferGenerator**: Fixed incorrect usage of deprecated `debtor*` methods in `Transaction` objects
+  - Changed `getDebtorAddress()` to `getCreditorAddress()` in transaction address handling
+  - Changed `setDebtorBic()` to `setCreditorBic()` when setting transaction BIC
+  - Changed `setDebtorAddressFromArray()` to `setCreditorAddressFromArray()` when setting transaction address from array
+  - Changed `setDebtorAddress()` to `setCreditorAddress()` when setting transaction address
+  - Updated comments and variable names for consistency
+  - This fix ensures compatibility with the refactored `Transaction` class that now uses `creditor*` field names (changed in 1.2.4)
+
 ## [1.2.5] - 2026-01-12
 
 ### Added
