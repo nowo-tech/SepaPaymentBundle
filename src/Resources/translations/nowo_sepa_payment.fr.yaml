@@ -19,16 +19,16 @@ validation.invalid_creation_date: 'creationDate doit être une chaîne ou DateTi
 validation.invalid_execution_date: 'requestedExecutionDate doit être une chaîne ou DateTimeInterface'
 
 # Array key validation errors
-validation.invalid_keys_top_level: 'Clé(s) invalide(s) au niveau supérieur: %keys%. Au niveau supérieur (informations de paiement), vous devez utiliser des clés "debtor*" (ex., debtorIban, debtorName, debtorBic) pour représenter l\'entreprise qui paie. Clés suggérées: %suggestions%. Note: les clés "creditor*" ne doivent être utilisées que dans le tableau "transactions" (pour les bénéficiaires qui reçoivent les paiements).'
-validation.invalid_keys_transaction: 'Clé(s) invalide(s) dans la transaction: %keys%. Dans le tableau des transactions, vous devez utiliser des clés "creditor*" (ex., creditorIban, creditorName, creditorBic) pour représenter le bénéficiaire qui reçoit le paiement. Clés suggérées: %suggestions%. Note: les clés "debtor*" ne doivent être utilisées qu\'au niveau supérieur (pour l\'entreprise qui paie).'
+validation.invalid_keys_top_level: "Clé(s) invalide(s) au niveau supérieur: %keys%. Au niveau supérieur (informations de paiement), vous devez utiliser des clés \"debtor*\" (ex., debtorIban, debtorName, debtorBic) pour représenter l'entreprise qui paie. Clés suggérées: %suggestions%. Note: les clés \"creditor*\" ne doivent être utilisées que dans le tableau \"transactions\" (pour les bénéficiaires qui reçoivent les paiements)."
+validation.invalid_keys_transaction: "Clé(s) invalide(s) dans la transaction: %keys%. Dans le tableau des transactions, vous devez utiliser des clés \"creditor*\" (ex., creditorIban, creditorName, creditorBic) pour représenter le bénéficiaire qui reçoit le paiement. Clés suggérées: %suggestions%. Note: les clés \"debtor*\" ne doivent être utilisées qu'au niveau supérieur (pour l'entreprise qui paie)."
 
 # Business rules validation
 validation.invalid_transaction_amount: 'Le montant de la transaction %amount% dépasse le montant maximum autorisé de %max_amount% EUR'
 validation.invalid_transaction_count: 'Le nombre de transactions %count% dépasse le nombre maximum autorisé de %max_count%'
-validation.invalid_execution_date_future: 'La date d\'exécution doit être aujourd\'hui ou dans le futur'
-validation.invalid_currency: 'La devise %currency% n\'est pas valide pour SEPA. Seul EUR est autorisé.'
-validation.invalid_sequence_type: 'Type de séquence invalide: %type%. Doit être l\'un des suivants: %valid_types%'
-validation.invalid_mandate_expiration: 'La date d\'expiration du mandat doit être dans le futur'
+validation.invalid_execution_date_future: "La date d'exécution doit être aujourd'hui ou dans le futur"
+validation.invalid_currency: "La devise %currency% n'est pas valide pour SEPA. Seul EUR est autorisé."
+validation.invalid_sequence_type: "Type de séquence invalide: %type%. Doit être l'un des suivants: %valid_types%"
+validation.invalid_mandate_expiration: "La date d'expiration du mandat doit être dans le futur"
 
 # Converter errors
 validation.invalid_ccc_format: 'Format CCC invalide. 20 chiffres attendus.'
