@@ -25,7 +25,7 @@ use Symfony\Component\HttpFoundation\Response;
  * SEPA Credit Transfer generator.
  * Generates SEPA Credit Transfer XML files using Digitick\Sepa library according to ISO 20022 standard.
  * Used for payment remittances where the debtor (company) sends money to creditors (suppliers/beneficiaries).
- * 
+ *
  * Note: In this implementation, CreditTransferData.creditor* fields represent the debtor (company that pays),
  * and Transaction.creditor* fields represent each creditor (supplier/beneficiary that receives).
  *
