@@ -38,9 +38,10 @@ class TranslationHelper
     /**
      * Translates a message ID with parameters.
      *
-     * @param string $id Message ID
+     * @param string                $id         Message ID
      * @param array<string, string> $parameters Parameters to replace
-     * @param string|null $domain Translation domain (ignored for tests)
+     * @param string|null           $domain     Translation domain (ignored for tests)
+     *
      * @return string Translated message with parameters replaced
      */
     public static function translate(string $id, array $parameters = [], ?string $domain = null): string

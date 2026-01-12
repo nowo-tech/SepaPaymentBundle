@@ -72,6 +72,7 @@ class XsdValidator
             $errorMessages = array_map(fn ($error) => trim($error->message), $errors);
             $errorsString = implode('; ', $errorMessages);
             $message = $this->translator->trans('validation.invalid_xml_format', ['%errors%' => $errorsString], 'nowo_sepa_payment');
+
             throw new \InvalidArgumentException($message);
         }
 
@@ -92,6 +93,7 @@ class XsdValidator
                 $errorMessages = array_map(fn ($error) => trim($error->message), $errors);
                 $errorsString = implode('; ', $errorMessages);
                 $message = $this->translator->trans('validation.xsd_validation_failed', ['%errors%' => $errorsString], 'nowo_sepa_payment');
+
                 throw new \InvalidArgumentException($message);
             }
 
@@ -179,6 +181,7 @@ class XsdValidator
             $errorMessages = array_map(fn ($error) => trim($error->message), $errors);
             $errorsString = implode('; ', $errorMessages);
             $message = $this->translator->trans('validation.invalid_xml_format', ['%errors%' => $errorsString], 'nowo_sepa_payment');
+
             throw new \InvalidArgumentException($message);
         }
 
@@ -193,6 +196,7 @@ class XsdValidator
             $errorMessages = array_map(fn ($error) => trim($error->message), $errors);
             $errorsString = implode('; ', $errorMessages);
             $message = $this->translator->trans('validation.xsd_validation_failed', ['%errors%' => $errorsString], 'nowo_sepa_payment');
+
             throw new \InvalidArgumentException($message);
         }
 
