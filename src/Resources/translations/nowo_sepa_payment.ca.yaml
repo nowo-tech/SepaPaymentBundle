@@ -23,12 +23,12 @@ validation.invalid_keys_top_level: "Clau(s) invàlida(s) al nivell superior: %ke
 validation.invalid_keys_transaction: "Clau(s) invàlida(s) a la transacció: %keys%. Dins de l'array de transaccions, ha d'utilitzar claus \"creditor*\" (ex., creditorIban, creditorName, creditorBic) per representar el beneficiari que rep el pagament. Claus suggerides: %suggestions%. Nota: les claus \"debtor*\" només han d'utilitzar-se al nivell superior (per a l'empresa que paga)."
 
 # Business rules validation
-validation.invalid_transaction_amount: 'L\'import de la transacció %amount% excedeix l\'import màxim permès de %max_amount% EUR'
-validation.invalid_transaction_count: 'El nombre de transaccions %count% excedeix el nombre màxim permès de %max_count%'
-validation.invalid_execution_date_future: 'La data d\'execució ha de ser avui o en el futur'
-validation.invalid_currency: 'La moneda %currency% no és vàlida per a SEPA. Només es permet EUR.'
-validation.invalid_sequence_type: 'Tipus de seqüència invàlid: %type%. Ha de ser un de: %valid_types%'
-validation.invalid_mandate_expiration: 'La data de venciment del mandat ha de ser en el futur'
+validation.invalid_transaction_amount: "L'import de la transacció %amount% excedeix l'import màxim permès de %max_amount% EUR"
+validation.invalid_transaction_count: "El nombre de transaccions %count% excedeix el nombre màxim permès de %max_count%"
+validation.invalid_execution_date_future: "La data d'execució ha de ser avui o en el futur"
+validation.invalid_currency: "La moneda %currency% no és vàlida per a SEPA. Només es permet EUR."
+validation.invalid_sequence_type: "Tipus de seqüència invàlid: %type%. Ha de ser un de: %valid_types%"
+validation.invalid_mandate_expiration: "La data de venciment del mandat ha de ser en el futur"
 
 # Converter errors
-validation.invalid_ccc_format: 'Format CCC invàlid. S\'esperaven 20 dígits.'
+validation.invalid_ccc_format: "Format CCC invàlid. S'esperaven 20 dígits."
