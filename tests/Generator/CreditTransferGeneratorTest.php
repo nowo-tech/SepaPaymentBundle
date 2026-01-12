@@ -270,8 +270,8 @@ class CreditTransferGeneratorTest extends TestCase
             'initiatingPartyName' => 'My Company',
             'paymentInfoId' => 'PMT-001',
             'requestedExecutionDate' => '2024-01-20',
-            'creditorName' => 'My Company Name',
-            'creditorIban' => 'ES9121000418450200051332',
+            'debtorName' => 'My Company Name',
+            'debtorIban' => 'ES9121000418450200051332',
             'transactions' => [
                 [
                     'amount' => 100.50,
@@ -306,8 +306,8 @@ class CreditTransferGeneratorTest extends TestCase
             'initiating_party_name' => 'My Company',
             'payment_name' => 'PMT-001',
             'requested_execution_date' => '2024-01-20',
-            'creditor_name' => 'My Company Name',
-            'creditor_iban' => 'ES9121000418450200051332',
+            'debtor_name' => 'My Company Name',
+            'debtor_iban' => 'ES9121000418450200051332',
             'items' => [
                 [
                     'instruction_id' => 'E2E-001',
@@ -342,9 +342,9 @@ class CreditTransferGeneratorTest extends TestCase
             'initiatingPartyName' => 'My Company',
             'paymentInfoId' => 'PMT-001',
             'requestedExecutionDate' => '2024-01-20',
-            'creditorName' => 'My Company Name',
-            'creditorIban' => 'ES9121000418450200051332',
-            'creditorAddress' => [
+            'debtorName' => 'My Company Name',
+            'debtorIban' => 'ES9121000418450200051332',
+            'debtorAddress' => [
                 'street' => '123 Business Street',
                 'city' => 'Madrid',
                 'postalCode' => '28001',
@@ -395,12 +395,12 @@ class CreditTransferGeneratorTest extends TestCase
             'initiating_party_name' => 'My Company',
             'payment_name' => 'PMT-001',
             'requested_execution_date' => '2024-01-20',
-            'creditor_name' => 'My Company Name',
-            'creditor_iban' => 'ES9121000418450200051332',
-            'creditor_street' => '123 Business Street',
-            'creditor_city' => 'Madrid',
-            'creditor_postal_code' => '28001',
-            'creditor_country' => 'ES',
+            'debtor_name' => 'My Company Name',
+            'debtor_iban' => 'ES9121000418450200051332',
+            'debtor_street' => '123 Business Street',
+            'debtor_city' => 'Madrid',
+            'debtor_postal_code' => '28001',
+            'debtor_country' => 'ES',
             'items' => [
                 [
                     'instruction_id' => 'E2E-001',
@@ -584,8 +584,8 @@ class CreditTransferGeneratorTest extends TestCase
             'initiatingPartyName' => 'My Company',
             'paymentInfoId' => 'PMT-001',
             'requestedExecutionDate' => '2024-01-20',
-            'creditorName' => 'My Company Name',
-            'creditorIban' => 'ES9121000418450200051332',
+            'debtorName' => 'My Company Name',
+            'debtorIban' => 'ES9121000418450200051332',
             'transactions' => [
                 [
                     'amount' => 100.50,
@@ -616,9 +616,9 @@ class CreditTransferGeneratorTest extends TestCase
             'initiatingPartyName' => 'My Company',
             'paymentInfoId' => 'PMT-001',
             'requestedExecutionDate' => '2024-01-20',
-            'creditorName' => 'My Company Name',
-            'creditorIban' => 'ES9121000418450200051332',
-            'creditorAddress' => [], // Empty array
+            'debtorName' => 'My Company Name',
+            'debtorIban' => 'ES9121000418450200051332',
+            'debtorAddress' => [], // Empty array
             'transactions' => [
                 [
                     'amount' => 100.50,
@@ -652,8 +652,8 @@ class CreditTransferGeneratorTest extends TestCase
             'initiatingPartyName' => 'My Company',
             'paymentInfoId' => 'PMT-001',
             'requestedExecutionDate' => '2024-01-20',
-            'creditorName' => 'My Company Name',
-            'creditorIban' => 'ES9121000418450200051332',
+            'debtorName' => 'My Company Name',
+            'debtorIban' => 'ES9121000418450200051332',
         ];
 
         $this->generator->generateFromArray($data);
@@ -674,8 +674,8 @@ class CreditTransferGeneratorTest extends TestCase
             'initiatingPartyName' => 'My Company',
             'paymentInfoId' => 'PMT-001',
             'requestedExecutionDate' => '2024-01-20',
-            'creditorName' => 'My Company Name',
-            'creditorIban' => 'ES9121000418450200051332',
+            'debtorName' => 'My Company Name',
+            'debtorIban' => 'ES9121000418450200051332',
             'transactions' => [
                 [
                     'amount' => 100.50,
@@ -700,8 +700,8 @@ class CreditTransferGeneratorTest extends TestCase
             'initiatingPartyName' => 'My Company',
             'paymentInfoId' => 'PMT-001',
             'requestedExecutionDate' => new \DateTime('2024-01-20'),
-            'creditorName' => 'My Company Name',
-            'creditorIban' => 'ES9121000418450200051332',
+            'debtorName' => 'My Company Name',
+            'debtorIban' => 'ES9121000418450200051332',
             'transactions' => [
                 [
                     'amount' => 100.50,
@@ -731,8 +731,8 @@ class CreditTransferGeneratorTest extends TestCase
             'paymentInfoId' => 'PMT-001',
             'creationDate' => new \DateTime('2024-01-15 10:00:00'),
             'requestedExecutionDate' => '2024-01-20',
-            'creditorName' => 'My Company Name',
-            'creditorIban' => 'ES9121000418450200051332',
+            'debtorName' => 'My Company Name',
+            'debtorIban' => 'ES9121000418450200051332',
             'transactions' => [
                 [
                     'amount' => 100.50,
@@ -761,8 +761,8 @@ class CreditTransferGeneratorTest extends TestCase
             'initiatingPartyName' => 'My Company',
             'paymentInfoId' => 'PMT-001',
             'requestedExecutionDate' => '2024-01-20',
-            'creditorName' => 'My Company Name',
-            'creditorIban' => 'ES9121000418450200051332',
+            'debtorName' => 'My Company Name',
+            'debtorIban' => 'ES9121000418450200051332',
             'transactions' => [
                 [
                     'amount' => 15000, // 150.00 in cents
@@ -791,8 +791,8 @@ class CreditTransferGeneratorTest extends TestCase
             'initiatingPartyName' => 'My Company',
             'paymentInfoId' => 'PMT-001',
             'requestedExecutionDate' => '2024-01-20',
-            'creditorName' => 'My Company Name',
-            'creditorIban' => 'ES9121000418450200051332',
+            'debtorName' => 'My Company Name',
+            'debtorIban' => 'ES9121000418450200051332',
             'transactions' => [
                 [
                     'amount' => 100.50,
@@ -821,9 +821,9 @@ class CreditTransferGeneratorTest extends TestCase
             'initiatingPartyName' => 'My Company',
             'paymentInfoId' => 'PMT-001',
             'requestedExecutionDate' => '2024-01-20',
-            'creditorName' => 'My Company Name',
-            'creditorIban' => 'ES9121000418450200051332',
-            'creditorBic' => 'CAIXESBBXXX',
+            'debtorName' => 'My Company Name',
+            'debtorIban' => 'ES9121000418450200051332',
+            'debtorBic' => 'CAIXESBBXXX',
             'transactions' => [
                 [
                     'amount' => 100.50,
@@ -853,8 +853,8 @@ class CreditTransferGeneratorTest extends TestCase
             'initiatingPartyName' => 'My Company',
             'paymentInfoId' => 'PMT-001',
             'requestedExecutionDate' => '2024-01-20',
-            'creditorName' => 'My Company Name',
-            'creditorIban' => 'ES9121000418450200051332',
+            'debtorName' => 'My Company Name',
+            'debtorIban' => 'ES9121000418450200051332',
             'transactions' => [
                 [
                     'amount' => 100.50,
@@ -885,8 +885,8 @@ class CreditTransferGeneratorTest extends TestCase
             'initiatingPartyName' => 'My Company',
             'paymentInfoId' => 'PMT-001',
             'requestedExecutionDate' => '2024-01-20',
-            'creditorName' => 'My Company Name',
-            'creditorIban' => 'ES9121000418450200051332',
+            'debtorName' => 'My Company Name',
+            'debtorIban' => 'ES9121000418450200051332',
             'transactions' => [
                 [
                     'amount' => 100.50,
@@ -918,8 +918,8 @@ class CreditTransferGeneratorTest extends TestCase
             'initiatingPartyName' => 'My Company',
             'paymentInfoId' => 'PMT-001',
             'requestedExecutionDate' => '2024-01-20',
-            'creditorName' => 'My Company Name',
-            'creditorIban' => 'ES9121000418450200051332',
+            'debtorName' => 'My Company Name',
+            'debtorIban' => 'ES9121000418450200051332',
             'transactions' => [
                 [
                     'amount' => 100.50,
@@ -951,8 +951,8 @@ class CreditTransferGeneratorTest extends TestCase
             'initiatingPartyName' => 'My Company',
             'paymentInfoId' => 'PMT-001',
             'requestedExecutionDate' => '2024-01-20',
-            'creditorName' => 'My Company Name',
-            'creditorIban' => 'ES9121000418450200051332',
+            'debtorName' => 'My Company Name',
+            'debtorIban' => 'ES9121000418450200051332',
             'batchBooking' => true,
             'transactions' => [
                 [
@@ -985,8 +985,8 @@ class CreditTransferGeneratorTest extends TestCase
             'initiatingPartyName' => 'My Company',
             'paymentInfoId' => 'PMT-001',
             'requestedExecutionDate' => 12345, // Invalid type
-            'creditorName' => 'My Company Name',
-            'creditorIban' => 'ES9121000418450200051332',
+            'debtorName' => 'My Company Name',
+            'debtorIban' => 'ES9121000418450200051332',
         ];
 
         $this->generator->generateFromArray($data);
@@ -1008,8 +1008,8 @@ class CreditTransferGeneratorTest extends TestCase
             'paymentInfoId' => 'PMT-001',
             'creationDate' => 12345, // Invalid type
             'requestedExecutionDate' => '2024-01-20',
-            'creditorName' => 'My Company Name',
-            'creditorIban' => 'ES9121000418450200051332',
+            'debtorName' => 'My Company Name',
+            'debtorIban' => 'ES9121000418450200051332',
         ];
 
         $this->generator->generateFromArray($data);
@@ -1027,9 +1027,9 @@ class CreditTransferGeneratorTest extends TestCase
             'initiatingPartyName' => 'My Company',
             'paymentInfoId' => 'PMT-001',
             'requestedExecutionDate' => '2024-01-20',
-            'creditorName' => 'My Company Name',
-            'creditorIban' => 'ES9121000418450200051332',
-            'creditorAddress' => [
+            'debtorName' => 'My Company Name',
+            'debtorIban' => 'ES9121000418450200051332',
+            'debtorAddress' => [
                 'street' => '123 Business Street',
                 'city' => 'Madrid',
                 'postalCode' => '28001',
@@ -1192,6 +1192,66 @@ class CreditTransferGeneratorTest extends TestCase
     }
 
     /**
+     * Tests generateFromArray with invalid creditor keys at top level.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayWithInvalidCreditorKeysAtTopLevel(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid key(s) at top level: creditorIban');
+
+        $data = [
+            'reference' => 'MSG-001',
+            'initiatingPartyName' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'requestedExecutionDate' => '2024-01-20',
+            'creditorIban' => 'ES9121000418450200051332', // ❌ Should be debtorIban
+            'creditorName' => 'My Company Name', // ❌ Should be debtorName
+            'transactions' => [
+                [
+                    'amount' => 100.50,
+                    'creditorIban' => 'GB82WEST12345698765432',
+                    'creditorName' => 'John Doe',
+                    'endToEndId' => 'E2E-001',
+                ],
+            ],
+        ];
+
+        $this->generator->generateFromArray($data);
+    }
+
+    /**
+     * Tests generateFromArray with invalid debtor keys in transactions.
+     *
+     * @return void
+     */
+    public function testGenerateFromArrayWithInvalidDebtorKeysInTransactions(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid key(s) in transaction: debtorIban');
+
+        $data = [
+            'reference' => 'MSG-001',
+            'initiatingPartyName' => 'My Company',
+            'paymentInfoId' => 'PMT-001',
+            'requestedExecutionDate' => '2024-01-20',
+            'debtorIban' => 'ES9121000418450200051332',
+            'debtorName' => 'My Company Name',
+            'transactions' => [
+                [
+                    'amount' => 100.50,
+                    'debtorIban' => 'GB82WEST12345698765432', // ❌ Should be creditorIban
+                    'debtorName' => 'John Doe', // ❌ Should be creditorName
+                    'endToEndId' => 'E2E-001',
+                ],
+            ],
+        ];
+
+        $this->generator->generateFromArray($data);
+    }
+
+    /**
      * Tests generateFromArray with all optional fields.
      *
      * @return void
@@ -1203,12 +1263,12 @@ class CreditTransferGeneratorTest extends TestCase
             'creationDate' => new \DateTime(),
             'initiatingPartyName' => 'Test Company',
             'paymentInfoId' => 'PMT-ALL-001',
-            'creditorIban' => 'ES9121000418450200051332',
-            'creditorName' => 'Test Company Name',
+            'debtorIban' => 'ES9121000418450200051332',
+            'debtorName' => 'Test Company Name',
             'requestedExecutionDate' => new \DateTime('tomorrow'),
-            'creditorBic' => 'CAIXESBBXXX',
+            'debtorBic' => 'CAIXESBBXXX',
             'batchBooking' => true,
-            'creditorAddress' => [
+            'debtorAddress' => [
                 'street' => '123 Test Street',
                 'city' => 'Madrid',
                 'postalCode' => '28001',

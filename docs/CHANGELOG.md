@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.5] - 2026-01-12
+
+### Added
+- **Credit Transfer Generator Validation**: Added validation to detect incorrect key usage in `generateFromArray()` method
+  - Detects when `creditor*` keys are used at the top level (should be `debtor*` keys)
+  - Detects when `debtor*` keys are used in transactions (should be `creditor*` keys)
+  - Provides clear error messages with suggestions for correct key names
+  - Helps prevent confusion between debtor and creditor roles in SEPA Credit Transfers
+  - Errors are thrown early during array normalization, before XML generation
+
+### Improved
+- **Demo Applications**: Refactored demo controllers for better code organization
+  - Separated large `DemoController` (1558 lines) into multiple focused controllers by functionality
+  - Created `ValidationController`, `CreditTransferController`, `DirectDebitController`, `MandateController`, `ExportImportController`, `DeprecatedController`, and `ValidationAdvancedController`
+  - Applied to all demo applications (Symfony 6, 7, and 8)
+  - Makes demo code more maintainable and easier to understand
+
 ## [1.2.4] - 2026-01-12
 
 ### Changed
@@ -15,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated all methods: `getDebtorIban()` → `getCreditorIban()`, `setDebtorBic()` → `setCreditorBic()`, etc.
   - This change makes the code self-documenting: Transaction fields now correctly reflect that they represent creditors (suppliers/beneficiaries that receive money)
   - **Breaking Change**: Code using `CreditTransfer\Transaction` directly must be updated to use the new `creditor*` method names
-  - **Breaking Change**: The `generateFromArray()` method now only accepts `creditor*` field names in arrays (`creditorIban`, `creditorName`, `creditorBic`, `creditorAddress`). The deprecated `debtor*` field names are no longer supported
+  - **Breaking Change**: The `generateFromArray()` method now accepts `debtor*` field names at the top level of the array (representing the company that pays) and `creditor*` field names in transactions (representing who receives payment). The deprecated `debtor*` field names in transactions are no longer supported
 
 ### Fixed
 - **Credit Transfer Generator**: Fixed incorrect mapping of creditor/debtor roles in SEPA Credit Transfer generation

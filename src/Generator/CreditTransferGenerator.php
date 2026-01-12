@@ -289,11 +289,18 @@ class CreditTransferGenerator
         $data = $this->normalizeArrayKeys($data);
 
         // Validate required fields
-        $required = ['reference', 'initiatingPartyName', 'paymentInfoId', 'creditorIban', 'creditorName', 'requestedExecutionDate'];
+        $required = ['reference', 'initiatingPartyName', 'paymentInfoId', 'requestedExecutionDate'];
         foreach ($required as $field) {
             if (!isset($data[$field])) {
                 throw new \InvalidArgumentException("Missing required field: {$field}");
             }
+        }
+        // Check for debtorIban and debtorName (normalized from debtor* keys)
+        if (!isset($data['debtorIban'])) {
+            throw new \InvalidArgumentException("Missing required field: debtorIban");
+        }
+        if (!isset($data['debtorName'])) {
+            throw new \InvalidArgumentException("Missing required field: debtorName");
         }
 
         // Parse dates
@@ -311,35 +318,37 @@ class CreditTransferGenerator
             throw new \InvalidArgumentException('requestedExecutionDate must be a string or DateTimeInterface');
         }
 
+        // CreditTransferData constructor expects creditor* parameters (even though they represent the debtor)
         $creditTransferData = new CreditTransferData(
             $data['reference'],
             $creationDate,
             $data['initiatingPartyName'],
             $data['paymentInfoId'],
-            $data['creditorIban'],
-            $data['creditorName'],
+            $data['debtorIban'], // Mapped from debtorIban - CreditTransferData uses creditor* internally but represents debtor
+            $data['debtorName'], // Mapped from debtorName - CreditTransferData uses creditor* internally but represents debtor
             $requestedExecutionDate
         );
 
-        if (isset($data['creditorBic'])) {
-            $creditTransferData->setCreditorBic($data['creditorBic']);
+        if (isset($data['debtorBic'])) {
+            $creditTransferData->setCreditorBic($data['debtorBic']);
         }
 
         if (isset($data['batchBooking'])) {
             $creditTransferData->setBatchBooking((bool) $data['batchBooking']);
         }
 
-        // Set creditor address if provided (optional)
-        if (isset($data['creditorAddress']) && is_array($data['creditorAddress']) && !empty($data['creditorAddress'])) {
-            $creditTransferData->setCreditorAddressFromArray($data['creditorAddress']);
-        } elseif (isset($data['creditor_street']) || isset($data['creditor_city']) || isset($data['creditor_postal_code']) || isset($data['creditor_country'])
-                  || isset($data['creditorStreet']) || isset($data['creditorCity']) || isset($data['creditorPostalCode']) || isset($data['creditorCountry'])) {
+        // Set debtor address if provided (optional)
+        // Note: CreditTransferData uses setCreditorAddress internally but represents debtor address
+        if (isset($data['debtorAddress']) && is_array($data['debtorAddress']) && !empty($data['debtorAddress'])) {
+            $creditTransferData->setCreditorAddressFromArray($data['debtorAddress']);
+        } elseif (isset($data['debtor_street']) || isset($data['debtor_city']) || isset($data['debtor_postal_code']) || isset($data['debtor_country'])
+                  || isset($data['debtorStreet']) || isset($data['debtorCity']) || isset($data['debtorPostalCode']) || isset($data['debtorCountry'])) {
             // Support individual address fields (only if at least one is provided)
             $creditTransferData->setCreditorAddress(
-                $data['creditor_street'] ?? $data['creditorStreet'] ?? null,
-                $data['creditor_city'] ?? $data['creditorCity'] ?? null,
-                $data['creditor_postal_code'] ?? $data['creditorPostalCode'] ?? null,
-                $data['creditor_country'] ?? $data['creditorCountry'] ?? null
+                $data['debtor_street'] ?? $data['debtorStreet'] ?? null,
+                $data['debtor_city'] ?? $data['debtorCity'] ?? null,
+                $data['debtor_postal_code'] ?? $data['debtorPostalCode'] ?? null,
+                $data['debtor_country'] ?? $data['debtorCountry'] ?? null
             );
         }
 
@@ -366,6 +375,35 @@ class CreditTransferGenerator
      */
     private function normalizeArrayKeys(array $data): array
     {
+        // Validate for incorrect keys (creditor* should not be used at top level)
+        $incorrectCreditorKeys = [];
+        $creditorKeysPattern = ['creditor_iban', 'creditor_name', 'creditor_bic', 'creditor_address', 'creditorIban', 'creditorName', 'creditorBic', 'creditorAddress'];
+        foreach ($creditorKeysPattern as $key) {
+            if (isset($data[$key])) {
+                $incorrectCreditorKeys[] = $key;
+            }
+        }
+
+        if (!empty($incorrectCreditorKeys)) {
+            $suggestions = [];
+            foreach ($incorrectCreditorKeys as $key) {
+                if (strpos($key, 'creditor_') === 0) {
+                    $suggestions[] = str_replace('creditor_', 'debtor_', $key);
+                } elseif (strpos($key, 'creditor') === 0 && ctype_upper($key[8] ?? '')) {
+                    $suggestions[] = 'debtor' . substr($key, 8);
+                } else {
+                    $suggestions[] = str_replace('creditor', 'debtor', $key);
+                }
+            }
+            throw new \InvalidArgumentException(
+                'Invalid key(s) at top level: ' . implode(', ', $incorrectCreditorKeys) . '. ' .
+                'At the top level (payment information), you must use "debtor*" keys (e.g., debtorIban, debtorName, debtorBic) ' .
+                'to represent the company that pays. ' .
+                'Suggested keys: ' . implode(', ', $suggestions) . '. ' .
+                'Note: "creditor*" keys should only be used within the "transactions" array (for beneficiaries that receive payments).'
+            );
+        }
+
         $mapping = [
             'message_id' => 'reference',
             'initiating_party_name' => 'initiatingPartyName',
@@ -373,12 +411,13 @@ class CreditTransferGenerator
             'payment_info_id' => 'paymentInfoId',
             'creation_date' => 'creationDate',
             'requested_execution_date' => 'requestedExecutionDate',
-            'creditor_name' => 'creditorName',
-            'creditor_iban' => 'creditorIban',
-            'creditor_bic' => 'creditorBic',
+            // Support debtor* keys (conceptually correct - represents who pays)
+            'debtor_name' => 'debtorName',
+            'debtor_iban' => 'debtorIban',
+            'debtor_bic' => 'debtorBic',
+            'debtor_address' => 'debtorAddress',
             'batch_booking' => 'batchBooking',
             'items' => 'transactions',
-            'creditor_address' => 'creditorAddress',
         ];
 
         $normalized = [];
@@ -400,6 +439,35 @@ class CreditTransferGenerator
      */
     private function normalizeTransactionArrayKeys(array $data): array
     {
+        // Validate for incorrect keys (debtor* should not be used in transactions)
+        $incorrectDebtorKeys = [];
+        $debtorKeysPattern = ['debtor_iban', 'debtor_name', 'debtor_bic', 'debtor_address', 'debtorIban', 'debtorName', 'debtorBic', 'debtorAddress'];
+        foreach ($debtorKeysPattern as $key) {
+            if (isset($data[$key])) {
+                $incorrectDebtorKeys[] = $key;
+            }
+        }
+
+        if (!empty($incorrectDebtorKeys)) {
+            $suggestions = [];
+            foreach ($incorrectDebtorKeys as $key) {
+                if (strpos($key, 'debtor_') === 0) {
+                    $suggestions[] = str_replace('debtor_', 'creditor_', $key);
+                } elseif (strpos($key, 'debtor') === 0 && ctype_upper($key[6] ?? '')) {
+                    $suggestions[] = 'creditor' . substr($key, 6);
+                } else {
+                    $suggestions[] = str_replace('debtor', 'creditor', $key);
+                }
+            }
+            throw new \InvalidArgumentException(
+                'Invalid key(s) in transaction: ' . implode(', ', $incorrectDebtorKeys) . '. ' .
+                'Within transactions array, you must use "creditor*" keys (e.g., creditorIban, creditorName, creditorBic) ' .
+                'to represent the beneficiary that receives the payment. ' .
+                'Suggested keys: ' . implode(', ', $suggestions) . '. ' .
+                'Note: "debtor*" keys should only be used at the top level (for the company that pays).'
+            );
+        }
+
         $mapping = [
             'instruction_id' => 'endToEndId',
             'end_to_end_id' => 'endToEndId',

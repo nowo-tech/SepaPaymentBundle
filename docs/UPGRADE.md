@@ -2,6 +2,32 @@
 
 This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
+## Upgrading from 1.2.4 to 1.2.5
+
+### ✨ New Features (1.2.5)
+
+- **Credit Transfer Generator Validation**: Added validation to detect incorrect key usage in `generateFromArray()` method
+  - If you use `creditor*` keys at the top level (e.g., `creditorIban`, `creditorName`), you will now get a clear error message suggesting to use `debtor*` keys instead
+  - If you use `debtor*` keys within transactions (e.g., `debtorIban`, `debtorName`), you will now get a clear error message suggesting to use `creditor*` keys instead
+  - Error messages include suggestions for the correct key names
+  - This helps prevent confusion between debtor and creditor roles in SEPA Credit Transfers
+
+### 🔧 Improvements (1.2.5)
+
+- **Demo Applications**: Internal refactoring of demo controllers (no impact on bundle users)
+  - Demo controllers were refactored for better code organization
+  - Routes and functionality remain unchanged
+  - Only affects the demo applications, not the bundle itself
+
+### Backward Compatibility
+
+- **No breaking changes**: All existing code will continue to work
+- **Validation is additive**: The new validation only helps catch errors - it doesn't change the API
+- **Correct usage**: Code that was already using the correct keys (`debtor*` at top level, `creditor*` in transactions) will work exactly as before
+- **Error detection**: Code using incorrect keys will now get clearer error messages instead of potentially confusing errors later
+
+---
+
 ## Upgrading from 1.2.3 to 1.2.4
 
 ### ⚠️ Breaking Changes (1.2.4)
@@ -57,30 +83,40 @@ $address = $transaction->getCreditorAddress();
 ```
 
 **Using `generateFromArray()` method:**
-- The `generateFromArray()` method now only accepts `creditor*` field names in arrays
-- The deprecated `debtor*` field names are no longer supported
+- The `generateFromArray()` method now accepts `debtor*` field names at the **top level** of the array (representing the company that pays)
+- In **transactions**, use `creditor*` field names (representing each supplier/beneficiary that receives payment)
+- This makes the code self-documenting: `debtor*` at top level = company that pays, `creditor*` in transactions = who receives
 
 ```php
 // Correct format (required)
 $data = [
+    'reference' => 'MSG-001',
+    'initiatingPartyName' => 'My Company',
+    'paymentInfoId' => 'PMT-001',
+    // Debtor data (company that PAYS) - using debtor* keys for clarity
+    'debtorIban' => 'ES9121000418450200051332',  // ✅ Required (top level)
+    'debtorName' => 'My Company Name',            // ✅ Required (top level)
+    'debtorBic' => 'CAIXESBBXXX',                 // ✅ Optional (top level)
+    'requestedExecutionDate' => '2024-01-20',
     'transactions' => [
         [
             'amount' => 100.50,
-            'creditorIban' => 'GB82WEST12345698765432',  // ✅ Required
-            'creditorName' => 'John Doe',                 // ✅ Required
-            'creditorBic' => 'WESTGB22',                  // ✅ Optional
+            // Creditor data (who RECEIVES the payment)
+            'creditorIban' => 'GB82WEST12345698765432',  // ✅ Required (in transactions)
+            'creditorName' => 'John Doe',                 // ✅ Required (in transactions)
+            'creditorBic' => 'WESTGB22',                  // ✅ Optional (in transactions)
+            'endToEndId' => 'E2E-001',
         ],
     ],
 ];
 
-// ❌ Deprecated format (no longer supported)
+// ❌ Incorrect format (debtor* in transactions is no longer supported)
 // $data = [
 //     'transactions' => [
 //         [
 //             'amount' => 100.50,
-//             'debtorIban' => 'GB82WEST12345698765432',  // ❌ No longer supported
-//             'debtorName' => 'John Doe',                 // ❌ No longer supported
-//             'debtorBic' => 'WESTGB22',                  // ❌ No longer supported
+//             'debtorIban' => 'GB82WEST12345698765432',  // ❌ No longer supported in transactions
+//             'debtorName' => 'John Doe',                 // ❌ No longer supported in transactions
 //         ],
 //     ],
 // ];
@@ -96,14 +132,16 @@ $data = [
 
 ### Backward Compatibility
 
-- **Array format**: The `generateFromArray()` method now only accepts `creditor*` field names. The deprecated `debtor*` field names are no longer supported
+- **Array format**: The `generateFromArray()` method now accepts `debtor*` field names at the top level (representing the company that pays) and `creditor*` field names in transactions (representing who receives payment)
+- **Top level fields**: Use `debtorIban`, `debtorName`, `debtorBic`, `debtorAddress` at the top level of the array
+- **Transaction fields**: Use `creditorIban`, `creditorName`, `creditorBic`, `creditorAddress` within each transaction
 - **Remesa classes unaffected**: The deprecated `Remesa\Transaction` and `Remesa\RemesaData` classes continue to work (they maintain their `debtor*` API for backward compatibility)
 - **XML output change**: The generated XML will now correctly map debtor/creditor roles according to SEPA standards
 
 ### Impact
 
 - **Code using `CreditTransfer\Transaction` directly**: Requires migration to new `creditor*` method names
-- **Code using `generateFromArray()`**: Must update arrays to use `creditor*` field names (`creditorIban`, `creditorName`, `creditorBic`, `creditorAddress`)
+- **Code using `generateFromArray()`**: Must update arrays to use `debtor*` field names at the top level (`debtorIban`, `debtorName`, `debtorBic`, `debtorAddress`) and `creditor*` field names in transactions (`creditorIban`, `creditorName`, `creditorBic`, `creditorAddress`)
 - **Code using deprecated `Remesa\*` classes**: No changes required (they maintain backward compatibility with `debtor*` API)
 - **XML output**: Generated XML files will now correctly comply with SEPA pain.001 standard structure
 
@@ -1248,6 +1286,14 @@ If you're upgrading from a version that used Digitick\Sepa v2.0, be aware that v
 2. **Review the CHANGELOG** for detailed changes
 3. **Check for deprecated methods** - they will be removed in future versions
 4. **Update your tests** to match new behavior if needed
+
+### Demo Applications
+
+The demo applications included in this bundle have been refactored for better code organization:
+- Controllers have been separated by functionality into focused classes
+- All routes remain the same - no changes to URLs or endpoints
+- This refactoring only affects the internal structure of the demo code
+- If you're using the demos as reference, the API and functionality remain unchanged
 
 ## Getting Help
 
