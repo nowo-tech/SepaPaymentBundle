@@ -16,6 +16,12 @@ services:
 
     Nowo\SepaPaymentBundle\Validator\:
         resource: '../../Validator/*'
+        exclude: '../../Validator/Constraint/*'
+
+    # Constraint Validators (must be explicitly configured)
+    Nowo\SepaPaymentBundle\Validator\Constraint\:
+        resource: '../../Validator/Constraint/*Validator.php'
+        tags: ['validator.constraint_validator']
 
     Nowo\SepaPaymentBundle\Exporter\:
         resource: '../../Exporter/*'

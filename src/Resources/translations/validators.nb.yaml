@@ -1,0 +1,17 @@
+# Symfony Validator Messages - Norwegian (Bokmål)
+# Domain: validators
+
+iban:
+    invalid: 'Denne verdien er ikke en gyldig IBAN.'
+
+bic:
+    invalid: 'Denne verdien er ikke en gyldig BIC.'
+
+sepa_creditor_identifier:
+    invalid: 'Denne verdien er ikke en gyldig SEPA Kreditor-ID.'
+
+credit_card:
+    invalid: 'Denne verdien er ikke et gyldig kredittkortnummer.'
+
+sepa_country:
+    invalid: 'Denne verdien er ikke en gyldig SEPA-landkode.'

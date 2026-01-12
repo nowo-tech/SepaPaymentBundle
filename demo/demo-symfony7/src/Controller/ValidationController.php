@@ -7,6 +7,7 @@ use Nowo\SepaPaymentBundle\Generator\IdentifierGenerator;
 use Nowo\SepaPaymentBundle\Validator\BicValidator;
 use Nowo\SepaPaymentBundle\Validator\CreditCardValidator;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+use Nowo\SepaPaymentBundle\Validator\SepaCreditorIdentifierValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -112,6 +113,28 @@ class ValidationController extends AbstractController
                 'error' => $e->getMessage(),
             ], 400);
         }
+    }
+
+    /**
+     * Validate SEPA Creditor Identifier endpoint.
+     *
+     * @param Request                         $request  Request object
+     * @param SepaCreditorIdentifierValidator $validator SEPA Creditor Identifier validator
+     * @return JsonResponse
+     */
+    #[Route('/validate-sepa-creditor-identifier', name: 'demo_validate_sepa_creditor_identifier')]
+    public function validateSepaCreditorIdentifier(Request $request, SepaCreditorIdentifierValidator $validator): JsonResponse
+    {
+        $creditorId = $request->query->get('creditor_id', 'ES97ZZZM12345678');
+
+        return new JsonResponse([
+            'creditorId' => $creditorId,
+            'isValid' => $validator->isValid($creditorId),
+            'normalized' => $validator->normalize($creditorId),
+            'countryCode' => $validator->getCountryCode($creditorId),
+            'nationalIdentifier' => $validator->getNationalIdentifier($creditorId),
+            'isValidSpanishNifFormat' => $validator->isValidSpanishNifFormat($validator->getNationalIdentifier($creditorId)),
+        ]);
     }
 
     /**

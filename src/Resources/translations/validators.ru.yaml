@@ -1,0 +1,17 @@
+# Symfony Validator Messages - Russian
+# Domain: validators
+
+iban:
+    invalid: 'Это значение не является действительным IBAN.'
+
+bic:
+    invalid: 'Это значение не является действительным BIC.'
+
+sepa_creditor_identifier:
+    invalid: 'Это значение не является действительным идентификатором кредитора SEPA.'
+
+credit_card:
+    invalid: 'Это значение не является действительным номером кредитной карты.'
+
+sepa_country:
+    invalid: 'Это значение не является действительным кодом страны SEPA.'
