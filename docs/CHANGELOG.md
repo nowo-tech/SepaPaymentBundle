@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.4] - 2026-01-12
+
+### Changed
+- **Credit Transfer Transaction Model**: Refactored `CreditTransfer\Transaction` to use `creditor*` field names instead of `debtor*`
+  - Changed field names: `debtorIban` → `creditorIban`, `debtorName` → `creditorName`, `debtorBic` → `creditorBic`, `debtorAddress` → `creditorAddress`
+  - Updated all methods: `getDebtorIban()` → `getCreditorIban()`, `setDebtorBic()` → `setCreditorBic()`, etc.
+  - This change makes the code self-documenting: Transaction fields now correctly reflect that they represent creditors (suppliers/beneficiaries that receive money)
+  - **Breaking Change**: Code using `CreditTransfer\Transaction` directly must be updated to use the new `creditor*` method names
+  - **Breaking Change**: The `generateFromArray()` method now only accepts `creditor*` field names in arrays (`creditorIban`, `creditorName`, `creditorBic`, `creditorAddress`). The deprecated `debtor*` field names are no longer supported
+
+### Fixed
+- **Credit Transfer Generator**: Fixed incorrect mapping of creditor/debtor roles in SEPA Credit Transfer generation
+  - Corrected `PaymentInformation` to use debtor data (company that pays) instead of creditor data
+  - Corrected `CustomerCreditTransferInformation` to use creditor data (supplier/beneficiary that receives) instead of debtor data
+  - Updated address handling methods (`setDebtorPostalAddress` and `setPostalAddress`) to correctly map addresses
+  - Updated DOM manipulation methods (`addDebtorAddressToDom` and `addCreditorAddressToDom`) to correctly add addresses to XML
+  - This fix ensures compliance with SEPA pain.001 standard where one debtor (company) pays multiple creditors (suppliers)
+
 ## [1.2.3] - 2026-01-09
 
 ### Fixed

@@ -6,6 +6,7 @@ namespace Nowo\SepaPaymentBundle\Model\CreditTransfer;
 
 /**
  * Transaction data for a SEPA Credit Transfer.
+ * Represents a creditor (supplier/beneficiary) that receives money.
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
  * @copyright 2025 Nowo.tech
@@ -13,11 +14,11 @@ namespace Nowo\SepaPaymentBundle\Model\CreditTransfer;
 class Transaction
 {
     /**
-     * Debtor BIC (optional).
+     * Creditor BIC (optional).
      *
      * @var string|null
      */
-    private ?string $debtorBic = null;
+    private ?string $creditorBic = null;
 
     /**
      * Remittance information (optional).
@@ -27,27 +28,27 @@ class Transaction
     private ?string $remittanceInformation = null;
 
     /**
-     * Debtor address (optional, included in XML if provided).
+     * Creditor address (optional, included in XML if provided).
      *
      * @var array<string, string|null>|null
      */
-    private ?array $debtorAddress = null;
+    private ?array $creditorAddress = null;
 
     /**
      * Constructor.
      *
-     * @param string $endToEndId End-to-end identifier
-     * @param float  $amount     Amount to transfer
-     * @param string $currency   Currency code (ISO 4217)
-     * @param string $debtorIban Debtor IBAN
-     * @param string $debtorName Debtor name
+     * @param string $endToEndId    End-to-end identifier
+     * @param float  $amount        Amount to transfer
+     * @param string $currency      Currency code (ISO 4217)
+     * @param string $creditorIban  Creditor IBAN (beneficiary that receives)
+     * @param string $creditorName  Creditor name (beneficiary that receives)
      */
     public function __construct(
         private string $endToEndId,
         private float $amount,
         private string $currency,
-        private string $debtorIban,
-        private string $debtorName
+        private string $creditorIban,
+        private string $creditorName
     ) {
     }
 
@@ -82,47 +83,47 @@ class Transaction
     }
 
     /**
-     * Gets the debtor IBAN.
+     * Gets the creditor IBAN.
      *
-     * @return string The debtor IBAN
+     * @return string The creditor IBAN
      */
-    public function getDebtorIban(): string
+    public function getCreditorIban(): string
     {
-        return $this->debtorIban;
+        return $this->creditorIban;
     }
 
     /**
-     * Sets the debtor BIC.
+     * Sets the creditor BIC.
      *
-     * @param string|null $debtorBic The debtor BIC
+     * @param string|null $creditorBic The creditor BIC
      *
      * @return self
      */
-    public function setDebtorBic(?string $debtorBic): self
+    public function setCreditorBic(?string $creditorBic): self
     {
-        $this->debtorBic = $debtorBic;
+        $this->creditorBic = $creditorBic;
 
         return $this;
     }
 
     /**
-     * Gets the debtor BIC.
+     * Gets the creditor BIC.
      *
-     * @return string|null The debtor BIC
+     * @return string|null The creditor BIC
      */
-    public function getDebtorBic(): ?string
+    public function getCreditorBic(): ?string
     {
-        return $this->debtorBic;
+        return $this->creditorBic;
     }
 
     /**
-     * Gets the debtor name.
+     * Gets the creditor name.
      *
-     * @return string The debtor name
+     * @return string The creditor name
      */
-    public function getDebtorName(): string
+    public function getCreditorName(): string
     {
-        return $this->debtorName;
+        return $this->creditorName;
     }
 
     /**
@@ -150,7 +151,7 @@ class Transaction
     }
 
     /**
-     * Sets the debtor address.
+     * Sets the creditor address.
      * Address will be included in the generated XML.
      *
      * @param array<string, string|null>|string|null $street     Address array or street address
@@ -160,13 +161,13 @@ class Transaction
      *
      * @return self
      */
-    public function setDebtorAddress(array|string|null $street = null, ?string $city = null, ?string $postalCode = null, ?string $country = null): self
+    public function setCreditorAddress(array|string|null $street = null, ?string $city = null, ?string $postalCode = null, ?string $country = null): self
     {
         if (is_array($street)) {
-            return $this->setDebtorAddressFromArray($street);
+            return $this->setCreditorAddressFromArray($street);
         }
 
-        $this->debtorAddress = [
+        $this->creditorAddress = [
             'street' => $street,
             'city' => $city,
             'postalCode' => $postalCode,
@@ -177,15 +178,15 @@ class Transaction
     }
 
     /**
-     * Sets the debtor address from array.
+     * Sets the creditor address from array.
      *
      * @param array<string, string|null> $address Address array with keys: street, city, postalCode, country
      *
      * @return self
      */
-    public function setDebtorAddressFromArray(array $address): self
+    public function setCreditorAddressFromArray(array $address): self
     {
-        $this->debtorAddress = [
+        $this->creditorAddress = [
             'street' => $address['street'] ?? $address['address'] ?? null,
             'city' => $address['city'] ?? null,
             'postalCode' => $address['postalCode'] ?? $address['postal_code'] ?? null,
@@ -196,12 +197,12 @@ class Transaction
     }
 
     /**
-     * Gets the debtor address.
+     * Gets the creditor address.
      *
-     * @return array<string, string|null>|null The debtor address
+     * @return array<string, string|null>|null The creditor address
      */
-    public function getDebtorAddress(): ?array
+    public function getCreditorAddress(): ?array
     {
-        return $this->debtorAddress;
+        return $this->creditorAddress;
     }
 }

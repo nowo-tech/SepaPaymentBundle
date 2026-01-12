@@ -139,10 +139,10 @@ class DemoController extends AbstractController
             'John Doe'
         );
 
-        $transaction->setDebtorBic('WESTGB22');
+        $transaction->setCreditorBic('WESTGB22');
         $transaction->setRemittanceInformation('Invoice 12345');
-        // Set debtor address (will be included in XML)
-        $transaction->setDebtorAddress([
+        // Set creditor address (will be included in XML)
+        $transaction->setCreditorAddress([
             'street' => '456 Customer Avenue',
             'city' => 'London',
             'postalCode' => 'SW1A 1AA',
@@ -567,10 +567,10 @@ class DemoController extends AbstractController
                     [
                         'amount' => 150.75,
                         'currency' => 'EUR',
-                        'debtorIban' => 'GB82WEST12345698765432',
-                        'debtorName' => 'John Doe',
+                        'creditorIban' => 'GB82WEST12345698765432',
+                        'creditorName' => 'John Doe',
                         'endToEndId' => 'E2E-PARSE-001',
-                        'debtorBic' => 'WESTGB22',
+                        'creditorBic' => 'WESTGB22',
                         'remittanceInformation' => 'Demo Invoice 12345',
                     ],
                 ],
@@ -785,10 +785,10 @@ class DemoController extends AbstractController
                     [
                         'amount' => 175.25,
                         'currency' => 'EUR',
-                        'debtorIban' => 'GB82WEST12345698765432',
-                        'debtorName' => 'John Doe (Deprecated Parser)',
+                        'creditorIban' => 'GB82WEST12345698765432',
+                        'creditorName' => 'John Doe (Deprecated Parser)',
                         'endToEndId' => 'E2E-PARSE-DEPRECATED-001',
-                        'debtorBic' => 'WESTGB22',
+                        'creditorBic' => 'WESTGB22',
                         'remittanceInformation' => 'Invoice parsed with deprecated RemesaParser',
                     ],
                 ],
@@ -840,20 +840,25 @@ class DemoController extends AbstractController
                 [
                     'amount' => 100.00,
                     'currency' => 'EUR',
-                    'debtorIban' => 'GB82WEST12345698765432',
-                    'debtorName' => 'John Doe',
+                    'creditorIban' => 'GB82WEST12345698765432',
+                    'creditorName' => 'John Doe',
                     'endToEndId' => 'E2E-COMPARISON-001',
-                    'debtorBic' => 'WESTGB22',
+                    'creditorBic' => 'WESTGB22',
                     'remittanceInformation' => 'Comparison invoice',
                 ],
             ],
         ];
 
         try {
-            // Generate XML using deprecated RemesaGenerator
-            $xmlDeprecated = $remesaGenerator->generateFromArray($data);
+            // Generate XML using deprecated RemesaGenerator (uses debtor* in arrays)
+            $dataForRemesa = $data;
+            $dataForRemesa['transactions'][0]['debtorIban'] = $data['transactions'][0]['creditorIban'];
+            $dataForRemesa['transactions'][0]['debtorName'] = $data['transactions'][0]['creditorName'];
+            $dataForRemesa['transactions'][0]['debtorBic'] = $data['transactions'][0]['creditorBic'];
+            unset($dataForRemesa['transactions'][0]['creditorIban'], $dataForRemesa['transactions'][0]['creditorName'], $dataForRemesa['transactions'][0]['creditorBic']);
+            $xmlDeprecated = $remesaGenerator->generateFromArray($dataForRemesa);
 
-            // Generate XML using new CreditTransferGenerator
+            // Generate XML using new CreditTransferGenerator (uses creditor* in arrays)
             $xmlNew = $creditTransferGenerator->generateFromArray($data);
 
             // Compare results
@@ -914,10 +919,10 @@ class DemoController extends AbstractController
                     [
                         'amount' => 150.75,
                         'currency' => 'EUR',
-                        'debtorIban' => 'GB82WEST12345698765432',
-                        'debtorName' => 'John Doe',
+                        'creditorIban' => 'GB82WEST12345698765432',
+                        'creditorName' => 'John Doe',
                         'endToEndId' => 'E2E-EXPORT-001',
-                        'debtorBic' => 'WESTGB22',
+                        'creditorBic' => 'WESTGB22',
                         'remittanceInformation' => 'Export Demo Invoice',
                     ],
                 ],
@@ -971,19 +976,19 @@ class DemoController extends AbstractController
                     [
                         'amount' => 100.50,
                         'currency' => 'EUR',
-                        'debtorIban' => 'GB82WEST12345698765432',
-                        'debtorName' => 'John Doe',
+                        'creditorIban' => 'GB82WEST12345698765432',
+                        'creditorName' => 'John Doe',
                         'endToEndId' => 'E2E-EXPORT-CSV-001',
-                        'debtorBic' => 'WESTGB22',
+                        'creditorBic' => 'WESTGB22',
                         'remittanceInformation' => 'CSV Export Invoice',
                     ],
                     [
                         'amount' => 200.75,
                         'currency' => 'EUR',
-                        'debtorIban' => 'FR1420041010050500013M02606',
-                        'debtorName' => 'Jane Smith',
+                        'creditorIban' => 'FR1420041010050500013M02606',
+                        'creditorName' => 'Jane Smith',
                         'endToEndId' => 'E2E-EXPORT-CSV-002',
-                        'debtorBic' => 'BNPAFRPPXXX',
+                        'creditorBic' => 'BNPAFRPPXXX',
                         'remittanceInformation' => 'CSV Export Invoice 2',
                     ],
                 ],
@@ -1145,9 +1150,9 @@ class DemoController extends AbstractController
                     "endToEndId": "E2E-IMPORT-001",
                     "amount": 250.00,
                     "currency": "EUR",
-                    "debtorIban": "GB82WEST12345698765432",
-                    "debtorName": "John Doe",
-                    "debtorBic": "WESTGB22",
+                    "creditorIban": "GB82WEST12345698765432",
+                    "creditorName": "John Doe",
+                    "creditorBic": "WESTGB22",
                     "remittanceInformation": "Imported from JSON"
                 }
             ]

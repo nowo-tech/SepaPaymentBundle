@@ -33,18 +33,18 @@ class TransactionTest extends TestCase
         $this->assertEquals('E2E-001', $transaction->getEndToEndId());
         $this->assertEquals(100.50, $transaction->getAmount());
         $this->assertEquals('EUR', $transaction->getCurrency());
-        $this->assertEquals('ES9121000418450200051332', $transaction->getDebtorIban());
-        $this->assertEquals('John Doe', $transaction->getDebtorName());
-        $this->assertNull($transaction->getDebtorBic());
+        $this->assertEquals('ES9121000418450200051332', $transaction->getCreditorIban());
+        $this->assertEquals('John Doe', $transaction->getCreditorName());
+        $this->assertNull($transaction->getCreditorBic());
         $this->assertNull($transaction->getRemittanceInformation());
     }
 
     /**
-     * Tests setting debtor BIC.
+     * Tests setting creditor BIC.
      *
      * @return void
      */
-    public function testSetDebtorBic(): void
+    public function testSetCreditorBic(): void
     {
         $transaction = new Transaction(
             'E2E-001',
@@ -54,11 +54,11 @@ class TransactionTest extends TestCase
             'John Doe'
         );
 
-        $transaction->setDebtorBic('CAIXESBBXXX');
-        $this->assertEquals('CAIXESBBXXX', $transaction->getDebtorBic());
+        $transaction->setCreditorBic('CAIXESBBXXX');
+        $this->assertEquals('CAIXESBBXXX', $transaction->getCreditorBic());
 
-        $transaction->setDebtorBic(null);
-        $this->assertNull($transaction->getDebtorBic());
+        $transaction->setCreditorBic(null);
+        $this->assertNull($transaction->getCreditorBic());
     }
 
     /**
@@ -84,11 +84,11 @@ class TransactionTest extends TestCase
     }
 
     /**
-     * Tests setting debtor address.
+     * Tests setting creditor address.
      *
      * @return void
      */
-    public function testSetDebtorAddress(): void
+    public function testSetCreditorAddress(): void
     {
         $transaction = new Transaction(
             'E2E-001',
@@ -98,10 +98,10 @@ class TransactionTest extends TestCase
             'John Doe'
         );
 
-        $this->assertNull($transaction->getDebtorAddress());
+        $this->assertNull($transaction->getCreditorAddress());
 
-        $transaction->setDebtorAddress('123 Main St', 'London', 'SW1A 1AA', 'GB');
-        $address = $transaction->getDebtorAddress();
+        $transaction->setCreditorAddress('123 Main St', 'London', 'SW1A 1AA', 'GB');
+        $address = $transaction->getCreditorAddress();
 
         $this->assertNotNull($address);
         $this->assertEquals('123 Main St', $address['street']);
@@ -111,11 +111,11 @@ class TransactionTest extends TestCase
     }
 
     /**
-     * Tests setting debtor address from array.
+     * Tests setting creditor address from array.
      *
      * @return void
      */
-    public function testSetDebtorAddressFromArray(): void
+    public function testSetCreditorAddressFromArray(): void
     {
         $transaction = new Transaction(
             'E2E-001',
@@ -125,14 +125,14 @@ class TransactionTest extends TestCase
             'John Doe'
         );
 
-        $transaction->setDebtorAddressFromArray([
+        $transaction->setCreditorAddressFromArray([
             'street' => '456 Oak Avenue',
             'city' => 'Madrid',
             'postalCode' => '28001',
             'country' => 'ES',
         ]);
 
-        $address = $transaction->getDebtorAddress();
+        $address = $transaction->getCreditorAddress();
         $this->assertNotNull($address);
         $this->assertEquals('456 Oak Avenue', $address['street']);
         $this->assertEquals('Madrid', $address['city']);
@@ -141,11 +141,11 @@ class TransactionTest extends TestCase
     }
 
     /**
-     * Tests setting debtor address from array with snake_case keys.
+     * Tests setting creditor address from array with snake_case keys.
      *
      * @return void
      */
-    public function testSetDebtorAddressFromArraySnakeCase(): void
+    public function testSetCreditorAddressFromArraySnakeCase(): void
     {
         $transaction = new Transaction(
             'E2E-001',
@@ -155,14 +155,14 @@ class TransactionTest extends TestCase
             'John Doe'
         );
 
-        $transaction->setDebtorAddressFromArray([
+        $transaction->setCreditorAddressFromArray([
             'address' => '789 Pine Street',
             'city' => 'Barcelona',
             'postal_code' => '08001',
             'country' => 'ES',
         ]);
 
-        $address = $transaction->getDebtorAddress();
+        $address = $transaction->getCreditorAddress();
         $this->assertNotNull($address);
         $this->assertEquals('789 Pine Street', $address['street']);
         $this->assertEquals('Barcelona', $address['city']);

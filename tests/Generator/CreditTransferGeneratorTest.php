@@ -66,7 +66,7 @@ class CreditTransferGeneratorTest extends TestCase
             'John Doe'
         );
 
-        $transaction->setDebtorBic('WESTGB22');
+        $transaction->setCreditorBic('WESTGB22');
         $transaction->setRemittanceInformation('Invoice 12345');
 
         $creditTransferData->addTransaction($transaction);
@@ -108,14 +108,14 @@ class CreditTransferGeneratorTest extends TestCase
     }
 
     /**
-     * Tests XML generation with invalid debtor IBAN.
+     * Tests XML generation with invalid transaction creditor IBAN.
      *
      * @return void
      */
-    public function testGenerateXmlWithInvalidDebtorIban(): void
+    public function testGenerateXmlWithInvalidTransactionCreditorIban(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Invalid debtor IBAN');
+        $this->expectExceptionMessage('Invalid creditor IBAN');
 
         $creditTransferData = new CreditTransferData(
             'MSG-001',
@@ -275,8 +275,8 @@ class CreditTransferGeneratorTest extends TestCase
             'transactions' => [
                 [
                     'amount' => 100.50,
-                    'debtorIban' => 'GB82WEST12345698765432',
-                    'debtorName' => 'John Doe',
+                    'creditorIban' => 'GB82WEST12345698765432',
+                    'creditorName' => 'John Doe',
                     'endToEndId' => 'E2E-001',
                 ],
             ],
@@ -312,8 +312,8 @@ class CreditTransferGeneratorTest extends TestCase
                 [
                     'instruction_id' => 'E2E-001',
                     'amount' => 100.50,
-                    'debtor_iban' => 'GB82WEST12345698765432',
-                    'debtor_name' => 'John Doe',
+                    'creditor_iban' => 'GB82WEST12345698765432',
+                    'creditor_name' => 'John Doe',
                 ],
             ],
         ];
@@ -331,7 +331,7 @@ class CreditTransferGeneratorTest extends TestCase
     }
 
     /**
-     * Tests generateFromArray with creditor and debtor addresses.
+     * Tests generateFromArray with creditor addresses.
      *
      * @return void
      */
@@ -353,10 +353,10 @@ class CreditTransferGeneratorTest extends TestCase
             'transactions' => [
                 [
                     'amount' => 100.50,
-                    'debtorIban' => 'GB82WEST12345698765432',
-                    'debtorName' => 'John Doe',
+                    'creditorIban' => 'GB82WEST12345698765432',
+                    'creditorName' => 'John Doe',
                     'endToEndId' => 'E2E-001',
-                    'debtorAddress' => [
+                    'creditorAddress' => [
                         'street' => '456 Customer Avenue',
                         'city' => 'London',
                         'postalCode' => 'SW1A 1AA',
@@ -405,12 +405,12 @@ class CreditTransferGeneratorTest extends TestCase
                 [
                     'instruction_id' => 'E2E-001',
                     'amount' => 100.50,
-                    'debtor_iban' => 'GB82WEST12345698765432',
-                    'debtor_name' => 'John Doe',
-                    'debtor_street' => '456 Customer Avenue',
-                    'debtor_city' => 'London',
-                    'debtor_postal_code' => 'SW1A 1AA',
-                    'debtor_country' => 'GB',
+                    'creditor_iban' => 'GB82WEST12345698765432',
+                    'creditor_name' => 'John Doe',
+                    'creditor_street' => '456 Customer Avenue',
+                    'creditor_city' => 'London',
+                    'creditor_postal_code' => 'SW1A 1AA',
+                    'creditor_country' => 'GB',
                 ],
             ],
         ];
@@ -475,11 +475,11 @@ class CreditTransferGeneratorTest extends TestCase
     }
 
     /**
-     * Tests XML generation with debtor address using object methods.
+     * Tests XML generation with transaction creditor address using object methods.
      *
      * @return void
      */
-    public function testGenerateXmlWithDebtorAddress(): void
+    public function testGenerateXmlWithTransactionCreditorAddress(): void
     {
         $creditTransferData = new CreditTransferData(
             'MSG-001',
@@ -499,7 +499,7 @@ class CreditTransferGeneratorTest extends TestCase
             'John Doe'
         );
 
-        $transaction->setDebtorAddress([
+        $transaction->setCreditorAddress([
             'street' => '321 Customer Street',
             'city' => 'Manchester',
             'postalCode' => 'M1 1AA',
@@ -550,7 +550,7 @@ class CreditTransferGeneratorTest extends TestCase
             'John Doe'
         );
 
-        $transaction->setDebtorAddress([
+        $transaction->setCreditorAddress([
             'street' => '222 Debtor Blvd',
             'city' => 'Leeds',
             'postalCode' => 'LS1 1AA',
@@ -564,10 +564,10 @@ class CreditTransferGeneratorTest extends TestCase
         $this->assertStringContainsString('<?xml', $xml);
         $this->assertStringContainsString('CstmrCdtTrfInitn', $xml);
         $this->assertStringContainsString('PstlAdr', $xml);
-        // Creditor address
+        // Creditor address (from CreditTransferData - represents debtor/company that pays)
         $this->assertStringContainsString('111 Creditor Ave', $xml);
         $this->assertStringContainsString('Valencia', $xml);
-        // Debtor address
+        // Creditor address (from Transaction - represents creditor/supplier that receives)
         $this->assertStringContainsString('222 Debtor Blvd', $xml);
         $this->assertStringContainsString('Leeds', $xml);
     }
@@ -589,8 +589,8 @@ class CreditTransferGeneratorTest extends TestCase
             'transactions' => [
                 [
                     'amount' => 100.50,
-                    'debtorIban' => 'GB82WEST12345698765432',
-                    'debtorName' => 'John Doe',
+                    'creditorIban' => 'GB82WEST12345698765432',
+                    'creditorName' => 'John Doe',
                     'endToEndId' => 'E2E-001',
                 ],
             ],
@@ -622,10 +622,10 @@ class CreditTransferGeneratorTest extends TestCase
             'transactions' => [
                 [
                     'amount' => 100.50,
-                    'debtorIban' => 'GB82WEST12345698765432',
-                    'debtorName' => 'John Doe',
+                    'creditorIban' => 'GB82WEST12345698765432',
+                    'creditorName' => 'John Doe',
                     'endToEndId' => 'E2E-001',
-                    'debtorAddress' => [], // Empty array
+                    'creditorAddress' => [], // Empty array
                 ],
             ],
         ];
@@ -679,8 +679,8 @@ class CreditTransferGeneratorTest extends TestCase
             'transactions' => [
                 [
                     'amount' => 100.50,
-                    'debtorIban' => 'GB82WEST12345698765432',
-                    'debtorName' => 'John Doe',
+                    'creditorIban' => 'GB82WEST12345698765432',
+                    'creditorName' => 'John Doe',
                 ],
             ],
         ];
@@ -705,8 +705,8 @@ class CreditTransferGeneratorTest extends TestCase
             'transactions' => [
                 [
                     'amount' => 100.50,
-                    'debtorIban' => 'GB82WEST12345698765432',
-                    'debtorName' => 'John Doe',
+                    'creditorIban' => 'GB82WEST12345698765432',
+                    'creditorName' => 'John Doe',
                     'endToEndId' => 'E2E-001',
                 ],
             ],
@@ -736,8 +736,8 @@ class CreditTransferGeneratorTest extends TestCase
             'transactions' => [
                 [
                     'amount' => 100.50,
-                    'debtorIban' => 'GB82WEST12345698765432',
-                    'debtorName' => 'John Doe',
+                    'creditorIban' => 'GB82WEST12345698765432',
+                    'creditorName' => 'John Doe',
                     'endToEndId' => 'E2E-001',
                 ],
             ],
@@ -766,8 +766,8 @@ class CreditTransferGeneratorTest extends TestCase
             'transactions' => [
                 [
                     'amount' => 15000, // 150.00 in cents
-                    'debtorIban' => 'GB82WEST12345698765432',
-                    'debtorName' => 'John Doe',
+                    'creditorIban' => 'GB82WEST12345698765432',
+                    'creditorName' => 'John Doe',
                     'endToEndId' => 'E2E-001',
                 ],
             ],
@@ -796,8 +796,8 @@ class CreditTransferGeneratorTest extends TestCase
             'transactions' => [
                 [
                     'amount' => 100.50,
-                    'debtorIban' => 'GB82WEST12345698765432',
-                    'debtorName' => 'John Doe',
+                    'creditorIban' => 'GB82WEST12345698765432',
+                    'creditorName' => 'John Doe',
                     'endToEndId' => 'E2E-001',
                 ],
             ],
@@ -827,8 +827,8 @@ class CreditTransferGeneratorTest extends TestCase
             'transactions' => [
                 [
                     'amount' => 100.50,
-                    'debtorIban' => 'GB82WEST12345698765432',
-                    'debtorName' => 'John Doe',
+                    'creditorIban' => 'GB82WEST12345698765432',
+                    'creditorName' => 'John Doe',
                     'endToEndId' => 'E2E-001',
                 ],
             ],
@@ -842,11 +842,11 @@ class CreditTransferGeneratorTest extends TestCase
     }
 
     /**
-     * Tests generateFromArray with debtorBic.
+     * Tests generateFromArray with transaction creditorBic.
      *
      * @return void
      */
-    public function testGenerateFromArrayWithDebtorBic(): void
+    public function testGenerateFromArrayWithTransactionCreditorBic(): void
     {
         $data = [
             'reference' => 'MSG-001',
@@ -858,10 +858,10 @@ class CreditTransferGeneratorTest extends TestCase
             'transactions' => [
                 [
                     'amount' => 100.50,
-                    'debtorIban' => 'GB82WEST12345698765432',
-                    'debtorName' => 'John Doe',
+                    'creditorIban' => 'GB82WEST12345698765432',
+                    'creditorName' => 'John Doe',
                     'endToEndId' => 'E2E-001',
-                    'debtorBic' => 'WESTGB22',
+                    'creditorBic' => 'WESTGB22',
                 ],
             ],
         ];
@@ -890,8 +890,8 @@ class CreditTransferGeneratorTest extends TestCase
             'transactions' => [
                 [
                     'amount' => 100.50,
-                    'debtorIban' => 'GB82WEST12345698765432',
-                    'debtorName' => 'John Doe',
+                    'creditorIban' => 'GB82WEST12345698765432',
+                    'creditorName' => 'John Doe',
                     'endToEndId' => 'E2E-001',
                     'remittanceInformation' => 'Invoice 12345',
                 ],
@@ -924,8 +924,8 @@ class CreditTransferGeneratorTest extends TestCase
                 [
                     'amount' => 100.50,
                     'currency' => 'USD',
-                    'debtorIban' => 'GB82WEST12345698765432',
-                    'debtorName' => 'John Doe',
+                    'creditorIban' => 'GB82WEST12345698765432',
+                    'creditorName' => 'John Doe',
                     'endToEndId' => 'E2E-001',
                 ],
             ],
@@ -957,8 +957,8 @@ class CreditTransferGeneratorTest extends TestCase
             'transactions' => [
                 [
                     'amount' => 100.50,
-                    'debtorIban' => 'GB82WEST12345698765432',
-                    'debtorName' => 'John Doe',
+                    'creditorIban' => 'GB82WEST12345698765432',
+                    'creditorName' => 'John Doe',
                     'endToEndId' => 'E2E-001',
                 ],
             ],
@@ -1038,10 +1038,10 @@ class CreditTransferGeneratorTest extends TestCase
             'transactions' => [
                 [
                     'amount' => 100.50,
-                    'debtorIban' => 'GB82WEST12345698765432',
-                    'debtorName' => 'John Doe',
+                    'creditorIban' => 'GB82WEST12345698765432',
+                    'creditorName' => 'John Doe',
                     'endToEndId' => 'E2E-001',
-                    'debtorAddress' => [
+                    'creditorAddress' => [
                         'street' => '456 Customer Avenue',
                         'city' => 'London',
                         'postalCode' => 'SW1A 1AA',
@@ -1050,10 +1050,10 @@ class CreditTransferGeneratorTest extends TestCase
                 ],
                 [
                     'amount' => 200.75,
-                    'debtorIban' => 'FR1420041010050500013M02606',
-                    'debtorName' => 'Jane Smith',
+                    'creditorIban' => 'FR1420041010050500013M02606',
+                    'creditorName' => 'Jane Smith',
                     'endToEndId' => 'E2E-002',
-                    'debtorAddress' => [
+                    'creditorAddress' => [
                         'street' => '789 Paris Street',
                         'city' => 'Paris',
                         'postalCode' => '75001',
@@ -1218,12 +1218,12 @@ class CreditTransferGeneratorTest extends TestCase
                 [
                     'amount' => 100.50,
                     'currency' => 'EUR',
-                    'debtorIban' => 'GB82WEST12345698765432',
-                    'debtorName' => 'John Doe',
+                    'creditorIban' => 'GB82WEST12345698765432',
+                    'creditorName' => 'John Doe',
                     'endToEndId' => 'E2E-ALL-001',
-                    'debtorBic' => 'WESTGB22',
+                    'creditorBic' => 'WESTGB22',
                     'remittanceInformation' => 'Test Invoice',
-                    'debtorAddress' => [
+                    'creditorAddress' => [
                         'street' => '456 Test Avenue',
                         'city' => 'London',
                         'postalCode' => 'SW1A 1AA',

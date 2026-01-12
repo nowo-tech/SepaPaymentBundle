@@ -133,16 +133,17 @@ class RemesaGenerator
         }
 
         foreach ($remesaData->getTransactions() as $transaction) {
+            // Remesa\Transaction uses debtor* fields (deprecated API), but CreditTransfer\Transaction now uses creditor* fields
             $creditTransferTransaction = new \Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction(
                 $transaction->getEndToEndId(),
                 $transaction->getAmount(),
                 $transaction->getCurrency(),
-                $transaction->getDebtorIban(),
-                $transaction->getDebtorName()
+                $transaction->getDebtorIban(), // Remesa\Transaction.getDebtorIban() -> CreditTransfer\Transaction.creditorIban
+                $transaction->getDebtorName()  // Remesa\Transaction.getDebtorName() -> CreditTransfer\Transaction.creditorName
             );
 
             if ($transaction->getDebtorBic() !== null) {
-                $creditTransferTransaction->setDebtorBic($transaction->getDebtorBic());
+                $creditTransferTransaction->setCreditorBic($transaction->getDebtorBic());
             }
 
             if ($transaction->getRemittanceInformation() !== null) {
@@ -150,7 +151,7 @@ class RemesaGenerator
             }
 
             if ($transaction->getDebtorAddress() !== null) {
-                $creditTransferTransaction->setDebtorAddressFromArray($transaction->getDebtorAddress());
+                $creditTransferTransaction->setCreditorAddressFromArray($transaction->getDebtorAddress());
             }
 
             $creditTransferData->addTransaction($creditTransferTransaction);

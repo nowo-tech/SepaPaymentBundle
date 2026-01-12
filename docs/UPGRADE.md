@@ -2,6 +2,113 @@
 
 This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
+## Upgrading from 1.2.3 to 1.2.4
+
+### ⚠️ Breaking Changes (1.2.4)
+
+- **Credit Transfer Transaction Model Refactoring**: `CreditTransfer\Transaction` field names and methods have changed
+  - **Field names changed**: `debtorIban` → `creditorIban`, `debtorName` → `creditorName`, `debtorBic` → `creditorBic`, `debtorAddress` → `creditorAddress`
+  - **Method names changed**: All `getDebtor*()`, `setDebtor*()` methods → `getCreditor*()`, `setCreditor*()`
+  - **Why this change**: Makes the code self-documenting - Transaction fields now correctly reflect that they represent creditors (who receive money)
+  - **Migration required**: Code using `CreditTransfer\Transaction` directly must be updated
+
+#### Migration Steps
+
+**Before (1.2.3 and earlier):**
+```php
+use Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction;
+
+$transaction = new Transaction(
+    'E2E-001',
+    100.50,
+    'EUR',
+    'GB82WEST12345698765432', // debtorIban
+    'John Doe'                // debtorName
+);
+
+$transaction->setDebtorBic('WESTGB22');
+$transaction->setDebtorAddress(['street' => '123 Main St', 'city' => 'London']);
+
+$iban = $transaction->getDebtorIban();
+$name = $transaction->getDebtorName();
+$bic = $transaction->getDebtorBic();
+$address = $transaction->getDebtorAddress();
+```
+
+**After (1.2.4):**
+```php
+use Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction;
+
+$transaction = new Transaction(
+    'E2E-001',
+    100.50,
+    'EUR',
+    'GB82WEST12345698765432', // creditorIban (who receives)
+    'John Doe'                // creditorName (who receives)
+);
+
+$transaction->setCreditorBic('WESTGB22');
+$transaction->setCreditorAddress(['street' => '123 Main St', 'city' => 'London']);
+
+$iban = $transaction->getCreditorIban();
+$name = $transaction->getCreditorName();
+$bic = $transaction->getCreditorBic();
+$address = $transaction->getCreditorAddress();
+```
+
+**Using `generateFromArray()` method:**
+- The `generateFromArray()` method now only accepts `creditor*` field names in arrays
+- The deprecated `debtor*` field names are no longer supported
+
+```php
+// Correct format (required)
+$data = [
+    'transactions' => [
+        [
+            'amount' => 100.50,
+            'creditorIban' => 'GB82WEST12345698765432',  // ✅ Required
+            'creditorName' => 'John Doe',                 // ✅ Required
+            'creditorBic' => 'WESTGB22',                  // ✅ Optional
+        ],
+    ],
+];
+
+// ❌ Deprecated format (no longer supported)
+// $data = [
+//     'transactions' => [
+//         [
+//             'amount' => 100.50,
+//             'debtorIban' => 'GB82WEST12345698765432',  // ❌ No longer supported
+//             'debtorName' => 'John Doe',                 // ❌ No longer supported
+//             'debtorBic' => 'WESTGB22',                  // ❌ No longer supported
+//         ],
+//     ],
+// ];
+```
+
+### 🐛 Bug Fixes (1.2.4)
+
+- **Fixed Credit Transfer Generator Creditor/Debtor Mapping**: Corrected incorrect mapping of creditor and debtor roles
+  - `PaymentInformation` now correctly uses debtor data (company that pays)
+  - `CustomerCreditTransferInformation` now correctly uses creditor data (each supplier/beneficiary that receives)
+  - This fix ensures compliance with SEPA pain.001 standard for credit transfers
+  - The XML generated will now correctly reflect the payment structure: one debtor paying multiple creditors
+
+### Backward Compatibility
+
+- **Array format**: The `generateFromArray()` method now only accepts `creditor*` field names. The deprecated `debtor*` field names are no longer supported
+- **Remesa classes unaffected**: The deprecated `Remesa\Transaction` and `Remesa\RemesaData` classes continue to work (they maintain their `debtor*` API for backward compatibility)
+- **XML output change**: The generated XML will now correctly map debtor/creditor roles according to SEPA standards
+
+### Impact
+
+- **Code using `CreditTransfer\Transaction` directly**: Requires migration to new `creditor*` method names
+- **Code using `generateFromArray()`**: Must update arrays to use `creditor*` field names (`creditorIban`, `creditorName`, `creditorBic`, `creditorAddress`)
+- **Code using deprecated `Remesa\*` classes**: No changes required (they maintain backward compatibility with `debtor*` API)
+- **XML output**: Generated XML files will now correctly comply with SEPA pain.001 standard structure
+
+---
+
 ## Upgrading from 1.2.2 to 1.2.3
 
 ### 🐛 Bug Fixes (1.2.3)
