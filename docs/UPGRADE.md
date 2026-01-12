@@ -4,11 +4,16 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
 ## Upgrading from 1.2.6 to 1.2.7
 
+### 🗑️ Removed (1.2.7)
+
+- **Catalan translations**: Removed Catalan translation files
+  - `nowo_sepa_payment.ca.yaml` and `validators.ca.yaml` have been removed
+  - These files had YAML syntax errors and are no longer maintained
+  - If you were using Catalan translations, they will fall back to the default language
+  - Catalan language support can be added back in the future if needed
+
 ### 🐛 Bug Fixes (1.2.7)
 
-- **Catalan translations**: Fixed YAML syntax errors in translation file
-  - Resolved YAML parsing errors caused by incorrectly escaped quotes and apostrophes
-  - No action required - this is a bug fix that improves translation loading
 - **CreditTransferGenerator**: Fixed compatibility with refactored `Transaction` class
   - Fixed incorrect usage of deprecated `debtor*` methods
   - No action required - this is an internal fix
@@ -16,8 +21,8 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 ### Backward Compatibility
 
 - **No breaking changes**: All existing code will continue to work
-- **No migration required**: This is a patch release with bug fixes only
-- **Automatic fix**: Translation errors are automatically resolved when upgrading
+- **Translation fallback**: If you were using Catalan translations, the system will fall back to the default language (usually English)
+- **No migration required**: This is a patch release with bug fixes and cleanup
 
 ---
 
