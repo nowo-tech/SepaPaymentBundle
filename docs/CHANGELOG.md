@@ -10,9 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.7] - 2026-01-13
 
 ### Fixed
-- **Catalan translations**: Fixed YAML syntax error in `nowo_sepa_payment.ca.yaml` translation file
+- **Catalan translations**: Fixed YAML syntax errors in `nowo_sepa_payment.ca.yaml` translation file
   - Fixed invalid YAML syntax caused by unescaped double quotes within single-quoted strings
+  - Fixed invalid YAML syntax caused by incorrectly escaped apostrophes (`\'`) within single-quoted strings
   - Changed single quotes to double quotes and properly escaped internal double quotes
+  - Changed single-quoted strings with escaped apostrophes to double-quoted strings (allows apostrophes without escaping)
   - This fix resolves YAML parsing errors when loading Catalan translations
 - **CreditTransferGenerator**: Fixed incorrect usage of deprecated `debtor*` methods in `Transaction` objects
   - Changed `getDebtorAddress()` to `getCreditorAddress()` in transaction address handling
