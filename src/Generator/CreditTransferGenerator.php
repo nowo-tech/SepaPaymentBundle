@@ -186,7 +186,6 @@ class CreditTransferGenerator
                 $this->setCreditorPostalAddress($paymentInformation, $creditorAddress);
             }
 
-
             // Add transactions
             foreach ($creditTransferData->getTransactions() as $transaction) {
                 $transferInformation = new CustomerCreditTransferInformation(
@@ -222,7 +221,6 @@ class CreditTransferGenerator
                 $paymentInformation->addTransfer($transferInformation);
             }
 
-
             $transferFile->addPaymentInformation($paymentInformation);
 
             // Generate XML
@@ -237,7 +235,8 @@ class CreditTransferGenerator
                 try {
                     $this->xsdValidator->validateCreditTransfer($xml);
                 } catch (\InvalidArgumentException $e) {
-                $message = $this->translator->trans('validation.generated_xml_failed_xsd', ['%error%' => $e->getMessage()], 'nowo_sepa_payment');
+                    $message = $this->translator->trans('validation.generated_xml_failed_xsd', ['%error%' => $e->getMessage()], 'nowo_sepa_payment');
+
                     throw new \InvalidArgumentException($message, 0, $e);
                 }
             }
@@ -301,6 +300,7 @@ class CreditTransferGenerator
         foreach ($required as $field) {
             if (!isset($data[$field])) {
                 $message = $this->translator->trans('validation.missing_required_field', ['%field%' => $field], 'nowo_sepa_payment');
+
                 throw new \InvalidArgumentException($message);
             }
         }
@@ -311,6 +311,7 @@ class CreditTransferGenerator
             $creationDate = new \DateTime($creationDate);
         } elseif (!$creationDate instanceof \DateTimeInterface) {
             $message = $this->translator->trans('validation.invalid_creation_date', [], 'nowo_sepa_payment');
+
             throw new \InvalidArgumentException($message);
         }
 
@@ -319,6 +320,7 @@ class CreditTransferGenerator
             $requestedExecutionDate = new \DateTime($requestedExecutionDate);
         } elseif (!$requestedExecutionDate instanceof \DateTimeInterface) {
             $message = $this->translator->trans('validation.invalid_execution_date', [], 'nowo_sepa_payment');
+
             throw new \InvalidArgumentException($message);
         }
 
@@ -447,6 +449,7 @@ class CreditTransferGenerator
         foreach ($required as $field) {
             if (!isset($transactionData[$field])) {
                 $message = $this->translator->trans('validation.missing_required_transaction_field', ['%field%' => $field], 'nowo_sepa_payment');
+
                 throw new \InvalidArgumentException($message);
             }
         }
@@ -526,7 +529,7 @@ class CreditTransferGenerator
             /** @phpstan-ignore-next-line */
             $transferInformation->setStreetName($address['street'] ?? '');
         }
-       
+
         // Note: Addresses are always added to XML via DOM manipulation in addAddressesToXml()
         // even if the library methods don't exist, ensuring addresses are included in the final XML
     }
@@ -767,12 +770,14 @@ class CreditTransferGenerator
     {
         if (!$this->ibanValidator->isValid($creditTransferData->getCreditorIban())) {
             $message = $this->translator->trans('validation.invalid_creditor_iban', ['%iban%' => $creditTransferData->getCreditorIban()], 'nowo_sepa_payment');
+
             throw new \InvalidArgumentException($message);
         }
 
         foreach ($creditTransferData->getTransactions() as $transaction) {
             if (!$this->ibanValidator->isValid($transaction->getCreditorIban())) {
                 $message = $this->translator->trans('validation.invalid_creditor_iban', ['%iban%' => $transaction->getCreditorIban()], 'nowo_sepa_payment');
+
                 throw new \InvalidArgumentException($message);
             }
         }
