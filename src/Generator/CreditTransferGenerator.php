@@ -297,10 +297,10 @@ class CreditTransferGenerator
         }
         // Check for debtorIban and debtorName (normalized from debtor* keys)
         if (!isset($data['debtorIban'])) {
-            throw new \InvalidArgumentException("Missing required field: debtorIban");
+            throw new \InvalidArgumentException('Missing required field: debtorIban');
         }
         if (!isset($data['debtorName'])) {
-            throw new \InvalidArgumentException("Missing required field: debtorName");
+            throw new \InvalidArgumentException('Missing required field: debtorName');
         }
 
         // Parse dates
@@ -395,6 +395,7 @@ class CreditTransferGenerator
                     $suggestions[] = str_replace('creditor', 'debtor', $key);
                 }
             }
+
             throw new \InvalidArgumentException(
                 'Invalid key(s) at top level: ' . implode(', ', $incorrectCreditorKeys) . '. ' .
                 'At the top level (payment information), you must use "debtor*" keys (e.g., debtorIban, debtorName, debtorBic) ' .
@@ -459,6 +460,7 @@ class CreditTransferGenerator
                     $suggestions[] = str_replace('debtor', 'creditor', $key);
                 }
             }
+
             throw new \InvalidArgumentException(
                 'Invalid key(s) in transaction: ' . implode(', ', $incorrectDebtorKeys) . '. ' .
                 'Within transactions array, you must use "creditor*" keys (e.g., creditorIban, creditorName, creditorBic) ' .
