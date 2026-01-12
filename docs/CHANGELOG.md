@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.9] - 2026-01-13
+
+### Removed
+- **French and Italian translations**: Removed translation files with YAML syntax errors
+  - Removed `nowo_sepa_payment.fr.yaml` - had YAML syntax errors with incorrectly escaped apostrophes
+  - Removed `nowo_sepa_payment.it.yaml` - had YAML syntax errors with incorrectly escaped apostrophes
+  - Removed `validators.fr.yaml` - had YAML syntax errors with incorrectly escaped apostrophes
+  - These translation files had YAML syntax errors and are no longer maintained
+  - This cleanup helps streamline the translation resources in the project
+  - French and Italian language support can be added back in the future if needed
+  - If you were using these translations, they will fall back to the default language (usually English)
+
 ## [1.2.8] - 2026-01-13
 
 ### Removed

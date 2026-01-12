@@ -2,6 +2,26 @@
 
 This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
+## Upgrading from 1.2.8 to 1.2.9
+
+### 🗑️ Removed (1.2.9)
+
+- **French and Italian translations**: Removed translation files with YAML syntax errors
+  - `nowo_sepa_payment.fr.yaml` has been removed
+  - `nowo_sepa_payment.it.yaml` has been removed
+  - `validators.fr.yaml` has been removed
+  - These files had YAML syntax errors with incorrectly escaped apostrophes and are no longer maintained
+  - If you were using French or Italian translations, they will fall back to the default language (usually English)
+  - French and Italian language support can be added back in the future if needed
+
+### Backward Compatibility
+
+- **No breaking changes**: All existing code will continue to work
+- **Translation fallback**: If you were using French or Italian translations, the system will fall back to the default language
+- **No migration required**: This is a patch release with cleanup only
+
+---
+
 ## Upgrading from 1.2.7 to 1.2.8
 
 ### 🗑️ Removed (1.2.8)
