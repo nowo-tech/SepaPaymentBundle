@@ -185,16 +185,17 @@ class RemesaData
     public function addTransaction(Transaction $transaction): self
     {
         // Convert Transaction to CreditTransferTransaction
+        // Remesa\Transaction uses debtor* fields (deprecated API), but CreditTransfer\Transaction now uses creditor* fields
         $creditTransferTransaction = new CreditTransferTransaction(
             $transaction->getEndToEndId(),
             $transaction->getAmount(),
             $transaction->getCurrency(),
-            $transaction->getDebtorIban(),
-            $transaction->getDebtorName()
+            $transaction->getDebtorIban(), // Remesa\Transaction.getDebtorIban() -> CreditTransfer\Transaction.creditorIban
+            $transaction->getDebtorName()  // Remesa\Transaction.getDebtorName() -> CreditTransfer\Transaction.creditorName
         );
 
         if ($transaction->getDebtorBic() !== null) {
-            $creditTransferTransaction->setDebtorBic($transaction->getDebtorBic());
+            $creditTransferTransaction->setCreditorBic($transaction->getDebtorBic());
         }
 
         if ($transaction->getRemittanceInformation() !== null) {
@@ -202,7 +203,7 @@ class RemesaData
         }
 
         if ($transaction->getDebtorAddress() !== null) {
-            $creditTransferTransaction->setDebtorAddressFromArray($transaction->getDebtorAddress());
+            $creditTransferTransaction->setCreditorAddressFromArray($transaction->getDebtorAddress());
         }
 
         $this->creditTransferData->addTransaction($creditTransferTransaction);
@@ -219,24 +220,25 @@ class RemesaData
     {
         $transactions = [];
         foreach ($this->creditTransferData->getTransactions() as $creditTransferTransaction) {
+            // CreditTransfer\Transaction uses creditor* fields, but Remesa\Transaction uses debtor* fields (deprecated API)
             $transaction = new Transaction(
                 $creditTransferTransaction->getEndToEndId(),
                 $creditTransferTransaction->getAmount(),
                 $creditTransferTransaction->getCurrency(),
-                $creditTransferTransaction->getDebtorIban(),
-                $creditTransferTransaction->getDebtorName()
+                $creditTransferTransaction->getCreditorIban(), // CreditTransfer\Transaction.creditorIban -> Remesa\Transaction.debtorIban
+                $creditTransferTransaction->getCreditorName()  // CreditTransfer\Transaction.creditorName -> Remesa\Transaction.debtorName
             );
 
-            if ($creditTransferTransaction->getDebtorBic() !== null) {
-                $transaction->setDebtorBic($creditTransferTransaction->getDebtorBic());
+            if ($creditTransferTransaction->getCreditorBic() !== null) {
+                $transaction->setDebtorBic($creditTransferTransaction->getCreditorBic());
             }
 
             if ($creditTransferTransaction->getRemittanceInformation() !== null) {
                 $transaction->setRemittanceInformation($creditTransferTransaction->getRemittanceInformation());
             }
 
-            if ($creditTransferTransaction->getDebtorAddress() !== null) {
-                $transaction->setDebtorAddressFromArray($creditTransferTransaction->getDebtorAddress());
+            if ($creditTransferTransaction->getCreditorAddress() !== null) {
+                $transaction->setDebtorAddressFromArray($creditTransferTransaction->getCreditorAddress());
             }
 
             $transactions[] = $transaction;

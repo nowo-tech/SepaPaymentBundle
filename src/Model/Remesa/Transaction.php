@@ -25,12 +25,13 @@ class Transaction
 
     /**
      * Constructor.
+     * Note: This class maintains the deprecated Remesa API (debtor*), but internally uses CreditTransfer\Transaction.creditor* fields.
      *
      * @param string $endToEndId End-to-end identifier
      * @param float  $amount     Amount to transfer
      * @param string $currency   Currency code (ISO 4217)
-     * @param string $debtorIban Debtor IBAN
-     * @param string $debtorName Debtor name
+     * @param string $debtorIban Debtor IBAN (maps to CreditTransfer\Transaction.creditorIban internally)
+     * @param string $debtorName Debtor name (maps to CreditTransfer\Transaction.creditorName internally)
      */
     public function __construct(
         string $endToEndId,
@@ -41,12 +42,13 @@ class Transaction
     ) {
         @trigger_error('Remesa\Transaction is deprecated since 1.1.0. Use CreditTransfer\Transaction instead.', \E_USER_DEPRECATED);
 
+        // Remesa\Transaction uses debtor* API (deprecated), but CreditTransfer\Transaction now uses creditor* fields
         $this->creditTransferTransaction = new CreditTransferTransaction(
             $endToEndId,
             $amount,
             $currency,
-            $debtorIban,
-            $debtorName
+            $debtorIban, // Remesa API: debtorIban -> CreditTransfer API: creditorIban
+            $debtorName  // Remesa API: debtorName -> CreditTransfer API: creditorName
         );
     }
 
@@ -82,16 +84,18 @@ class Transaction
 
     /**
      * Gets the debtor IBAN.
+     * Note: This method maintains the deprecated Remesa API (debtor*), but internally uses CreditTransfer\Transaction.creditor* fields.
      *
      * @return string The debtor IBAN
      */
     public function getDebtorIban(): string
     {
-        return $this->creditTransferTransaction->getDebtorIban();
+        return $this->creditTransferTransaction->getCreditorIban();
     }
 
     /**
      * Sets the debtor BIC.
+     * Note: This method maintains the deprecated Remesa API (debtor*), but internally uses CreditTransfer\Transaction.creditor* fields.
      *
      * @param string|null $debtorBic The debtor BIC
      *
@@ -99,29 +103,31 @@ class Transaction
      */
     public function setDebtorBic(?string $debtorBic): self
     {
-        $this->creditTransferTransaction->setDebtorBic($debtorBic);
+        $this->creditTransferTransaction->setCreditorBic($debtorBic);
 
         return $this;
     }
 
     /**
      * Gets the debtor BIC.
+     * Note: This method maintains the deprecated Remesa API (debtor*), but internally uses CreditTransfer\Transaction.creditor* fields.
      *
      * @return string|null The debtor BIC
      */
     public function getDebtorBic(): ?string
     {
-        return $this->creditTransferTransaction->getDebtorBic();
+        return $this->creditTransferTransaction->getCreditorBic();
     }
 
     /**
      * Gets the debtor name.
+     * Note: This method maintains the deprecated Remesa API (debtor*), but internally uses CreditTransfer\Transaction.creditor* fields.
      *
      * @return string The debtor name
      */
     public function getDebtorName(): string
     {
-        return $this->creditTransferTransaction->getDebtorName();
+        return $this->creditTransferTransaction->getCreditorName();
     }
 
     /**
@@ -150,6 +156,7 @@ class Transaction
 
     /**
      * Sets the debtor address.
+     * Note: This method maintains the deprecated Remesa API (debtor*), but internally uses CreditTransfer\Transaction.creditor* fields.
      *
      * @param array<string, string|null>|string|null $street     Address array or street address
      * @param string|null                            $city       City (ignored if first param is array)
@@ -160,13 +167,14 @@ class Transaction
      */
     public function setDebtorAddress(array|string|null $street = null, ?string $city = null, ?string $postalCode = null, ?string $country = null): self
     {
-        $this->creditTransferTransaction->setDebtorAddress($street, $city, $postalCode, $country);
+        $this->creditTransferTransaction->setCreditorAddress($street, $city, $postalCode, $country);
 
         return $this;
     }
 
     /**
      * Sets the debtor address from array.
+     * Note: This method maintains the deprecated Remesa API (debtor*), but internally uses CreditTransfer\Transaction.creditor* fields.
      *
      * @param array<string, string|null> $address Address array with keys: street, city, postalCode, country
      *
@@ -174,19 +182,20 @@ class Transaction
      */
     public function setDebtorAddressFromArray(array $address): self
     {
-        $this->creditTransferTransaction->setDebtorAddressFromArray($address);
+        $this->creditTransferTransaction->setCreditorAddressFromArray($address);
 
         return $this;
     }
 
     /**
      * Gets the debtor address.
+     * Note: This method maintains the deprecated Remesa API (debtor*), but internally uses CreditTransfer\Transaction.creditor* fields.
      *
      * @return array<string, string|null>|null The debtor address
      */
     public function getDebtorAddress(): ?array
     {
-        return $this->creditTransferTransaction->getDebtorAddress();
+        return $this->creditTransferTransaction->getCreditorAddress();
     }
 
     /**

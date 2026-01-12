@@ -24,7 +24,10 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * SEPA Credit Transfer generator.
  * Generates SEPA Credit Transfer XML files using Digitick\Sepa library according to ISO 20022 standard.
- * Used for payment remittances where the debtor sends money to the creditor.
+ * Used for payment remittances where the debtor (company) sends money to creditors (suppliers/beneficiaries).
+ * 
+ * Note: In this implementation, CreditTransferData.creditor* fields represent the debtor (company that pays),
+ * and Transaction.creditor* fields represent each creditor (supplier/beneficiary that receives).
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
  * @copyright 2025 Nowo.tech
@@ -148,20 +151,22 @@ class CreditTransferGenerator
             // Create transfer file (pain.001.001.03 format) with group header
             $transferFile = new CustomerCreditTransferFile($groupHeader);
 
-            // Auto-fill creditor BIC if missing
-            $creditorBic = $creditTransferData->getCreditorBic();
-            if (null === $creditorBic && null !== $this->bicLookupService) {
+            // Auto-fill debtor BIC if missing (PaymentInformation uses debtor data - the company that pays)
+            // Note: CreditTransferData.creditor* fields represent the debtor (company that pays) in this context
+            $debtorBic = $creditTransferData->getCreditorBic();
+            if (null === $debtorBic && null !== $this->bicLookupService) {
                 $lookedUpBic = $this->bicLookupService->lookupBic($creditTransferData->getCreditorIban());
                 if (null !== $lookedUpBic) {
-                    $creditorBic = $lookedUpBic;
+                    $debtorBic = $lookedUpBic;
                 }
             }
 
             // Create payment information
+            // PaymentInformation must contain debtor data (who pays) - using creditor* fields from CreditTransferData
             $paymentInformation = new PaymentInformation(
                 $creditTransferData->getPaymentInfoId(),
                 $this->ibanValidator->normalize($creditTransferData->getCreditorIban()),
-                $creditorBic ?? '',
+                $debtorBic ?? '',
                 $creditTransferData->getCreditorName(),
                 'EUR'
             );
@@ -169,42 +174,43 @@ class CreditTransferGenerator
             $paymentInformation->setBatchBooking($creditTransferData->isBatchBooking());
             $paymentInformation->setDueDate($creditTransferData->getRequestedExecutionDate());
 
-            // Set creditor address if available
-            $creditorAddress = $creditTransferData->getCreditorAddress();
-            if (null !== $creditorAddress) {
-                $this->setCreditorPostalAddress($paymentInformation, $creditorAddress);
+            // Set debtor address if available (PaymentInformation uses debtor address)
+            $debtorAddress = $creditTransferData->getCreditorAddress();
+            if (null !== $debtorAddress) {
+                $this->setDebtorPostalAddress($paymentInformation, $debtorAddress);
             }
 
             // Add transactions
             foreach ($creditTransferData->getTransactions() as $transaction) {
+                // CustomerCreditTransferInformation contains creditor data (who receives)
                 $transferInformation = new CustomerCreditTransferInformation(
                     (int) round($transaction->getAmount() * 100), // Convert to cents
-                    $this->ibanValidator->normalize($transaction->getDebtorIban()),
-                    $transaction->getDebtorName(),
+                    $this->ibanValidator->normalize($transaction->getCreditorIban()),
+                    $transaction->getCreditorName(),
                     $transaction->getEndToEndId()
                 );
 
-                // Auto-fill debtor BIC if missing
-                $debtorBic = $transaction->getDebtorBic();
-                if (null === $debtorBic && null !== $this->bicLookupService) {
-                    $lookedUpBic = $this->bicLookupService->lookupBic($transaction->getDebtorIban());
+                // Auto-fill creditor BIC if missing
+                $creditorBic = $transaction->getCreditorBic();
+                if (null === $creditorBic && null !== $this->bicLookupService) {
+                    $lookedUpBic = $this->bicLookupService->lookupBic($transaction->getCreditorIban());
                     if (null !== $lookedUpBic) {
-                        $debtorBic = $lookedUpBic;
+                        $creditorBic = $lookedUpBic;
                     }
                 }
 
-                if (null !== $debtorBic) {
-                    $transferInformation->setBic($debtorBic);
+                if (null !== $creditorBic) {
+                    $transferInformation->setBic($creditorBic);
                 }
 
                 if (null !== $transaction->getRemittanceInformation()) {
                     $transferInformation->setRemittanceInformation($transaction->getRemittanceInformation());
                 }
 
-                // Set debtor address if available
-                $debtorAddress = $transaction->getDebtorAddress();
-                if (null !== $debtorAddress) {
-                    $this->setPostalAddress($transferInformation, $debtorAddress);
+                // Set creditor address if available
+                $creditorAddress = $transaction->getCreditorAddress();
+                if (null !== $creditorAddress) {
+                    $this->setPostalAddress($transferInformation, $creditorAddress);
                 }
 
                 $paymentInformation->addTransfer($transferInformation);
@@ -397,12 +403,12 @@ class CreditTransferGenerator
         $mapping = [
             'instruction_id' => 'endToEndId',
             'end_to_end_id' => 'endToEndId',
-            'debtor_iban' => 'debtorIban',
-            'debtor_name' => 'debtorName',
-            'debtor_bic' => 'debtorBic',
+            'creditor_iban' => 'creditorIban',
+            'creditor_name' => 'creditorName',
+            'creditor_bic' => 'creditorBic',
+            'creditor_address' => 'creditorAddress',
             'information' => 'remittanceInformation',
             'remittance_information' => 'remittanceInformation',
-            'debtor_address' => 'debtorAddress',
         ];
 
         $normalized = [];
@@ -426,7 +432,9 @@ class CreditTransferGenerator
      */
     private function createTransactionFromArray(array $transactionData): Transaction
     {
-        $required = ['amount', 'debtorIban', 'debtorName', 'endToEndId'];
+        $endToEndId = $transactionData['endToEndId'] ?? null;
+
+        $required = ['amount', 'endToEndId', 'creditorIban', 'creditorName'];
         foreach ($required as $field) {
             if (!isset($transactionData[$field])) {
                 throw new \InvalidArgumentException("Missing required transaction field: {$field}");
@@ -447,29 +455,29 @@ class CreditTransferGenerator
             $transactionData['endToEndId'],
             $amount,
             $currency,
-            $transactionData['debtorIban'],
-            $transactionData['debtorName']
+            $transactionData['creditorIban'],
+            $transactionData['creditorName']
         );
 
-        if (isset($transactionData['debtorBic'])) {
-            $transaction->setDebtorBic($transactionData['debtorBic']);
+        if (isset($transactionData['creditorBic'])) {
+            $transaction->setCreditorBic($transactionData['creditorBic']);
         }
 
         if (isset($transactionData['remittanceInformation'])) {
             $transaction->setRemittanceInformation($transactionData['remittanceInformation']);
         }
 
-        // Set debtor address if provided (optional)
-        if (isset($transactionData['debtorAddress']) && is_array($transactionData['debtorAddress']) && !empty($transactionData['debtorAddress'])) {
-            $transaction->setDebtorAddressFromArray($transactionData['debtorAddress']);
-        } elseif (isset($transactionData['debtor_street']) || isset($transactionData['debtor_city']) || isset($transactionData['debtor_postal_code']) || isset($transactionData['debtor_country'])
-                  || isset($transactionData['debtorStreet']) || isset($transactionData['debtorCity']) || isset($transactionData['debtorPostalCode']) || isset($transactionData['debtorCountry'])) {
+        // Set creditor address if provided (optional)
+        if (isset($transactionData['creditorAddress']) && is_array($transactionData['creditorAddress']) && !empty($transactionData['creditorAddress'])) {
+            $transaction->setCreditorAddressFromArray($transactionData['creditorAddress']);
+        } elseif (isset($transactionData['creditor_street']) || isset($transactionData['creditor_city']) || isset($transactionData['creditor_postal_code']) || isset($transactionData['creditor_country'])
+                  || isset($transactionData['creditorStreet']) || isset($transactionData['creditorCity']) || isset($transactionData['creditorPostalCode']) || isset($transactionData['creditorCountry'])) {
             // Support individual address fields (only if at least one is provided)
-            $transaction->setDebtorAddress(
-                $transactionData['debtor_street'] ?? $transactionData['debtorStreet'] ?? null,
-                $transactionData['debtor_city'] ?? $transactionData['debtorCity'] ?? null,
-                $transactionData['debtor_postal_code'] ?? $transactionData['debtorPostalCode'] ?? null,
-                $transactionData['debtor_country'] ?? $transactionData['debtorCountry'] ?? null
+            $transaction->setCreditorAddress(
+                $transactionData['creditor_street'] ?? $transactionData['creditorStreet'] ?? null,
+                $transactionData['creditor_city'] ?? $transactionData['creditorCity'] ?? null,
+                $transactionData['creditor_postal_code'] ?? $transactionData['creditorPostalCode'] ?? null,
+                $transactionData['creditor_country'] ?? $transactionData['creditorCountry'] ?? null
             );
         }
 
@@ -477,8 +485,9 @@ class CreditTransferGenerator
     }
 
     /**
-     * Attempts to set postal address on transfer information (debtor address).
-     * Note: The Digitick\Sepa library may not support this directly, so addresses
+     * Attempts to set postal address on transfer information (creditor address).
+     * Note: CustomerCreditTransferInformation contains creditor data (who receives).
+     * The Digitick\Sepa library may not support this directly, so addresses
      * are also added via DOM manipulation in addAddressesToXml() method.
      *
      * @param CustomerCreditTransferInformation $transferInformation The transfer information object
@@ -490,19 +499,19 @@ class CreditTransferGenerator
         CustomerCreditTransferInformation $transferInformation,
         array $address
     ): void {
-        // Try to set postal address using available methods from the library
+        // Try to set creditor postal address using available methods from the library
         // If these methods don't exist, addresses will be added via DOM manipulation
-        if (method_exists($transferInformation, 'setPostalAddress')) {
+        if (method_exists($transferInformation, 'setCreditorPostalAddress')) {
             /** @phpstan-ignore-next-line */
-            $transferInformation->setPostalAddress(
+            $transferInformation->setCreditorPostalAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
                 $address['postalCode'] ?? '',
                 $address['country'] ?? ''
             );
-        } elseif (method_exists($transferInformation, 'setDebtorPostalAddress')) {
+        } elseif (method_exists($transferInformation, 'setPostalAddress')) {
             /** @phpstan-ignore-next-line */
-            $transferInformation->setDebtorPostalAddress(
+            $transferInformation->setPostalAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
                 $address['postalCode'] ?? '',
@@ -522,8 +531,9 @@ class CreditTransferGenerator
     }
 
     /**
-     * Attempts to set creditor postal address on payment information.
-     * Note: The Digitick\Sepa library may not support this directly, so addresses
+     * Attempts to set debtor postal address on payment information.
+     * Note: PaymentInformation contains debtor data (who pays).
+     * The Digitick\Sepa library may not support this directly, so addresses
      * are also added via DOM manipulation in addAddressesToXml() method.
      *
      * @param PaymentInformation         $paymentInformation The payment information object
@@ -531,15 +541,16 @@ class CreditTransferGenerator
      *
      * @return void
      */
-    private function setCreditorPostalAddress(
+    private function setDebtorPostalAddress(
         PaymentInformation $paymentInformation,
         array $address
     ): void {
-        // Try to set creditor postal address using available methods from the library
+        // Try to set debtor postal address using available methods from the library
+        // Note: The library may use setDebtorPostalAddress or setPostalAddress
         // If these methods don't exist, addresses will be added via DOM manipulation
-        if (method_exists($paymentInformation, 'setCreditorPostalAddress')) {
+        if (method_exists($paymentInformation, 'setDebtorPostalAddress')) {
             /** @phpstan-ignore-next-line */
-            $paymentInformation->setCreditorPostalAddress(
+            $paymentInformation->setDebtorPostalAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
                 $address['postalCode'] ?? '',
@@ -571,8 +582,11 @@ class CreditTransferGenerator
      * This method ensures addresses are included in the final XML even if the Digitick\Sepa
      * library doesn't support them directly through its API methods.
      *
+     * Note: CreditTransferData.creditor* fields represent the debtor (company that pays),
+     * and Transaction.debtor* fields represent each creditor (supplier/beneficiary that receives).
+     *
      * @param string             $xml                The generated XML from the library
-     * @param CreditTransferData $creditTransferData The credit transfer data containing creditor and debtor addresses
+     * @param CreditTransferData $creditTransferData The credit transfer data containing addresses
      *
      * @return string The XML with addresses added via DOM manipulation
      */
@@ -594,18 +608,19 @@ class CreditTransferGenerator
             $namespace = $root->namespaceURI ?? 'urn:iso:std:iso:20022:tech:xsd:pain.001.001.03';
             $xpath->registerNamespace('ns', $namespace);
 
-            // Add creditor address if available
-            $creditorAddress = $creditTransferData->getCreditorAddress();
-            if (null !== $creditorAddress) {
-                $this->addCreditorAddressToDom($dom, $xpath, $creditorAddress, $namespace);
+            // Add debtor address if available (PaymentInformation contains debtor data)
+            // CreditTransferData.creditor* fields represent the debtor (company that pays)
+            $debtorAddress = $creditTransferData->getCreditorAddress();
+            if (null !== $debtorAddress) {
+                $this->addDebtorAddressToDom($dom, $xpath, $debtorAddress, 0, $namespace);
             }
 
-            // Add debtor addresses for each transaction
+            // Add creditor addresses for each transaction (each Transaction contains creditor data)
             $transactions = $creditTransferData->getTransactions();
             foreach ($transactions as $index => $transaction) {
-                $debtorAddress = $transaction->getDebtorAddress();
-                if (null !== $debtorAddress) {
-                    $this->addDebtorAddressToDom($dom, $xpath, $debtorAddress, $index, $namespace);
+                $creditorAddress = $transaction->getCreditorAddress();
+                if (null !== $creditorAddress) {
+                    $this->addCreditorAddressToDom($dom, $xpath, $creditorAddress, $index, $namespace);
                 }
             }
 
@@ -617,22 +632,38 @@ class CreditTransferGenerator
     }
 
     /**
-     * Adds creditor address to DOM.
+     * Adds creditor address to DOM for a specific transaction.
      *
      * @param \DOMDocument $dom       The DOM document
      * @param \DOMXPath    $xpath     The XPath object
      * @param array        $address   The address array
+     * @param int          $index     Transaction index
      * @param string       $namespace The namespace URI
      *
      * @return void
      */
-    private function addCreditorAddressToDom(\DOMDocument $dom, \DOMXPath $xpath, array $address, string $namespace): void
+    private function addCreditorAddressToDom(\DOMDocument $dom, \DOMXPath $xpath, array $address, int $index, string $namespace): void
     {
-        // Find Cdtr (Creditor) element
-        $creditorNodes = $xpath->query('//ns:Cdtr');
+        // Find all CdtTrfTxInf (Transaction) elements
+        $transactionNodes = $xpath->query('//ns:CdtTrfTxInf');
+        if ($transactionNodes === false || $transactionNodes->length === 0) {
+            // Try without namespace prefix
+            $transactionNodes = $xpath->query('//CdtTrfTxInf');
+            if ($transactionNodes === false || $transactionNodes->length <= $index) {
+                return;
+            }
+        }
+
+        if ($transactionNodes->length <= $index) {
+            return;
+        }
+
+        // Find Cdtr (Creditor) element within the specific transaction
+        $transactionNode = $transactionNodes->item($index);
+        $creditorNodes = $xpath->query('.//ns:Cdtr', $transactionNode);
         if ($creditorNodes === false || $creditorNodes->length === 0) {
             // Try without namespace prefix
-            $creditorNodes = $xpath->query('//Cdtr');
+            $creditorNodes = $xpath->query('.//Cdtr', $transactionNode);
             if ($creditorNodes === false || $creditorNodes->length === 0) {
                 return;
             }
@@ -643,33 +674,40 @@ class CreditTransferGenerator
     }
 
     /**
-     * Adds debtor address to DOM.
+     * Adds debtor address to DOM for PaymentInformation.
      *
      * @param \DOMDocument $dom       The DOM document
      * @param \DOMXPath    $xpath     The XPath object
      * @param array        $address   The address array
-     * @param int          $index     Transaction index
+     * @param int          $index     Not used (kept for signature compatibility, PaymentInformation has only one Dbtr)
      * @param string       $namespace The namespace URI
      *
      * @return void
      */
     private function addDebtorAddressToDom(\DOMDocument $dom, \DOMXPath $xpath, array $address, int $index, string $namespace): void
     {
-        // Find Dbtr (Debtor) elements
-        $debtorNodes = $xpath->query('//ns:Dbtr');
-        if ($debtorNodes === false || $debtorNodes->length === 0) {
+        // Find PaymentInformation (PmtInf) element first
+        $pmtInfNodes = $xpath->query('//ns:PmtInf');
+        if ($pmtInfNodes === false || $pmtInfNodes->length === 0) {
             // Try without namespace prefix
-            $debtorNodes = $xpath->query('//Dbtr');
-            if ($debtorNodes === false || $debtorNodes->length <= $index) {
+            $pmtInfNodes = $xpath->query('//PmtInf');
+            if ($pmtInfNodes === false || $pmtInfNodes->length === 0) {
                 return;
             }
         }
 
-        if ($debtorNodes->length <= $index) {
-            return;
+        // Find Dbtr (Debtor) element within PaymentInformation
+        $pmtInfNode = $pmtInfNodes->item(0);
+        $debtorNodes = $xpath->query('.//ns:Dbtr', $pmtInfNode);
+        if ($debtorNodes === false || $debtorNodes->length === 0) {
+            // Try without namespace prefix
+            $debtorNodes = $xpath->query('.//Dbtr', $pmtInfNode);
+            if ($debtorNodes === false || $debtorNodes->length === 0) {
+                return;
+            }
         }
 
-        $debtorNode = $debtorNodes->item($index);
+        $debtorNode = $debtorNodes->item(0);
         $this->createPostalAddressElement($dom, $debtorNode, $address, $namespace);
     }
 
@@ -760,8 +798,8 @@ class CreditTransferGenerator
         }
 
         foreach ($creditTransferData->getTransactions() as $transaction) {
-            if (!$this->ibanValidator->isValid($transaction->getDebtorIban())) {
-                throw new \InvalidArgumentException('Invalid debtor IBAN: ' . $transaction->getDebtorIban());
+            if (!$this->ibanValidator->isValid($transaction->getCreditorIban())) {
+                throw new \InvalidArgumentException('Invalid creditor IBAN: ' . $transaction->getCreditorIban());
             }
         }
     }
