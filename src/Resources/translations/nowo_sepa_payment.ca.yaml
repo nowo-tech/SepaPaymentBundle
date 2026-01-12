@@ -19,8 +19,8 @@ validation.invalid_creation_date: 'creationDate ha de ser una cadena o DateTimeI
 validation.invalid_execution_date: 'requestedExecutionDate ha de ser una cadena o DateTimeInterface'
 
 # Array key validation errors
-validation.invalid_keys_top_level: 'Clau(s) invàlida(s) al nivell superior: %keys%. Al nivell superior (informació de pagament), ha d\'utilitzar claus "debtor*" (ex., debtorIban, debtorName, debtorBic) per representar l\'empresa que paga. Claus suggerides: %suggestions%. Nota: les claus "creditor*" només han d\'utilitzar-se dins de l\'array "transactions" (per als beneficiaris que reben els pagaments).'
-validation.invalid_keys_transaction: 'Clau(s) invàlida(s) a la transacció: %keys%. Dins de l\'array de transaccions, ha d\'utilitzar claus "creditor*" (ex., creditorIban, creditorName, creditorBic) per representar el beneficiari que rep el pagament. Claus suggerides: %suggestions%. Nota: les claus "debtor*" només han d\'utilitzar-se al nivell superior (per a l\'empresa que paga).'
+validation.invalid_keys_top_level: "Clau(s) invàlida(s) al nivell superior: %keys%. Al nivell superior (informació de pagament), ha d'utilitzar claus \"debtor*\" (ex., debtorIban, debtorName, debtorBic) per representar l'empresa que paga. Claus suggerides: %suggestions%. Nota: les claus \"creditor*\" només han d'utilitzar-se dins de l'array \"transactions\" (per als beneficiaris que reben els pagaments)."
+validation.invalid_keys_transaction: "Clau(s) invàlida(s) a la transacció: %keys%. Dins de l'array de transaccions, ha d'utilitzar claus \"creditor*\" (ex., creditorIban, creditorName, creditorBic) per representar el beneficiari que rep el pagament. Claus suggerides: %suggestions%. Nota: les claus \"debtor*\" només han d'utilitzar-se al nivell superior (per a l'empresa que paga)."
 
 # Business rules validation
 validation.invalid_transaction_amount: 'L\'import de la transacció %amount% excedeix l\'import màxim permès de %max_amount% EUR'
