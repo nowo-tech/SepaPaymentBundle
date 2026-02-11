@@ -255,7 +255,7 @@ jobs:
                 release_id: releaseId,
                 body: releaseBody,
                 prerelease: isPrerelease,
-                make_latest: shouldBeLatest  // Mark as latest only if it's the newest version
+                make_latest: shouldBeLatest ? 'true' : 'false'  // API expects string: 'true' | 'false' | 'legacy'
               });
               if (hasChangelog && changelogEntry) {
                 console.log('✅ Updated release ' + tagName + ' with complete changelog from CHANGELOG.md');
@@ -323,7 +323,7 @@ jobs:
                 body: releaseBody,
                 draft: false,
                 prerelease: isPrerelease,
-                make_latest: shouldBeLatest,  // Mark as latest only if it's the newest version
+                make_latest: shouldBeLatest ? 'true' : 'false',  // API expects string: 'true' | 'false' | 'legacy'
                 generate_release_notes: false  // Don't generate auto notes, we have our own changelog
               });
               if (hasChangelog && changelogEntry) {
