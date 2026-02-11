@@ -1185,7 +1185,7 @@ class CreditTransferGeneratorTest extends TestCase
      */
     public function testGenerateWithBicLookupService(): void
     {
-        $bicLookup = new class() implements \Nowo\SepaPaymentBundle\Lookup\BicLookupServiceInterface {
+        $bicLookup = new class () implements \Nowo\SepaPaymentBundle\Lookup\BicLookupServiceInterface {
             public function lookupBic(string $iban): ?string
             {
                 return str_starts_with($iban, 'ES') ? 'CAIXESBBXXX' : null;

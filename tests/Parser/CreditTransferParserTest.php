@@ -432,6 +432,7 @@ class CreditTransferParserTest extends TestCase
         $previous = set_error_handler(static function (int $errno, string $errstr): bool {
             throw new \ErrorException($errstr, 0, $errno);
         });
+
         try {
             $xmlWithUndefinedEntity = '<?xml version="1.0"?><!DOCTYPE root [<!ELEMENT root (#PCDATA)>]><root>&undefined;</root>';
             $result = $this->parser->isValidCreditTransfer($xmlWithUndefinedEntity);
