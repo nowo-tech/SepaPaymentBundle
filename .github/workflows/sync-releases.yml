@@ -235,7 +235,7 @@ jobs:
                   release_id: release.id,
                   body: releaseBody,
                   prerelease: isPrerelease,
-                  make_latest: shouldBeLatest  // Explicitly mark as latest if it's the newest
+                  make_latest: shouldBeLatest ? 'true' : 'false'  // API expects string: 'true' | 'false' | 'legacy'
                 });
                 console.log('✅ Updated release for ' + tag + ' with changelog' + (shouldBeLatest ? ' (marked as latest)' : ''));
               }
