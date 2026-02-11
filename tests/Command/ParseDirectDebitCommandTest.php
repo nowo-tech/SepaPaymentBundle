@@ -255,6 +255,7 @@ class ParseDirectDebitCommandTest extends TestCase
         // Passing a directory path causes file_get_contents to return false
         $tempDir = sys_get_temp_dir() . '/sepa_test_dir_' . uniqid();
         mkdir($tempDir);
+
         try {
             $commandTester->execute(['file' => $tempDir]);
             $this->assertEquals(1, $commandTester->getStatusCode());
@@ -286,6 +287,7 @@ class ParseDirectDebitCommandTest extends TestCase
 
         $tempFile = sys_get_temp_dir() . '/test_dd_' . uniqid() . '.xml';
         file_put_contents($tempFile, '<?xml version="1.0"?><root/>');
+
         try {
             $commandTester->execute(['file' => $tempFile]);
             $this->assertEquals(1, $commandTester->getStatusCode());
@@ -324,6 +326,7 @@ class ParseDirectDebitCommandTest extends TestCase
 
         $tempFile = sys_get_temp_dir() . '/test_dd_empty_' . uniqid() . '.xml';
         file_put_contents($tempFile, '<?xml version="1.0"?><root/>');
+
         try {
             $commandTester->execute(['file' => $tempFile]);
             $this->assertEquals(0, $commandTester->getStatusCode());

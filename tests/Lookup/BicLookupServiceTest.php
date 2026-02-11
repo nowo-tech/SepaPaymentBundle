@@ -196,7 +196,7 @@ class BicLookupServiceTest extends TestCase
     public function testLookupBicWithCacheHitReturnsCachedValue(): void
     {
         $storage = [];
-        $cache = new class($storage) {
+        $cache = new class ($storage) {
             private array $storage;
 
             public function __construct(array &$storage)

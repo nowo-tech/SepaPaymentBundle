@@ -369,6 +369,7 @@ class XsdValidatorTest extends TestCase
             XSD;
         $tempXsd = sys_get_temp_dir() . '/sepa_test_' . uniqid() . '.xsd';
         file_put_contents($tempXsd, $xsdContent);
+
         try {
             $xml = <<<'XML'
                 <?xml version="1.0" encoding="UTF-8"?>
