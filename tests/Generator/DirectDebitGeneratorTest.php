@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Nowo\SepaPaymentBundle\Tests\Generator;
 
 use Nowo\SepaPaymentBundle\Event\AfterDirectDebitGenerationEvent;
-use Nowo\SepaPaymentBundle\Event\BeforeDirectDebitGenerationEvent;
 use Nowo\SepaPaymentBundle\Generator\DirectDebitGenerator;
 use Nowo\SepaPaymentBundle\Logger\SepaPaymentLogger;
 use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitData;
@@ -1436,7 +1435,7 @@ class DirectDebitGeneratorTest extends TestCase
      */
     public function testGenerateWithBicLookupService(): void
     {
-        $bicLookup = new class() implements \Nowo\SepaPaymentBundle\Lookup\BicLookupServiceInterface {
+        $bicLookup = new class () implements \Nowo\SepaPaymentBundle\Lookup\BicLookupServiceInterface {
             public function lookupBic(string $iban): ?string
             {
                 return str_starts_with($iban, 'ES') ? 'CAIXESBBXXX' : null;
