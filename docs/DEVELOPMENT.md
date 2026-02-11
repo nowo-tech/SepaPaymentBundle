@@ -59,11 +59,13 @@ The bundle has comprehensive test coverage. All tests are located in the `tests/
   - All models have 100% test coverage
 - **Parsers**: `CreditTransferParser`, `DirectDebitParser`
 - **Commands**: All console commands
+- **DependencyInjection**: `Configuration`, `NowoSepaPaymentExtension`
+- **Generator (deprecated)**: `RemesaGenerator`
+- **Models (deprecated)**: `RemesaData`, `Remesa\Transaction`
+- **Repository**: `MandateRepository`
 
-**Current Test Statistics (v2.1.0):**
-- Total tests: 235
-- Total assertions: 840
-- Overall coverage: 81.74% lines (1195/1462), 71.37% methods (167/234), 50.00% classes (14/28)
+**Current Test Statistics:**
+- Run `composer test-coverage` and open `coverage/index.html` for up-to-date coverage. The project targets at least 80% line coverage (enforced in CI).
 
 **New Validators (100% Coverage)**:
 - `SepaStringSanitizer`: 100% methods (10/10), 100% lines (21/21)
@@ -101,7 +103,7 @@ The bundle uses GitHub Actions for continuous integration:
 
 - **Tests**: Runs on PHP 8.1, 8.2, 8.3, 8.4, and 8.5 with Symfony 6.4, 7.0, and 8.0
 - **Code Style**: Automatically fixes code style on push
-- **Coverage**: Validates minimum 85% code coverage requirement
+- **Coverage**: Validates minimum 80% code coverage requirement
 - **Dependabot**: Automatically updates dependencies
 
 See `.github/workflows/ci.yml` for details.

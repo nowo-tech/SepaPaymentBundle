@@ -111,6 +111,30 @@ class TransactionTest extends TestCase
     }
 
     /**
+     * Tests setCreditorAddress when first argument is array (delegates to setCreditorAddressFromArray).
+     */
+    public function testSetCreditorAddressWithArray(): void
+    {
+        $transaction = new Transaction(
+            'E2E-001',
+            100.50,
+            'EUR',
+            'ES9121000418450200051332',
+            'John Doe'
+        );
+        $transaction->setCreditorAddress([
+            'street' => 'Array Street',
+            'city' => 'Berlin',
+            'postalCode' => '10115',
+            'country' => 'DE',
+        ]);
+        $address = $transaction->getCreditorAddress();
+        $this->assertNotNull($address);
+        $this->assertEquals('Array Street', $address['street']);
+        $this->assertEquals('Berlin', $address['city']);
+    }
+
+    /**
      * Tests setting creditor address from array.
      *
      * @return void

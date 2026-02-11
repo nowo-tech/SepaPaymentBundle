@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Tests\Generator;
 
+use Nowo\SepaPaymentBundle\Event\AfterCreditTransferGenerationEvent;
 use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
 use Nowo\SepaPaymentBundle\Logger\SepaPaymentLogger;
 use Nowo\SepaPaymentBundle\Model\CreditTransfer\CreditTransferData;
@@ -11,6 +12,7 @@ use Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction;
 use Nowo\SepaPaymentBundle\Tests\Logger\TestLogger;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
@@ -1179,6 +1181,57 @@ class CreditTransferGeneratorTest extends TestCase
     }
 
     /**
+     * Tests generation with BIC lookup service (creditor BIC auto-filled).
+     */
+    public function testGenerateWithBicLookupService(): void
+    {
+        $bicLookup = new class() implements \Nowo\SepaPaymentBundle\Lookup\BicLookupServiceInterface {
+            public function lookupBic(string $iban): ?string
+            {
+                return str_starts_with($iban, 'ES') ? 'CAIXESBBXXX' : null;
+            }
+
+            public function isAvailable(string $iban): bool
+            {
+                return str_starts_with($iban, 'ES');
+            }
+        };
+        $translator = $this->createMock(TranslatorInterface::class);
+        $translator->method('trans')->willReturnCallback(
+            \Nowo\SepaPaymentBundle\Tests\Helper\TranslationHelper::createTranslatorCallback()
+        );
+        $generator = new CreditTransferGenerator(
+            new IbanValidator(),
+            $translator,
+            null,
+            false,
+            null,
+            null,
+            $bicLookup
+        );
+
+        $creditTransferData = new CreditTransferData(
+            'MSG-BIC',
+            new \DateTime(),
+            'Test Company',
+            'PMT-BIC',
+            'ES9121000418450200051332',
+            'Test Company Name',
+            new \DateTime('tomorrow')
+        );
+        $creditTransferData->addTransaction(new Transaction(
+            'E2E-BIC',
+            50.00,
+            'EUR',
+            'GB82WEST12345698765432',
+            'John Doe'
+        ));
+
+        $xml = $generator->generate($creditTransferData);
+        $this->assertStringContainsString('CAIXESBBXXX', $xml);
+    }
+
+    /**
      * Tests generation with empty transactions list.
      * Should throw an exception because at least one transaction is required.
      *
@@ -1273,6 +1326,113 @@ class CreditTransferGeneratorTest extends TestCase
      *
      * @return void
      */
+    /**
+     * Tests generation with event dispatcher (before event).
+     */
+    public function testGenerateWithEventDispatcher(): void
+    {
+        $dispatcher = new EventDispatcher();
+        $translator = $this->createMock(TranslatorInterface::class);
+        $translator->method('trans')->willReturnCallback(
+            \Nowo\SepaPaymentBundle\Tests\Helper\TranslationHelper::createTranslatorCallback()
+        );
+        $generator = new CreditTransferGenerator(new IbanValidator(), $translator, null, false, $dispatcher);
+
+        $creditTransferData = new CreditTransferData(
+            'MSG-EVT',
+            new \DateTime(),
+            'Test Company',
+            'PMT-EVT',
+            'ES9121000418450200051332',
+            'Test Company Name',
+            new \DateTime('tomorrow')
+        );
+        $creditTransferData->addTransaction(new Transaction(
+            'E2E-EVT',
+            50.00,
+            'EUR',
+            'GB82WEST12345698765432',
+            'Jane Doe'
+        ));
+
+        $xml = $generator->generate($creditTransferData);
+        $this->assertStringContainsString('CstmrCdtTrfInitn', $xml);
+        $this->assertStringContainsString('MSG-EVT', $xml);
+    }
+
+    /**
+     * Tests generation with XSD validation enabled and validation failure.
+     */
+    public function testGenerateWithXsdValidationFailure(): void
+    {
+        $xsdValidator = $this->createMock(\Nowo\SepaPaymentBundle\Validator\XsdValidator::class);
+        $xsdValidator->method('validateCreditTransfer')->willThrowException(new \InvalidArgumentException('XSD error'));
+        $translator = $this->createMock(TranslatorInterface::class);
+        $translator->method('trans')->willReturn('Generated XML failed XSD validation');
+        $generator = new CreditTransferGenerator(new IbanValidator(), $translator, $xsdValidator, true);
+
+        $creditTransferData = new CreditTransferData(
+            'MSG-XSD',
+            new \DateTime(),
+            'Test Company',
+            'PMT-XSD',
+            'ES9121000418450200051332',
+            'Test Company Name',
+            new \DateTime('tomorrow')
+        );
+        $creditTransferData->addTransaction(new Transaction(
+            'E2E-XSD',
+            10.00,
+            'EUR',
+            'GB82WEST12345698765432',
+            'John Doe'
+        ));
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('XSD');
+
+        $generator->generate($creditTransferData);
+    }
+
+    /**
+     * Tests that when a listener modifies the XML in AfterCreditTransferGenerationEvent, the generator returns the modified XML.
+     */
+    public function testGenerateWithAfterEventModifiesXml(): void
+    {
+        $dispatcher = new EventDispatcher();
+        $modifiedXml = '<?xml version="1.0"?><modified-by-listener/>';
+        $dispatcher->addListener(AfterCreditTransferGenerationEvent::class, function (AfterCreditTransferGenerationEvent $event) use ($modifiedXml): void {
+            $event->setXml($modifiedXml);
+        });
+
+        $translator = $this->createMock(TranslatorInterface::class);
+        $translator->method('trans')->willReturnCallback(
+            \Nowo\SepaPaymentBundle\Tests\Helper\TranslationHelper::createTranslatorCallback()
+        );
+        $generator = new CreditTransferGenerator(new IbanValidator(), $translator, null, false, $dispatcher);
+
+        $creditTransferData = new CreditTransferData(
+            'MSG-AFTER',
+            new \DateTime(),
+            'Test Company',
+            'PMT-AFTER',
+            'ES9121000418450200051332',
+            'Test Company Name',
+            new \DateTime('tomorrow')
+        );
+        $creditTransferData->addTransaction(new Transaction(
+            'E2E-AFTER',
+            25.00,
+            'EUR',
+            'GB82WEST12345698765432',
+            'Jane Doe'
+        ));
+
+        $xml = $generator->generate($creditTransferData);
+        $this->assertSame($modifiedXml, $xml);
+        $this->assertStringContainsString('modified-by-listener', $xml);
+    }
+
     public function testGenerateFromArrayWithAllOptionalFields(): void
     {
         $data = [
@@ -1316,5 +1476,170 @@ class CreditTransferGeneratorTest extends TestCase
         $this->assertStringContainsString('MSG-ALL-001', $xml);
         $this->assertStringContainsString('123 Test Street', $xml);
         $this->assertStringContainsString('456 Test Avenue', $xml);
+    }
+
+    /**
+     * Tests that addAddressesToXml returns the original XML when the XML string is invalid (loadXML fails).
+     *
+     * @return void
+     */
+    public function testAddAddressesToXmlReturnsOriginalWhenXmlInvalid(): void
+    {
+        $invalidXml = '<?xml version="1.0"?><root><unclosed>';
+        $creditTransferData = new CreditTransferData(
+            'MSG-001',
+            new \DateTime('2024-01-15'),
+            'Company',
+            'PMT-001',
+            'ES9121000418450200051332',
+            'Name',
+            new \DateTime('2024-01-20')
+        );
+        $ref = new \ReflectionClass(CreditTransferGenerator::class);
+        $method = $ref->getMethod('addAddressesToXml');
+        $method->setAccessible(true);
+        $result = $method->invoke($this->generator, $invalidXml, $creditTransferData);
+        $this->assertSame($invalidXml, $result);
+    }
+
+    /**
+     * Tests addAddressesToXml with XML without namespace so XPath fallback (without ns prefix) is used.
+     *
+     * @return void
+     */
+    public function testAddAddressesToXmlWithXmlWithoutNamespaceUsesXPathFallback(): void
+    {
+        $xmlNoNs = '<?xml version="1.0"?><Document><PmtInf><CdtTrfTxInf><Dbtr><Nm>Debtor</Nm></Dbtr><Cdtr><Nm>Creditor</Nm></Cdtr></CdtTrfTxInf></PmtInf></Document>';
+        $creditTransferData = new CreditTransferData(
+            'MSG-001',
+            new \DateTime('2024-01-15'),
+            'Company',
+            'PMT-001',
+            'ES9121000418450200051332',
+            'Name',
+            new \DateTime('2024-01-20')
+        );
+        $creditTransferData->setCreditorAddress(['street' => 'S1', 'city' => 'C1', 'postalCode' => 'P1', 'country' => 'ES']);
+        $transaction = new Transaction('E2E', 10.00, 'EUR', 'ES9121000418450200051332', 'Cred');
+        $transaction->setCreditorAddress(['street' => 'S2', 'city' => 'C2', 'postalCode' => 'P2', 'country' => 'ES']);
+        $creditTransferData->addTransaction($transaction);
+        $ref = new \ReflectionClass(CreditTransferGenerator::class);
+        $method = $ref->getMethod('addAddressesToXml');
+        $method->setAccessible(true);
+        $result = $method->invoke($this->generator, $xmlNoNs, $creditTransferData);
+        $this->assertStringContainsString('PstlAdr', $result);
+        $this->assertStringContainsString('S1', $result);
+        $this->assertStringContainsString('S2', $result);
+    }
+
+    /**
+     * Tests addAddressesToXml when parent already has PstlAdr (removeChild) and Nm has nextSibling (insertBefore).
+     * Uses namespace so getElementsByTagNameNS finds existing PstlAdr and removes it.
+     *
+     * @return void
+     */
+    public function testAddAddressesToXmlReplacesExistingPstlAdrAndInsertsBeforeSibling(): void
+    {
+        $ns = 'urn:iso:std:iso:20022:tech:xsd:pain.001.001.03';
+        $xmlWithExisting = '<?xml version="1.0"?><Document xmlns="' . $ns . '"><PmtInf><CdtTrfTxInf><Dbtr><Nm>Debtor</Nm><PstlAdr><StrtNm>Old</StrtNm></PstlAdr><Id>id1</Id></Dbtr><Cdtr><Nm>C</Nm><Id>id2</Id></Cdtr></CdtTrfTxInf></PmtInf></Document>';
+        $creditTransferData = new CreditTransferData(
+            'MSG-001',
+            new \DateTime('2024-01-15'),
+            'Company',
+            'PMT-001',
+            'ES9121000418450200051332',
+            'Name',
+            new \DateTime('2024-01-20')
+        );
+        $creditTransferData->setCreditorAddress(['street' => 'NewStreet', 'country' => 'ES']);
+        $ref = new \ReflectionClass(CreditTransferGenerator::class);
+        $method = $ref->getMethod('addAddressesToXml');
+        $method->setAccessible(true);
+        $result = $method->invoke($this->generator, $xmlWithExisting, $creditTransferData);
+        $this->assertStringContainsString('NewStreet', $result);
+        $this->assertStringNotContainsString('Old', $result);
+    }
+
+    /**
+     * Tests addAddressesToXml when there are more transactions with creditor address than Cdtr nodes (index out of range).
+     *
+     * @return void
+     */
+    public function testAddAddressesToXmlSkipsCreditorAddressWhenIndexOutOfRange(): void
+    {
+        $ns = 'urn:iso:std:iso:20022:tech:xsd:pain.001.001.03';
+        $xmlOneCdtr = '<?xml version="1.0"?><Document xmlns="' . $ns . '"><PmtInf><CdtTrfTxInf><Dbtr><Nm>D</Nm></Dbtr><Cdtr><Nm>C1</Nm></Cdtr></CdtTrfTxInf></PmtInf></Document>';
+        $creditTransferData = new CreditTransferData(
+            'MSG-001',
+            new \DateTime('2024-01-15'),
+            'Company',
+            'PMT-001',
+            'ES9121000418450200051332',
+            'Name',
+            new \DateTime('2024-01-20')
+        );
+        $t1 = new Transaction('E1', 10.00, 'EUR', 'ES9121000418450200051332', 'C1');
+        $t1->setCreditorAddress(['street' => 'First', 'country' => 'ES']);
+        $t2 = new Transaction('E2', 20.00, 'EUR', 'ES9121000418450200051332', 'C2');
+        $t2->setCreditorAddress(['street' => 'Second', 'country' => 'ES']);
+        $creditTransferData->addTransaction($t1);
+        $creditTransferData->addTransaction($t2);
+        $ref = new \ReflectionClass(CreditTransferGenerator::class);
+        $method = $ref->getMethod('addAddressesToXml');
+        $method->setAccessible(true);
+        $result = $method->invoke($this->generator, $xmlOneCdtr, $creditTransferData);
+        $this->assertStringContainsString('First', $result);
+        $this->assertStringNotContainsString('Second', $result);
+    }
+
+    /**
+     * Tests addAddressesToXml with address that has all empty fields (createPostalAddressElement returns without adding).
+     *
+     * @return void
+     */
+    public function testAddAddressesToXmlWithAllEmptyAddressFieldsDoesNotAddPstlAdr(): void
+    {
+        $xmlNoNs = '<?xml version="1.0"?><Document><PmtInf><CdtTrfTxInf><Dbtr><Nm>D</Nm></Dbtr><Cdtr><Nm>C</Nm></Cdtr></CdtTrfTxInf></PmtInf></Document>';
+        $creditTransferData = new CreditTransferData(
+            'MSG-001',
+            new \DateTime('2024-01-15'),
+            'Company',
+            'PMT-001',
+            'ES9121000418450200051332',
+            'Name',
+            new \DateTime('2024-01-20')
+        );
+        $creditTransferData->setCreditorAddress(['street' => '', 'city' => '', 'postalCode' => '', 'country' => '']);
+        $ref = new \ReflectionClass(CreditTransferGenerator::class);
+        $method = $ref->getMethod('addAddressesToXml');
+        $method->setAccessible(true);
+        $result = $method->invoke($this->generator, $xmlNoNs, $creditTransferData);
+        $this->assertStringNotContainsString('PstlAdr', $result);
+    }
+
+    /**
+     * Tests addAddressesToXml when parent node has no Nm element (appendChild branch in createPostalAddressElement).
+     *
+     * @return void
+     */
+    public function testAddAddressesToXmlWhenParentHasNoNmUsesAppendChild(): void
+    {
+        $xmlNoNm = '<?xml version="1.0"?><Document><PmtInf><CdtTrfTxInf><Dbtr><Id>id1</Id></Dbtr><Cdtr><Id>id2</Id></Cdtr></CdtTrfTxInf></PmtInf></Document>';
+        $creditTransferData = new CreditTransferData(
+            'MSG-001',
+            new \DateTime('2024-01-15'),
+            'Company',
+            'PMT-001',
+            'ES9121000418450200051332',
+            'Name',
+            new \DateTime('2024-01-20')
+        );
+        $creditTransferData->setCreditorAddress(['street' => 'Street', 'country' => 'ES']);
+        $ref = new \ReflectionClass(CreditTransferGenerator::class);
+        $method = $ref->getMethod('addAddressesToXml');
+        $method->setAccessible(true);
+        $result = $method->invoke($this->generator, $xmlNoNm, $creditTransferData);
+        $this->assertStringContainsString('PstlAdr', $result);
+        $this->assertStringContainsString('Street', $result);
     }
 }

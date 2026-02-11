@@ -5,6 +5,7 @@ This directory contains three demo projects, one for each supported Symfony vers
 ## Features
 
 - Three separate demo projects for Symfony 6.4, 7.0, and 8.0
+- **Use the bundle code from this repo**: demos depend on `nowo-tech/sepa-payment-bundle` via Composer path repo (`@dev`) and Docker mounts the repo root so you run the bundle source, not a published version
 - Demo pages showing IBAN validation, mandate management, and remesa generation
 - Docker setup for easy development
 - Independent Docker containers for each demo
@@ -19,9 +20,10 @@ This directory contains three demo projects, one for each supported Symfony vers
 
 Each demo has its own `docker-compose.yml` and can be run independently. You can start any demo you want:
 
-**Important**: Before starting a demo, copy `.env.example` to `.env`:
+**Important**: Run `docker compose` from the demo directory (e.g. `demo/symfony8`). The compose file mounts the demo at `/app` and the bundle root at `/var/sepa-payment-bundle` so the demo uses the bundle source. Use `make install-symfony8` (or the demo’s install target) so the bundle symlink is correct inside the container. Before starting, copy `.env.example` to `.env`:
+
 ```bash
-cd demo/demo-symfony6
+cd demo/symfony6
 cp .env.example .env
 # Optionally generate a new APP_SECRET: openssl rand -hex 32
 # The .env.example includes: APP_ENV=dev, APP_SECRET (placeholder), APP_DEBUG=1, PORT=8001
@@ -31,7 +33,7 @@ cp .env.example .env
 
 ```bash
 # Navigate to the demo directory
-cd demo/demo-symfony6
+cd demo/symfony6
 
 # Copy .env.example to .env if not already done
 cp .env.example .env
@@ -123,8 +125,8 @@ make verify DEMO=symfony6
 Each demo includes:
 
 - **DemoController**: A controller demonstrating IBAN validation, mandate management, and remesa generation
-- **Docker Setup**: Complete Docker configuration with PHP-FPM and Nginx
-- **Dockerfile**: Custom PHP-FPM image with Composer pre-installed
+- **Docker Setup**: Complete Docker configuration with FrankenPHP (dunglas/frankenphp)
+- **Dockerfile**: FrankenPHP-based image with Composer pre-installed
 - **Tests**: Complete test suite verifying bundle integration
 
 ## License

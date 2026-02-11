@@ -172,6 +172,6 @@ class CccConverter
             $checkDigit2 = 1;
         }
 
-        return sprintf('%02d', $checkDigit1) . sprintf('%02d', $checkDigit2);
+        return sprintf('%01d', $checkDigit1) . sprintf('%01d', $checkDigit2);
     }
 }

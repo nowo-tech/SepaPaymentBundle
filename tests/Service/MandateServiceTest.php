@@ -261,4 +261,134 @@ class MandateServiceTest extends TestCase
         $this->assertCount(1, $expiredMandates);
         $this->assertEquals('MANDATE-OLD', $expiredMandates[0]->getMandateId());
     }
+
+    public function testFindExpiredMandatesWithBeforeDate(): void
+    {
+        $this->service->createMandate(
+            'MANDATE-OLD',
+            new \DateTime('2020-01-01'),
+            'ES9121000418450200051332',
+            'John Doe'
+        );
+
+        $expiredBefore2023 = $this->service->findExpiredMandates(new \DateTime('2023-06-01'));
+        $this->assertCount(1, $expiredBefore2023);
+
+        $expiredBefore2019 = $this->service->findExpiredMandates(new \DateTime('2019-12-31'));
+        $this->assertCount(0, $expiredBefore2019);
+    }
+
+    public function testFindMandate(): void
+    {
+        $this->service->createMandate(
+            'MANDATE-001',
+            new \DateTime('2024-01-01'),
+            'ES9121000418450200051332',
+            'John Doe'
+        );
+
+        $mandate = $this->service->findMandate('MANDATE-001');
+        $this->assertInstanceOf(Mandate::class, $mandate);
+        $this->assertEquals('MANDATE-001', $mandate->getMandateId());
+
+        $this->assertNull($this->service->findMandate('NONEXISTENT'));
+    }
+
+    public function testFindActiveMandates(): void
+    {
+        $this->service->createMandate(
+            'MANDATE-001',
+            new \DateTime('2024-01-01'),
+            'ES9121000418450200051332',
+            'John Doe'
+        );
+        $this->service->createMandate(
+            'MANDATE-002',
+            new \DateTime('2024-01-02'),
+            'ES9121000418450200051332',
+            'Jane Doe'
+        );
+        $this->service->revokeMandate('MANDATE-002');
+
+        $active = $this->service->findActiveMandates();
+        $this->assertCount(1, $active);
+        $this->assertEquals('MANDATE-001', $active[0]->getMandateId());
+    }
+
+    public function testValidateMandateForTransactionReturnsFalseWhenMandateNotFound(): void
+    {
+        $this->assertFalse($this->service->validateMandateForTransaction('NONEXISTENT', 'FRST'));
+    }
+
+    public function testValidateMandateForTransactionReturnsFalseWhenExpired(): void
+    {
+        $this->service->createMandate(
+            'MANDATE-OLD',
+            new \DateTime('2020-01-01'),
+            'ES9121000418450200051332',
+            'John Doe'
+        );
+
+        $this->assertFalse($this->service->validateMandateForTransaction('MANDATE-OLD', 'FRST'));
+    }
+
+    public function testValidateMandateForTransactionReturnsFalseWhenInvalidSequenceTransition(): void
+    {
+        $this->service->createMandate(
+            'MANDATE-001',
+            new \DateTime('2024-01-01'),
+            'ES9121000418450200051332',
+            'John Doe',
+            'CORE',
+            'FNAL'
+        );
+
+        $this->assertFalse($this->service->validateMandateForTransaction('MANDATE-001', 'RCUR'));
+    }
+
+    public function testRevokeMandateWithoutReason(): void
+    {
+        $this->service->createMandate(
+            'MANDATE-001',
+            new \DateTime('2024-01-01'),
+            'ES9121000418450200051332',
+            'John Doe'
+        );
+
+        $revoked = $this->service->revokeMandate('MANDATE-001');
+        $this->assertEquals(MandateStatus::REVOKED, $revoked->getStatus());
+        $this->assertNull($revoked->getRevocationReason());
+    }
+
+    public function testUpdateSequenceTypeThrowsWhenMandateNotFound(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage("Mandate with ID 'MISSING' not found");
+
+        $this->service->updateSequenceType('MISSING', 'RCUR');
+    }
+
+    public function testRevokeMandateThrowsWhenMandateNotFound(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage("Mandate with ID 'MISSING' not found");
+
+        $this->service->revokeMandate('MISSING');
+    }
+
+    public function testSuspendMandateThrowsWhenMandateNotFound(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage("Mandate with ID 'MISSING' not found");
+
+        $this->service->suspendMandate('MISSING');
+    }
+
+    public function testReactivateMandateThrowsWhenMandateNotFound(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage("Mandate with ID 'MISSING' not found");
+
+        $this->service->reactivateMandate('MISSING');
+    }
 }

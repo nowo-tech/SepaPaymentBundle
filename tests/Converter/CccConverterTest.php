@@ -211,4 +211,30 @@ class CccConverterTest extends TestCase
         $this->assertEquals(24, strlen($iban));
         $this->assertEquals('00490001201234567890', substr($iban, 4));
     }
+
+    /**
+     * Tests check digit edge case: remainder 11 becomes 0 (bank+branch and account all zeros).
+     */
+    public function testCccCheckDigitsRemainder11BecomesZero(): void
+    {
+        // CCC 00000000 00 0000000000: sum1=0 => checkDigit1=11->0, sum2=0 => checkDigit2=11->0
+        $ccc = '00000000000000000000';
+        $this->assertTrue($this->converter->isValidCcc($ccc));
+        $iban = $this->converter->cccToIban($ccc);
+        $this->assertStringStartsWith('ES', $iban);
+    }
+
+    /**
+     * Tests check digit edge case: remainder 10 becomes 1 (covers checkDigit=10 branch).
+     */
+    public function testCccCheckDigitsRemainder10BecomesOne(): void
+    {
+        // Bank 3000, branch 0000 => sum1=12 => 11-1=10 -> 1
+        // Account 1000000000 => sum2=1 => 11-1=10 -> 1
+        // So check digits = "11"
+        $ccc = '30000000111000000000';
+        $this->assertTrue($this->converter->isValidCcc($ccc));
+        $iban = $this->converter->cccToIban($ccc);
+        $this->assertStringStartsWith('ES', $iban);
+    }
 }

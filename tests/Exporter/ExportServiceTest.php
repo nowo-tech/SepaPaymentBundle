@@ -252,6 +252,36 @@ class ExportServiceTest extends TestCase
         $this->assertStringContainsString('MSG-001', $csv);
     }
 
+    /**
+     * Tests export when transactions are under paymentInfo (branch: empty($transactions) && isset($data['paymentInfo']['transactions'])).
+     */
+    public function testExportCreditTransferToCsvWithTransactionsInPaymentInfo(): void
+    {
+        $data = [
+            'messageId' => 'MSG-001',
+            'creationDate' => '2024-01-15T10:00:00',
+            'initiatingPartyName' => 'My Company',
+            'paymentInfo' => [
+                'paymentInfoId' => 'PMT-001',
+                'creditorIban' => 'ES9121000418450200051332',
+                'creditorName' => 'My Company Name',
+                'transactions' => [
+                    [
+                        'endToEndId' => 'E2E-001',
+                        'amount' => 100.50,
+                        'currency' => 'EUR',
+                        'debtorIban' => 'GB82WEST12345698765432',
+                        'debtorName' => 'John Doe',
+                    ],
+                ],
+            ],
+        ];
+
+        $csv = $this->exporter->exportCreditTransferToCsv($data);
+        $this->assertStringContainsString('E2E-001', $csv);
+        $this->assertStringContainsString('MSG-001', $csv);
+    }
+
     public function testExportDirectDebitToCsvWithoutTransactions(): void
     {
         $data = [
@@ -269,6 +299,37 @@ class ExportServiceTest extends TestCase
         $csv = $this->exporter->exportDirectDebitToCsv($data);
 
         $this->assertStringContainsString('Message ID', $csv);
+        $this->assertStringContainsString('MSG-001', $csv);
+    }
+
+    /**
+     * Tests export direct debit when transactions are under paymentInfo (branch: empty($transactions) && isset($data['paymentInfo']['transactions'])).
+     */
+    public function testExportDirectDebitToCsvWithTransactionsInPaymentInfo(): void
+    {
+        $data = [
+            'messageId' => 'MSG-001',
+            'creationDate' => '2024-01-15T10:00:00',
+            'initiatingPartyName' => 'My Company',
+            'paymentInfo' => [
+                'paymentInfoId' => 'PMT-001',
+                'creditorIban' => 'ES9121000418450200051332',
+                'creditorName' => 'My Company Name',
+                'transactions' => [
+                    [
+                        'endToEndId' => 'E2E-001',
+                        'amount' => 50.00,
+                        'currency' => 'EUR',
+                        'debtorIban' => 'GB82WEST12345698765432',
+                        'debtorName' => 'John Doe',
+                        'mandateId' => 'MANDATE-001',
+                    ],
+                ],
+            ],
+        ];
+
+        $csv = $this->exporter->exportDirectDebitToCsv($data);
+        $this->assertStringContainsString('E2E-001', $csv);
         $this->assertStringContainsString('MSG-001', $csv);
     }
 
@@ -436,5 +497,17 @@ class ExportServiceTest extends TestCase
 
         $this->assertStringContainsString('MSG-001', $csv);
         $this->assertStringContainsString('E2E-001', $csv);
+    }
+
+    public function testExportCreditTransferToJsonThrowsWhenJsonEncodeFails(): void
+    {
+        $data = [
+            'messageId' => "invalid \x80 UTF-8 sequence",
+        ];
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Failed to encode data to JSON');
+
+        $this->exporter->exportCreditTransferToJson($data);
     }
 }

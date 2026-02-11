@@ -8,7 +8,9 @@ use Nowo\SepaPaymentBundle\Validator\BicValidator as BicValidatorService;
 use Nowo\SepaPaymentBundle\Validator\Constraint\Bic;
 use Nowo\SepaPaymentBundle\Validator\Constraint\BicValidator as ConstraintBicValidator;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
+use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 use Symfony\Component\Validator\Violation\ConstraintViolationBuilderInterface;
 
 /**
@@ -151,5 +153,29 @@ class BicValidatorTest extends TestCase
             ->method('buildViolation');
 
         $this->validator->validate('', $constraint);
+    }
+
+    /**
+     * Tests that wrong constraint type throws UnexpectedTypeException.
+     *
+     * @return void
+     */
+    public function testWrongConstraintTypeThrows(): void
+    {
+        $wrongConstraint = $this->createMock(Constraint::class);
+        $this->expectException(UnexpectedTypeException::class);
+        $this->validator->validate('ESPBESMM', $wrongConstraint);
+    }
+
+    /**
+     * Tests that non-string value throws UnexpectedTypeException.
+     *
+     * @return void
+     */
+    public function testNonStringValueThrows(): void
+    {
+        $constraint = new Bic();
+        $this->expectException(UnexpectedTypeException::class);
+        $this->validator->validate(12345, $constraint);
     }
 }

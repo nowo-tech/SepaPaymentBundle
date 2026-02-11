@@ -14,6 +14,14 @@ services:
     Nowo\SepaPaymentBundle\Generator\:
         resource: '../../Generator/*'
 
+    # RemesaGenerator (deprecated) requires explicit args so TranslatorInterface is always second
+    Nowo\SepaPaymentBundle\Generator\RemesaGenerator:
+        arguments:
+            $ibanValidator: '@nowo_sepa_payment.validator.iban_validator'
+            $translator: '@translator'
+            $xsdValidator: null
+            $validateXsd: false
+
     Nowo\SepaPaymentBundle\Validator\:
         resource: '../../Validator/*'
         exclude: '../../Validator/Constraint/*'

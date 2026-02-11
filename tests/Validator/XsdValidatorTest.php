@@ -280,6 +280,24 @@ class XsdValidatorTest extends TestCase
     }
 
     /**
+     * Tests validateAgainstSchemaString with non-well-formed XML (loadXML fails).
+     */
+    public function testValidateAgainstSchemaStringNonWellFormedXml(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches('/Invalid XML format|invalid_xml_format/');
+
+        $xsd = <<<'XSD'
+            <?xml version="1.0"?>
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <xs:element name="root" type="xs:string"/>
+            </xs:schema>
+            XSD;
+
+        $this->validator->validateAgainstSchemaString('not xml at all <<<', $xsd);
+    }
+
+    /**
      * Tests validation with different schema types.
      *
      * @return void
@@ -304,5 +322,67 @@ class XsdValidatorTest extends TestCase
         // Test direct_debit type (should still work, just uses different default path)
         $result2 = $this->validator->validate($xml, null, 'direct_debit');
         $this->assertTrue($result2);
+    }
+
+    /**
+     * Tests validate with unknown schema type (getDefaultSchemaPath returns null, validation skipped).
+     */
+    public function testValidateWithUnknownSchemaType(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <root><element>test</element></root>
+            XML;
+        $result = $this->validator->validate($xml, null, 'unknown_schema_type');
+        $this->assertTrue($result);
+    }
+
+    /**
+     * Tests validate() when xsdPath is provided but file does not exist (validation skipped, returns true).
+     */
+    public function testValidateWithNonExistentXsdPathSkipsValidationAndReturnsTrue(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <root><element>test</element></root>
+            XML;
+        $result = $this->validator->validate($xml, '/non/existent/path.xsd', 'credit_transfer');
+        $this->assertTrue($result);
+    }
+
+    /**
+     * Tests validate() when xsdPath points to existing file and XML fails schema validation (covers throw branch).
+     */
+    public function testValidateWithExistingXsdFileAndInvalidXmlThrows(): void
+    {
+        $xsdContent = <<<'XSD'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <xs:element name="root">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="element" type="xs:string"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:schema>
+            XSD;
+        $tempXsd = sys_get_temp_dir() . '/sepa_test_' . uniqid() . '.xsd';
+        file_put_contents($tempXsd, $xsdContent);
+        try {
+            $xml = <<<'XML'
+                <?xml version="1.0" encoding="UTF-8"?>
+                <root>
+                    <wrongelement>invalid</wrongelement>
+                </root>
+                XML;
+            $this->expectException(\InvalidArgumentException::class);
+            $this->expectExceptionMessageMatches('/XSD validation failed|xsd_validation_failed/');
+            $this->validator->validate($xml, $tempXsd, 'credit_transfer');
+        } finally {
+            if (file_exists($tempXsd)) {
+                unlink($tempXsd);
+            }
+        }
     }
 }

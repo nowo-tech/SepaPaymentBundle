@@ -273,7 +273,7 @@ class ExportService
         }
 
         foreach ($rows as $row) {
-            fputcsv($output, $row, $delimiter, $enclosure);
+            fputcsv($output, $row, $delimiter, $enclosure, '\\');
         }
 
         rewind($output);

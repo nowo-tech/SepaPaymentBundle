@@ -133,15 +133,16 @@ class SepaBusinessRulesValidator
      */
     public function isValidSequenceTypeTransition(?string $previousSequenceType, string $newSequenceType): bool
     {
+        // Use '' instead of null as key for PHP 8.4+ compatibility (null as array offset deprecated)
         $validTransitions = [
-            null => ['FRST', 'OOFF'], // First transaction can be FRST or OOFF
+            '' => ['FRST', 'OOFF'], // First transaction can be FRST or OOFF
             'FRST' => ['RCUR', 'FNAL'],
             'RCUR' => ['RCUR', 'FNAL'],
             'OOFF' => ['OOFF'],
             'FNAL' => ['FNAL'],
         ];
 
-        $allowedNext = $validTransitions[$previousSequenceType] ?? [];
+        $allowedNext = $validTransitions[$previousSequenceType ?? ''] ?? [];
 
         return in_array($newSequenceType, $allowedNext, true);
     }

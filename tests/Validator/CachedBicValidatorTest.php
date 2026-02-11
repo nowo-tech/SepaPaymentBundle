@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nowo\SepaPaymentBundle\Tests\Validator;
 
 use Nowo\SepaPaymentBundle\Cache\ValidationCache;
+use Nowo\SepaPaymentBundle\Tests\Cache\ArrayCache;
 use Nowo\SepaPaymentBundle\Validator\BicValidator;
 use Nowo\SepaPaymentBundle\Validator\CachedBicValidator;
 use PHPUnit\Framework\TestCase;
@@ -87,5 +88,23 @@ class CachedBicValidatorTest extends TestCase
         // Second call should use cache
         $result2 = $cachedValidator->isValid($invalidBic);
         $this->assertFalse($result2);
+    }
+
+    /**
+     * Test cache hit when using ArrayCache adapter (cache actually stores and returns).
+     */
+    public function testValidationWithArrayCacheCacheHit(): void
+    {
+        $bicValidator = new BicValidator();
+        $arrayCache = new ArrayCache();
+        $validationCache = new ValidationCache($arrayCache);
+        $cachedValidator = new CachedBicValidator($bicValidator, $validationCache);
+
+        $bic = 'CAIXESBBXXX';
+        $result1 = $cachedValidator->isValid($bic);
+        $this->assertTrue($result1);
+
+        $result2 = $cachedValidator->isValid($bic);
+        $this->assertTrue($result2);
     }
 }

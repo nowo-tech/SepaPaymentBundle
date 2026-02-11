@@ -3,7 +3,7 @@
 
 # Define available demos
 DEMOS := symfony6 symfony7 symfony8
-DEMO_DIRS := $(addprefix demo-,$(DEMOS))
+DEMO_DIRS := $(DEMOS)
 
 # Helper function to get port from .env file (defaults to 8001)
 get-port = $(shell grep -E '^PORT=' $(1)/.env 2>/dev/null | cut -d '=' -f2 || echo "8001")
@@ -61,7 +61,7 @@ up-$(1):
 		echo "See: https://docs.docker.com/go/wsl2/"; \
 		exit 1; \
 	fi; \
-	cd demo-$(1) && \
+	cd $(1) && \
 	if [ ! -f .env ]; then cp .env.example .env 2>/dev/null || true; fi && \
 	PORT=$$$$(grep "^PORT=" .env 2>/dev/null | cut -d= -f2 | head -1 || echo 8001); \
 	echo "🔍 Checking port $$$$PORT..."; \
@@ -104,7 +104,7 @@ down-$(1):
 	else \
 		DOCKER_COMPOSE_CMD="docker compose"; \
 	fi; \
-	cd demo-$(1) && $$$$DOCKER_COMPOSE_CMD down
+	cd $(1) && $$$$DOCKER_COMPOSE_CMD down
 
 install-$(1):
 	@VERSION=$$$$(echo $(1) | sed 's/symfony/Symfony /' | sed 's/6/6.4/' | sed 's/7/7.0/' | sed 's/8/8.0/'); \
@@ -114,7 +114,17 @@ install-$(1):
 	else \
 		DOCKER_COMPOSE_CMD="docker compose"; \
 	fi; \
-	cd demo-$(1) && $$$$DOCKER_COMPOSE_CMD exec php composer install --no-interaction
+	cd $(1) && $$$$DOCKER_COMPOSE_CMD up -d && $$$$DOCKER_COMPOSE_CMD exec php sh -c 'rm -rf vendor/nowo-tech/sepa-payment-bundle 2>/dev/null; composer update --no-interaction && (case "$(1)" in symfony6|symfony7) sed -i "s/wdt\.php/wdt.xml/g; s/profiler\.php/profiler.xml/g" config/routes/web_profiler.yaml 2>/dev/null || true ;; esac) && rm -rf vendor/nowo-tech/sepa-payment-bundle && ln -s /var/sepa-payment-bundle vendor/nowo-tech/sepa-payment-bundle && composer run-script post-install-cmd'
+
+update-$(1):
+	@VERSION=$$$$(echo $(1) | sed 's/symfony/Symfony /' | sed 's/6/6.4/' | sed 's/7/7.0/' | sed 's/8/8.0/'); \
+	echo "🔄 Updating composer.lock for $$$$VERSION demo..."; \
+	if command -v docker-compose >/dev/null 2>&1; then \
+		DOCKER_COMPOSE_CMD="docker-compose"; \
+	else \
+		DOCKER_COMPOSE_CMD="docker compose"; \
+	fi; \
+	cd $(1) && $$$$DOCKER_COMPOSE_CMD exec php composer update --no-interaction
 
 shell-$(1):
 	@if command -v docker-compose >/dev/null 2>&1; then \
@@ -122,7 +132,7 @@ shell-$(1):
 	else \
 		DOCKER_COMPOSE_CMD="docker compose"; \
 	fi; \
-	cd demo-$(1) && $$$$DOCKER_COMPOSE_CMD exec php sh
+	cd $(1) && $$$$DOCKER_COMPOSE_CMD exec php sh
 
 logs-$(1):
 	@if command -v docker-compose >/dev/null 2>&1; then \
@@ -130,7 +140,7 @@ logs-$(1):
 	else \
 		DOCKER_COMPOSE_CMD="docker compose"; \
 	fi; \
-	cd demo-$(1) && $$$$DOCKER_COMPOSE_CMD logs -f
+	cd $(1) && $$$$DOCKER_COMPOSE_CMD logs -f
 
 test-$(1):
 	@VERSION=$$$$(echo $(1) | sed 's/symfony/Symfony /' | sed 's/6/6.4/' | sed 's/7/7.0/' | sed 's/8/8.0/'); \
@@ -140,7 +150,7 @@ test-$(1):
 	else \
 		DOCKER_COMPOSE_CMD="docker compose"; \
 	fi; \
-	cd demo-$(1) && $$$$DOCKER_COMPOSE_CMD exec php composer test
+	cd $(1) && $$$$DOCKER_COMPOSE_CMD exec php composer test
 
 test-coverage-$(1):
 	@VERSION=$$$$(echo $(1) | sed 's/symfony/Symfony /' | sed 's/6/6.4/' | sed 's/7/7.0/' | sed 's/8/8.0/'); \
@@ -150,12 +160,12 @@ test-coverage-$(1):
 	else \
 		DOCKER_COMPOSE_CMD="docker compose"; \
 	fi; \
-	cd demo-$(1) && $$$$DOCKER_COMPOSE_CMD exec php composer test-coverage
+	cd $(1) && $$$$DOCKER_COMPOSE_CMD exec php composer test-coverage
 
 verify-$(1):
 	@VERSION=$$$$(echo $(1) | sed 's/symfony/Symfony /' | sed 's/6/6.4/' | sed 's/7/7.0/' | sed 's/8/8.0/'); \
 	echo "🔍 Verifying $$$$VERSION demo..."; \
-	cd demo-$(1) && \
+	cd $(1) && \
 	if [ ! -f .env ]; then cp .env.example .env 2>/dev/null || true; fi && \
 	PORT=$$$$(grep "^PORT=" .env 2>/dev/null | cut -d= -f2 | head -1 || echo 8001); \
 	$(MAKE) up-$(1) && \
@@ -311,12 +321,12 @@ verify-all:
 clean:
 	@echo "🧹 Cleaning all demos..."
 	@for demo in $(DEMOS); do \
-		echo "Cleaning demo-$$demo..."; \
-		rm -rf demo-$$demo/vendor; \
-		rm -rf demo-$$demo/var; \
-		rm -rf demo-$$demo/.phpunit.cache; \
-		rm -rf demo-$$demo/coverage; \
-		rm -f demo-$$demo/coverage.xml; \
+		echo "Cleaning $$demo..."; \
+		rm -rf $$demo/vendor; \
+		rm -rf $$demo/var; \
+		rm -rf $$demo/.phpunit.cache; \
+		rm -rf $$demo/coverage; \
+		rm -f $$demo/coverage.xml; \
 	done
 	@echo "✅ Clean completed"
 
