@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - RemesaParserTest: Added `#[IgnoreDeprecations]` and temporary suppression of `E_DEPRECATED`/`E_USER_DEPRECATED` in tests that call deprecated RemesaParser methods, so deprecation output does not mark tests as risky
   - No behaviour change for application code; only test and CI behaviour
 - **CI / coverage**: Minimum code coverage requirement lowered from 85% to 80% (enforced in the `test` and `coverage` jobs in `.github/workflows/ci.yml`). See [DEVELOPMENT.md](DEVELOPMENT.md) for current requirements.
+- **Release workflow**: GitHub API now expects `make_latest` as a string (`'true'` | `'false'` | `'legacy'`). Updated `.github/workflows/release.yml` and `sync-releases.yml` so release creation/update no longer returns 422.
 
 ## [1.2.10] - 2026-01-13
 
