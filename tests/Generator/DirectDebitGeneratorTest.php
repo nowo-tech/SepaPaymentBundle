@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Tests\Generator;
 
+use Nowo\SepaPaymentBundle\Event\AfterDirectDebitGenerationEvent;
+use Nowo\SepaPaymentBundle\Event\BeforeDirectDebitGenerationEvent;
 use Nowo\SepaPaymentBundle\Generator\DirectDebitGenerator;
+use Nowo\SepaPaymentBundle\Logger\SepaPaymentLogger;
 use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitData;
 use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitTransaction;
+use Nowo\SepaPaymentBundle\Tests\Logger\TestLogger;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
  * Test cases for DirectDebitGenerator.
@@ -1355,5 +1360,410 @@ class DirectDebitGeneratorTest extends TestCase
         $this->assertEquals($xml, $response->getContent());
         $this->assertEquals('application/xml', $response->headers->get('Content-Type'));
         $this->assertEquals('attachment; filename="test-direct-debit.xml"', $response->headers->get('Content-Disposition'));
+    }
+
+    /**
+     * Tests generation with logger integration.
+     */
+    public function testGenerateWithLogger(): void
+    {
+        $testLogger = new TestLogger();
+        $sepaLogger = new SepaPaymentLogger($testLogger);
+        $generator = new DirectDebitGenerator(new IbanValidator(), null, false, null, $sepaLogger);
+
+        $data = new DirectDebitData(
+            'MSG-LOG',
+            'My Company',
+            'PMT-001',
+            new \DateTime('2024-01-20'),
+            'Creditor Name',
+            'ES9121000418450200051332',
+            'FRST',
+            'ES1234567890123456789012',
+            'CORE'
+        );
+        $data->addTransaction(new DirectDebitTransaction(
+            100.50,
+            'GB82WEST12345698765432',
+            'John Doe',
+            'MANDATE-001',
+            new \DateTime('2024-01-01'),
+            'E2E-001'
+        ));
+
+        $generator->generate($data);
+
+        $this->assertGreaterThanOrEqual(2, count($testLogger->logs));
+        $this->assertEquals('SEPA Direct Debit generation started', $testLogger->logs[0]['message']);
+        $this->assertEquals('SEPA Direct Debit generation completed successfully', $testLogger->logs[1]['message']);
+    }
+
+    /**
+     * Tests generation with event dispatcher (before event).
+     */
+    public function testGenerateWithEventDispatcher(): void
+    {
+        $dispatcher = new EventDispatcher();
+        $generator = new DirectDebitGenerator(new IbanValidator(), null, false, $dispatcher);
+
+        $data = new DirectDebitData(
+            'MSG-EVT',
+            'My Company',
+            'PMT-001',
+            new \DateTime('2024-01-20'),
+            'Creditor Name',
+            'ES9121000418450200051332',
+            'FRST',
+            'ES1234567890123456789012',
+            'CORE'
+        );
+        $data->addTransaction(new DirectDebitTransaction(
+            50.00,
+            'GB82WEST12345698765432',
+            'Jane Doe',
+            'MANDATE-002',
+            new \DateTime('2024-01-01'),
+            'E2E-EVT'
+        ));
+
+        $xml = $generator->generate($data);
+        $this->assertStringContainsString('CstmrDrctDbtInitn', $xml);
+        $this->assertStringContainsString('MSG-EVT', $xml);
+    }
+
+    /**
+     * Tests generation with BIC lookup service (creditor BIC auto-filled).
+     */
+    public function testGenerateWithBicLookupService(): void
+    {
+        $bicLookup = new class() implements \Nowo\SepaPaymentBundle\Lookup\BicLookupServiceInterface {
+            public function lookupBic(string $iban): ?string
+            {
+                return str_starts_with($iban, 'ES') ? 'CAIXESBBXXX' : null;
+            }
+
+            public function isAvailable(string $iban): bool
+            {
+                return str_starts_with($iban, 'ES');
+            }
+        };
+        $generator = new DirectDebitGenerator(new IbanValidator(), null, false, null, null, $bicLookup);
+
+        $data = new DirectDebitData(
+            'MSG-BIC',
+            'My Company',
+            'PMT-001',
+            new \DateTime('2024-01-20'),
+            'Creditor Name',
+            'ES9121000418450200051332',
+            'FRST',
+            'ES1234567890123456789012',
+            'CORE'
+        );
+        $data->addTransaction(new DirectDebitTransaction(
+            25.00,
+            'GB82WEST12345698765432',
+            'Bob',
+            'MANDATE-003',
+            new \DateTime('2024-01-01'),
+            'E2E-BIC'
+        ));
+
+        $xml = $generator->generate($data);
+        $this->assertStringContainsString('CAIXESBBXXX', $xml);
+    }
+
+    /**
+     * Tests generation with creditor address (object API).
+     */
+    public function testGenerateWithCreditorAddressObject(): void
+    {
+        $data = new DirectDebitData(
+            'MSG-ADDR',
+            'My Company',
+            'PMT-001',
+            new \DateTime('2024-01-20'),
+            'Creditor Name',
+            'ES9121000418450200051332',
+            'FRST',
+            'ES1234567890123456789012',
+            'CORE'
+        );
+        $data->setCreditorAddressFromArray([
+            'street' => 'Calle Principal 1',
+            'city' => 'Madrid',
+            'postalCode' => '28001',
+            'country' => 'ES',
+        ]);
+        $data->addTransaction(new DirectDebitTransaction(
+            10.00,
+            'GB82WEST12345698765432',
+            'Debtor',
+            'MANDATE-004',
+            new \DateTime('2024-01-01'),
+            'E2E-ADDR'
+        ));
+
+        $xml = $this->generator->generate($data);
+        $this->assertStringContainsString('PstlAdr', $xml);
+        $this->assertStringContainsString('Madrid', $xml);
+    }
+
+    /**
+     * Tests generation with XSD validation enabled and validation failure.
+     */
+    public function testGenerateWithXsdValidationFailure(): void
+    {
+        $xsdValidator = $this->createMock(\Nowo\SepaPaymentBundle\Validator\XsdValidator::class);
+        $xsdValidator->method('validateDirectDebit')->willThrowException(new \InvalidArgumentException('XSD error'));
+        $generator = new DirectDebitGenerator(new IbanValidator(), $xsdValidator, true);
+
+        $data = new DirectDebitData(
+            'MSG-XSD',
+            'My Company',
+            'PMT-001',
+            new \DateTime('2024-01-20'),
+            'Creditor Name',
+            'ES9121000418450200051332',
+            'FRST',
+            'ES1234567890123456789012',
+            'CORE'
+        );
+        $data->addTransaction(new DirectDebitTransaction(
+            1.00,
+            'GB82WEST12345698765432',
+            'X',
+            'MANDATE-X',
+            new \DateTime('2024-01-01'),
+            'E2E-X'
+        ));
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Generated XML failed XSD validation');
+        $generator->generate($data);
+    }
+
+    /**
+     * Tests that when generation fails, the logger receives the failure log (covers catch block with logger).
+     */
+    public function testGenerateFailureWithLogger(): void
+    {
+        $testLogger = new TestLogger();
+        $sepaLogger = new SepaPaymentLogger($testLogger);
+        $xsdValidator = $this->createMock(\Nowo\SepaPaymentBundle\Validator\XsdValidator::class);
+        $xsdValidator->method('validateDirectDebit')->willThrowException(new \InvalidArgumentException('XSD validation failed'));
+        $generator = new DirectDebitGenerator(new IbanValidator(), $xsdValidator, true, null, $sepaLogger);
+
+        $data = new DirectDebitData(
+            'MSG-LOG-FAIL',
+            'My Company',
+            'PMT-001',
+            new \DateTime('2024-01-20'),
+            'Creditor Name',
+            'ES9121000418450200051332',
+            'FRST',
+            'ES1234567890123456789012',
+            'CORE'
+        );
+        $data->addTransaction(new DirectDebitTransaction(
+            1.00,
+            'GB82WEST12345698765432',
+            'X',
+            'MANDATE-X',
+            new \DateTime('2024-01-01'),
+            'E2E-X'
+        ));
+
+        try {
+            $generator->generate($data);
+            $this->fail('Expected InvalidArgumentException');
+        } catch (\InvalidArgumentException $e) {
+            $this->assertCount(2, $testLogger->logs);
+            $this->assertEquals('SEPA Direct Debit generation started', $testLogger->logs[0]['message']);
+            $this->assertEquals('SEPA Direct Debit generation failed', $testLogger->logs[1]['message']);
+            $this->assertEquals('MSG-LOG-FAIL', $testLogger->logs[1]['context']['message_id']);
+            $this->assertStringContainsString('XSD', $testLogger->logs[1]['context']['error']);
+        }
+    }
+
+    /**
+     * Tests that when a listener modifies the XML in AfterDirectDebitGenerationEvent, the generator returns the modified XML.
+     */
+    public function testGenerateWithAfterEventModifiesXml(): void
+    {
+        $dispatcher = new EventDispatcher();
+        $modifiedXml = '<?xml version="1.0"?><direct-debit-modified/>';
+        $dispatcher->addListener(AfterDirectDebitGenerationEvent::class, function (AfterDirectDebitGenerationEvent $event) use ($modifiedXml): void {
+            $event->setXml($modifiedXml);
+        });
+
+        $generator = new DirectDebitGenerator(new IbanValidator(), null, false, $dispatcher);
+        $data = new DirectDebitData(
+            'MSG-AFTER',
+            'My Company',
+            'PMT-001',
+            new \DateTime('2024-01-20'),
+            'Creditor Name',
+            'ES9121000418450200051332',
+            'FRST',
+            'ES1234567890123456789012',
+            'CORE'
+        );
+        $data->addTransaction(new DirectDebitTransaction(
+            10.00,
+            'GB82WEST12345698765432',
+            'John Doe',
+            'MANDATE-AFTER',
+            new \DateTime('2024-01-01'),
+            'E2E-AFTER'
+        ));
+
+        $xml = $generator->generate($data);
+        $this->assertSame($modifiedXml, $xml);
+        $this->assertStringContainsString('direct-debit-modified', $xml);
+    }
+
+    /**
+     * Tests that addAddressesToXml returns the original XML when the XML string is invalid (loadXML fails).
+     */
+    public function testAddAddressesToXmlReturnsOriginalWhenXmlInvalid(): void
+    {
+        $invalidXml = '<?xml version="1.0"?><root><unclosed>';
+        $data = new DirectDebitData(
+            'MSG-001',
+            'Company',
+            'PMT-001',
+            new \DateTime('2024-01-20'),
+            'Creditor',
+            'ES9121000418450200051332',
+            'FRST',
+            'ES1234567890123456789012',
+            'CORE'
+        );
+        $ref = new \ReflectionClass(DirectDebitGenerator::class);
+        $method = $ref->getMethod('addAddressesToXml');
+        $method->setAccessible(true);
+        $result = $method->invoke($this->generator, $invalidXml, $data);
+        $this->assertSame($invalidXml, $result);
+    }
+
+    /**
+     * Tests addAddressesToXml with XML without namespace so XPath fallback (without ns prefix) is used.
+     */
+    public function testAddAddressesToXmlWithXmlWithoutNamespaceUsesXPathFallback(): void
+    {
+        $xmlNoNs = '<?xml version="1.0"?><Document><PmtInf><DrctDbtTxInf><Dbtr><Nm>Debtor</Nm></Dbtr><Cdtr><Nm>Creditor</Nm></Cdtr></DrctDbtTxInf></PmtInf></Document>';
+        $data = new DirectDebitData(
+            'MSG-001',
+            'Company',
+            'PMT-001',
+            new \DateTime('2024-01-20'),
+            'Creditor',
+            'ES9121000418450200051332',
+            'FRST',
+            'ES1234567890123456789012',
+            'CORE'
+        );
+        $data->setCreditorAddress(['street' => 'S1', 'city' => 'C1', 'postalCode' => 'P1', 'country' => 'ES']);
+        $data->addTransaction(new DirectDebitTransaction(
+            10.00,
+            'ES9121000418450200051332',
+            'Debtor',
+            'MANDATE-01',
+            new \DateTime('2024-01-01'),
+            'E2E-01'
+        ));
+        $data->getTransactions()[0]->setDebtorAddress(['street' => 'S2', 'city' => 'C2', 'postalCode' => 'P2', 'country' => 'ES']);
+        $ref = new \ReflectionClass(DirectDebitGenerator::class);
+        $method = $ref->getMethod('addAddressesToXml');
+        $method->setAccessible(true);
+        $result = $method->invoke($this->generator, $xmlNoNs, $data);
+        $this->assertStringContainsString('PstlAdr', $result);
+        $this->assertStringContainsString('S1', $result);
+        $this->assertStringContainsString('S2', $result);
+    }
+
+    /**
+     * Tests addAddressesToXml when parent already has PstlAdr (removeChild); uses namespace so it is found and replaced.
+     */
+    public function testAddAddressesToXmlReplacesExistingPstlAdr(): void
+    {
+        $ns = 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.02';
+        $xmlWithExisting = '<?xml version="1.0"?><Document xmlns="' . $ns . '"><PmtInf><DrctDbtTxInf><Cdtr><Nm>Creditor</Nm><PstlAdr><StrtNm>Old</StrtNm></PstlAdr></Cdtr><Dbtr><Nm>Debtor</Nm></Dbtr></DrctDbtTxInf></PmtInf></Document>';
+        $data = new DirectDebitData(
+            'MSG-001',
+            'Company',
+            'PMT-001',
+            new \DateTime('2024-01-20'),
+            'Creditor',
+            'ES9121000418450200051332',
+            'FRST',
+            'ES1234567890123456789012',
+            'CORE'
+        );
+        $data->setCreditorAddress(['street' => 'NewStreet', 'country' => 'ES']);
+        $ref = new \ReflectionClass(DirectDebitGenerator::class);
+        $method = $ref->getMethod('addAddressesToXml');
+        $method->setAccessible(true);
+        $result = $method->invoke($this->generator, $xmlWithExisting, $data);
+        $this->assertStringContainsString('NewStreet', $result);
+        $this->assertStringNotContainsString('Old', $result);
+    }
+
+    /**
+     * Tests addAddressesToXml when there are more transactions with debtor address than Dbtr nodes (index out of range).
+     */
+    public function testAddAddressesToXmlSkipsDebtorAddressWhenIndexOutOfRange(): void
+    {
+        $ns = 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.02';
+        $xmlOneDbtr = '<?xml version="1.0"?><Document xmlns="' . $ns . '"><PmtInf><DrctDbtTxInf><Cdtr><Nm>C</Nm></Cdtr><Dbtr><Nm>D1</Nm></Dbtr></DrctDbtTxInf></PmtInf></Document>';
+        $data = new DirectDebitData(
+            'MSG-001',
+            'Company',
+            'PMT-001',
+            new \DateTime('2024-01-20'),
+            'Creditor',
+            'ES9121000418450200051332',
+            'FRST',
+            'ES1234567890123456789012',
+            'CORE'
+        );
+        $t1 = new DirectDebitTransaction(10.00, 'ES9121000418450200051332', 'D1', 'M1', new \DateTime('2024-01-01'), 'E1');
+        $t1->setDebtorAddress(['street' => 'First', 'country' => 'ES']);
+        $t2 = new DirectDebitTransaction(20.00, 'ES9121000418450200051332', 'D2', 'M2', new \DateTime('2024-01-01'), 'E2');
+        $t2->setDebtorAddress(['street' => 'Second', 'country' => 'ES']);
+        $data->addTransaction($t1);
+        $data->addTransaction($t2);
+        $ref = new \ReflectionClass(DirectDebitGenerator::class);
+        $method = $ref->getMethod('addAddressesToXml');
+        $method->setAccessible(true);
+        $result = $method->invoke($this->generator, $xmlOneDbtr, $data);
+        $this->assertStringContainsString('First', $result);
+        $this->assertStringNotContainsString('Second', $result);
+    }
+
+    /**
+     * Tests addAddressesToXml with address that has all empty fields (createPostalAddressElement returns without adding).
+     */
+    public function testAddAddressesToXmlWithAllEmptyAddressFieldsDoesNotAddPstlAdr(): void
+    {
+        $xmlNoNs = '<?xml version="1.0"?><Document><PmtInf><DrctDbtTxInf><Cdtr><Nm>C</Nm></Cdtr><Dbtr><Nm>D</Nm></Dbtr></DrctDbtTxInf></PmtInf></Document>';
+        $data = new DirectDebitData(
+            'MSG-001',
+            'Company',
+            'PMT-001',
+            new \DateTime('2024-01-20'),
+            'Creditor',
+            'ES9121000418450200051332',
+            'FRST',
+            'ES1234567890123456789012',
+            'CORE'
+        );
+        $data->setCreditorAddress(['street' => '', 'city' => '', 'postalCode' => '', 'country' => '']);
+        $ref = new \ReflectionClass(DirectDebitGenerator::class);
+        $method = $ref->getMethod('addAddressesToXml');
+        $method->setAccessible(true);
+        $result = $method->invoke($this->generator, $xmlNoNs, $data);
+        $this->assertStringNotContainsString('PstlAdr', $result);
     }
 }

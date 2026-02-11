@@ -69,6 +69,13 @@ class ParseDirectDebitCommand extends Command
             return Command::FAILURE;
         }
 
+        // Avoid file_get_contents() on directories (PHP 8.1+ compatible; prevents Notice on all CI PHP versions)
+        if (!is_file($file) || !is_readable($file)) {
+            $io->error(sprintf('Could not read file: %s', $file));
+
+            return Command::FAILURE;
+        }
+
         $xml = file_get_contents($file);
         if (false === $xml) {
             $io->error(sprintf('Could not read file: %s', $file));

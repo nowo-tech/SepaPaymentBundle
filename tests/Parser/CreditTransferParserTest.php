@@ -422,6 +422,29 @@ class CreditTransferParserTest extends TestCase
     }
 
     /**
+     * Tests isValidCreditTransfer when an exception is thrown during parsing (covers catch block).
+     * Uses an error handler to convert a libxml warning into an exception.
+     *
+     * @return void
+     */
+    public function testIsValidCreditTransferReturnsFalseWhenExceptionDuringParsing(): void
+    {
+        $previous = set_error_handler(static function (int $errno, string $errstr): bool {
+            throw new \ErrorException($errstr, 0, $errno);
+        });
+        try {
+            $xmlWithUndefinedEntity = '<?xml version="1.0"?><!DOCTYPE root [<!ELEMENT root (#PCDATA)>]><root>&undefined;</root>';
+            $result = $this->parser->isValidCreditTransfer($xmlWithUndefinedEntity);
+            $this->assertFalse($result);
+        } finally {
+            restore_error_handler();
+            if ($previous) {
+                set_error_handler($previous);
+            }
+        }
+    }
+
+    /**
      * Tests parsing with BIC information.
      *
      * @return void

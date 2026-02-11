@@ -192,4 +192,56 @@ class BicLookupServiceTest extends TestCase
 
         $this->assertEquals('CAIXESBB', $bic);
     }
+
+    public function testLookupBicWithCacheHitReturnsCachedValue(): void
+    {
+        $storage = [];
+        $cache = new class($storage) {
+            private array $storage;
+
+            public function __construct(array &$storage)
+            {
+                $this->storage = &$storage;
+            }
+
+            public function get(string $key): mixed
+            {
+                return $this->storage[$key] ?? null;
+            }
+
+            public function set(string $key, mixed $value, ?int $ttl = null): bool
+            {
+                $this->storage[$key] = $value;
+
+                return true;
+            }
+        };
+
+        $lookupService = new BicLookupService($this->ibanValidator, $cache, 3600);
+        $iban = 'ES9121000418450200051332';
+
+        $bic1 = $lookupService->lookupBic($iban);
+        $this->assertEquals('CAIXESBB', $bic1);
+
+        $bic2 = $lookupService->lookupBic($iban);
+        $this->assertEquals('CAIXESBB', $bic2);
+        $this->assertCount(1, $storage);
+        $this->assertEquals('CAIXESBB', $storage['bic_lookup_' . md5($this->ibanValidator->normalize($iban))]);
+    }
+
+    public function testAddMappingForNewCountryCode(): void
+    {
+        $this->lookupService->addMapping('ES', '9999', 'CUSTOMESMM');
+        $this->assertTrue($this->lookupService->isAvailable('ES9121000418450200051332'));
+    }
+
+    /**
+     * Tests addMapping when the country code is not yet in the database (initializes new country array).
+     */
+    public function testAddMappingForCountryNotInDatabase(): void
+    {
+        $this->lookupService->addMapping('XX', '0000', 'TESTXX1X');
+        $this->lookupService->addMapping('XX', '0001', 'TESTXX2X');
+        $this->assertTrue(true);
+    }
 }

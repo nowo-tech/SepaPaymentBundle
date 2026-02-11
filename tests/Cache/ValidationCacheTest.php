@@ -111,4 +111,94 @@ class ValidationCacheTest extends TestCase
         // Same key should return same value
         $this->assertTrue($validationCache->get('test_key'));
     }
+
+    /**
+     * Test get when cache adapter has no has() method and get returns null.
+     * Covers the branch where we return null when result is null and !method_exists($this->cache, 'has').
+     */
+    public function testGetWithAdapterWithoutHasMethodReturnsNull(): void
+    {
+        $cacheWithoutHas = new class() {
+            private array $storage = [];
+
+            public function get(string $key): mixed
+            {
+                return $this->storage[$key] ?? null;
+            }
+
+            public function set(string $key, mixed $value, ?int $ttl = null): bool
+            {
+                $this->storage[$key] = $value;
+
+                return true;
+            }
+
+            public function delete(string $key): bool
+            {
+                unset($this->storage[$key]);
+
+                return true;
+            }
+
+            public function clear(): bool
+            {
+                $this->storage = [];
+
+                return true;
+            }
+        };
+        $validationCache = new ValidationCache($cacheWithoutHas);
+        $this->assertNull($validationCache->get('missing_key'));
+
+        // When adapter has no has() but get() returns a value, we should return it (covers return (bool) $result)
+        $validationCache->set('stored_key', true);
+        $this->assertTrue($validationCache->get('stored_key'));
+        $validationCache->set('false_key', false);
+        $this->assertFalse($validationCache->get('false_key'));
+    }
+
+    /**
+     * Test get when key exists but get() returns null (edge case: key exists, value null).
+     * Covers the branch where result is null after has() returned true.
+     */
+    public function testGetWhenStoredValueIsNull(): void
+    {
+        $normalizedKey = 'sepa_validation_' . md5('null_key');
+        $cache = new class($normalizedKey) {
+            private string $key;
+
+            public function __construct(string $key)
+            {
+                $this->key = $key;
+            }
+
+            public function get(string $key): mixed
+            {
+                return $key === $this->key ? null : false;
+            }
+
+            public function set(string $key, mixed $value, ?int $ttl = null): bool
+            {
+                return true;
+            }
+
+            public function has(string $key): bool
+            {
+                return $key === $this->key;
+            }
+
+            public function delete(string $key): bool
+            {
+                return true;
+            }
+
+            public function clear(): bool
+            {
+                return true;
+            }
+        };
+        $validationCache = new ValidationCache($cache);
+        $this->assertTrue($validationCache->has('null_key'));
+        $this->assertNull($validationCache->get('null_key'));
+    }
 }

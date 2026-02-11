@@ -225,6 +225,31 @@ class DirectDebitTransactionTest extends TestCase
     }
 
     /**
+     * Tests setDebtorAddress when first argument is array (delegates to setDebtorAddressFromArray).
+     */
+    public function testSetDebtorAddressWithArray(): void
+    {
+        $transaction = new DirectDebitTransaction(
+            50.00,
+            'ES9121000418450200051332',
+            'Jane Doe',
+            'MANDATE-002',
+            new \DateTime('2024-01-01'),
+            'E2E-002'
+        );
+        $transaction->setDebtorAddress([
+            'street' => 'Array Ave',
+            'city' => 'Paris',
+            'postalCode' => '75001',
+            'country' => 'FR',
+        ]);
+        $address = $transaction->getDebtorAddress();
+        $this->assertNotNull($address);
+        $this->assertEquals('Array Ave', $address['street']);
+        $this->assertEquals('Paris', $address['city']);
+    }
+
+    /**
      * Tests setting debtor address from array.
      *
      * @return void

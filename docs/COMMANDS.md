@@ -51,3 +51,27 @@ The command accepts card numbers with or without spaces and dashes:
 php bin/console sepa:validate-credit-card "4532 0151 1283 0366"
 php bin/console sepa:validate-credit-card 4532-0151-1283-0366
 ```
+
+## Parse Direct Debit XML
+
+```bash
+php bin/console nowo:sepa:parse-direct-debit path/to/direct-debit.xml
+```
+
+This command parses a SEPA Direct Debit XML file (pain.008 format) and displays the extracted information:
+- Group header (message ID, creation date, initiating party)
+- Payment information (payment info ID, sequence type, due date, creditor details)
+- Transaction details (amounts, debtors, mandate references, remittance information)
+
+**Output as JSON:**
+
+```bash
+php bin/console nowo:sepa:parse-direct-debit path/to/direct-debit.xml --json
+```
+
+**Error messages:**
+
+- **File not found**: The given path does not exist.
+- **Could not read file**: The path is not a readable file (e.g. it is a directory, or the file is not readable). Ensure you pass a path to an actual XML file.
+- **Invalid SEPA Direct Debit XML format**: The file content is not valid SEPA Direct Debit XML (structure or schema).
+- **Error parsing XML**: An exception occurred while parsing (details are shown in the message).

@@ -1,28 +1,14 @@
-FROM php:8.5-cli-alpine
+FROM dunglas/frankenphp:1-php8.5-alpine
 
-# Install system dependencies
-RUN apk add --no-cache \
-    git \
-    unzip \
-    autoconf \
-    g++ \
-    make \
-    linux-headers \
-    bash \
-    libzip-dev \
-    zip
-
-# Install PHP extensions
-RUN docker-php-ext-install -j$(nproc) zip
-
-# Install pcov for code coverage
-RUN pecl install pcov && docker-php-ext-enable pcov
+# Install additional PHP extensions (zip is common for Composer)
+RUN install-php-extensions zip pcov
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Configure git safe directory
-RUN git config --global --add safe.directory /app
+# Install git and configure safe directory (for Composer in mounted repos)
+RUN apk add --no-cache git \
+    && git config --global --add safe.directory /app
 
 # Set working directory
 WORKDIR /app
@@ -31,4 +17,3 @@ WORKDIR /app
 ENV COMPOSER_ALLOW_SUPERUSER=1
 ENV PATH="/app/vendor/bin:${PATH}"
 ENV XDEBUG_MODE=coverage
-

@@ -11,6 +11,7 @@ use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use Nowo\SepaPaymentBundle\Validator\XsdValidator;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * SEPA Credit Transfer generator (deprecated).
@@ -35,13 +36,14 @@ class RemesaGenerator
     /**
      * Constructor.
      *
-     * @param IbanValidator     $ibanValidator IBAN validator instance
-     * @param XsdValidator|null $xsdValidator  Optional XSD validator instance
-     * @param bool              $validateXsd   Whether to validate XML against XSD schema
+     * @param IbanValidator           $ibanValidator IBAN validator instance
+     * @param TranslatorInterface     $translator    Translator for internationalized messages
+     * @param XsdValidator|null       $xsdValidator  Optional XSD validator instance
+     * @param bool                    $validateXsd   Whether to validate XML against XSD schema
      */
-    public function __construct(IbanValidator $ibanValidator, ?XsdValidator $xsdValidator = null, bool $validateXsd = false)
+    public function __construct(IbanValidator $ibanValidator, TranslatorInterface $translator, ?XsdValidator $xsdValidator = null, bool $validateXsd = false)
     {
-        $this->generator = new CreditTransferGenerator($ibanValidator, $xsdValidator, $validateXsd);
+        $this->generator = new CreditTransferGenerator($ibanValidator, $translator, $xsdValidator, $validateXsd);
     }
 
     /**

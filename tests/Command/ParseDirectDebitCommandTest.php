@@ -242,4 +242,96 @@ class ParseDirectDebitCommandTest extends TestCase
             }
         }
     }
+
+    /**
+     * Test when file cannot be read (file_get_contents returns false).
+     */
+    public function testParseWhenFileCannotBeRead(): void
+    {
+        $parser = new DirectDebitParser();
+        $command = new ParseDirectDebitCommand($parser);
+        $commandTester = new CommandTester($command);
+
+        // Passing a directory path causes file_get_contents to return false
+        $tempDir = sys_get_temp_dir() . '/sepa_test_dir_' . uniqid();
+        mkdir($tempDir);
+        try {
+            $commandTester->execute(['file' => $tempDir]);
+            $this->assertEquals(1, $commandTester->getStatusCode());
+            $display = $commandTester->getDisplay();
+            $this->assertTrue(
+                str_contains($display, 'Could not read file')
+                || str_contains($display, 'Invalid SEPA Direct Debit XML')
+                || str_contains($display, 'Invalid'),
+                'Expected error message when file cannot be read. Got: ' . $display
+            );
+        } finally {
+            if (is_dir($tempDir)) {
+                rmdir($tempDir);
+            }
+        }
+    }
+
+    /**
+     * Test when parser throws exception during parse.
+     */
+    public function testParseWhenParserThrowsException(): void
+    {
+        $parser = $this->createMock(DirectDebitParser::class);
+        $parser->method('isValidDirectDebit')->willReturn(true);
+        $parser->method('parseDirectDebit')->willThrowException(new \RuntimeException('Parse error'));
+
+        $command = new ParseDirectDebitCommand($parser);
+        $commandTester = new CommandTester($command);
+
+        $tempFile = sys_get_temp_dir() . '/test_dd_' . uniqid() . '.xml';
+        file_put_contents($tempFile, '<?xml version="1.0"?><root/>');
+        try {
+            $commandTester->execute(['file' => $tempFile]);
+            $this->assertEquals(1, $commandTester->getStatusCode());
+            $this->assertStringContainsString('Error parsing XML', $commandTester->getDisplay());
+        } finally {
+            if (file_exists($tempFile)) {
+                unlink($tempFile);
+            }
+        }
+    }
+
+    /**
+     * Test table output when data has no transactions (warning path).
+     */
+    public function testParseWithEmptyTransactionsShowsWarning(): void
+    {
+        $parser = $this->createMock(DirectDebitParser::class);
+        $parser->method('isValidDirectDebit')->willReturn(true);
+        $parser->method('parseDirectDebit')->willReturn([
+            'messageId' => 'MSG-001',
+            'creationDate' => '2024-01-15T10:00:00',
+            'initiatingPartyName' => 'Company',
+            'paymentInfoId' => 'PMT-001',
+            'sequenceType' => 'RCUR',
+            'dueDate' => '2024-01-20',
+            'localInstrumentCode' => 'CORE',
+            'creditorName' => 'Creditor',
+            'creditorIban' => 'ES9121000418450200051332',
+            'creditorBic' => null,
+            'creditorId' => 'ES98ZZZ',
+            'transactions' => [],
+        ]);
+
+        $command = new ParseDirectDebitCommand($parser);
+        $commandTester = new CommandTester($command);
+
+        $tempFile = sys_get_temp_dir() . '/test_dd_empty_' . uniqid() . '.xml';
+        file_put_contents($tempFile, '<?xml version="1.0"?><root/>');
+        try {
+            $commandTester->execute(['file' => $tempFile]);
+            $this->assertEquals(0, $commandTester->getStatusCode());
+            $this->assertStringContainsString('No transactions found', $commandTester->getDisplay());
+        } finally {
+            if (file_exists($tempFile)) {
+                unlink($tempFile);
+            }
+        }
+    }
 }

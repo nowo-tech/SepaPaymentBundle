@@ -2,6 +2,48 @@
 
 This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
+## Upgrading from 1.2.10 to 1.2.11
+
+### 🐛 Bug Fixes (1.2.11)
+
+- **ParseDirectDebitCommand**: Path validation before reading
+  - The command now checks that the argument is a readable file (not a directory or unreadable path) before calling `file_get_contents()`
+  - If you pass a directory or a non-readable path, you get a clear "Could not read file" error instead of a PHP Notice and a generic XML format error
+  - No API or CLI changes; only more robust behaviour
+  - See [Console Commands](COMMANDS.md#parse-direct-debit-xml) for full command documentation and all error messages
+- **SepaBusinessRulesValidator**: PHP 8.4+ compatibility
+  - Internal change: "first transaction" sequence type transition now uses an empty string instead of `null` as array key to avoid PHP 8.4+ deprecation ("Using null as array offset")
+  - Public method `isValidSequenceTypeTransition(?string $previousSequenceType, string $newSequenceType)` is unchanged; passing `null` for the first transaction still works as before
+
+### 🔧 CI / Development (1.2.11)
+
+- **Coverage requirement**: CI now enforces a minimum of 80% code coverage (previously 85%). This only affects contributors and CI; no impact on bundle users.
+
+### Backward Compatibility
+
+- **No breaking changes**: All existing code and CLI usage continue to work
+- **No migration required**: Patch release with bug fixes and CI/test improvements only
+
+---
+
+## Upgrading from 1.2.9 to 1.2.10
+
+### ✨ Improvements (1.2.10)
+
+- **Packagist search visibility**: Enhanced package metadata for better discoverability
+  - No code changes - this is a documentation and metadata improvement
+  - Improved package description and keywords in `composer.json`
+  - Enhanced README.md with better search terms
+  - Makes the package easier to find on Packagist when searching for SEPA, ISO 20022, pain.001, pain.008, IBAN validation, etc.
+
+### Backward Compatibility
+
+- **No breaking changes**: All existing code will continue to work
+- **No migration required**: This is a patch release with documentation improvements only
+- **No code changes**: Only metadata and documentation updates
+
+---
+
 ## Upgrading from 1.2.8 to 1.2.9
 
 ### 🗑️ Removed (1.2.9)

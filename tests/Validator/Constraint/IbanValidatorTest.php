@@ -8,7 +8,9 @@ use Nowo\SepaPaymentBundle\Validator\Constraint\Iban;
 use Nowo\SepaPaymentBundle\Validator\Constraint\IbanValidator as ConstraintIbanValidator;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator as IbanValidatorService;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
+use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 use Symfony\Component\Validator\Violation\ConstraintViolationBuilderInterface;
 
 /**
@@ -189,5 +191,29 @@ class IbanValidatorTest extends TestCase
             ->willReturn($violationBuilder);
 
         $this->validator->validate($iban, $constraint);
+    }
+
+    /**
+     * Tests that wrong constraint type throws UnexpectedTypeException.
+     *
+     * @return void
+     */
+    public function testWrongConstraintTypeThrows(): void
+    {
+        $wrongConstraint = $this->createMock(Constraint::class);
+        $this->expectException(UnexpectedTypeException::class);
+        $this->validator->validate('ES9121000418450200051332', $wrongConstraint);
+    }
+
+    /**
+     * Tests that non-string value throws UnexpectedTypeException.
+     *
+     * @return void
+     */
+    public function testNonStringValueThrows(): void
+    {
+        $constraint = new Iban();
+        $this->expectException(UnexpectedTypeException::class);
+        $this->validator->validate(12345, $constraint);
     }
 }
