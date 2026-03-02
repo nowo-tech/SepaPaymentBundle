@@ -2,6 +2,20 @@
 
 This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
+## Upgrading from 1.2.12 to 1.2.13
+
+### 🔧 CI / Repository (1.2.13)
+
+- **CI**: Workflow install step updated to use full `composer update` when no lock file is present (only affects bundle development/CI).
+- **Repository**: The bundle repository now includes `composer.lock` and no longer ignores it in `.gitignore`. This does not affect how you install or use the bundle in your application.
+
+### Backward Compatibility
+
+- **No breaking changes**: All existing code continues to work
+- **No migration required**: Patch release with CI and repository tooling only
+
+---
+
 ## Upgrading from 1.2.11 to 1.2.12
 
 ### 🔧 Tooling (1.2.12)
