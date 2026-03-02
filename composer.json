@@ -76,6 +76,9 @@
             "Nowo\\SepaPaymentBundle\\Tests\\": "tests/"
         }
     },
+    "archive": {
+        "exclude": ["/demo"]
+    },
     "config": {
         "sort-packages": true,
         "allow-plugins": {
