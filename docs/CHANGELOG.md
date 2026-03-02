@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.12] - 2026-03-02
+
+### Changed
+- **Tooling**: Updated PHP-CS-Fixer configuration and Docker setup (developer experience only; no impact on bundle API or runtime)
+
 ## [1.2.11] - 2026-02-11
 
 ### Fixed

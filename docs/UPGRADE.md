@@ -2,6 +2,19 @@
 
 This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
+## Upgrading from 1.2.11 to 1.2.12
+
+### 🔧 Tooling (1.2.12)
+
+- **PHP-CS-Fixer and Docker**: Configuration and Docker setup updated for developers. No changes to the bundle API or runtime behaviour.
+
+### Backward Compatibility
+
+- **No breaking changes**: All existing code continues to work
+- **No migration required**: Patch release with tooling/configuration only
+
+---
+
 ## Upgrading from 1.2.10 to 1.2.11
 
 ### 🐛 Bug Fixes (1.2.11)
