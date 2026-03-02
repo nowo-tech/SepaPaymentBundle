@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.13] - 2026-03-02
+
+### Changed
+- **CI**: Install step now uses full `composer update` instead of `composer update symfony/*` so that jobs run correctly when no `composer.lock` is present (avoids "Cannot update only a partial set of packages without a lock file" error). No impact on bundle API or runtime.
+- **Repository**: `composer.lock` is now committed and `.gitignore` no longer excludes it, for reproducible installs in CI and when developing the bundle.
+
+### Improved
+- **Code style**: PHP CS Fixer fixes applied (whitespace/formatting only).
+
 ## [1.2.12] - 2026-03-02
 
 ### Changed
