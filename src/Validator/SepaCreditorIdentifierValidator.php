@@ -227,7 +227,7 @@ class SepaCreditorIdentifierValidator
         }
 
         // CIF format: 1 letter + 7 digits + 1 letter/digit (e.g., A12345674)
-        return (bool) (preg_match('/^[A-Z]\d{7}[A-Z0-9]$/', $nif))
+        return (bool) preg_match('/^[A-Z]\d{7}[A-Z0-9]$/', $nif)
 
         ;
     }
