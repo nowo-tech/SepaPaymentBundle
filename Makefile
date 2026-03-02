@@ -1,7 +1,7 @@
 # Makefile for SEPA Payment Bundle
 # Simplifies Docker commands for development
 
-.PHONY: help up down shell install test test-coverage cs-check cs-fix qa clean test-up test-down test-shell
+.PHONY: help up down shell install test test-coverage cs-check cs-fix qa clean test-up test-down test-shell ensure-up assets release-check release-check-demos composer-sync
 
 # Default target
 help:
@@ -22,7 +22,10 @@ help:
 	@echo "  cs-check      Check code style"
 	@echo "  cs-fix        Fix code style"
 	@echo "  qa            Run all QA checks (cs-check + test)"
+	@echo "  release-check Pre-release: cs-fix, cs-check, test-coverage, demo healthchecks"
+	@echo "  composer-sync Validate composer.json and align composer.lock (no install)"
 	@echo "  clean         Remove vendor and cache"
+	@echo "  assets        No frontend assets in this bundle (no-op)"
 	@echo ""
 
 # Build and start container
@@ -37,49 +40,67 @@ up:
 down:
 	docker-compose down
 
+# Ensure container is running (start if not). Used by install, shell, test, cs-check, etc.
+ensure-up:
+	@if ! docker-compose exec -T php true 2>/dev/null; then \
+		echo "Starting container..."; \
+		docker-compose up -d; \
+		sleep 3; \
+	fi
+
 # Open shell in container
-shell:
+shell: ensure-up
 	docker-compose exec php sh
 
 # Install dependencies
-install:
+install: ensure-up
 	docker-compose exec php composer install
 
 # Run tests
-test:
+test: ensure-up
 	docker-compose exec php composer test
 
 # Run tests with coverage
-test-coverage:
+test-coverage: ensure-up
 	docker-compose exec php composer test-coverage
 
-# Start test container
+# Start container (same as up; single compose)
 test-up:
-	docker-compose -f docker-compose.test.yml build
-	docker-compose -f docker-compose.test.yml up -d
-	@echo "Installing dependencies..."
-	docker-compose -f docker-compose.test.yml exec test composer install --no-interaction
-	@echo "✅ Test container ready!"
+	$(MAKE) up
 
-# Stop test container
+# Stop container
 test-down:
-	docker-compose -f docker-compose.test.yml down
+	docker-compose down
 
-# Open shell in test container
+# Open shell in container
 test-shell:
-	docker-compose -f docker-compose.test.yml exec test sh
+	docker-compose exec php sh
 
 # Check code style
-cs-check:
+cs-check: ensure-up
 	docker-compose exec php composer cs-check
 
 # Fix code style
-cs-fix:
+cs-fix: ensure-up
 	docker-compose exec php composer cs-fix
 
 # Run all QA
-qa:
+qa: ensure-up
 	docker-compose exec php composer qa
+
+# Pre-release: cs-fix, cs-check, test-coverage, demo healthchecks
+release-check: ensure-up composer-sync cs-fix cs-check test-coverage release-check-demos
+
+release-check-demos:
+	@$(MAKE) -C demo release-verify
+
+composer-sync: ensure-up
+	docker-compose exec -T php composer validate --strict
+	docker-compose exec -T php composer update --no-install
+
+# No frontend assets in this bundle
+assets:
+	@echo "No frontend assets in this bundle."
 
 # Clean vendor and cache
 clean:

@@ -1,3 +1,4 @@
+name: sepa-payment-bundle-demo-symfony-8
 services:
   php:
     build:
