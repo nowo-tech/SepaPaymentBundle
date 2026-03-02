@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Model\DirectDebit;
 
+use DateTimeInterface;
+
+use function is_array;
+
 /**
  * Direct Debit data container.
  * Contains all information needed to generate a SEPA Direct Debit.
@@ -15,8 +19,6 @@ class DirectDebitData
 {
     /**
      * Creditor BIC (optional).
-     *
-     * @var string|null
      */
     private ?string $creditorBic = null;
 
@@ -37,21 +39,21 @@ class DirectDebitData
     /**
      * Constructor.
      *
-     * @param string             $messageId           Message identifier
-     * @param string             $initiatingPartyName Initiating party name
-     * @param string             $paymentInfoId       Payment information identifier
-     * @param \DateTimeInterface $dueDate             Due date
-     * @param string             $creditorName        Creditor name
-     * @param string             $creditorIban        Creditor IBAN
-     * @param string             $sequenceType        Sequence type (FRST, RCUR, OOFF, FNAL)
-     * @param string             $creditorId          Creditor identifier (SEPA identifier)
-     * @param string             $localInstrumentCode Local instrument code (CORE, B2B)
+     * @param string $messageId Message identifier
+     * @param string $initiatingPartyName Initiating party name
+     * @param string $paymentInfoId Payment information identifier
+     * @param DateTimeInterface $dueDate Due date
+     * @param string $creditorName Creditor name
+     * @param string $creditorIban Creditor IBAN
+     * @param string $sequenceType Sequence type (FRST, RCUR, OOFF, FNAL)
+     * @param string $creditorId Creditor identifier (SEPA identifier)
+     * @param string $localInstrumentCode Local instrument code (CORE, B2B)
      */
     public function __construct(
         private string $messageId,
         private string $initiatingPartyName,
         private string $paymentInfoId,
-        private \DateTimeInterface $dueDate,
+        private DateTimeInterface $dueDate,
         private string $creditorName,
         private string $creditorIban,
         private string $sequenceType,
@@ -93,9 +95,9 @@ class DirectDebitData
     /**
      * Gets the due date.
      *
-     * @return \DateTimeInterface The due date
+     * @return DateTimeInterface The due date
      */
-    public function getDueDate(): \DateTimeInterface
+    public function getDueDate(): DateTimeInterface
     {
         return $this->dueDate;
     }
@@ -124,8 +126,6 @@ class DirectDebitData
      * Sets the creditor BIC.
      *
      * @param string|null $creditorBic The creditor BIC
-     *
-     * @return self
      */
     public function setCreditorBic(?string $creditorBic): self
     {
@@ -178,8 +178,6 @@ class DirectDebitData
      * Adds a transaction.
      *
      * @param DirectDebitTransaction $transaction The transaction to add
-     *
-     * @return self
      */
     public function addTransaction(DirectDebitTransaction $transaction): self
     {
@@ -217,12 +215,10 @@ class DirectDebitData
      * Sets the creditor address.
      * Address will be included in the generated XML (as of v0.0.8).
      *
-     * @param array<string, string|null>|string|null $street     Address array or street address
-     * @param string|null                            $city       City (ignored if first param is array)
-     * @param string|null                            $postalCode Postal code (ignored if first param is array)
-     * @param string|null                            $country    Country code (ignored if first param is array)
-     *
-     * @return self
+     * @param array<string, string|null>|string|null $street Address array or street address
+     * @param string|null $city City (ignored if first param is array)
+     * @param string|null $postalCode Postal code (ignored if first param is array)
+     * @param string|null $country Country code (ignored if first param is array)
      */
     public function setCreditorAddress(array|string|null $street = null, ?string $city = null, ?string $postalCode = null, ?string $country = null): self
     {
@@ -231,10 +227,10 @@ class DirectDebitData
         }
 
         $this->creditorAddress = [
-            'street' => $street,
-            'city' => $city,
+            'street'     => $street,
+            'city'       => $city,
             'postalCode' => $postalCode,
-            'country' => $country,
+            'country'    => $country,
         ];
 
         return $this;
@@ -244,16 +240,14 @@ class DirectDebitData
      * Sets the creditor address from array.
      *
      * @param array<string, string|null> $address Address array with keys: street, city, postalCode, country
-     *
-     * @return self
      */
     public function setCreditorAddressFromArray(array $address): self
     {
         $this->creditorAddress = [
-            'street' => $address['street'] ?? $address['address'] ?? null,
-            'city' => $address['city'] ?? null,
+            'street'     => $address['street'] ?? $address['address'] ?? null,
+            'city'       => $address['city'] ?? null,
             'postalCode' => $address['postalCode'] ?? $address['postal_code'] ?? null,
-            'country' => $address['country'] ?? null,
+            'country'    => $address['country'] ?? null,
         ];
 
         return $this;

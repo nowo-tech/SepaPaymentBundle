@@ -17,27 +17,23 @@ class AfterDirectDebitGenerationEvent extends Event
 {
     /**
      * Generated XML (can be modified by listeners).
-     *
-     * @var string
      */
     private string $xml;
 
     /**
      * Message ID.
-     *
-     * @var string
      */
     private string $messageId;
 
     /**
      * Constructor.
      *
-     * @param string $xml       The generated XML
+     * @param string $xml The generated XML
      * @param string $messageId The message ID
      */
     public function __construct(string $xml, string $messageId)
     {
-        $this->xml = $xml;
+        $this->xml       = $xml;
         $this->messageId = $messageId;
     }
 
@@ -55,8 +51,6 @@ class AfterDirectDebitGenerationEvent extends Event
      * Sets the generated XML.
      *
      * @param string $xml The generated XML
-     *
-     * @return void
      */
     public function setXml(string $xml): void
     {

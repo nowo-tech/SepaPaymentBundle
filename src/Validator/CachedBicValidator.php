@@ -22,8 +22,8 @@ class CachedBicValidator
     /**
      * Constructor.
      *
-     * @param BicValidator             $bicValidator BIC validator instance
-     * @param ValidationCacheInterface $cache        Optional cache instance
+     * @param BicValidator $bicValidator BIC validator instance
+     * @param ValidationCacheInterface $cache Optional cache instance
      */
     public function __construct(
         private BicValidator $bicValidator,
@@ -41,12 +41,12 @@ class CachedBicValidator
     public function isValid(string $bic): bool
     {
         $normalized = $this->bicValidator->normalize($bic);
-        $cacheKey = 'bic_' . $normalized;
+        $cacheKey   = 'bic_' . $normalized;
 
         // Check cache first
-        if (null !== $this->cache) {
+        if ($this->cache !== null) {
             $cached = $this->cache->get($cacheKey);
-            if (null !== $cached) {
+            if ($cached !== null) {
                 return $cached;
             }
         }
@@ -55,7 +55,7 @@ class CachedBicValidator
         $result = $this->bicValidator->isValid($bic);
 
         // Cache result
-        if (null !== $this->cache) {
+        if ($this->cache !== null) {
             $this->cache->set($cacheKey, $result);
         }
 

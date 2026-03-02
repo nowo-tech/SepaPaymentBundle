@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Tests\Exporter;
 
+use InvalidArgumentException;
 use Nowo\SepaPaymentBundle\Exporter\ExportService;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
+
+use function count;
 
 /**
  * Test cases for ExportService.
@@ -25,17 +29,17 @@ class ExportServiceTest extends TestCase
     public function testExportCreditTransferToJson(): void
     {
         $data = [
-            'messageId' => 'MSG-001',
-            'creationDate' => '2024-01-15T10:00:00',
+            'messageId'           => 'MSG-001',
+            'creationDate'        => '2024-01-15T10:00:00',
             'initiatingPartyName' => 'My Company',
-            'paymentInfoId' => 'PMT-001',
-            'creditorIban' => 'ES9121000418450200051332',
-            'creditorName' => 'My Company Name',
-            'transactions' => [
+            'paymentInfoId'       => 'PMT-001',
+            'creditorIban'        => 'ES9121000418450200051332',
+            'creditorName'        => 'My Company Name',
+            'transactions'        => [
                 [
                     'endToEndId' => 'E2E-001',
-                    'amount' => 100.50,
-                    'currency' => 'EUR',
+                    'amount'     => 100.50,
+                    'currency'   => 'EUR',
                     'debtorIban' => 'GB82WEST12345698765432',
                     'debtorName' => 'John Doe',
                 ],
@@ -52,24 +56,24 @@ class ExportServiceTest extends TestCase
     public function testExportDirectDebitToJson(): void
     {
         $data = [
-            'messageId' => 'MSG-001',
-            'creationDate' => '2024-01-15T10:00:00',
+            'messageId'           => 'MSG-001',
+            'creationDate'        => '2024-01-15T10:00:00',
             'initiatingPartyName' => 'My Company',
-            'paymentInfo' => [
+            'paymentInfo'         => [
                 'paymentInfoId' => 'PMT-001',
-                'creditorIban' => 'ES9121000418450200051332',
-                'creditorName' => 'My Company Name',
-                'dueDate' => '2024-01-20',
-                'sequenceType' => 'FRST',
+                'creditorIban'  => 'ES9121000418450200051332',
+                'creditorName'  => 'My Company Name',
+                'dueDate'       => '2024-01-20',
+                'sequenceType'  => 'FRST',
             ],
             'transactions' => [
                 [
                     'endToEndId' => 'E2E-001',
-                    'amount' => 100.50,
-                    'currency' => 'EUR',
+                    'amount'     => 100.50,
+                    'currency'   => 'EUR',
                     'debtorIban' => 'GB82WEST12345698765432',
                     'debtorName' => 'John Doe',
-                    'mandateId' => 'MANDATE-001',
+                    'mandateId'  => 'MANDATE-001',
                 ],
             ],
         ];
@@ -84,22 +88,22 @@ class ExportServiceTest extends TestCase
     public function testExportCreditTransferToCsv(): void
     {
         $data = [
-            'messageId' => 'MSG-001',
-            'creationDate' => '2024-01-15T10:00:00',
-            'initiatingPartyName' => 'My Company',
-            'paymentInfoId' => 'PMT-001',
-            'creditorIban' => 'ES9121000418450200051332',
-            'creditorName' => 'My Company Name',
-            'creditorBic' => 'CAIXESBBXXX',
+            'messageId'              => 'MSG-001',
+            'creationDate'           => '2024-01-15T10:00:00',
+            'initiatingPartyName'    => 'My Company',
+            'paymentInfoId'          => 'PMT-001',
+            'creditorIban'           => 'ES9121000418450200051332',
+            'creditorName'           => 'My Company Name',
+            'creditorBic'            => 'CAIXESBBXXX',
             'requestedExecutionDate' => '2024-01-20',
-            'transactions' => [
+            'transactions'           => [
                 [
-                    'endToEndId' => 'E2E-001',
-                    'amount' => 100.50,
-                    'currency' => 'EUR',
-                    'debtorIban' => 'GB82WEST12345698765432',
-                    'debtorName' => 'John Doe',
-                    'debtorBic' => 'WESTGB22',
+                    'endToEndId'            => 'E2E-001',
+                    'amount'                => 100.50,
+                    'currency'              => 'EUR',
+                    'debtorIban'            => 'GB82WEST12345698765432',
+                    'debtorName'            => 'John Doe',
+                    'debtorBic'             => 'WESTGB22',
                     'remittanceInformation' => 'Invoice 12345',
                 ],
             ],
@@ -116,29 +120,29 @@ class ExportServiceTest extends TestCase
     public function testExportDirectDebitToCsv(): void
     {
         $data = [
-            'messageId' => 'MSG-001',
-            'creationDate' => '2024-01-15T10:00:00',
+            'messageId'           => 'MSG-001',
+            'creationDate'        => '2024-01-15T10:00:00',
             'initiatingPartyName' => 'My Company',
-            'paymentInfo' => [
-                'paymentInfoId' => 'PMT-001',
-                'creditorIban' => 'ES9121000418450200051332',
-                'creditorName' => 'My Company Name',
-                'creditorBic' => 'CAIXESBBXXX',
-                'creditorId' => 'ES98ZZZ09999999999',
-                'dueDate' => '2024-01-20',
-                'sequenceType' => 'FRST',
+            'paymentInfo'         => [
+                'paymentInfoId'       => 'PMT-001',
+                'creditorIban'        => 'ES9121000418450200051332',
+                'creditorName'        => 'My Company Name',
+                'creditorBic'         => 'CAIXESBBXXX',
+                'creditorId'          => 'ES98ZZZ09999999999',
+                'dueDate'             => '2024-01-20',
+                'sequenceType'        => 'FRST',
                 'localInstrumentCode' => 'CORE',
             ],
             'transactions' => [
                 [
-                    'endToEndId' => 'E2E-001',
-                    'amount' => 100.50,
-                    'currency' => 'EUR',
-                    'debtorIban' => 'GB82WEST12345698765432',
-                    'debtorName' => 'John Doe',
-                    'debtorBic' => 'WESTGB22',
-                    'mandateId' => 'MANDATE-001',
-                    'mandateSignatureDate' => '2023-12-01',
+                    'endToEndId'            => 'E2E-001',
+                    'amount'                => 100.50,
+                    'currency'              => 'EUR',
+                    'debtorIban'            => 'GB82WEST12345698765432',
+                    'debtorName'            => 'John Doe',
+                    'debtorBic'             => 'WESTGB22',
+                    'mandateId'             => 'MANDATE-001',
+                    'mandateSignatureDate'  => '2023-12-01',
                     'remittanceInformation' => 'Invoice 12345',
                 ],
             ],
@@ -177,7 +181,7 @@ class ExportServiceTest extends TestCase
 
     public function testImportFromJsonWithInvalidJson(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid JSON format');
 
         $this->exporter->importCreditTransferFromJson('invalid json');
@@ -202,24 +206,24 @@ class ExportServiceTest extends TestCase
     public function testExportCreditTransferToCsvWithMultipleTransactions(): void
     {
         $data = [
-            'messageId' => 'MSG-001',
-            'creationDate' => '2024-01-15T10:00:00',
+            'messageId'           => 'MSG-001',
+            'creationDate'        => '2024-01-15T10:00:00',
             'initiatingPartyName' => 'My Company',
-            'paymentInfoId' => 'PMT-001',
-            'creditorIban' => 'ES9121000418450200051332',
-            'creditorName' => 'My Company Name',
-            'transactions' => [
+            'paymentInfoId'       => 'PMT-001',
+            'creditorIban'        => 'ES9121000418450200051332',
+            'creditorName'        => 'My Company Name',
+            'transactions'        => [
                 [
                     'endToEndId' => 'E2E-001',
-                    'amount' => 100.50,
-                    'currency' => 'EUR',
+                    'amount'     => 100.50,
+                    'currency'   => 'EUR',
                     'debtorIban' => 'GB82WEST12345698765432',
                     'debtorName' => 'John Doe',
                 ],
                 [
                     'endToEndId' => 'E2E-002',
-                    'amount' => 200.75,
-                    'currency' => 'EUR',
+                    'amount'     => 200.75,
+                    'currency'   => 'EUR',
                     'debtorIban' => 'FR1420041010050500013M02606',
                     'debtorName' => 'Jane Smith',
                 ],
@@ -237,13 +241,13 @@ class ExportServiceTest extends TestCase
     public function testExportCreditTransferToCsvWithoutTransactions(): void
     {
         $data = [
-            'messageId' => 'MSG-001',
-            'creationDate' => '2024-01-15T10:00:00',
+            'messageId'           => 'MSG-001',
+            'creationDate'        => '2024-01-15T10:00:00',
             'initiatingPartyName' => 'My Company',
-            'paymentInfoId' => 'PMT-001',
-            'creditorIban' => 'ES9121000418450200051332',
-            'creditorName' => 'My Company Name',
-            'transactions' => [],
+            'paymentInfoId'       => 'PMT-001',
+            'creditorIban'        => 'ES9121000418450200051332',
+            'creditorName'        => 'My Company Name',
+            'transactions'        => [],
         ];
 
         $csv = $this->exporter->exportCreditTransferToCsv($data);
@@ -258,18 +262,18 @@ class ExportServiceTest extends TestCase
     public function testExportCreditTransferToCsvWithTransactionsInPaymentInfo(): void
     {
         $data = [
-            'messageId' => 'MSG-001',
-            'creationDate' => '2024-01-15T10:00:00',
+            'messageId'           => 'MSG-001',
+            'creationDate'        => '2024-01-15T10:00:00',
             'initiatingPartyName' => 'My Company',
-            'paymentInfo' => [
+            'paymentInfo'         => [
                 'paymentInfoId' => 'PMT-001',
-                'creditorIban' => 'ES9121000418450200051332',
-                'creditorName' => 'My Company Name',
-                'transactions' => [
+                'creditorIban'  => 'ES9121000418450200051332',
+                'creditorName'  => 'My Company Name',
+                'transactions'  => [
                     [
                         'endToEndId' => 'E2E-001',
-                        'amount' => 100.50,
-                        'currency' => 'EUR',
+                        'amount'     => 100.50,
+                        'currency'   => 'EUR',
                         'debtorIban' => 'GB82WEST12345698765432',
                         'debtorName' => 'John Doe',
                     ],
@@ -285,13 +289,13 @@ class ExportServiceTest extends TestCase
     public function testExportDirectDebitToCsvWithoutTransactions(): void
     {
         $data = [
-            'messageId' => 'MSG-001',
-            'creationDate' => '2024-01-15T10:00:00',
+            'messageId'           => 'MSG-001',
+            'creationDate'        => '2024-01-15T10:00:00',
             'initiatingPartyName' => 'My Company',
-            'paymentInfo' => [
+            'paymentInfo'         => [
                 'paymentInfoId' => 'PMT-001',
-                'creditorIban' => 'ES9121000418450200051332',
-                'creditorName' => 'My Company Name',
+                'creditorIban'  => 'ES9121000418450200051332',
+                'creditorName'  => 'My Company Name',
             ],
             'transactions' => [],
         ];
@@ -308,21 +312,21 @@ class ExportServiceTest extends TestCase
     public function testExportDirectDebitToCsvWithTransactionsInPaymentInfo(): void
     {
         $data = [
-            'messageId' => 'MSG-001',
-            'creationDate' => '2024-01-15T10:00:00',
+            'messageId'           => 'MSG-001',
+            'creationDate'        => '2024-01-15T10:00:00',
             'initiatingPartyName' => 'My Company',
-            'paymentInfo' => [
+            'paymentInfo'         => [
                 'paymentInfoId' => 'PMT-001',
-                'creditorIban' => 'ES9121000418450200051332',
-                'creditorName' => 'My Company Name',
-                'transactions' => [
+                'creditorIban'  => 'ES9121000418450200051332',
+                'creditorName'  => 'My Company Name',
+                'transactions'  => [
                     [
                         'endToEndId' => 'E2E-001',
-                        'amount' => 50.00,
-                        'currency' => 'EUR',
+                        'amount'     => 50.00,
+                        'currency'   => 'EUR',
                         'debtorIban' => 'GB82WEST12345698765432',
                         'debtorName' => 'John Doe',
-                        'mandateId' => 'MANDATE-001',
+                        'mandateId'  => 'MANDATE-001',
                     ],
                 ],
             ],
@@ -336,17 +340,17 @@ class ExportServiceTest extends TestCase
     public function testExportCreditTransferToCsvWithCustomDelimiter(): void
     {
         $data = [
-            'messageId' => 'MSG-001',
-            'creationDate' => '2024-01-15T10:00:00',
+            'messageId'           => 'MSG-001',
+            'creationDate'        => '2024-01-15T10:00:00',
             'initiatingPartyName' => 'My Company',
-            'paymentInfoId' => 'PMT-001',
-            'creditorIban' => 'ES9121000418450200051332',
-            'creditorName' => 'My Company Name',
-            'transactions' => [
+            'paymentInfoId'       => 'PMT-001',
+            'creditorIban'        => 'ES9121000418450200051332',
+            'creditorName'        => 'My Company Name',
+            'transactions'        => [
                 [
                     'endToEndId' => 'E2E-001',
-                    'amount' => 100.50,
-                    'currency' => 'EUR',
+                    'amount'     => 100.50,
+                    'currency'   => 'EUR',
                     'debtorIban' => 'GB82WEST12345698765432',
                     'debtorName' => 'John Doe',
                 ],
@@ -362,19 +366,19 @@ class ExportServiceTest extends TestCase
     public function testExportDirectDebitToCsvWithCustomDelimiter(): void
     {
         $data = [
-            'messageId' => 'MSG-001',
-            'creationDate' => '2024-01-15T10:00:00',
+            'messageId'           => 'MSG-001',
+            'creationDate'        => '2024-01-15T10:00:00',
             'initiatingPartyName' => 'My Company',
-            'paymentInfo' => [
+            'paymentInfo'         => [
                 'paymentInfoId' => 'PMT-001',
-                'creditorIban' => 'ES9121000418450200051332',
-                'creditorName' => 'My Company Name',
+                'creditorIban'  => 'ES9121000418450200051332',
+                'creditorName'  => 'My Company Name',
             ],
             'transactions' => [
                 [
                     'endToEndId' => 'E2E-001',
-                    'amount' => 100.50,
-                    'currency' => 'EUR',
+                    'amount'     => 100.50,
+                    'currency'   => 'EUR',
                     'debtorIban' => 'GB82WEST12345698765432',
                     'debtorName' => 'John Doe',
                 ],
@@ -388,7 +392,7 @@ class ExportServiceTest extends TestCase
 
     public function testImportFromJsonWithNonArray(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('JSON must contain an object/array');
 
         $this->exporter->importCreditTransferFromJson('"string"');
@@ -397,19 +401,19 @@ class ExportServiceTest extends TestCase
     public function testExportCreditTransferToCsvWithPaymentInfoStructure(): void
     {
         $data = [
-            'messageId' => 'MSG-001',
-            'creationDate' => '2024-01-15T10:00:00',
+            'messageId'           => 'MSG-001',
+            'creationDate'        => '2024-01-15T10:00:00',
             'initiatingPartyName' => 'My Company',
-            'paymentInfo' => [
+            'paymentInfo'         => [
                 'paymentInfoId' => 'PMT-001',
-                'creditorIban' => 'ES9121000418450200051332',
-                'creditorName' => 'My Company Name',
+                'creditorIban'  => 'ES9121000418450200051332',
+                'creditorName'  => 'My Company Name',
             ],
             'transactions' => [
                 [
                     'endToEndId' => 'E2E-001',
-                    'amount' => 100.50,
-                    'currency' => 'EUR',
+                    'amount'     => 100.50,
+                    'currency'   => 'EUR',
                     'debtorIban' => 'GB82WEST12345698765432',
                     'debtorName' => 'John Doe',
                 ],
@@ -425,26 +429,26 @@ class ExportServiceTest extends TestCase
     public function testExportDirectDebitToCsvWithMultipleTransactions(): void
     {
         $data = [
-            'messageId' => 'MSG-001',
-            'creationDate' => '2024-01-15T10:00:00',
+            'messageId'           => 'MSG-001',
+            'creationDate'        => '2024-01-15T10:00:00',
             'initiatingPartyName' => 'My Company',
-            'paymentInfo' => [
+            'paymentInfo'         => [
                 'paymentInfoId' => 'PMT-001',
-                'creditorIban' => 'ES9121000418450200051332',
-                'creditorName' => 'My Company Name',
+                'creditorIban'  => 'ES9121000418450200051332',
+                'creditorName'  => 'My Company Name',
             ],
             'transactions' => [
                 [
                     'endToEndId' => 'E2E-001',
-                    'amount' => 100.50,
-                    'currency' => 'EUR',
+                    'amount'     => 100.50,
+                    'currency'   => 'EUR',
                     'debtorIban' => 'GB82WEST12345698765432',
                     'debtorName' => 'John Doe',
                 ],
                 [
                     'endToEndId' => 'E2E-002',
-                    'amount' => 200.75,
-                    'currency' => 'EUR',
+                    'amount'     => 200.75,
+                    'currency'   => 'EUR',
                     'debtorIban' => 'FR1420041010050500013M02606',
                     'debtorName' => 'Jane Smith',
                 ],
@@ -462,7 +466,7 @@ class ExportServiceTest extends TestCase
     public function testExportCreditTransferToCsvWithEmptyData(): void
     {
         $data = [];
-        $csv = $this->exporter->exportCreditTransferToCsv($data);
+        $csv  = $this->exporter->exportCreditTransferToCsv($data);
 
         $this->assertStringContainsString('Message ID', $csv);
     }
@@ -470,7 +474,7 @@ class ExportServiceTest extends TestCase
     public function testExportDirectDebitToCsvWithEmptyData(): void
     {
         $data = [];
-        $csv = $this->exporter->exportDirectDebitToCsv($data);
+        $csv  = $this->exporter->exportDirectDebitToCsv($data);
 
         $this->assertStringContainsString('Message ID', $csv);
     }
@@ -478,16 +482,16 @@ class ExportServiceTest extends TestCase
     public function testExportCreditTransferToCsvWithSpecialCharacters(): void
     {
         $data = [
-            'messageId' => 'MSG-001',
+            'messageId'           => 'MSG-001',
             'initiatingPartyName' => 'Company "Test" & Co.',
-            'creditorName' => 'Name with, comma',
-            'transactions' => [
+            'creditorName'        => 'Name with, comma',
+            'transactions'        => [
                 [
-                    'endToEndId' => 'E2E-001',
-                    'amount' => 100.50,
-                    'currency' => 'EUR',
-                    'debtorIban' => 'GB82WEST12345698765432',
-                    'debtorName' => 'John "Doe"',
+                    'endToEndId'            => 'E2E-001',
+                    'amount'                => 100.50,
+                    'currency'              => 'EUR',
+                    'debtorIban'            => 'GB82WEST12345698765432',
+                    'debtorName'            => 'John "Doe"',
                     'remittanceInformation' => 'Invoice #12345',
                 ],
             ],
@@ -505,7 +509,7 @@ class ExportServiceTest extends TestCase
             'messageId' => "invalid \x80 UTF-8 sequence",
         ];
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Failed to encode data to JSON');
 
         $this->exporter->exportCreditTransferToJson($data);

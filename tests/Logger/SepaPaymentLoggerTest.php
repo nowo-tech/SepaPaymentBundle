@@ -240,7 +240,7 @@ class TestLogger implements LoggerInterface
     public function log($level, $message, array $context = []): void
     {
         $this->logs[] = [
-            'level' => $level,
+            'level'   => $level,
             'message' => $message,
             'context' => $context,
         ];

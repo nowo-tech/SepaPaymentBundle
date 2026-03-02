@@ -1,30 +1,35 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
+use DateTime;
+use Exception;
 use Nowo\SepaPaymentBundle\Model\Mandate\Mandate;
 use Nowo\SepaPaymentBundle\Service\MandateService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
+use const JSON_PRETTY_PRINT;
+use const JSON_UNESCAPED_UNICODE;
+
 class MandateController extends AbstractController
 {
     /**
      * Demo mandate creation.
-     *
-     * @return JsonResponse
      */
     #[Route('/demo-mandate', name: 'demo_mandate')]
     public function demoMandate(): JsonResponse
     {
         $mandate = new Mandate(
             'MANDATE-001',
-            new \DateTime('2024-01-15'),
+            new DateTime('2024-01-15'),
             'ES9121000418450200051332',
             'John Doe',
             'CORE',
-            'FRST'
+            'FRST',
         );
 
         $mandate->setDebtorBic('CAIXESBBXXX');
@@ -32,14 +37,14 @@ class MandateController extends AbstractController
         $mandate->setActive(true);
 
         return new JsonResponse([
-            'mandateId' => $mandate->getMandateId(),
+            'mandateId'     => $mandate->getMandateId(),
             'signatureDate' => $mandate->getSignatureDate()->format('Y-m-d'),
-            'debtorIban' => $mandate->getDebtorIban(),
-            'debtorBic' => $mandate->getDebtorBic(),
-            'debtorName' => $mandate->getDebtorName(),
-            'type' => $mandate->getType(),
-            'sequenceType' => $mandate->getSequenceType(),
-            'active' => $mandate->isActive(),
+            'debtorIban'    => $mandate->getDebtorIban(),
+            'debtorBic'     => $mandate->getDebtorBic(),
+            'debtorName'    => $mandate->getDebtorName(),
+            'type'          => $mandate->getType(),
+            'sequenceType'  => $mandate->getSequenceType(),
+            'active'        => $mandate->isActive(),
         ]);
     }
 
@@ -47,7 +52,6 @@ class MandateController extends AbstractController
      * Demo Mandate Management - Create and manage mandates.
      *
      * @param MandateService $mandateService Mandate service
-     * @return JsonResponse
      */
     #[Route('/demo-mandate-management', name: 'demo_mandate_management')]
     public function demoMandateManagement(MandateService $mandateService): JsonResponse
@@ -56,11 +60,11 @@ class MandateController extends AbstractController
             // Create a new mandate
             $mandate = $mandateService->createMandate(
                 'MANDATE-DEMO-001',
-                new \DateTime('2024-01-15'),
+                new DateTime('2024-01-15'),
                 'ES9121000418450200051332',
                 'John Doe',
                 'CORE',
-                'FRST'
+                'FRST',
             );
 
             // Update sequence type
@@ -75,27 +79,27 @@ class MandateController extends AbstractController
             $response = new JsonResponse([
                 'message' => 'Mandate management demonstration',
                 'mandate' => [
-                    'id' => $mandate->getMandateId(),
-                    'debtorIban' => $mandate->getDebtorIban(),
-                    'debtorName' => $mandate->getDebtorName(),
-                    'type' => $mandate->getType(),
-                    'sequenceType' => $mandate->getSequenceType(),
-                    'status' => $mandate->getStatus()->value,
-                    'isActive' => $mandate->isActive(),
-                    'signatureDate' => $mandate->getSignatureDate()->format('Y-m-d'),
+                    'id'             => $mandate->getMandateId(),
+                    'debtorIban'     => $mandate->getDebtorIban(),
+                    'debtorName'     => $mandate->getDebtorName(),
+                    'type'           => $mandate->getType(),
+                    'sequenceType'   => $mandate->getSequenceType(),
+                    'status'         => $mandate->getStatus()->value,
+                    'isActive'       => $mandate->isActive(),
+                    'signatureDate'  => $mandate->getSignatureDate()->format('Y-m-d'),
                     'expirationDate' => $mandate->getExpirationDate()?->format('Y-m-d'),
-                    'isExpired' => $mandate->isExpired(),
+                    'isExpired'      => $mandate->isExpired(),
                 ],
-                'history' => array_map(fn($h) => $h->toArray(), $history),
+                'history'    => array_map(static fn ($h) => $h->toArray(), $history),
                 'validation' => [
                     'isValidForTransaction' => $isValid,
-                    'canUseSequenceType' => 'RCUR',
+                    'canUseSequenceType'    => 'RCUR',
                 ],
             ]);
             $response->setEncodingOptions(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
             return $response;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return new JsonResponse([
                 'error' => $e->getMessage(),
             ], 500);
@@ -106,7 +110,6 @@ class MandateController extends AbstractController
      * Demo Mandate Lifecycle - Create, suspend, reactivate, revoke.
      *
      * @param MandateService $mandateService Mandate service
-     * @return JsonResponse
      */
     #[Route('/demo-mandate-lifecycle', name: 'demo_mandate_lifecycle')]
     public function demoMandateLifecycle(MandateService $mandateService): JsonResponse
@@ -115,9 +118,9 @@ class MandateController extends AbstractController
             // Create mandate
             $mandate1 = $mandateService->createMandate(
                 'MANDATE-LIFECYCLE-001',
-                new \DateTime('2024-01-15'),
+                new DateTime('2024-01-15'),
                 'ES9121000418450200051332',
-                'John Doe'
+                'John Doe',
             );
 
             // Suspend mandate
@@ -134,32 +137,32 @@ class MandateController extends AbstractController
 
             $response = new JsonResponse([
                 'message' => 'Mandate lifecycle demonstration',
-                'stages' => [
+                'stages'  => [
                     'created' => [
-                        'status' => $mandate1->getStatus()->value,
+                        'status'   => $mandate1->getStatus()->value,
                         'isActive' => $mandate1->isActive(),
                     ],
                     'suspended' => [
-                        'status' => $suspendedMandate->getStatus()->value,
+                        'status'   => $suspendedMandate->getStatus()->value,
                         'isActive' => $suspendedMandate->isActive(),
                     ],
                     'reactivated' => [
-                        'status' => $reactivatedMandate->getStatus()->value,
+                        'status'   => $reactivatedMandate->getStatus()->value,
                         'isActive' => $reactivatedMandate->isActive(),
                     ],
                     'revoked' => [
-                        'status' => $revokedMandate->getStatus()->value,
-                        'isActive' => $revokedMandate->isActive(),
-                        'revocationDate' => $revokedMandate->getRevocationDate()?->format('Y-m-d H:i:s'),
+                        'status'           => $revokedMandate->getStatus()->value,
+                        'isActive'         => $revokedMandate->isActive(),
+                        'revocationDate'   => $revokedMandate->getRevocationDate()?->format('Y-m-d H:i:s'),
                         'revocationReason' => $revokedMandate->getRevocationReason(),
                     ],
                 ],
-                'history' => array_map(fn($h) => $h->toArray(), $mandateService->getMandateHistory('MANDATE-LIFECYCLE-001')),
+                'history' => array_map(static fn ($h) => $h->toArray(), $mandateService->getMandateHistory('MANDATE-LIFECYCLE-001')),
             ]);
             $response->setEncodingOptions(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
             return $response;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return new JsonResponse([
                 'error' => $e->getMessage(),
             ], 500);
@@ -170,7 +173,6 @@ class MandateController extends AbstractController
      * Demo Mandate Sequence Type Transitions.
      *
      * @param MandateService $mandateService Mandate service
-     * @return JsonResponse
      */
     #[Route('/demo-mandate-sequence-transitions', name: 'demo_mandate_sequence_transitions')]
     public function demoMandateSequenceTransitions(MandateService $mandateService): JsonResponse
@@ -179,11 +181,11 @@ class MandateController extends AbstractController
             // Create mandate with FRST
             $mandate = $mandateService->createMandate(
                 'MANDATE-SEQ-001',
-                new \DateTime('2024-01-15'),
+                new DateTime('2024-01-15'),
                 'ES9121000418450200051332',
                 'John Doe',
                 'CORE',
-                'FRST'
+                'FRST',
             );
 
             // Valid transitions from FRST
@@ -207,7 +209,7 @@ class MandateController extends AbstractController
             $response = new JsonResponse([
                 'message' => 'Mandate sequence type transitions demonstration',
                 'mandate' => [
-                    'id' => $mandate->getMandateId(),
+                    'id'                  => $mandate->getMandateId(),
                     'initialSequenceType' => 'FRST',
                     'currentSequenceType' => $mandateRcur->getSequenceType(),
                 ],
@@ -220,7 +222,7 @@ class MandateController extends AbstractController
             $response->setEncodingOptions(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
             return $response;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return new JsonResponse([
                 'error' => $e->getMessage(),
             ], 500);

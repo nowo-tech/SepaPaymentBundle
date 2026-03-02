@@ -19,27 +19,21 @@ class ConvertCccCommandTest extends TestCase
 {
     /**
      * Command instance.
-     *
-     * @var ConvertCccCommand
      */
     private ConvertCccCommand $command;
 
     /**
      * Sets up the test environment.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
         $ibanValidator = new \Nowo\SepaPaymentBundle\Validator\IbanValidator();
-        $cccConverter = new CccConverter($ibanValidator);
+        $cccConverter  = new CccConverter($ibanValidator);
         $this->command = new ConvertCccCommand($cccConverter);
     }
 
     /**
      * Tests command execution with valid CCC.
-     *
-     * @return void
      */
     public function testExecuteWithValidCcc(): void
     {
@@ -55,8 +49,6 @@ class ConvertCccCommandTest extends TestCase
 
     /**
      * Tests command execution with invalid CCC.
-     *
-     * @return void
      */
     public function testExecuteWithInvalidCcc(): void
     {
@@ -70,8 +62,6 @@ class ConvertCccCommandTest extends TestCase
 
     /**
      * Tests command execution displays all CCC information.
-     *
-     * @return void
      */
     public function testExecuteDisplaysCccInformation(): void
     {
@@ -88,8 +78,6 @@ class ConvertCccCommandTest extends TestCase
 
     /**
      * Tests command with CCC containing spaces.
-     *
-     * @return void
      */
     public function testExecuteWithCccContainingSpaces(): void
     {
@@ -103,8 +91,6 @@ class ConvertCccCommandTest extends TestCase
 
     /**
      * Tests command with CCC that has wrong length.
-     *
-     * @return void
      */
     public function testExecuteWithWrongLengthCcc(): void
     {

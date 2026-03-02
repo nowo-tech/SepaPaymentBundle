@@ -18,8 +18,6 @@ class BeforeCreditTransferGenerationEvent extends Event
 {
     /**
      * Credit transfer data (can be modified by listeners).
-     *
-     * @var CreditTransferData
      */
     private CreditTransferData $creditTransferData;
 
@@ -47,8 +45,6 @@ class BeforeCreditTransferGenerationEvent extends Event
      * Sets the credit transfer data.
      *
      * @param CreditTransferData $creditTransferData The credit transfer data
-     *
-     * @return void
      */
     public function setCreditTransferData(CreditTransferData $creditTransferData): void
     {

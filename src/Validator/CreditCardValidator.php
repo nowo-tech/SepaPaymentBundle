@@ -6,6 +6,8 @@ namespace Nowo\SepaPaymentBundle\Validator;
 
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
+use function strlen;
+
 /**
  * Credit card validator.
  * Validates credit card numbers using the Luhn algorithm and detects card types.
@@ -20,13 +22,13 @@ class CreditCardValidator
     /**
      * Card type constants.
      */
-    public const TYPE_VISA = 'visa';
-    public const TYPE_MASTERCARD = 'mastercard';
-    public const TYPE_AMEX = 'amex';
-    public const TYPE_DISCOVER = 'discover';
+    public const TYPE_VISA        = 'visa';
+    public const TYPE_MASTERCARD  = 'mastercard';
+    public const TYPE_AMEX        = 'amex';
+    public const TYPE_DISCOVER    = 'discover';
     public const TYPE_DINERS_CLUB = 'diners_club';
-    public const TYPE_JCB = 'jcb';
-    public const TYPE_UNKNOWN = 'unknown';
+    public const TYPE_JCB         = 'jcb';
+    public const TYPE_UNKNOWN     = 'unknown';
 
     /**
      * Validates a credit card number using the Luhn algorithm.
@@ -63,9 +65,9 @@ class CreditCardValidator
      */
     private function validateLuhn(string $cardNumber): bool
     {
-        $sum = 0;
+        $sum       = 0;
         $numDigits = strlen($cardNumber);
-        $parity = $numDigits % 2;
+        $parity    = $numDigits % 2;
 
         for ($i = 0; $i < $numDigits; ++$i) {
             $digit = (int) $cardNumber[$i];
@@ -106,10 +108,10 @@ class CreditCardValidator
     public function format(string $cardNumber): string
     {
         $normalized = $this->normalize($cardNumber);
-        $formatted = '';
+        $formatted  = '';
 
         for ($i = 0; $i < strlen($normalized); ++$i) {
-            if ($i > 0 && 0 === $i % 4) {
+            if ($i > 0 && $i % 4 === 0) {
                 $formatted .= ' ';
             }
             $formatted .= $normalized[$i];
@@ -150,10 +152,10 @@ class CreditCardValidator
 
         // Discover: starts with 6011, 622126-622925, 644-649, or 65, 16 digits
         // Patterns: 6011 (4 digits) + 12 more = 16, 65xx (4 digits) + 12 more = 16, etc.
-        if (preg_match('/^6011\d{12}$/', $normalized) || // 6011 + 12 digits
-            preg_match('/^65\d{14}$/', $normalized) || // 65 + 14 digits
-            preg_match('/^64[4-9]\d{13}$/', $normalized) || // 644-649 + 13 digits
-            preg_match('/^622[1-9]\d{12}$/', $normalized)) { // 622126-622925 (simplified: 6221-6229 + 12 digits)
+        if (preg_match('/^6011\d{12}$/', $normalized) // 6011 + 12 digits
+            || preg_match('/^65\d{14}$/', $normalized) // 65 + 14 digits
+            || preg_match('/^64[4-9]\d{13}$/', $normalized) // 644-649 + 13 digits
+            || preg_match('/^622[1-9]\d{12}$/', $normalized)) { // 622126-622925 (simplified: 6221-6229 + 12 digits)
             return self::TYPE_DISCOVER;
         }
 
@@ -203,21 +205,21 @@ class CreditCardValidator
      * Masks a credit card number, showing only the last 4 digits.
      *
      * @param string $cardNumber The credit card number
-     * @param string $maskChar   The character to use for masking (default: *)
+     * @param string $maskChar The character to use for masking (default: *)
      *
      * @return string The masked card number
      */
     public function mask(string $cardNumber, string $maskChar = '*'): string
     {
         $normalized = $this->normalize($cardNumber);
-        $length = strlen($normalized);
+        $length     = strlen($normalized);
 
         if ($length < 4) {
             return str_repeat($maskChar, $length);
         }
 
         $lastFour = $this->getLastFour($normalized);
-        $masked = str_repeat($maskChar, $length - 4);
+        $masked   = str_repeat($maskChar, $length - 4);
 
         return $masked . $lastFour;
     }
@@ -226,7 +228,7 @@ class CreditCardValidator
      * Validates if a card number matches a specific card type.
      *
      * @param string $cardNumber The credit card number
-     * @param string $cardType   The expected card type
+     * @param string $cardType The expected card type
      *
      * @return bool True if the card number matches the type, false otherwise
      */

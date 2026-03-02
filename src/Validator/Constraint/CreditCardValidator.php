@@ -9,6 +9,8 @@ use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
+use function is_string;
+
 /**
  * Credit Card constraint validator.
  * Uses CreditCardValidator service for validation logic.
@@ -20,8 +22,6 @@ class CreditCardValidator extends ConstraintValidator
 {
     /**
      * Credit Card validator service.
-     *
-     * @var CreditCardValidatorService
      */
     private CreditCardValidatorService $creditCardValidator;
 
@@ -44,7 +44,7 @@ class CreditCardValidator extends ConstraintValidator
             throw new UnexpectedTypeException($constraint, CreditCard::class);
         }
 
-        if (null === $value || '' === $value) {
+        if ($value === null || $value === '') {
             return;
         }
 

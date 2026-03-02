@@ -9,6 +9,8 @@ use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
+use function is_string;
+
 /**
  * IBAN constraint validator.
  * Uses IbanValidator service for validation logic.
@@ -20,8 +22,6 @@ class IbanValidator extends ConstraintValidator
 {
     /**
      * IBAN validator service.
-     *
-     * @var IbanValidatorService
      */
     private IbanValidatorService $ibanValidator;
 
@@ -44,7 +44,7 @@ class IbanValidator extends ConstraintValidator
             throw new UnexpectedTypeException($constraint, Iban::class);
         }
 
-        if (null === $value || '' === $value) {
+        if ($value === null || $value === '') {
             return;
         }
 

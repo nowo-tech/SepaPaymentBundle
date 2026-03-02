@@ -45,7 +45,7 @@ class SepaStringSanitizer
 
     /**
      * Allowed characters in SEPA names (letters, digits, spaces, and common punctuation).
-     * Based on SEPA character set: a-z, A-Z, 0-9, / - ? : ( ) . , ' + Space
+     * Based on SEPA character set: a-z, A-Z, 0-9, / - ? : ( ) . , ' + Space.
      */
     private const ALLOWED_CHARS_PATTERN = '/^[a-zA-Z0-9\/\-\?\(\)\.\,\'\+ ]+$/u';
 
@@ -77,7 +77,7 @@ class SepaStringSanitizer
      */
     public function isValid(string $value): bool
     {
-        if ('' === $value) {
+        if ($value === '') {
             return false;
         }
 
@@ -93,7 +93,7 @@ class SepaStringSanitizer
      */
     public function sanitize(string $value): string
     {
-        if ('' === $value) {
+        if ($value === '') {
             return $value;
         }
 

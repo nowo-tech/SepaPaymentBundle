@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Model\Mandate;
 
+use DateTimeInterface;
+
 /**
  * Mandate history entry.
  * Represents a change in mandate status or sequence type.
@@ -16,16 +18,16 @@ class MandateHistory
     /**
      * Constructor.
      *
-     * @param string             $mandateId   Mandate identifier
-     * @param \DateTimeInterface $timestamp   Timestamp of the change
-     * @param string             $eventType   Type of event (status_change, sequence_change, etc.)
-     * @param string             $oldValue    Old value
-     * @param string             $newValue    New value
-     * @param string|null        $description Optional description
+     * @param string $mandateId Mandate identifier
+     * @param DateTimeInterface $timestamp Timestamp of the change
+     * @param string $eventType Type of event (status_change, sequence_change, etc.)
+     * @param string $oldValue Old value
+     * @param string $newValue New value
+     * @param string|null $description Optional description
      */
     public function __construct(
         private string $mandateId,
-        private \DateTimeInterface $timestamp,
+        private DateTimeInterface $timestamp,
         private string $eventType,
         private string $oldValue,
         private string $newValue,
@@ -46,9 +48,9 @@ class MandateHistory
     /**
      * Gets the timestamp.
      *
-     * @return \DateTimeInterface The timestamp
+     * @return DateTimeInterface The timestamp
      */
-    public function getTimestamp(): \DateTimeInterface
+    public function getTimestamp(): DateTimeInterface
     {
         return $this->timestamp;
     }
@@ -101,11 +103,11 @@ class MandateHistory
     public function toArray(): array
     {
         return [
-            'mandateId' => $this->mandateId,
-            'timestamp' => $this->timestamp->format('Y-m-d H:i:s'),
-            'eventType' => $this->eventType,
-            'oldValue' => $this->oldValue,
-            'newValue' => $this->newValue,
+            'mandateId'   => $this->mandateId,
+            'timestamp'   => $this->timestamp->format('Y-m-d H:i:s'),
+            'eventType'   => $this->eventType,
+            'oldValue'    => $this->oldValue,
+            'newValue'    => $this->newValue,
             'description' => $this->description,
         ];
     }

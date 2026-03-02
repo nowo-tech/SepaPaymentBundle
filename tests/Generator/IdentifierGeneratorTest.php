@@ -17,15 +17,11 @@ class IdentifierGeneratorTest extends TestCase
 {
     /**
      * Identifier generator instance.
-     *
-     * @var IdentifierGenerator
      */
     private IdentifierGenerator $generator;
 
     /**
      * Sets up the test environment.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
@@ -34,8 +30,6 @@ class IdentifierGeneratorTest extends TestCase
 
     /**
      * Tests message ID generation.
-     *
-     * @return void
      */
     public function testGenerateMessageId(): void
     {
@@ -49,8 +43,6 @@ class IdentifierGeneratorTest extends TestCase
 
     /**
      * Tests message ID generation with custom prefix.
-     *
-     * @return void
      */
     public function testGenerateMessageIdWithPrefix(): void
     {
@@ -60,8 +52,6 @@ class IdentifierGeneratorTest extends TestCase
 
     /**
      * Tests payment info ID generation.
-     *
-     * @return void
      */
     public function testGeneratePaymentInfoId(): void
     {
@@ -75,8 +65,6 @@ class IdentifierGeneratorTest extends TestCase
 
     /**
      * Tests payment info ID generation with custom prefix.
-     *
-     * @return void
      */
     public function testGeneratePaymentInfoIdWithPrefix(): void
     {
@@ -86,8 +74,6 @@ class IdentifierGeneratorTest extends TestCase
 
     /**
      * Tests end-to-end ID generation.
-     *
-     * @return void
      */
     public function testGenerateEndToEndId(): void
     {
@@ -101,8 +87,6 @@ class IdentifierGeneratorTest extends TestCase
 
     /**
      * Tests end-to-end ID generation with custom prefix.
-     *
-     * @return void
      */
     public function testGenerateEndToEndIdWithPrefix(): void
     {
@@ -112,8 +96,6 @@ class IdentifierGeneratorTest extends TestCase
 
     /**
      * Tests mandate ID generation.
-     *
-     * @return void
      */
     public function testGenerateMandateId(): void
     {
@@ -127,8 +109,6 @@ class IdentifierGeneratorTest extends TestCase
 
     /**
      * Tests mandate ID generation with custom prefix.
-     *
-     * @return void
      */
     public function testGenerateMandateIdWithPrefix(): void
     {
@@ -138,8 +118,6 @@ class IdentifierGeneratorTest extends TestCase
 
     /**
      * Tests custom ID generation.
-     *
-     * @return void
      */
     public function testGenerateCustomId(): void
     {

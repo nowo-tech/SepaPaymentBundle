@@ -1,7 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
+use DateTime;
+use Exception;
 use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
 use Nowo\SepaPaymentBundle\Generator\RemesaGenerator;
 use Nowo\SepaPaymentBundle\Model\Remesa\RemesaData;
@@ -13,6 +17,11 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+use function strlen;
+
+use const JSON_PRETTY_PRINT;
+use const JSON_UNESCAPED_UNICODE;
+
 class DeprecatedController extends AbstractController
 {
     /**
@@ -20,8 +29,7 @@ class DeprecatedController extends AbstractController
      * This endpoint demonstrates that deprecated classes still work.
      *
      * @param RemesaGenerator $generator Deprecated remesa generator
-     * @param IbanValidator   $validator IBAN validator
-     * @return Response
+     * @param IbanValidator $validator IBAN validator
      */
     #[Route('/demo-remesa-generator-deprecated', name: 'demo_remesa_generator_deprecated')]
     public function demoRemesaGeneratorDeprecated(RemesaGenerator $generator, IbanValidator $validator): Response
@@ -29,12 +37,12 @@ class DeprecatedController extends AbstractController
         // Using deprecated RemesaData class
         $remesaData = new RemesaData(
             'MSG-DEPRECATED-001',
-            new \DateTime(),
+            new DateTime(),
             'Deprecated Demo Company',
             'PMT-DEPRECATED-001',
             'ES9121000418450200051332',
             'Deprecated Demo Company Name',
-            new \DateTime('tomorrow')
+            new DateTime('tomorrow'),
         );
         $remesaData->setCreditorBic('CAIXESBBXXX');
         $remesaData->setBatchBooking(true);
@@ -45,7 +53,7 @@ class DeprecatedController extends AbstractController
             200.50,
             'EUR',
             'GB82WEST12345698765432',
-            'John Doe (Deprecated)'
+            'John Doe (Deprecated)',
         );
         $transaction->setDebtorBic('WESTGB22');
         $transaction->setRemittanceInformation('Invoice using deprecated classes');
@@ -56,7 +64,7 @@ class DeprecatedController extends AbstractController
             $xml = $generator->generate($remesaData);
 
             return $generator->createResponse($xml, 'remesa-deprecated.xml');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return new Response('Error: ' . $e->getMessage(), 500);
         }
     }
@@ -65,28 +73,27 @@ class DeprecatedController extends AbstractController
      * Demo deprecated RemesaGenerator with generateFromArray (shows backward compatibility).
      *
      * @param RemesaGenerator $generator Deprecated remesa generator
-     * @return Response
      */
     #[Route('/demo-remesa-generator-array-deprecated', name: 'demo_remesa_generator_array_deprecated')]
     public function demoRemesaGeneratorArrayDeprecated(RemesaGenerator $generator): Response
     {
         // Using deprecated RemesaGenerator with array format
         $data = [
-            'reference' => 'MSG-DEPRECATED-ARRAY-001',
-            'initiatingPartyName' => 'Deprecated Array Demo',
-            'paymentInfoId' => 'PMT-DEPRECATED-ARRAY-001',
-            'creditorIban' => 'ES9121000418450200051332',
-            'creditorName' => 'Deprecated Array Company',
+            'reference'              => 'MSG-DEPRECATED-ARRAY-001',
+            'initiatingPartyName'    => 'Deprecated Array Demo',
+            'paymentInfoId'          => 'PMT-DEPRECATED-ARRAY-001',
+            'creditorIban'           => 'ES9121000418450200051332',
+            'creditorName'           => 'Deprecated Array Company',
             'requestedExecutionDate' => '2024-01-20',
-            'creditorBic' => 'CAIXESBBXXX',
-            'transactions' => [
+            'creditorBic'            => 'CAIXESBBXXX',
+            'transactions'           => [
                 [
-                    'amount' => 150.75,
-                    'currency' => 'EUR',
-                    'debtorIban' => 'GB82WEST12345698765432',
-                    'debtorName' => 'John Doe (Deprecated Array)',
-                    'endToEndId' => 'E2E-DEPRECATED-ARRAY-001',
-                    'debtorBic' => 'WESTGB22',
+                    'amount'                => 150.75,
+                    'currency'              => 'EUR',
+                    'debtorIban'            => 'GB82WEST12345698765432',
+                    'debtorName'            => 'John Doe (Deprecated Array)',
+                    'endToEndId'            => 'E2E-DEPRECATED-ARRAY-001',
+                    'debtorBic'             => 'WESTGB22',
                     'remittanceInformation' => 'Invoice using deprecated RemesaGenerator',
                 ],
             ],
@@ -97,7 +104,7 @@ class DeprecatedController extends AbstractController
             $xml = $generator->generateFromArray($data);
 
             return $generator->createResponse($xml, 'remesa-array-deprecated.xml');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return new Response('Error: ' . $e->getMessage(), 500);
         }
     }
@@ -106,8 +113,7 @@ class DeprecatedController extends AbstractController
      * Demo deprecated RemesaParser (shows backward compatibility).
      *
      * @param CreditTransferGenerator $generator Credit transfer generator (to create sample XML)
-     * @param RemesaParser            $parser    Deprecated remesa parser
-     * @return JsonResponse
+     * @param RemesaParser $parser Deprecated remesa parser
      */
     #[Route('/demo-remesa-parser-deprecated', name: 'demo_remesa_parser_deprecated')]
     public function demoRemesaParserDeprecated(CreditTransferGenerator $generator, RemesaParser $parser): JsonResponse
@@ -115,22 +121,22 @@ class DeprecatedController extends AbstractController
         try {
             // First, generate a sample XML using new generator
             $data = [
-                'reference' => 'MSG-PARSE-DEPRECATED-001',
+                'reference'           => 'MSG-PARSE-DEPRECATED-001',
                 'initiatingPartyName' => 'Deprecated Parser Demo',
-                'paymentInfoId' => 'PMT-PARSE-DEPRECATED-001',
+                'paymentInfoId'       => 'PMT-PARSE-DEPRECATED-001',
                 // Debtor data (company that PAYS)
-                'debtorIban' => 'ES9121000418450200051332',
-                'debtorName' => 'Deprecated Parser Company',
+                'debtorIban'             => 'ES9121000418450200051332',
+                'debtorName'             => 'Deprecated Parser Company',
                 'requestedExecutionDate' => '2024-01-20',
-                'debtorBic' => 'CAIXESBBXXX',
-                'transactions' => [
+                'debtorBic'              => 'CAIXESBBXXX',
+                'transactions'           => [
                     [
-                        'amount' => 175.25,
-                        'currency' => 'EUR',
-                        'creditorIban' => 'GB82WEST12345698765432',
-                        'creditorName' => 'John Doe (Deprecated Parser)',
-                        'endToEndId' => 'E2E-PARSE-DEPRECATED-001',
-                        'creditorBic' => 'WESTGB22',
+                        'amount'                => 175.25,
+                        'currency'              => 'EUR',
+                        'creditorIban'          => 'GB82WEST12345698765432',
+                        'creditorName'          => 'John Doe (Deprecated Parser)',
+                        'endToEndId'            => 'E2E-PARSE-DEPRECATED-001',
+                        'creditorBic'           => 'WESTGB22',
                         'remittanceInformation' => 'Invoice parsed with deprecated RemesaParser',
                     ],
                 ],
@@ -139,20 +145,20 @@ class DeprecatedController extends AbstractController
             $xml = $generator->generateFromArray($data);
 
             // Using deprecated RemesaParser (will show deprecation warning but works)
-            $isValid = $parser->isValidCreditTransfer($xml);
+            $isValid    = $parser->isValidCreditTransfer($xml);
             $parsedData = $parser->parseCreditTransfer($xml);
 
             $response = new JsonResponse([
-                'message' => 'Successfully parsed XML using deprecated RemesaParser (backward compatibility)',
-                'isValid' => $isValid,
+                'message'      => 'Successfully parsed XML using deprecated RemesaParser (backward compatibility)',
+                'isValid'      => $isValid,
                 'generatedXml' => $xml,
-                'parsedData' => $parsedData,
-                'note' => 'This endpoint uses deprecated RemesaParser. It still works but shows deprecation warnings. Use CreditTransferParser instead.',
+                'parsedData'   => $parsedData,
+                'note'         => 'This endpoint uses deprecated RemesaParser. It still works but shows deprecation warnings. Use CreditTransferParser instead.',
             ]);
             $response->setEncodingOptions(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
             return $response;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return new JsonResponse([
                 'error' => $e->getMessage(),
             ], 500);
@@ -163,30 +169,29 @@ class DeprecatedController extends AbstractController
      * Demo comparison: deprecated vs new classes side by side.
      * Shows that both work identically.
      *
-     * @param RemesaGenerator         $remesaGenerator         Deprecated generator
+     * @param RemesaGenerator $remesaGenerator Deprecated generator
      * @param CreditTransferGenerator $creditTransferGenerator New generator
-     * @return JsonResponse
      */
     #[Route('/demo-comparison-deprecated-vs-new', name: 'demo_comparison_deprecated_vs_new')]
     public function demoComparisonDeprecatedVsNew(RemesaGenerator $remesaGenerator, CreditTransferGenerator $creditTransferGenerator): JsonResponse
     {
         $data = [
-            'reference' => 'MSG-COMPARISON-001',
+            'reference'           => 'MSG-COMPARISON-001',
             'initiatingPartyName' => 'Comparison Demo',
-            'paymentInfoId' => 'PMT-COMPARISON-001',
+            'paymentInfoId'       => 'PMT-COMPARISON-001',
             // Debtor data (company that PAYS)
-            'debtorIban' => 'ES9121000418450200051332',
-            'debtorName' => 'Comparison Company',
+            'debtorIban'             => 'ES9121000418450200051332',
+            'debtorName'             => 'Comparison Company',
             'requestedExecutionDate' => '2024-01-20',
-            'debtorBic' => 'CAIXESBBXXX',
-            'transactions' => [
+            'debtorBic'              => 'CAIXESBBXXX',
+            'transactions'           => [
                 [
-                    'amount' => 100.00,
-                    'currency' => 'EUR',
-                    'creditorIban' => 'GB82WEST12345698765432',
-                    'creditorName' => 'John Doe',
-                    'endToEndId' => 'E2E-COMPARISON-001',
-                    'creditorBic' => 'WESTGB22',
+                    'amount'                => 100.00,
+                    'currency'              => 'EUR',
+                    'creditorIban'          => 'GB82WEST12345698765432',
+                    'creditorName'          => 'John Doe',
+                    'endToEndId'            => 'E2E-COMPARISON-001',
+                    'creditorBic'           => 'WESTGB22',
                     'remittanceInformation' => 'Comparison invoice',
                 ],
             ],
@@ -194,10 +199,10 @@ class DeprecatedController extends AbstractController
 
         try {
             // Generate XML using deprecated RemesaGenerator (uses debtor* in arrays)
-            $dataForRemesa = $data;
+            $dataForRemesa                                  = $data;
             $dataForRemesa['transactions'][0]['debtorIban'] = $data['transactions'][0]['creditorIban'];
             $dataForRemesa['transactions'][0]['debtorName'] = $data['transactions'][0]['creditorName'];
-            $dataForRemesa['transactions'][0]['debtorBic'] = $data['transactions'][0]['creditorBic'];
+            $dataForRemesa['transactions'][0]['debtorBic']  = $data['transactions'][0]['creditorBic'];
             unset($dataForRemesa['transactions'][0]['creditorIban'], $dataForRemesa['transactions'][0]['creditorName'], $dataForRemesa['transactions'][0]['creditorBic']);
             $xmlDeprecated = $remesaGenerator->generateFromArray($dataForRemesa);
 
@@ -208,29 +213,29 @@ class DeprecatedController extends AbstractController
             $areIdentical = $xmlDeprecated === $xmlNew;
 
             $response = new JsonResponse([
-                'message' => 'Comparison between deprecated and new classes',
+                'message'    => 'Comparison between deprecated and new classes',
                 'deprecated' => [
-                    'class' => 'RemesaGenerator',
-                    'status' => 'deprecated since 1.1.0, will be removed in 2.0.0',
+                    'class'     => 'RemesaGenerator',
+                    'status'    => 'deprecated since 1.1.0, will be removed in 2.0.0',
                     'xmlLength' => strlen($xmlDeprecated),
-                    'works' => true,
+                    'works'     => true,
                 ],
                 'new' => [
-                    'class' => 'CreditTransferGenerator',
-                    'status' => 'current, recommended',
+                    'class'     => 'CreditTransferGenerator',
+                    'status'    => 'current, recommended',
                     'xmlLength' => strlen($xmlNew),
-                    'works' => true,
+                    'works'     => true,
                 ],
                 'comparison' => [
                     'xmlsAreIdentical' => $areIdentical,
-                    'note' => 'Both generators produce identical XML. The deprecated class still works but shows deprecation warnings.',
+                    'note'             => 'Both generators produce identical XML. The deprecated class still works but shows deprecation warnings.',
                 ],
                 'recommendation' => 'Migrate to CreditTransferGenerator before upgrading to v2.0.0',
             ]);
             $response->setEncodingOptions(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
             return $response;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return new JsonResponse([
                 'error' => $e->getMessage(),
             ], 500);

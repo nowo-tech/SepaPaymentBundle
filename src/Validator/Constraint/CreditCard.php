@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Validator\Constraint;
 
+use Attribute;
 use Symfony\Component\Validator\Constraint;
 
 /**
@@ -13,7 +14,7 @@ use Symfony\Component\Validator\Constraint;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
  * @copyright 2025 Nowo.tech
  */
-#[\Attribute(\Attribute::TARGET_PROPERTY | \Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
+#[Attribute(Attribute::TARGET_PROPERTY | Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
 class CreditCard extends Constraint
 {
     public const INVALID_CREDIT_CARD_ERROR = 'd1e2f3a4-5b6c-7d8e-9f0a-1b2c3d4e5f6a';

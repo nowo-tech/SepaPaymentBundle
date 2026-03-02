@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Tests\Model\Mandate;
 
+use DateTime;
 use Nowo\SepaPaymentBundle\Model\Mandate\Mandate;
 use Nowo\SepaPaymentBundle\Model\Mandate\MandateStatus;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 /**
  * Test cases for Mandate.
@@ -18,19 +20,17 @@ class MandateTest extends TestCase
 {
     /**
      * Tests mandate creation.
-     *
-     * @return void
      */
     public function testMandateCreation(): void
     {
-        $signatureDate = new \DateTime('2024-01-15');
-        $mandate = new Mandate(
+        $signatureDate = new DateTime('2024-01-15');
+        $mandate       = new Mandate(
             'MANDATE-001',
             $signatureDate,
             'ES9121000418450200051332',
             'John Doe',
             'CORE',
-            'FRST'
+            'FRST',
         );
 
         $this->assertEquals('MANDATE-001', $mandate->getMandateId());
@@ -45,16 +45,14 @@ class MandateTest extends TestCase
 
     /**
      * Tests setting debtor BIC.
-     *
-     * @return void
      */
     public function testSetDebtorBic(): void
     {
         $mandate = new Mandate(
             'MANDATE-001',
-            new \DateTime(),
+            new DateTime(),
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
 
         $mandate->setDebtorBic('CAIXESBBXXX');
@@ -66,18 +64,16 @@ class MandateTest extends TestCase
 
     /**
      * Tests setting sequence type.
-     *
-     * @return void
      */
     public function testSetSequenceType(): void
     {
         $mandate = new Mandate(
             'MANDATE-001',
-            new \DateTime(),
+            new DateTime(),
             'ES9121000418450200051332',
             'John Doe',
             'CORE',
-            'FRST'
+            'FRST',
         );
 
         $mandate->setSequenceType('RCUR');
@@ -86,16 +82,14 @@ class MandateTest extends TestCase
 
     /**
      * Tests setting active status.
-     *
-     * @return void
      */
     public function testSetActive(): void
     {
         $mandate = new Mandate(
             'MANDATE-001',
-            new \DateTime(),
+            new DateTime(),
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
 
         $mandate->setActive(false);
@@ -109,9 +103,9 @@ class MandateTest extends TestCase
     {
         $mandate = new Mandate(
             'MANDATE-001',
-            new \DateTime(),
+            new DateTime(),
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
 
         $mandate->setStatus(MandateStatus::SUSPENDED);
@@ -125,12 +119,12 @@ class MandateTest extends TestCase
 
     public function testGetExpirationDateDefaultsTo36MonthsAfterSignature(): void
     {
-        $signatureDate = new \DateTime('2024-01-15');
-        $mandate = new Mandate(
+        $signatureDate = new DateTime('2024-01-15');
+        $mandate       = new Mandate(
             'MANDATE-001',
             $signatureDate,
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
 
         $expiration = $mandate->getExpirationDate();
@@ -143,12 +137,12 @@ class MandateTest extends TestCase
     {
         $mandate = new Mandate(
             'MANDATE-001',
-            new \DateTime('2024-01-15'),
+            new DateTime('2024-01-15'),
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
 
-        $customDate = new \DateTime('2025-06-30');
+        $customDate = new DateTime('2025-06-30');
         $mandate->setExpirationDate($customDate);
         $this->assertSame($customDate, $mandate->getExpirationDate());
 
@@ -160,30 +154,30 @@ class MandateTest extends TestCase
     {
         $mandate = new Mandate(
             'MANDATE-001',
-            new \DateTime('2020-01-01'),
+            new DateTime('2020-01-01'),
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
 
-        $this->assertTrue($mandate->isExpired(new \DateTime('2024-01-01')));
+        $this->assertTrue($mandate->isExpired(new DateTime('2024-01-01')));
         $this->assertTrue($mandate->isExpired());
 
         $recentMandate = new Mandate(
             'MANDATE-002',
-            new \DateTime('2024-01-01'),
+            new DateTime('2024-01-01'),
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
-        $this->assertFalse($recentMandate->isExpired(new \DateTime('2024-06-01')));
+        $this->assertFalse($recentMandate->isExpired(new DateTime('2024-06-01')));
     }
 
     public function testRevoke(): void
     {
         $mandate = new Mandate(
             'MANDATE-001',
-            new \DateTime(),
+            new DateTime(),
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
 
         $mandate->revoke('Customer request');
@@ -192,7 +186,7 @@ class MandateTest extends TestCase
         $this->assertNotNull($mandate->getRevocationDate());
         $this->assertEquals('Customer request', $mandate->getRevocationReason());
 
-        $mandate2 = new Mandate('M-2', new \DateTime(), 'ES9121000418450200051332', 'Jane');
+        $mandate2 = new Mandate('M-2', new DateTime(), 'ES9121000418450200051332', 'Jane');
         $mandate2->revoke(null);
         $this->assertNull($mandate2->getRevocationReason());
     }
@@ -201,9 +195,9 @@ class MandateTest extends TestCase
     {
         $mandate = new Mandate(
             'MANDATE-001',
-            new \DateTime(),
+            new DateTime(),
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
 
         $mandate->suspend();
@@ -215,9 +209,9 @@ class MandateTest extends TestCase
     {
         $mandate = new Mandate(
             'MANDATE-001',
-            new \DateTime(),
+            new DateTime(),
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
         $mandate->suspend();
 
@@ -230,13 +224,13 @@ class MandateTest extends TestCase
     {
         $mandate = new Mandate(
             'MANDATE-001',
-            new \DateTime('2020-01-01'),
+            new DateTime('2020-01-01'),
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
         $mandate->suspend();
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Cannot reactivate an expired mandate');
 
         $mandate->reactivate();

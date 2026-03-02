@@ -19,26 +19,20 @@ class ValidateCreditCardCommandTest extends TestCase
 {
     /**
      * Command instance.
-     *
-     * @var ValidateCreditCardCommand
      */
     private ValidateCreditCardCommand $command;
 
     /**
      * Sets up the test environment.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
         $creditCardValidator = new CreditCardValidator();
-        $this->command = new ValidateCreditCardCommand($creditCardValidator);
+        $this->command       = new ValidateCreditCardCommand($creditCardValidator);
     }
 
     /**
      * Tests command execution with valid credit card.
-     *
-     * @return void
      */
     public function testExecuteWithValidCreditCard(): void
     {
@@ -53,8 +47,6 @@ class ValidateCreditCardCommandTest extends TestCase
 
     /**
      * Tests command execution with invalid credit card.
-     *
-     * @return void
      */
     public function testExecuteWithInvalidCreditCard(): void
     {
@@ -65,14 +57,12 @@ class ValidateCreditCardCommandTest extends TestCase
         $output = $commandTester->getDisplay();
         $this->assertTrue(
             str_contains($output, 'not valid') || str_contains($output, 'valid according to the Luhn'),
-            'Output should indicate invalid card: ' . $output
+            'Output should indicate invalid card: ' . $output,
         );
     }
 
     /**
      * Tests command execution displays all card information.
-     *
-     * @return void
      */
     public function testExecuteDisplaysCardInformation(): void
     {
@@ -93,8 +83,6 @@ class ValidateCreditCardCommandTest extends TestCase
 
     /**
      * Tests command with formatted card number (with spaces).
-     *
-     * @return void
      */
     public function testExecuteWithFormattedCardNumber(): void
     {
@@ -108,8 +96,6 @@ class ValidateCreditCardCommandTest extends TestCase
 
     /**
      * Tests command with card number containing dashes.
-     *
-     * @return void
      */
     public function testExecuteWithCardNumberContainingDashes(): void
     {
@@ -123,8 +109,6 @@ class ValidateCreditCardCommandTest extends TestCase
 
     /**
      * Tests command detects card type correctly.
-     *
-     * @return void
      */
     public function testExecuteDetectsCardType(): void
     {
@@ -138,8 +122,6 @@ class ValidateCreditCardCommandTest extends TestCase
 
     /**
      * Tests command with Mastercard.
-     *
-     * @return void
      */
     public function testExecuteWithMastercard(): void
     {
@@ -153,8 +135,6 @@ class ValidateCreditCardCommandTest extends TestCase
 
     /**
      * Tests command with Amex.
-     *
-     * @return void
      */
     public function testExecuteWithAmex(): void
     {

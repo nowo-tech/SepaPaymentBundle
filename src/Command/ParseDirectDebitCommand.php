@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Command;
 
+use Exception;
 use Nowo\SepaPaymentBundle\Parser\DirectDebitParser;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -13,6 +14,12 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
+use function count;
+use function sprintf;
+
+use const JSON_PRETTY_PRINT;
+use const JSON_UNESCAPED_UNICODE;
+
 /**
  * Console command to parse SEPA Direct Debit XML files.
  *
@@ -21,7 +28,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  */
 #[AsCommand(
     name: 'nowo:sepa:parse-direct-debit',
-    description: 'Parses a SEPA Direct Debit XML file and displays the extracted information'
+    description: 'Parses a SEPA Direct Debit XML file and displays the extracted information',
 )]
 class ParseDirectDebitCommand extends Command
 {
@@ -38,8 +45,6 @@ class ParseDirectDebitCommand extends Command
 
     /**
      * Configures the command.
-     *
-     * @return void
      */
     protected function configure(): void
     {
@@ -52,15 +57,15 @@ class ParseDirectDebitCommand extends Command
     /**
      * Executes the command.
      *
-     * @param InputInterface  $input  Input interface
+     * @param InputInterface $input Input interface
      * @param OutputInterface $output Output interface
      *
      * @return int Command exit code
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io = new SymfonyStyle($input, $output);
-        $file = $input->getArgument('file');
+        $io         = new SymfonyStyle($input, $output);
+        $file       = $input->getArgument('file');
         $jsonOutput = $input->getOption('json');
 
         if (!file_exists($file)) {
@@ -77,7 +82,7 @@ class ParseDirectDebitCommand extends Command
         }
 
         $xml = file_get_contents($file);
-        if (false === $xml) {
+        if ($xml === false) {
             $io->error(sprintf('Could not read file: %s', $file));
 
             return Command::FAILURE;
@@ -92,7 +97,7 @@ class ParseDirectDebitCommand extends Command
 
         try {
             $data = $this->parser->parseDirectDebit($xml);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $io->error(sprintf('Error parsing XML: %s', $e->getMessage()));
 
             return Command::FAILURE;
@@ -114,7 +119,7 @@ class ParseDirectDebitCommand extends Command
                 ['Message ID', $data['messageId'] ?? 'N/A'],
                 ['Creation Date', $data['creationDate'] ?? 'N/A'],
                 ['Initiating Party', $data['initiatingPartyName'] ?? 'N/A'],
-            ]
+            ],
         );
 
         // Display payment information
@@ -130,7 +135,7 @@ class ParseDirectDebitCommand extends Command
                 ['Creditor IBAN', $data['creditorIban'] ?? 'N/A'],
                 ['Creditor BIC', $data['creditorBic'] ?? 'N/A'],
                 ['Creditor ID', $data['creditorId'] ?? 'N/A'],
-            ]
+            ],
         );
 
         // Display transactions
@@ -161,7 +166,7 @@ class ParseDirectDebitCommand extends Command
 
             $io->table(
                 ['#', 'End-to-End ID', 'Amount', 'Currency', 'Debtor Name', 'Debtor IBAN', 'Debtor BIC', 'Mandate ID', 'Mandate Sign Date'],
-                $rows
+                $rows,
             );
         }
 

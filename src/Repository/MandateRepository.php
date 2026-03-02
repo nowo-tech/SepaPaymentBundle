@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Repository;
 
+use DateTime;
+use DateTimeInterface;
 use Nowo\SepaPaymentBundle\Model\Mandate\Mandate;
 use Nowo\SepaPaymentBundle\Model\Mandate\MandateHistory;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
@@ -39,8 +41,6 @@ class MandateRepository implements MandateRepositoryInterface
      * Saves a mandate.
      *
      * @param Mandate $mandate The mandate to save
-     *
-     * @return void
      */
     public function save(Mandate $mandate): void
     {
@@ -98,14 +98,14 @@ class MandateRepository implements MandateRepositoryInterface
     /**
      * Finds expired mandates.
      *
-     * @param \DateTimeInterface|null $beforeDate Optional date to find mandates expired before this date
+     * @param DateTimeInterface|null $beforeDate Optional date to find mandates expired before this date
      *
      * @return array<int, Mandate> Array of expired mandates
      */
-    public function findExpired(?\DateTimeInterface $beforeDate = null): array
+    public function findExpired(?DateTimeInterface $beforeDate = null): array
     {
-        $result = [];
-        $checkDate = $beforeDate ?? new \DateTime();
+        $result    = [];
+        $checkDate = $beforeDate ?? new DateTime();
 
         foreach ($this->mandates as $mandate) {
             // Check if mandate has expiration date and is expired
@@ -140,8 +140,6 @@ class MandateRepository implements MandateRepositoryInterface
      * Adds a history entry for a mandate.
      *
      * @param MandateHistory $history The history entry
-     *
-     * @return void
      */
     public function addHistory(MandateHistory $history): void
     {
@@ -152,7 +150,7 @@ class MandateRepository implements MandateRepositoryInterface
         $this->history[$mandateId][] = $history;
 
         // Sort by timestamp (oldest first)
-        usort($this->history[$mandateId], function (MandateHistory $a, MandateHistory $b) {
+        usort($this->history[$mandateId], static function (MandateHistory $a, MandateHistory $b) {
             return $a->getTimestamp() <=> $b->getTimestamp();
         });
     }
@@ -175,13 +173,13 @@ class MandateRepository implements MandateRepositoryInterface
      *
      * @param Mandate $mandate The mandate
      *
-     * @return \DateTimeInterface|null The expiration date or null if not applicable
+     * @return DateTimeInterface|null The expiration date or null if not applicable
      */
-    private function getExpirationDate(Mandate $mandate): ?\DateTimeInterface
+    private function getExpirationDate(Mandate $mandate): ?DateTimeInterface
     {
         // SEPA mandates expire 36 months after signature date
-        $signatureDate = $mandate->getSignatureDate();
-        $expirationDate = new \DateTime($signatureDate->format('Y-m-d H:i:s'));
+        $signatureDate  = $mandate->getSignatureDate();
+        $expirationDate = new DateTime($signatureDate->format('Y-m-d H:i:s'));
         $expirationDate->modify('+36 months');
 
         return $expirationDate;
@@ -189,12 +187,10 @@ class MandateRepository implements MandateRepositoryInterface
 
     /**
      * Clears all mandates (useful for testing).
-     *
-     * @return void
      */
     public function clear(): void
     {
         $this->mandates = [];
-        $this->history = [];
+        $this->history  = [];
     }
 }

@@ -17,15 +17,11 @@ class BicValidatorTest extends TestCase
 {
     /**
      * BIC validator instance.
-     *
-     * @var BicValidator
      */
     private BicValidator $validator;
 
     /**
      * Sets up the test environment.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
@@ -34,8 +30,6 @@ class BicValidatorTest extends TestCase
 
     /**
      * Tests valid BIC validation (8 characters).
-     *
-     * @return void
      */
     public function testValidBic8Chars(): void
     {
@@ -53,8 +47,6 @@ class BicValidatorTest extends TestCase
 
     /**
      * Tests valid BIC validation (11 characters).
-     *
-     * @return void
      */
     public function testValidBic11Chars(): void
     {
@@ -71,8 +63,6 @@ class BicValidatorTest extends TestCase
 
     /**
      * Tests invalid BIC validation.
-     *
-     * @return void
      */
     public function testInvalidBic(): void
     {
@@ -92,8 +82,6 @@ class BicValidatorTest extends TestCase
 
     /**
      * Tests BIC normalization.
-     *
-     * @return void
      */
     public function testNormalize(): void
     {
@@ -104,8 +92,6 @@ class BicValidatorTest extends TestCase
 
     /**
      * Tests bank code extraction.
-     *
-     * @return void
      */
     public function testGetBankCode(): void
     {
@@ -115,8 +101,6 @@ class BicValidatorTest extends TestCase
 
     /**
      * Tests country code extraction.
-     *
-     * @return void
      */
     public function testGetCountryCode(): void
     {
@@ -126,8 +110,6 @@ class BicValidatorTest extends TestCase
 
     /**
      * Tests location code extraction.
-     *
-     * @return void
      */
     public function testGetLocationCode(): void
     {
@@ -137,8 +119,6 @@ class BicValidatorTest extends TestCase
 
     /**
      * Tests branch code extraction (8 chars BIC).
-     *
-     * @return void
      */
     public function testGetBranchCode8Chars(): void
     {
@@ -147,8 +127,6 @@ class BicValidatorTest extends TestCase
 
     /**
      * Tests branch code extraction (11 chars BIC).
-     *
-     * @return void
      */
     public function testGetBranchCode11Chars(): void
     {

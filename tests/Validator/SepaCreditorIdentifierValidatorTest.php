@@ -7,6 +7,8 @@ namespace Nowo\SepaPaymentBundle\Tests\Validator;
 use Nowo\SepaPaymentBundle\Validator\SepaCreditorIdentifierValidator;
 use PHPUnit\Framework\TestCase;
 
+use function strlen;
+
 /**
  * Test cases for SepaCreditorIdentifierValidator.
  *
@@ -17,15 +19,11 @@ class SepaCreditorIdentifierValidatorTest extends TestCase
 {
     /**
      * SEPA Creditor Identifier validator instance.
-     *
-     * @var SepaCreditorIdentifierValidator
      */
     private SepaCreditorIdentifierValidator $validator;
 
     /**
      * Sets up the test environment.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
@@ -35,8 +33,6 @@ class SepaCreditorIdentifierValidatorTest extends TestCase
     /**
      * Tests valid Spanish SEPA Creditor Identifier format validation.
      * Note: Using format examples - actual check digits may vary.
-     *
-     * @return void
      */
     public function testValidFormat(): void
     {
@@ -60,8 +56,6 @@ class SepaCreditorIdentifierValidatorTest extends TestCase
 
     /**
      * Tests invalid SEPA Creditor Identifier format validation.
-     *
-     * @return void
      */
     public function testInvalidFormat(): void
     {
@@ -84,8 +78,6 @@ class SepaCreditorIdentifierValidatorTest extends TestCase
 
     /**
      * Tests normalization of SEPA Creditor Identifier.
-     *
-     * @return void
      */
     public function testNormalize(): void
     {
@@ -97,8 +89,6 @@ class SepaCreditorIdentifierValidatorTest extends TestCase
 
     /**
      * Tests extraction of country code.
-     *
-     * @return void
      */
     public function testGetCountryCode(): void
     {
@@ -109,8 +99,6 @@ class SepaCreditorIdentifierValidatorTest extends TestCase
 
     /**
      * Tests extraction of national identifier.
-     *
-     * @return void
      */
     public function testGetNationalIdentifier(): void
     {
@@ -121,8 +109,6 @@ class SepaCreditorIdentifierValidatorTest extends TestCase
 
     /**
      * Tests Spanish NIF/CIF format validation.
-     *
-     * @return void
      */
     public function testIsValidSpanishNifFormat(): void
     {
@@ -192,13 +178,11 @@ class SepaCreditorIdentifierValidatorTest extends TestCase
 
     /**
      * Tests minimum and maximum length validation.
-     *
-     * @return void
      */
     public function testLengthValidation(): void
     {
         // Minimum length: 9 characters (CC + KK + SSS + 1 char national ID)
-        $minLength = 'ES97ZZZA'; // 2 + 2 + 3 + 1 = 8 (too short, needs at least 1 more char for national ID)
+        $minLength  = 'ES97ZZZA'; // 2 + 2 + 3 + 1 = 8 (too short, needs at least 1 more char for national ID)
         $normalized = $this->validator->normalize($minLength);
         // This should be 8 chars, which is less than minimum 9
         $this->assertLessThan(9, strlen($normalized));
@@ -223,8 +207,6 @@ class SepaCreditorIdentifierValidatorTest extends TestCase
 
     /**
      * Tests component extraction with various formats.
-     *
-     * @return void
      */
     public function testComponentExtraction(): void
     {

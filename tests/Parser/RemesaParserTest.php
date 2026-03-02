@@ -8,6 +8,10 @@ use Nowo\SepaPaymentBundle\Parser\RemesaParser;
 use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use PHPUnit\Framework\TestCase;
 
+use const E_ALL;
+use const E_DEPRECATED;
+use const E_USER_DEPRECATED;
+
 /**
  * Tests for RemesaParser (deprecated API).
  *
@@ -29,9 +33,9 @@ class RemesaParserTest extends TestCase
     #[IgnoreDeprecations]
     public function testParseCreditTransfer(): void
     {
-        set_error_handler(function (int $errno): bool {
-            return $errno === \E_DEPRECATED || $errno === \E_USER_DEPRECATED;
-        }, \E_ALL);
+        set_error_handler(static function (int $errno): bool {
+            return $errno === E_DEPRECATED || $errno === E_USER_DEPRECATED;
+        }, E_ALL);
 
         try {
             $this->runParseCreditTransfer();
@@ -75,9 +79,9 @@ class RemesaParserTest extends TestCase
     #[IgnoreDeprecations]
     public function testIsValidCreditTransfer(): void
     {
-        set_error_handler(function (int $errno): bool {
-            return $errno === \E_DEPRECATED || $errno === \E_USER_DEPRECATED;
-        }, \E_ALL);
+        set_error_handler(static function (int $errno): bool {
+            return $errno === E_DEPRECATED || $errno === E_USER_DEPRECATED;
+        }, E_ALL);
 
         try {
             $this->runIsValidCreditTransfer();

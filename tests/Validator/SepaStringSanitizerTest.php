@@ -63,8 +63,8 @@ class SepaStringSanitizerTest extends TestCase
     public function testIsValidNameLength(): void
     {
         $shortName = str_repeat('A', 50);
-        $maxName = str_repeat('A', 70);
-        $longName = str_repeat('A', 71);
+        $maxName   = str_repeat('A', 70);
+        $longName  = str_repeat('A', 71);
 
         $this->assertTrue($this->sanitizer->isValidNameLength($shortName));
         $this->assertTrue($this->sanitizer->isValidNameLength($maxName));
@@ -73,7 +73,7 @@ class SepaStringSanitizerTest extends TestCase
 
     public function testTruncateName(): void
     {
-        $longName = str_repeat('A', 100);
+        $longName  = str_repeat('A', 100);
         $truncated = $this->sanitizer->truncateName($longName);
 
         $this->assertEquals(70, mb_strlen($truncated));
@@ -82,7 +82,7 @@ class SepaStringSanitizerTest extends TestCase
 
     public function testTruncateRemittanceInfo(): void
     {
-        $longInfo = str_repeat('A', 200);
+        $longInfo  = str_repeat('A', 200);
         $truncated = $this->sanitizer->truncateRemittanceInfo($longInfo);
 
         $this->assertEquals(140, mb_strlen($truncated));
@@ -91,8 +91,8 @@ class SepaStringSanitizerTest extends TestCase
     public function testIsValidStreetLength(): void
     {
         $shortStreet = str_repeat('A', 50);
-        $maxStreet = str_repeat('A', 70);
-        $longStreet = str_repeat('A', 71);
+        $maxStreet   = str_repeat('A', 70);
+        $longStreet  = str_repeat('A', 71);
 
         $this->assertTrue($this->sanitizer->isValidStreetLength($shortStreet));
         $this->assertTrue($this->sanitizer->isValidStreetLength($maxStreet));
@@ -102,8 +102,8 @@ class SepaStringSanitizerTest extends TestCase
     public function testIsValidCityLength(): void
     {
         $shortCity = str_repeat('A', 20);
-        $maxCity = str_repeat('A', 35);
-        $longCity = str_repeat('A', 36);
+        $maxCity   = str_repeat('A', 35);
+        $longCity  = str_repeat('A', 36);
 
         $this->assertTrue($this->sanitizer->isValidCityLength($shortCity));
         $this->assertTrue($this->sanitizer->isValidCityLength($maxCity));
@@ -113,8 +113,8 @@ class SepaStringSanitizerTest extends TestCase
     public function testIsValidPostalCodeLength(): void
     {
         $shortPostalCode = str_repeat('A', 5);
-        $maxPostalCode = str_repeat('A', 16);
-        $longPostalCode = str_repeat('A', 17);
+        $maxPostalCode   = str_repeat('A', 16);
+        $longPostalCode  = str_repeat('A', 17);
 
         $this->assertTrue($this->sanitizer->isValidPostalCodeLength($shortPostalCode));
         $this->assertTrue($this->sanitizer->isValidPostalCodeLength($maxPostalCode));
@@ -124,8 +124,8 @@ class SepaStringSanitizerTest extends TestCase
     public function testIsValidRemittanceInfoLength(): void
     {
         $shortInfo = str_repeat('A', 100);
-        $maxInfo = str_repeat('A', 140);
-        $longInfo = str_repeat('A', 141);
+        $maxInfo   = str_repeat('A', 140);
+        $longInfo  = str_repeat('A', 141);
 
         $this->assertTrue($this->sanitizer->isValidRemittanceInfoLength($shortInfo));
         $this->assertTrue($this->sanitizer->isValidRemittanceInfoLength($maxInfo));
@@ -134,7 +134,7 @@ class SepaStringSanitizerTest extends TestCase
 
     public function testValidateAndSanitize(): void
     {
-        $input = 'José García & Company';
+        $input  = 'José García & Company';
         $result = $this->sanitizer->validateAndSanitize($input);
 
         $this->assertEquals('Jose Garcia Company', $result);
@@ -165,7 +165,7 @@ class SepaStringSanitizerTest extends TestCase
     public function testTruncateNameWithShortName(): void
     {
         $shortName = str_repeat('A', 50);
-        $result = $this->sanitizer->truncateName($shortName);
+        $result    = $this->sanitizer->truncateName($shortName);
 
         $this->assertEquals($shortName, $result);
     }
@@ -173,7 +173,7 @@ class SepaStringSanitizerTest extends TestCase
     public function testTruncateRemittanceInfoWithShortInfo(): void
     {
         $shortInfo = str_repeat('A', 100);
-        $result = $this->sanitizer->truncateRemittanceInfo($shortInfo);
+        $result    = $this->sanitizer->truncateRemittanceInfo($shortInfo);
 
         $this->assertEquals($shortInfo, $result);
     }

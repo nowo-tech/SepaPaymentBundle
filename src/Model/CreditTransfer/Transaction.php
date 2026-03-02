@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Model\CreditTransfer;
 
+use function is_array;
+
 /**
  * Transaction data for a SEPA Credit Transfer.
  * Represents a creditor (supplier/beneficiary) that receives money.
@@ -15,15 +17,11 @@ class Transaction
 {
     /**
      * Creditor BIC (optional).
-     *
-     * @var string|null
      */
     private ?string $creditorBic = null;
 
     /**
      * Remittance information (optional).
-     *
-     * @var string|null
      */
     private ?string $remittanceInformation = null;
 
@@ -37,9 +35,9 @@ class Transaction
     /**
      * Constructor.
      *
-     * @param string $endToEndId   End-to-end identifier
-     * @param float  $amount       Amount to transfer
-     * @param string $currency     Currency code (ISO 4217)
+     * @param string $endToEndId End-to-end identifier
+     * @param float $amount Amount to transfer
+     * @param string $currency Currency code (ISO 4217)
      * @param string $creditorIban Creditor IBAN (beneficiary that receives)
      * @param string $creditorName Creditor name (beneficiary that receives)
      */
@@ -96,8 +94,6 @@ class Transaction
      * Sets the creditor BIC.
      *
      * @param string|null $creditorBic The creditor BIC
-     *
-     * @return self
      */
     public function setCreditorBic(?string $creditorBic): self
     {
@@ -130,8 +126,6 @@ class Transaction
      * Sets the remittance information.
      *
      * @param string|null $remittanceInformation The remittance information
-     *
-     * @return self
      */
     public function setRemittanceInformation(?string $remittanceInformation): self
     {
@@ -154,12 +148,10 @@ class Transaction
      * Sets the creditor address.
      * Address will be included in the generated XML.
      *
-     * @param array<string, string|null>|string|null $street     Address array or street address
-     * @param string|null                            $city       City (ignored if first param is array)
-     * @param string|null                            $postalCode Postal code (ignored if first param is array)
-     * @param string|null                            $country    Country code (ignored if first param is array)
-     *
-     * @return self
+     * @param array<string, string|null>|string|null $street Address array or street address
+     * @param string|null $city City (ignored if first param is array)
+     * @param string|null $postalCode Postal code (ignored if first param is array)
+     * @param string|null $country Country code (ignored if first param is array)
      */
     public function setCreditorAddress(array|string|null $street = null, ?string $city = null, ?string $postalCode = null, ?string $country = null): self
     {
@@ -168,10 +160,10 @@ class Transaction
         }
 
         $this->creditorAddress = [
-            'street' => $street,
-            'city' => $city,
+            'street'     => $street,
+            'city'       => $city,
             'postalCode' => $postalCode,
-            'country' => $country,
+            'country'    => $country,
         ];
 
         return $this;
@@ -181,16 +173,14 @@ class Transaction
      * Sets the creditor address from array.
      *
      * @param array<string, string|null> $address Address array with keys: street, city, postalCode, country
-     *
-     * @return self
      */
     public function setCreditorAddressFromArray(array $address): self
     {
         $this->creditorAddress = [
-            'street' => $address['street'] ?? $address['address'] ?? null,
-            'city' => $address['city'] ?? null,
+            'street'     => $address['street'] ?? $address['address'] ?? null,
+            'city'       => $address['city'] ?? null,
             'postalCode' => $address['postalCode'] ?? $address['postal_code'] ?? null,
-            'country' => $address['country'] ?? null,
+            'country'    => $address['country'] ?? null,
         ];
 
         return $this;

@@ -30,8 +30,6 @@ class BicValidatorTest extends TestCase
 
     /**
      * Constraint validator instance.
-     *
-     * @var ConstraintBicValidator
      */
     private ConstraintBicValidator $validator;
 
@@ -44,26 +42,22 @@ class BicValidatorTest extends TestCase
 
     /**
      * Sets up the test environment.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
         $this->bicValidatorService = $this->createMock(BicValidatorService::class);
-        $this->validator = new ConstraintBicValidator($this->bicValidatorService);
-        $this->context = $this->createMock(ExecutionContextInterface::class);
+        $this->validator           = new ConstraintBicValidator($this->bicValidatorService);
+        $this->context             = $this->createMock(ExecutionContextInterface::class);
         $this->validator->initialize($this->context);
     }
 
     /**
      * Tests valid BIC validation.
-     *
-     * @return void
      */
     public function testValidBic(): void
     {
         $constraint = new Bic();
-        $bic = 'ESPBESMM';
+        $bic        = 'ESPBESMM';
 
         $this->bicValidatorService
             ->expects($this->once())
@@ -80,13 +74,11 @@ class BicValidatorTest extends TestCase
 
     /**
      * Tests invalid BIC validation.
-     *
-     * @return void
      */
     public function testInvalidBic(): void
     {
         $constraint = new Bic();
-        $bic = 'INVALID-BIC';
+        $bic        = 'INVALID-BIC';
 
         $this->bicValidatorService
             ->expects($this->once())
@@ -117,8 +109,6 @@ class BicValidatorTest extends TestCase
 
     /**
      * Tests null value is skipped.
-     *
-     * @return void
      */
     public function testNullValueIsSkipped(): void
     {
@@ -137,8 +127,6 @@ class BicValidatorTest extends TestCase
 
     /**
      * Tests empty string value is skipped.
-     *
-     * @return void
      */
     public function testEmptyStringValueIsSkipped(): void
     {
@@ -157,8 +145,6 @@ class BicValidatorTest extends TestCase
 
     /**
      * Tests that wrong constraint type throws UnexpectedTypeException.
-     *
-     * @return void
      */
     public function testWrongConstraintTypeThrows(): void
     {
@@ -169,8 +155,6 @@ class BicValidatorTest extends TestCase
 
     /**
      * Tests that non-string value throws UnexpectedTypeException.
-     *
-     * @return void
      */
     public function testNonStringValueThrows(): void
     {

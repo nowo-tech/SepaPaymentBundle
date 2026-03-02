@@ -18,8 +18,6 @@ class BeforeDirectDebitGenerationEvent extends Event
 {
     /**
      * Direct debit data (can be modified by listeners).
-     *
-     * @var DirectDebitData
      */
     private DirectDebitData $directDebitData;
 
@@ -47,8 +45,6 @@ class BeforeDirectDebitGenerationEvent extends Event
      * Sets the direct debit data.
      *
      * @param DirectDebitData $directDebitData The direct debit data
-     *
-     * @return void
      */
     public function setDirectDebitData(DirectDebitData $directDebitData): void
     {

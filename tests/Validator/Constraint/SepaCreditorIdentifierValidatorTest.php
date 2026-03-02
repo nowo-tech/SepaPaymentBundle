@@ -24,14 +24,12 @@ class SepaCreditorIdentifierValidatorTest extends TestCase
     /**
      * SEPA Creditor Identifier validator service mock.
      *
-     * @var SepaCreditorIdentifierValidatorService|\PHPUnit\Framework\MockObject\MockObject
+     * @var \PHPUnit\Framework\MockObject\MockObject|SepaCreditorIdentifierValidatorService
      */
     private $sepaCreditorIdentifierValidatorService;
 
     /**
      * Constraint validator instance.
-     *
-     * @var ConstraintSepaCreditorIdentifierValidator
      */
     private ConstraintSepaCreditorIdentifierValidator $validator;
 
@@ -44,21 +42,17 @@ class SepaCreditorIdentifierValidatorTest extends TestCase
 
     /**
      * Sets up the test environment.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
         $this->sepaCreditorIdentifierValidatorService = $this->createMock(SepaCreditorIdentifierValidatorService::class);
-        $this->validator = new ConstraintSepaCreditorIdentifierValidator($this->sepaCreditorIdentifierValidatorService);
-        $this->context = $this->createMock(ExecutionContextInterface::class);
+        $this->validator                              = new ConstraintSepaCreditorIdentifierValidator($this->sepaCreditorIdentifierValidatorService);
+        $this->context                                = $this->createMock(ExecutionContextInterface::class);
         $this->validator->initialize($this->context);
     }
 
     /**
      * Tests valid SEPA Creditor Identifier validation.
-     *
-     * @return void
      */
     public function testValidSepaCreditorIdentifier(): void
     {
@@ -80,8 +74,6 @@ class SepaCreditorIdentifierValidatorTest extends TestCase
 
     /**
      * Tests invalid SEPA Creditor Identifier validation.
-     *
-     * @return void
      */
     public function testInvalidSepaCreditorIdentifier(): void
     {
@@ -117,8 +109,6 @@ class SepaCreditorIdentifierValidatorTest extends TestCase
 
     /**
      * Tests null value is skipped.
-     *
-     * @return void
      */
     public function testNullValueIsSkipped(): void
     {
@@ -137,8 +127,6 @@ class SepaCreditorIdentifierValidatorTest extends TestCase
 
     /**
      * Tests empty string value is skipped.
-     *
-     * @return void
      */
     public function testEmptyStringValueIsSkipped(): void
     {
@@ -157,8 +145,6 @@ class SepaCreditorIdentifierValidatorTest extends TestCase
 
     /**
      * Tests that wrong constraint type throws UnexpectedTypeException.
-     *
-     * @return void
      */
     public function testWrongConstraintTypeThrows(): void
     {
@@ -169,8 +155,6 @@ class SepaCreditorIdentifierValidatorTest extends TestCase
 
     /**
      * Tests that non-string value throws UnexpectedTypeException.
-     *
-     * @return void
      */
     public function testNonStringValueThrows(): void
     {

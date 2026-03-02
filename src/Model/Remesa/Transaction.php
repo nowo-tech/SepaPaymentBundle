@@ -6,6 +6,8 @@ namespace Nowo\SepaPaymentBundle\Model\Remesa;
 
 use Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction as CreditTransferTransaction;
 
+use const E_USER_DEPRECATED;
+
 /**
  * Transaction data for a SEPA Credit Transfer (deprecated).
  *
@@ -18,8 +20,6 @@ class Transaction
 {
     /**
      * Credit transfer transaction instance.
-     *
-     * @var CreditTransferTransaction
      */
     private CreditTransferTransaction $creditTransferTransaction;
 
@@ -28,8 +28,8 @@ class Transaction
      * Note: This class maintains the deprecated Remesa API (debtor*), but internally uses CreditTransfer\Transaction.creditor* fields.
      *
      * @param string $endToEndId End-to-end identifier
-     * @param float  $amount     Amount to transfer
-     * @param string $currency   Currency code (ISO 4217)
+     * @param float $amount Amount to transfer
+     * @param string $currency Currency code (ISO 4217)
      * @param string $debtorIban Debtor IBAN (maps to CreditTransfer\Transaction.creditorIban internally)
      * @param string $debtorName Debtor name (maps to CreditTransfer\Transaction.creditorName internally)
      */
@@ -40,7 +40,7 @@ class Transaction
         string $debtorIban,
         string $debtorName
     ) {
-        @trigger_error('Remesa\Transaction is deprecated since 1.1.0. Use CreditTransfer\Transaction instead.', \E_USER_DEPRECATED);
+        @trigger_error('Remesa\Transaction is deprecated since 1.1.0. Use CreditTransfer\Transaction instead.', E_USER_DEPRECATED);
 
         // Remesa\Transaction uses debtor* API (deprecated), but CreditTransfer\Transaction now uses creditor* fields
         $this->creditTransferTransaction = new CreditTransferTransaction(
@@ -48,7 +48,7 @@ class Transaction
             $amount,
             $currency,
             $debtorIban, // Remesa API: debtorIban -> CreditTransfer API: creditorIban
-            $debtorName  // Remesa API: debtorName -> CreditTransfer API: creditorName
+            $debtorName,  // Remesa API: debtorName -> CreditTransfer API: creditorName
         );
     }
 
@@ -98,8 +98,6 @@ class Transaction
      * Note: This method maintains the deprecated Remesa API (debtor*), but internally uses CreditTransfer\Transaction.creditor* fields.
      *
      * @param string|null $debtorBic The debtor BIC
-     *
-     * @return self
      */
     public function setDebtorBic(?string $debtorBic): self
     {
@@ -134,8 +132,6 @@ class Transaction
      * Sets the remittance information.
      *
      * @param string|null $remittanceInformation The remittance information
-     *
-     * @return self
      */
     public function setRemittanceInformation(?string $remittanceInformation): self
     {
@@ -158,12 +154,10 @@ class Transaction
      * Sets the debtor address.
      * Note: This method maintains the deprecated Remesa API (debtor*), but internally uses CreditTransfer\Transaction.creditor* fields.
      *
-     * @param array<string, string|null>|string|null $street     Address array or street address
-     * @param string|null                            $city       City (ignored if first param is array)
-     * @param string|null                            $postalCode Postal code (ignored if first param is array)
-     * @param string|null                            $country    Country code (ignored if first param is array)
-     *
-     * @return self
+     * @param array<string, string|null>|string|null $street Address array or street address
+     * @param string|null $city City (ignored if first param is array)
+     * @param string|null $postalCode Postal code (ignored if first param is array)
+     * @param string|null $country Country code (ignored if first param is array)
      */
     public function setDebtorAddress(array|string|null $street = null, ?string $city = null, ?string $postalCode = null, ?string $country = null): self
     {
@@ -177,8 +171,6 @@ class Transaction
      * Note: This method maintains the deprecated Remesa API (debtor*), but internally uses CreditTransfer\Transaction.creditor* fields.
      *
      * @param array<string, string|null> $address Address array with keys: street, city, postalCode, country
-     *
-     * @return self
      */
     public function setDebtorAddressFromArray(array $address): self
     {
@@ -201,8 +193,6 @@ class Transaction
     /**
      * Gets the underlying CreditTransferTransaction instance.
      * Internal use only.
-     *
-     * @return CreditTransferTransaction
      *
      * @internal
      */

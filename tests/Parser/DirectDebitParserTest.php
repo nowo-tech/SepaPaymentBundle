@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Tests\Parser;
 
+use InvalidArgumentException;
 use Nowo\SepaPaymentBundle\Parser\DirectDebitParser;
 use PHPUnit\Framework\TestCase;
 
@@ -17,15 +18,11 @@ class DirectDebitParserTest extends TestCase
 {
     /**
      * Direct debit parser instance.
-     *
-     * @var DirectDebitParser
      */
     private DirectDebitParser $parser;
 
     /**
      * Sets up the test environment.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
@@ -34,8 +31,6 @@ class DirectDebitParserTest extends TestCase
 
     /**
      * Tests parsing a valid SEPA Direct Debit XML.
-     *
-     * @return void
      */
     public function testParseDirectDebit(): void
     {
@@ -176,8 +171,6 @@ class DirectDebitParserTest extends TestCase
 
     /**
      * Tests parsing Direct Debit XML with multiple transactions.
-     *
-     * @return void
      */
     public function testParseDirectDebitWithMultipleTransactions(): void
     {
@@ -285,8 +278,6 @@ class DirectDebitParserTest extends TestCase
 
     /**
      * Tests parsing Direct Debit XML without addresses.
-     *
-     * @return void
      */
     public function testParseDirectDebitWithoutAddresses(): void
     {
@@ -364,12 +355,10 @@ class DirectDebitParserTest extends TestCase
 
     /**
      * Tests parsing invalid XML.
-     *
-     * @return void
      */
     public function testParseInvalidXml(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid XML format');
 
         $this->parser->parseDirectDebit('Invalid XML');
@@ -377,8 +366,6 @@ class DirectDebitParserTest extends TestCase
 
     /**
      * Tests validation of valid SEPA Direct Debit XML.
-     *
-     * @return void
      */
     public function testIsValidDirectDebit(): void
     {
@@ -398,8 +385,6 @@ class DirectDebitParserTest extends TestCase
 
     /**
      * Tests validation of invalid XML.
-     *
-     * @return void
      */
     public function testIsValidDirectDebitInvalid(): void
     {
@@ -409,8 +394,6 @@ class DirectDebitParserTest extends TestCase
 
     /**
      * Tests parsing Direct Debit XML with partial address information.
-     *
-     * @return void
      */
     public function testParseDirectDebitWithPartialAddress(): void
     {
@@ -505,8 +488,6 @@ class DirectDebitParserTest extends TestCase
 
     /**
      * Tests parsing Direct Debit XML with different sequence types.
-     *
-     * @return void
      */
     public function testParseDirectDebitWithDifferentSequenceTypes(): void
     {
@@ -586,8 +567,6 @@ class DirectDebitParserTest extends TestCase
 
     /**
      * Tests parsing Direct Debit XML without BIC.
-     *
-     * @return void
      */
     public function testParseDirectDebitWithoutBic(): void
     {
@@ -664,8 +643,6 @@ class DirectDebitParserTest extends TestCase
 
     /**
      * Tests parsing Direct Debit XML without remittance information.
-     *
-     * @return void
      */
     public function testParseDirectDebitWithoutRemittanceInformation(): void
     {
@@ -742,8 +719,6 @@ class DirectDebitParserTest extends TestCase
 
     /**
      * Tests parsing Direct Debit XML with B2B local instrument code.
-     *
-     * @return void
      */
     public function testParseDirectDebitWithB2BInstrumentCode(): void
     {
@@ -820,8 +795,6 @@ class DirectDebitParserTest extends TestCase
 
     /**
      * Tests parsing Direct Debit XML with optional fields missing.
-     *
-     * @return void
      */
     public function testParseDirectDebitWithOptionalFieldsMissing(): void
     {
@@ -893,8 +866,6 @@ class DirectDebitParserTest extends TestCase
 
     /**
      * Tests isValidDirectDebit with valid XML but wrong namespace.
-     *
-     * @return void
      */
     public function testIsValidDirectDebitWithWrongNamespace(): void
     {
@@ -914,8 +885,6 @@ class DirectDebitParserTest extends TestCase
 
     /**
      * Tests isValidDirectDebit with empty XML.
-     *
-     * @return void
      */
     public function testIsValidDirectDebitWithEmptyXml(): void
     {
@@ -930,8 +899,6 @@ class DirectDebitParserTest extends TestCase
 
     /**
      * Tests parsing Direct Debit with all optional fields missing.
-     *
-     * @return void
      */
     public function testParseDirectDebitWithMinimalData(): void
     {

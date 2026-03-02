@@ -27,22 +27,20 @@ class ValidationCache implements ValidationCacheInterface
 
     /**
      * Default cache TTL in seconds.
-     *
-     * @var int
      */
     private int $defaultTtl;
 
     /**
      * Constructor.
      *
-     * @param object|null $cache      Optional cache adapter (PSR-16 SimpleCache compatible)
-     * @param int         $defaultTtl Default TTL in seconds (default: 3600 = 1 hour)
+     * @param object|null $cache Optional cache adapter (PSR-16 SimpleCache compatible)
+     * @param int $defaultTtl Default TTL in seconds (default: 3600 = 1 hour)
      */
     public function __construct(
         $cache = null,
         int $defaultTtl = 3600
     ) {
-        $this->cache = $cache;
+        $this->cache      = $cache;
         $this->defaultTtl = $defaultTtl;
     }
 
@@ -55,7 +53,7 @@ class ValidationCache implements ValidationCacheInterface
      */
     public function get(string $key): ?bool
     {
-        if (null === $this->cache || !method_exists($this->cache, 'get')) {
+        if ($this->cache === null || !method_exists($this->cache, 'get')) {
             return null;
         }
 
@@ -71,7 +69,7 @@ class ValidationCache implements ValidationCacheInterface
         $result = $this->cache->get($normalizedKey);
 
         // If result is null and we couldn't check existence, assume it doesn't exist
-        if (null === $result && !method_exists($this->cache, 'has')) {
+        if ($result === null && !method_exists($this->cache, 'has')) {
             return null;
         }
 
@@ -79,7 +77,7 @@ class ValidationCache implements ValidationCacheInterface
         // Note: false is a valid cached value, null means not cached
         // Since we already checked has(), if result is null here, it means the key exists but value is null
         // This shouldn't happen for bool values, but we'll return null anyway
-        if (null === $result) {
+        if ($result === null) {
             return null;
         }
 
@@ -89,15 +87,13 @@ class ValidationCache implements ValidationCacheInterface
     /**
      * Sets a validation result in cache.
      *
-     * @param string $key   Cache key
-     * @param bool   $value Validation result
-     * @param int    $ttl   Time to live in seconds (optional, uses default if not provided)
-     *
-     * @return void
+     * @param string $key Cache key
+     * @param bool $value Validation result
+     * @param int $ttl Time to live in seconds (optional, uses default if not provided)
      */
     public function set(string $key, bool $value, ?int $ttl = null): void
     {
-        if (null === $this->cache || !method_exists($this->cache, 'set')) {
+        if ($this->cache === null || !method_exists($this->cache, 'set')) {
             return;
         }
 
@@ -114,7 +110,7 @@ class ValidationCache implements ValidationCacheInterface
      */
     public function has(string $key): bool
     {
-        if (null === $this->cache || !method_exists($this->cache, 'has')) {
+        if ($this->cache === null || !method_exists($this->cache, 'has')) {
             return false;
         }
 
@@ -125,12 +121,10 @@ class ValidationCache implements ValidationCacheInterface
      * Deletes a cached value.
      *
      * @param string $key Cache key
-     *
-     * @return void
      */
     public function delete(string $key): void
     {
-        if (null === $this->cache || !method_exists($this->cache, 'delete')) {
+        if ($this->cache === null || !method_exists($this->cache, 'delete')) {
             return;
         }
 
@@ -139,12 +133,10 @@ class ValidationCache implements ValidationCacheInterface
 
     /**
      * Clears all cached validation results.
-     *
-     * @return void
      */
     public function clear(): void
     {
-        if (null === $this->cache || !method_exists($this->cache, 'clear')) {
+        if ($this->cache === null || !method_exists($this->cache, 'clear')) {
             return;
         }
 

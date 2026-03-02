@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Tests\Generator;
 
+use DateTime;
 use Nowo\SepaPaymentBundle\Generator\RemesaGenerator;
 use Nowo\SepaPaymentBundle\Model\CreditTransfer\CreditTransferData;
 use Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction as CreditTransferTransaction;
@@ -29,7 +30,7 @@ class RemesaGeneratorTest extends TestCase
 
     protected function setUp(): void
     {
-        $translator = new class () implements TranslatorInterface {
+        $translator = new class implements TranslatorInterface {
             public function trans(string $id, array $parameters = [], ?string $domain = null, ?string $locale = null): string
             {
                 return $id;
@@ -47,18 +48,18 @@ class RemesaGeneratorTest extends TestCase
     public function testGenerateFromArray(): void
     {
         $data = [
-            'reference' => 'MSG-001',
-            'initiatingPartyName' => 'My Company',
-            'paymentInfoId' => 'PMT-001',
-            'debtorIban' => 'ES9121000418450200051332',
-            'debtorName' => 'My Company Name',
+            'reference'              => 'MSG-001',
+            'initiatingPartyName'    => 'My Company',
+            'paymentInfoId'          => 'PMT-001',
+            'debtorIban'             => 'ES9121000418450200051332',
+            'debtorName'             => 'My Company Name',
             'requestedExecutionDate' => '2024-01-20',
-            'transactions' => [
+            'transactions'           => [
                 [
-                    'amount' => 100.50,
+                    'amount'       => 100.50,
                     'creditorIban' => 'GB82WEST12345698765432',
                     'creditorName' => 'John Doe',
-                    'endToEndId' => 'E2E-001',
+                    'endToEndId'   => 'E2E-001',
                 ],
             ],
         ];
@@ -76,12 +77,12 @@ class RemesaGeneratorTest extends TestCase
     {
         $remesaData = new RemesaData(
             'MSG-001',
-            new \DateTime('2024-01-15 10:00:00'),
+            new DateTime('2024-01-15 10:00:00'),
             'My Company',
             'PMT-001',
             'ES9121000418450200051332',
             'My Company Name',
-            new \DateTime('2024-01-20')
+            new DateTime('2024-01-20'),
         );
 
         $transaction = new RemesaTransaction(
@@ -89,7 +90,7 @@ class RemesaGeneratorTest extends TestCase
             100.50,
             'EUR',
             'GB82WEST12345698765432',
-            'John Doe'
+            'John Doe',
         );
         $remesaData->addTransaction($transaction);
 
@@ -105,19 +106,19 @@ class RemesaGeneratorTest extends TestCase
     {
         $creditTransferData = new CreditTransferData(
             'MSG-001',
-            new \DateTime('2024-01-15 10:00:00'),
+            new DateTime('2024-01-15 10:00:00'),
             'My Company',
             'PMT-001',
             'ES9121000418450200051332',
             'My Company Name',
-            new \DateTime('2024-01-20')
+            new DateTime('2024-01-20'),
         );
         $creditTransferData->addTransaction(new CreditTransferTransaction(
             'E2E-001',
             100.50,
             'EUR',
             'GB82WEST12345698765432',
-            'John Doe'
+            'John Doe',
         ));
 
         $xml = $this->generator->generate($creditTransferData);
@@ -129,7 +130,7 @@ class RemesaGeneratorTest extends TestCase
     #[IgnoreDeprecations]
     public function testCreateResponse(): void
     {
-        $xml = '<?xml version="1.0"?><test/>';
+        $xml      = '<?xml version="1.0"?><test/>';
         $response = $this->generator->createResponse($xml, 'test-remesa.xml');
 
         $this->assertEquals(200, $response->getStatusCode());
@@ -147,19 +148,19 @@ class RemesaGeneratorTest extends TestCase
     {
         $remesaData = new RemesaData(
             'MSG-FULL',
-            new \DateTime('2024-01-15 10:00:00'),
+            new DateTime('2024-01-15 10:00:00'),
             'My Company',
             'PMT-FULL',
             'ES9121000418450200051332',
             'My Company Name',
-            new \DateTime('2024-01-20')
+            new DateTime('2024-01-20'),
         );
         $remesaData->setCreditorBic('CAIXESBBXXX');
         $remesaData->setCreditorAddressFromArray([
-            'street' => 'Calle Principal 1',
-            'city' => 'Madrid',
+            'street'     => 'Calle Principal 1',
+            'city'       => 'Madrid',
             'postalCode' => '28001',
-            'country' => 'ES',
+            'country'    => 'ES',
         ]);
 
         $transaction = new RemesaTransaction(
@@ -167,15 +168,15 @@ class RemesaGeneratorTest extends TestCase
             100.50,
             'EUR',
             'GB82WEST12345698765432',
-            'John Doe'
+            'John Doe',
         );
         $transaction->setDebtorBic('WESTGB22');
         $transaction->setRemittanceInformation('Invoice 12345');
         $transaction->setDebtorAddressFromArray([
-            'street' => '456 Customer Ave',
-            'city' => 'London',
+            'street'     => '456 Customer Ave',
+            'city'       => 'London',
             'postalCode' => 'SW1A 1AA',
-            'country' => 'GB',
+            'country'    => 'GB',
         ]);
         $remesaData->addTransaction($transaction);
 

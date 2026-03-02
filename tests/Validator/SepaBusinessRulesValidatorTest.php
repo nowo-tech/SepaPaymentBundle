@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Tests\Validator;
 
+use DateTime;
 use Nowo\SepaPaymentBundle\Validator\SepaBusinessRulesValidator;
 use PHPUnit\Framework\TestCase;
 
@@ -41,9 +42,9 @@ class SepaBusinessRulesValidatorTest extends TestCase
 
     public function testIsValidExecutionDate(): void
     {
-        $today = new \DateTime('today');
-        $tomorrow = new \DateTime('tomorrow');
-        $yesterday = new \DateTime('yesterday');
+        $today     = new DateTime('today');
+        $tomorrow  = new DateTime('tomorrow');
+        $yesterday = new DateTime('yesterday');
 
         $this->assertTrue($this->validator->isValidExecutionDate($today));
         $this->assertTrue($this->validator->isValidExecutionDate($tomorrow));
@@ -53,8 +54,8 @@ class SepaBusinessRulesValidatorTest extends TestCase
 
     public function testIsValidExecutionDateWithAllowTodayFalse(): void
     {
-        $today = new \DateTime('today');
-        $tomorrow = new \DateTime('tomorrow');
+        $today    = new DateTime('today');
+        $tomorrow = new DateTime('tomorrow');
 
         $this->assertFalse($this->validator->isValidExecutionDate($today, false));
         $this->assertTrue($this->validator->isValidExecutionDate($tomorrow, false));
@@ -62,10 +63,10 @@ class SepaBusinessRulesValidatorTest extends TestCase
 
     public function testIsBusinessDay(): void
     {
-        $monday = new \DateTime('2024-01-15'); // Monday
-        $friday = new \DateTime('2024-01-19'); // Friday
-        $saturday = new \DateTime('2024-01-20'); // Saturday
-        $sunday = new \DateTime('2024-01-21'); // Sunday
+        $monday   = new DateTime('2024-01-15'); // Monday
+        $friday   = new DateTime('2024-01-19'); // Friday
+        $saturday = new DateTime('2024-01-20'); // Saturday
+        $sunday   = new DateTime('2024-01-21'); // Sunday
 
         $this->assertTrue($this->validator->isBusinessDay($monday));
         $this->assertTrue($this->validator->isBusinessDay($friday));
@@ -84,9 +85,9 @@ class SepaBusinessRulesValidatorTest extends TestCase
 
     public function testIsValidMandateExpirationDate(): void
     {
-        $tomorrow = new \DateTime('tomorrow');
-        $today = new \DateTime('today');
-        $yesterday = new \DateTime('yesterday');
+        $tomorrow  = new DateTime('tomorrow');
+        $today     = new DateTime('today');
+        $yesterday = new DateTime('yesterday');
 
         $this->assertTrue($this->validator->isValidMandateExpirationDate($tomorrow));
         $this->assertFalse($this->validator->isValidMandateExpirationDate($today));
@@ -120,8 +121,8 @@ class SepaBusinessRulesValidatorTest extends TestCase
         $errors = $this->validator->validateCreditTransfer(
             100.50,
             1,
-            new \DateTime('tomorrow'),
-            'EUR'
+            new DateTime('tomorrow'),
+            'EUR',
         );
 
         $this->assertEmpty($errors);
@@ -132,8 +133,8 @@ class SepaBusinessRulesValidatorTest extends TestCase
         $errors = $this->validator->validateCreditTransfer(
             1000000000.00, // Too large
             100000, // Too many
-            new \DateTime('yesterday'), // Past date
-            'USD' // Invalid currency
+            new DateTime('yesterday'), // Past date
+            'USD', // Invalid currency
         );
 
         $this->assertCount(4, $errors);
@@ -144,9 +145,9 @@ class SepaBusinessRulesValidatorTest extends TestCase
         $errors = $this->validator->validateDirectDebit(
             100.50,
             1,
-            new \DateTime('tomorrow'),
+            new DateTime('tomorrow'),
             'EUR',
-            'FRST'
+            'FRST',
         );
 
         $this->assertEmpty($errors);
@@ -157,9 +158,9 @@ class SepaBusinessRulesValidatorTest extends TestCase
         $errors = $this->validator->validateDirectDebit(
             100.50,
             1,
-            new \DateTime('tomorrow'),
+            new DateTime('tomorrow'),
             'EUR',
-            'INVALID'
+            'INVALID',
         );
 
         $this->assertNotEmpty($errors);
@@ -171,10 +172,10 @@ class SepaBusinessRulesValidatorTest extends TestCase
         $errors = $this->validator->validateDirectDebit(
             100.50,
             1,
-            new \DateTime('tomorrow'),
+            new DateTime('tomorrow'),
             'EUR',
             'FRST',
-            new \DateTime('yesterday')
+            new DateTime('yesterday'),
         );
 
         $this->assertNotEmpty($errors);

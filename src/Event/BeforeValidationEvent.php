@@ -17,22 +17,16 @@ class BeforeValidationEvent extends Event
 {
     /**
      * Validation type (e.g., 'iban', 'bic', 'credit_card').
-     *
-     * @var string
      */
     private string $validationType;
 
     /**
      * Value to validate.
-     *
-     * @var string
      */
     private string $value;
 
     /**
      * Validation result (can be modified by listeners).
-     *
-     * @var bool|null
      */
     private ?bool $result = null;
 
@@ -40,12 +34,12 @@ class BeforeValidationEvent extends Event
      * Constructor.
      *
      * @param string $validationType Validation type
-     * @param string $value          Value to validate
+     * @param string $value Value to validate
      */
     public function __construct(string $validationType, string $value)
     {
         $this->validationType = $validationType;
-        $this->value = $value;
+        $this->value          = $value;
     }
 
     /**
@@ -82,8 +76,6 @@ class BeforeValidationEvent extends Event
      * Sets the validation result.
      *
      * @param bool $result The validation result
-     *
-     * @return void
      */
     public function setResult(bool $result): void
     {
@@ -97,6 +89,6 @@ class BeforeValidationEvent extends Event
      */
     public function hasResult(): bool
     {
-        return null !== $this->result;
+        return $this->result !== null;
     }
 }

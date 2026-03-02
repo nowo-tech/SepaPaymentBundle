@@ -19,7 +19,7 @@ class ConfigurationTest extends TestCase
     public function testGetConfigTreeBuilder(): void
     {
         $configuration = new Configuration();
-        $treeBuilder = $configuration->getConfigTreeBuilder();
+        $treeBuilder   = $configuration->getConfigTreeBuilder();
 
         $this->assertNotNull($treeBuilder);
         $this->assertEquals(Configuration::ALIAS, $treeBuilder->buildTree()->getName());
@@ -28,8 +28,8 @@ class ConfigurationTest extends TestCase
     public function testDefaultConfiguration(): void
     {
         $configuration = new Configuration();
-        $processor = new Processor();
-        $config = $processor->processConfiguration($configuration, []);
+        $processor     = new Processor();
+        $config        = $processor->processConfiguration($configuration, []);
 
         $this->assertArrayHasKey('default_currency', $config);
         $this->assertEquals('EUR', $config['default_currency']);
@@ -38,8 +38,8 @@ class ConfigurationTest extends TestCase
     public function testCustomConfiguration(): void
     {
         $configuration = new Configuration();
-        $processor = new Processor();
-        $config = $processor->processConfiguration($configuration, [
+        $processor     = new Processor();
+        $config        = $processor->processConfiguration($configuration, [
             ['default_currency' => 'GBP'],
         ]);
 

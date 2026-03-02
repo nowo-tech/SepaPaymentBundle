@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Tests\Converter;
 
+use InvalidArgumentException;
 use Nowo\SepaPaymentBundle\Converter\CccConverter;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use PHPUnit\Framework\TestCase;
+
+use function strlen;
 
 /**
  * Test cases for CccConverter.
@@ -18,31 +21,25 @@ class CccConverterTest extends TestCase
 {
     /**
      * CCC converter instance.
-     *
-     * @var CccConverter
      */
     private CccConverter $converter;
 
     /**
      * Sets up the test environment.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
-        $ibanValidator = new IbanValidator();
+        $ibanValidator   = new IbanValidator();
         $this->converter = new CccConverter($ibanValidator);
     }
 
     /**
      * Tests CCC to IBAN conversion.
-     *
-     * @return void
      */
     public function testCccToIban(): void
     {
         // Valid Spanish CCC
-        $ccc = '21000418450200051332';
+        $ccc  = '21000418450200051332';
         $iban = $this->converter->cccToIban($ccc);
 
         $this->assertStringStartsWith('ES', $iban);
@@ -52,12 +49,10 @@ class CccConverterTest extends TestCase
 
     /**
      * Tests CCC to IBAN conversion with spaces.
-     *
-     * @return void
      */
     public function testCccToIbanWithSpaces(): void
     {
-        $ccc = '2100 0418 4502 0005 1332';
+        $ccc  = '2100 0418 4502 0005 1332';
         $iban = $this->converter->cccToIban($ccc);
 
         $this->assertStringStartsWith('ES', $iban);
@@ -66,12 +61,10 @@ class CccConverterTest extends TestCase
 
     /**
      * Tests CCC to IBAN conversion with invalid format.
-     *
-     * @return void
      */
     public function testCccToIbanInvalidFormat(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid CCC format. Expected 20 digits.');
 
         $this->converter->cccToIban('12345');
@@ -79,8 +72,6 @@ class CccConverterTest extends TestCase
 
     /**
      * Tests CCC validation with valid CCC.
-     *
-     * @return void
      */
     public function testIsValidCcc(): void
     {
@@ -105,8 +96,6 @@ class CccConverterTest extends TestCase
 
     /**
      * Tests CCC validation with invalid CCC.
-     *
-     * @return void
      */
     public function testIsValidCccInvalid(): void
     {
@@ -124,8 +113,6 @@ class CccConverterTest extends TestCase
 
     /**
      * Tests bank code extraction.
-     *
-     * @return void
      */
     public function testGetBankCode(): void
     {
@@ -135,8 +122,6 @@ class CccConverterTest extends TestCase
 
     /**
      * Tests branch code extraction.
-     *
-     * @return void
      */
     public function testGetBranchCode(): void
     {
@@ -146,8 +131,6 @@ class CccConverterTest extends TestCase
 
     /**
      * Tests account number extraction.
-     *
-     * @return void
      */
     public function testGetAccountNumber(): void
     {
@@ -157,8 +140,6 @@ class CccConverterTest extends TestCase
 
     /**
      * Tests CCC extraction methods with different formats.
-     *
-     * @return void
      */
     public function testExtractionMethodsWithDifferentFormats(): void
     {
@@ -181,8 +162,6 @@ class CccConverterTest extends TestCase
 
     /**
      * Tests CCC validation with valid check digits.
-     *
-     * @return void
      */
     public function testIsValidCccWithValidCheckDigits(): void
     {
@@ -199,12 +178,10 @@ class CccConverterTest extends TestCase
 
     /**
      * Tests CCC to IBAN with leading zeros.
-     *
-     * @return void
      */
     public function testCccToIbanWithLeadingZeros(): void
     {
-        $ccc = '00490001201234567890';
+        $ccc  = '00490001201234567890';
         $iban = $this->converter->cccToIban($ccc);
 
         $this->assertStringStartsWith('ES', $iban);

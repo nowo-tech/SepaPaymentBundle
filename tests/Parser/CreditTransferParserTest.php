@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Tests\Parser;
 
+use ErrorException;
+use InvalidArgumentException;
 use Nowo\SepaPaymentBundle\Parser\CreditTransferParser;
 use PHPUnit\Framework\TestCase;
 
@@ -17,15 +19,11 @@ class CreditTransferParserTest extends TestCase
 {
     /**
      * Credit transfer parser instance.
-     *
-     * @var CreditTransferParser
      */
     private CreditTransferParser $parser;
 
     /**
      * Sets up the test environment.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
@@ -34,8 +32,6 @@ class CreditTransferParserTest extends TestCase
 
     /**
      * Tests parsing a valid SEPA Credit Transfer XML.
-     *
-     * @return void
      */
     public function testParseCreditTransfer(): void
     {
@@ -93,12 +89,10 @@ class CreditTransferParserTest extends TestCase
 
     /**
      * Tests parsing invalid XML.
-     *
-     * @return void
      */
     public function testParseInvalidXml(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid XML format');
 
         $this->parser->parseCreditTransfer('Invalid XML');
@@ -106,8 +100,6 @@ class CreditTransferParserTest extends TestCase
 
     /**
      * Tests validation of valid SEPA Credit Transfer XML.
-     *
-     * @return void
      */
     public function testIsValidCreditTransfer(): void
     {
@@ -127,8 +119,6 @@ class CreditTransferParserTest extends TestCase
 
     /**
      * Tests validation of invalid XML.
-     *
-     * @return void
      */
     public function testIsValidCreditTransferInvalid(): void
     {
@@ -138,8 +128,6 @@ class CreditTransferParserTest extends TestCase
 
     /**
      * Tests parsing Credit Transfer XML with multiple transactions.
-     *
-     * @return void
      */
     public function testParseCreditTransferWithMultipleTransactions(): void
     {
@@ -205,8 +193,6 @@ class CreditTransferParserTest extends TestCase
 
     /**
      * Tests parsing Credit Transfer XML with addresses.
-     *
-     * @return void
      */
     public function testParseCreditTransferWithAddresses(): void
     {
@@ -276,8 +262,6 @@ class CreditTransferParserTest extends TestCase
 
     /**
      * Tests parsing Credit Transfer XML with optional fields missing.
-     *
-     * @return void
      */
     public function testParseCreditTransferWithOptionalFieldsMissing(): void
     {
@@ -320,8 +304,6 @@ class CreditTransferParserTest extends TestCase
 
     /**
      * Tests parsing Credit Transfer XML with different currency.
-     *
-     * @return void
      */
     public function testParseCreditTransferWithDifferentCurrency(): void
     {
@@ -365,8 +347,6 @@ class CreditTransferParserTest extends TestCase
 
     /**
      * Tests isValidCreditTransfer with valid XML but wrong namespace.
-     *
-     * @return void
      */
     public function testIsValidCreditTransferWithWrongNamespace(): void
     {
@@ -386,8 +366,6 @@ class CreditTransferParserTest extends TestCase
 
     /**
      * Tests isValidCreditTransfer with empty XML.
-     *
-     * @return void
      */
     public function testIsValidCreditTransferWithEmptyXml(): void
     {
@@ -402,8 +380,6 @@ class CreditTransferParserTest extends TestCase
 
     /**
      * Tests isValidCreditTransfer with XML missing required elements.
-     *
-     * @return void
      */
     public function testIsValidCreditTransferMissingRequiredElements(): void
     {
@@ -424,18 +400,16 @@ class CreditTransferParserTest extends TestCase
     /**
      * Tests isValidCreditTransfer when an exception is thrown during parsing (covers catch block).
      * Uses an error handler to convert a libxml warning into an exception.
-     *
-     * @return void
      */
     public function testIsValidCreditTransferReturnsFalseWhenExceptionDuringParsing(): void
     {
         $previous = set_error_handler(static function (int $errno, string $errstr): bool {
-            throw new \ErrorException($errstr, 0, $errno);
+            throw new ErrorException($errstr, 0, $errno);
         });
 
         try {
             $xmlWithUndefinedEntity = '<?xml version="1.0"?><!DOCTYPE root [<!ELEMENT root (#PCDATA)>]><root>&undefined;</root>';
-            $result = $this->parser->isValidCreditTransfer($xmlWithUndefinedEntity);
+            $result                 = $this->parser->isValidCreditTransfer($xmlWithUndefinedEntity);
             $this->assertFalse($result);
         } finally {
             restore_error_handler();
@@ -447,8 +421,6 @@ class CreditTransferParserTest extends TestCase
 
     /**
      * Tests parsing with BIC information.
-     *
-     * @return void
      */
     public function testParseCreditTransferWithBic(): void
     {
