@@ -13,6 +13,8 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+use const E_USER_DEPRECATED;
+
 /**
  * SEPA Credit Transfer generator (deprecated).
  *
@@ -28,18 +30,16 @@ class RemesaGenerator
 
     /**
      * Credit transfer generator instance.
-     *
-     * @var CreditTransferGenerator
      */
     private CreditTransferGenerator $generator;
 
     /**
      * Constructor.
      *
-     * @param IbanValidator       $ibanValidator IBAN validator instance
-     * @param TranslatorInterface $translator    Translator for internationalized messages
-     * @param XsdValidator|null   $xsdValidator  Optional XSD validator instance
-     * @param bool                $validateXsd   Whether to validate XML against XSD schema
+     * @param IbanValidator $ibanValidator IBAN validator instance
+     * @param TranslatorInterface $translator Translator for internationalized messages
+     * @param XsdValidator|null $xsdValidator Optional XSD validator instance
+     * @param bool $validateXsd Whether to validate XML against XSD schema
      */
     public function __construct(IbanValidator $ibanValidator, TranslatorInterface $translator, ?XsdValidator $xsdValidator = null, bool $validateXsd = false)
     {
@@ -58,7 +58,7 @@ class RemesaGenerator
     #[Deprecated(message: 'Use CreditTransferGenerator::generateFromArray() instead', since: '1.1.0')]
     public function generateFromArray(array $data): string
     {
-        @trigger_error('RemesaGenerator is deprecated since 1.1.0. Use CreditTransferGenerator instead.', \E_USER_DEPRECATED);
+        @trigger_error('RemesaGenerator is deprecated since 1.1.0. Use CreditTransferGenerator instead.', E_USER_DEPRECATED);
 
         return $this->generator->generateFromArray($data);
     }
@@ -68,14 +68,14 @@ class RemesaGenerator
      *
      * @deprecated Since 1.1.0, use CreditTransferGenerator::generate() instead
      *
-     * @param RemesaData|CreditTransferData $remesaData The credit transfer data
+     * @param CreditTransferData|RemesaData $remesaData The credit transfer data
      *
      * @return string The generated XML
      */
     #[Deprecated(message: 'Use CreditTransferGenerator::generate() instead', since: '1.1.0')]
     public function generate(RemesaData|CreditTransferData $remesaData): string
     {
-        @trigger_error('RemesaGenerator is deprecated since 1.1.0. Use CreditTransferGenerator instead.', \E_USER_DEPRECATED);
+        @trigger_error('RemesaGenerator is deprecated since 1.1.0. Use CreditTransferGenerator instead.', E_USER_DEPRECATED);
 
         // Convert RemesaData to CreditTransferData if needed
         if ($remesaData instanceof RemesaData) {
@@ -92,7 +92,7 @@ class RemesaGenerator
      *
      * @deprecated Since 1.1.0, use CreditTransferGenerator::createResponse() instead
      *
-     * @param string $xml      The XML content
+     * @param string $xml The XML content
      * @param string $filename The filename for the download
      *
      * @return Response The HTTP response
@@ -100,7 +100,7 @@ class RemesaGenerator
     #[Deprecated(message: 'Use CreditTransferGenerator::createResponse() instead', since: '1.1.0')]
     public function createResponse(string $xml, string $filename = 'credit-transfer.xml'): Response
     {
-        @trigger_error('RemesaGenerator is deprecated since 1.1.0. Use CreditTransferGenerator instead.', \E_USER_DEPRECATED);
+        @trigger_error('RemesaGenerator is deprecated since 1.1.0. Use CreditTransferGenerator instead.', E_USER_DEPRECATED);
 
         return $this->generator->createResponse($xml, $filename);
     }
@@ -121,7 +121,7 @@ class RemesaGenerator
             $remesaData->getPaymentInfoId(),
             $remesaData->getCreditorIban(),
             $remesaData->getCreditorName(),
-            $remesaData->getRequestedExecutionDate()
+            $remesaData->getRequestedExecutionDate(),
         );
 
         if ($remesaData->getCreditorBic() !== null) {
@@ -141,7 +141,7 @@ class RemesaGenerator
                 $transaction->getAmount(),
                 $transaction->getCurrency(),
                 $transaction->getDebtorIban(), // Remesa\Transaction.getDebtorIban() -> CreditTransfer\Transaction.creditorIban
-                $transaction->getDebtorName()  // Remesa\Transaction.getDebtorName() -> CreditTransfer\Transaction.creditorName
+                $transaction->getDebtorName(),  // Remesa\Transaction.getDebtorName() -> CreditTransfer\Transaction.creditorName
             );
 
             if ($transaction->getDebtorBic() !== null) {

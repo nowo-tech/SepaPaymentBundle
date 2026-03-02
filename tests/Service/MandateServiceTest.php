@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Tests\Service;
 
+use DateTime;
+use InvalidArgumentException;
 use Nowo\SepaPaymentBundle\Model\Mandate\Mandate;
 use Nowo\SepaPaymentBundle\Model\Mandate\MandateStatus;
 use Nowo\SepaPaymentBundle\Repository\MandateRepository;
@@ -24,18 +26,18 @@ class MandateServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->repository = new MandateRepository();
-        $this->service = new MandateService($this->repository);
+        $this->service    = new MandateService($this->repository);
     }
 
     public function testCreateMandate(): void
     {
         $mandate = $this->service->createMandate(
             'MANDATE-001',
-            new \DateTime('2024-01-01'),
+            new DateTime('2024-01-01'),
             'ES9121000418450200051332',
             'John Doe',
             'CORE',
-            'FRST'
+            'FRST',
         );
 
         $this->assertInstanceOf(Mandate::class, $mandate);
@@ -52,19 +54,19 @@ class MandateServiceTest extends TestCase
     {
         $this->service->createMandate(
             'MANDATE-001',
-            new \DateTime('2024-01-01'),
+            new DateTime('2024-01-01'),
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage("Mandate with ID 'MANDATE-001' already exists");
 
         $this->service->createMandate(
             'MANDATE-001',
-            new \DateTime('2024-01-01'),
+            new DateTime('2024-01-01'),
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
     }
 
@@ -72,11 +74,11 @@ class MandateServiceTest extends TestCase
     {
         $mandate = $this->service->createMandate(
             'MANDATE-001',
-            new \DateTime('2024-01-01'),
+            new DateTime('2024-01-01'),
             'ES9121000418450200051332',
             'John Doe',
             'CORE',
-            'FRST'
+            'FRST',
         );
 
         $updatedMandate = $this->service->updateSequenceType('MANDATE-001', 'RCUR');
@@ -88,14 +90,14 @@ class MandateServiceTest extends TestCase
     {
         $this->service->createMandate(
             'MANDATE-001',
-            new \DateTime('2024-01-01'),
+            new DateTime('2024-01-01'),
             'ES9121000418450200051332',
             'John Doe',
             'CORE',
-            'FRST'
+            'FRST',
         );
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage("Invalid sequence type transition from 'FRST' to 'OOFF'");
 
         $this->service->updateSequenceType('MANDATE-001', 'OOFF');
@@ -105,9 +107,9 @@ class MandateServiceTest extends TestCase
     {
         $mandate = $this->service->createMandate(
             'MANDATE-001',
-            new \DateTime('2024-01-01'),
+            new DateTime('2024-01-01'),
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
 
         $revokedMandate = $this->service->revokeMandate('MANDATE-001', 'Customer request');
@@ -122,9 +124,9 @@ class MandateServiceTest extends TestCase
     {
         $mandate = $this->service->createMandate(
             'MANDATE-001',
-            new \DateTime('2024-01-01'),
+            new DateTime('2024-01-01'),
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
 
         $suspendedMandate = $this->service->suspendMandate('MANDATE-001');
@@ -137,9 +139,9 @@ class MandateServiceTest extends TestCase
     {
         $mandate = $this->service->createMandate(
             'MANDATE-001',
-            new \DateTime('2024-01-01'),
+            new DateTime('2024-01-01'),
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
 
         $this->service->suspendMandate('MANDATE-001');
@@ -153,11 +155,11 @@ class MandateServiceTest extends TestCase
     {
         $mandate = $this->service->createMandate(
             'MANDATE-001',
-            new \DateTime('2024-01-01'),
+            new DateTime('2024-01-01'),
             'ES9121000418450200051332',
             'John Doe',
             'CORE',
-            'FRST'
+            'FRST',
         );
 
         $this->assertTrue($this->service->validateMandateForTransaction('MANDATE-001', 'RCUR'));
@@ -168,9 +170,9 @@ class MandateServiceTest extends TestCase
     {
         $mandate = $this->service->createMandate(
             'MANDATE-001',
-            new \DateTime('2024-01-01'),
+            new DateTime('2024-01-01'),
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
 
         $this->service->revokeMandate('MANDATE-001');
@@ -192,9 +194,9 @@ class MandateServiceTest extends TestCase
     {
         $mandate = $this->service->createMandate(
             'MANDATE-001',
-            new \DateTime('2024-01-01'),
+            new DateTime('2024-01-01'),
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
 
         $this->service->updateSequenceType('MANDATE-001', 'RCUR');
@@ -212,23 +214,23 @@ class MandateServiceTest extends TestCase
     {
         $this->service->createMandate(
             'MANDATE-001',
-            new \DateTime('2024-01-01'),
+            new DateTime('2024-01-01'),
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
 
         $this->service->createMandate(
             'MANDATE-002',
-            new \DateTime('2024-01-02'),
+            new DateTime('2024-01-02'),
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
 
         $this->service->createMandate(
             'MANDATE-003',
-            new \DateTime('2024-01-03'),
+            new DateTime('2024-01-03'),
             'GB82WEST12345698765432',
-            'Jane Smith'
+            'Jane Smith',
         );
 
         $mandates = $this->service->findMandatesByDebtorIban('ES9121000418450200051332');
@@ -243,17 +245,17 @@ class MandateServiceTest extends TestCase
         // Create an old mandate (expired)
         $this->service->createMandate(
             'MANDATE-OLD',
-            new \DateTime('2020-01-01'), // 4 years ago
+            new DateTime('2020-01-01'), // 4 years ago
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
 
         // Create a recent mandate (not expired)
         $this->service->createMandate(
             'MANDATE-NEW',
-            new \DateTime('2024-01-01'),
+            new DateTime('2024-01-01'),
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
 
         $expiredMandates = $this->service->findExpiredMandates();
@@ -266,15 +268,15 @@ class MandateServiceTest extends TestCase
     {
         $this->service->createMandate(
             'MANDATE-OLD',
-            new \DateTime('2020-01-01'),
+            new DateTime('2020-01-01'),
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
 
-        $expiredBefore2023 = $this->service->findExpiredMandates(new \DateTime('2023-06-01'));
+        $expiredBefore2023 = $this->service->findExpiredMandates(new DateTime('2023-06-01'));
         $this->assertCount(1, $expiredBefore2023);
 
-        $expiredBefore2019 = $this->service->findExpiredMandates(new \DateTime('2019-12-31'));
+        $expiredBefore2019 = $this->service->findExpiredMandates(new DateTime('2019-12-31'));
         $this->assertCount(0, $expiredBefore2019);
     }
 
@@ -282,9 +284,9 @@ class MandateServiceTest extends TestCase
     {
         $this->service->createMandate(
             'MANDATE-001',
-            new \DateTime('2024-01-01'),
+            new DateTime('2024-01-01'),
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
 
         $mandate = $this->service->findMandate('MANDATE-001');
@@ -298,15 +300,15 @@ class MandateServiceTest extends TestCase
     {
         $this->service->createMandate(
             'MANDATE-001',
-            new \DateTime('2024-01-01'),
+            new DateTime('2024-01-01'),
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
         $this->service->createMandate(
             'MANDATE-002',
-            new \DateTime('2024-01-02'),
+            new DateTime('2024-01-02'),
             'ES9121000418450200051332',
-            'Jane Doe'
+            'Jane Doe',
         );
         $this->service->revokeMandate('MANDATE-002');
 
@@ -324,9 +326,9 @@ class MandateServiceTest extends TestCase
     {
         $this->service->createMandate(
             'MANDATE-OLD',
-            new \DateTime('2020-01-01'),
+            new DateTime('2020-01-01'),
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
 
         $this->assertFalse($this->service->validateMandateForTransaction('MANDATE-OLD', 'FRST'));
@@ -336,11 +338,11 @@ class MandateServiceTest extends TestCase
     {
         $this->service->createMandate(
             'MANDATE-001',
-            new \DateTime('2024-01-01'),
+            new DateTime('2024-01-01'),
             'ES9121000418450200051332',
             'John Doe',
             'CORE',
-            'FNAL'
+            'FNAL',
         );
 
         $this->assertFalse($this->service->validateMandateForTransaction('MANDATE-001', 'RCUR'));
@@ -350,9 +352,9 @@ class MandateServiceTest extends TestCase
     {
         $this->service->createMandate(
             'MANDATE-001',
-            new \DateTime('2024-01-01'),
+            new DateTime('2024-01-01'),
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
 
         $revoked = $this->service->revokeMandate('MANDATE-001');
@@ -362,7 +364,7 @@ class MandateServiceTest extends TestCase
 
     public function testUpdateSequenceTypeThrowsWhenMandateNotFound(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage("Mandate with ID 'MISSING' not found");
 
         $this->service->updateSequenceType('MISSING', 'RCUR');
@@ -370,7 +372,7 @@ class MandateServiceTest extends TestCase
 
     public function testRevokeMandateThrowsWhenMandateNotFound(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage("Mandate with ID 'MISSING' not found");
 
         $this->service->revokeMandate('MISSING');
@@ -378,7 +380,7 @@ class MandateServiceTest extends TestCase
 
     public function testSuspendMandateThrowsWhenMandateNotFound(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage("Mandate with ID 'MISSING' not found");
 
         $this->service->suspendMandate('MISSING');
@@ -386,7 +388,7 @@ class MandateServiceTest extends TestCase
 
     public function testReactivateMandateThrowsWhenMandateNotFound(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage("Mandate with ID 'MISSING' not found");
 
         $this->service->reactivateMandate('MISSING');

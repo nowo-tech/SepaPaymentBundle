@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Validator;
 
+use DOMDocument;
+use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -21,8 +23,6 @@ class XsdValidator
 
     /**
      * Translator instance.
-     *
-     * @var TranslatorInterface
      */
     private TranslatorInterface $translator;
 
@@ -49,17 +49,17 @@ class XsdValidator
     /**
      * Validates XML content against an XSD schema.
      *
-     * @param string      $xml        The XML content to validate
-     * @param string|null $xsdPath    Path to the XSD schema file (optional, will use default if null)
-     * @param string      $schemaType Type of schema: 'credit_transfer' or 'direct_debit'
+     * @param string $xml The XML content to validate
+     * @param string|null $xsdPath Path to the XSD schema file (optional, will use default if null)
+     * @param string $schemaType Type of schema: 'credit_transfer' or 'direct_debit'
      *
-     * @throws \InvalidArgumentException If the XML is invalid or schema file is not found
+     * @throws InvalidArgumentException If the XML is invalid or schema file is not found
      *
      * @return bool True if the XML is valid against the schema
      */
     public function validate(string $xml, ?string $xsdPath = null, string $schemaType = 'credit_transfer'): bool
     {
-        $dom = new \DOMDocument();
+        $dom = new DOMDocument();
 
         // Load XML with error handling
         libxml_use_internal_errors(true);
@@ -69,32 +69,32 @@ class XsdValidator
         libxml_use_internal_errors(false);
 
         if (!$loaded) {
-            $errorMessages = array_map(fn ($error) => trim($error->message), $errors);
-            $errorsString = implode('; ', $errorMessages);
-            $message = $this->translator->trans('validation.invalid_xml_format', ['%errors%' => $errorsString], 'nowo_sepa_payment');
+            $errorMessages = array_map(static fn ($error) => trim($error->message), $errors);
+            $errorsString  = implode('; ', $errorMessages);
+            $message       = $this->translator->trans('validation.invalid_xml_format', ['%errors%' => $errorsString], 'nowo_sepa_payment');
 
-            throw new \InvalidArgumentException($message);
+            throw new InvalidArgumentException($message);
         }
 
         // If no XSD path provided, try to use default schema
-        if (null === $xsdPath) {
+        if ($xsdPath === null) {
             $xsdPath = $this->getDefaultSchemaPath($schemaType);
         }
 
         // Validate against XSD schema
-        if (null !== $xsdPath && file_exists($xsdPath)) {
+        if ($xsdPath !== null && file_exists($xsdPath)) {
             libxml_use_internal_errors(true);
-            $valid = @$dom->schemaValidate($xsdPath);
+            $valid  = @$dom->schemaValidate($xsdPath);
             $errors = libxml_get_errors();
             libxml_clear_errors();
             libxml_use_internal_errors(false);
 
             if (!$valid && !empty($errors)) {
-                $errorMessages = array_map(fn ($error) => trim($error->message), $errors);
-                $errorsString = implode('; ', $errorMessages);
-                $message = $this->translator->trans('validation.xsd_validation_failed', ['%errors%' => $errorsString], 'nowo_sepa_payment');
+                $errorMessages = array_map(static fn ($error) => trim($error->message), $errors);
+                $errorsString  = implode('; ', $errorMessages);
+                $message       = $this->translator->trans('validation.xsd_validation_failed', ['%errors%' => $errorsString], 'nowo_sepa_payment');
 
-                throw new \InvalidArgumentException($message);
+                throw new InvalidArgumentException($message);
             }
 
             return $valid;
@@ -108,10 +108,10 @@ class XsdValidator
     /**
      * Validates Credit Transfer XML against pain.001.001.03 schema.
      *
-     * @param string      $xml     The XML content to validate
+     * @param string $xml The XML content to validate
      * @param string|null $xsdPath Optional path to XSD schema file
      *
-     * @throws \InvalidArgumentException If the XML is invalid
+     * @throws InvalidArgumentException If the XML is invalid
      *
      * @return bool True if the XML is valid
      */
@@ -123,10 +123,10 @@ class XsdValidator
     /**
      * Validates Direct Debit XML against pain.008.001.02 schema.
      *
-     * @param string      $xml     The XML content to validate
+     * @param string $xml The XML content to validate
      * @param string|null $xsdPath Optional path to XSD schema file
      *
-     * @throws \InvalidArgumentException If the XML is invalid
+     * @throws InvalidArgumentException If the XML is invalid
      *
      * @return bool True if the XML is valid
      */
@@ -148,7 +148,7 @@ class XsdValidator
 
         $schemas = [
             'credit_transfer' => $basePath . 'pain.001.001.03.xsd',
-            'direct_debit' => $basePath . 'pain.008.001.02.xsd',
+            'direct_debit'    => $basePath . 'pain.008.001.02.xsd',
         ];
 
         $path = $schemas[$schemaType] ?? null;
@@ -159,16 +159,16 @@ class XsdValidator
     /**
      * Validates XML content against an XSD schema string.
      *
-     * @param string $xml        The XML content to validate
+     * @param string $xml The XML content to validate
      * @param string $xsdContent The XSD schema content as string
      *
-     * @throws \InvalidArgumentException If the XML is invalid
+     * @throws InvalidArgumentException If the XML is invalid
      *
      * @return bool True if the XML is valid against the schema
      */
     public function validateAgainstSchemaString(string $xml, string $xsdContent): bool
     {
-        $dom = new \DOMDocument();
+        $dom = new DOMDocument();
 
         // Load XML with error handling
         libxml_use_internal_errors(true);
@@ -178,26 +178,26 @@ class XsdValidator
         libxml_use_internal_errors(false);
 
         if (!$loaded) {
-            $errorMessages = array_map(fn ($error) => trim($error->message), $errors);
-            $errorsString = implode('; ', $errorMessages);
-            $message = $this->translator->trans('validation.invalid_xml_format', ['%errors%' => $errorsString], 'nowo_sepa_payment');
+            $errorMessages = array_map(static fn ($error) => trim($error->message), $errors);
+            $errorsString  = implode('; ', $errorMessages);
+            $message       = $this->translator->trans('validation.invalid_xml_format', ['%errors%' => $errorsString], 'nowo_sepa_payment');
 
-            throw new \InvalidArgumentException($message);
+            throw new InvalidArgumentException($message);
         }
 
         // Validate against XSD schema string
         libxml_use_internal_errors(true);
-        $valid = @$dom->schemaValidateSource($xsdContent);
+        $valid  = @$dom->schemaValidateSource($xsdContent);
         $errors = libxml_get_errors();
         libxml_clear_errors();
         libxml_use_internal_errors(false);
 
         if (!$valid && !empty($errors)) {
-            $errorMessages = array_map(fn ($error) => trim($error->message), $errors);
-            $errorsString = implode('; ', $errorMessages);
-            $message = $this->translator->trans('validation.xsd_validation_failed', ['%errors%' => $errorsString], 'nowo_sepa_payment');
+            $errorMessages = array_map(static fn ($error) => trim($error->message), $errors);
+            $errorsString  = implode('; ', $errorMessages);
+            $message       = $this->translator->trans('validation.xsd_validation_failed', ['%errors%' => $errorsString], 'nowo_sepa_payment');
 
-            throw new \InvalidArgumentException($message);
+            throw new InvalidArgumentException($message);
         }
 
         return $valid;

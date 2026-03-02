@@ -17,15 +17,11 @@ class IbanValidatorTest extends TestCase
 {
     /**
      * IBAN validator instance.
-     *
-     * @var IbanValidator
      */
     private IbanValidator $validator;
 
     /**
      * Sets up the test environment.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
@@ -34,8 +30,6 @@ class IbanValidatorTest extends TestCase
 
     /**
      * Tests valid IBAN validation.
-     *
-     * @return void
      */
     public function testValidIban(): void
     {
@@ -53,8 +47,6 @@ class IbanValidatorTest extends TestCase
 
     /**
      * Tests invalid IBAN validation.
-     *
-     * @return void
      */
     public function testInvalidIban(): void
     {
@@ -73,8 +65,6 @@ class IbanValidatorTest extends TestCase
 
     /**
      * Tests IBAN normalization.
-     *
-     * @return void
      */
     public function testNormalize(): void
     {
@@ -85,8 +75,6 @@ class IbanValidatorTest extends TestCase
 
     /**
      * Tests IBAN formatting.
-     *
-     * @return void
      */
     public function testFormat(): void
     {
@@ -96,8 +84,6 @@ class IbanValidatorTest extends TestCase
 
     /**
      * Tests country code extraction.
-     *
-     * @return void
      */
     public function testGetCountryCode(): void
     {
@@ -108,8 +94,6 @@ class IbanValidatorTest extends TestCase
 
     /**
      * Tests check digits extraction.
-     *
-     * @return void
      */
     public function testGetCheckDigits(): void
     {
@@ -119,8 +103,6 @@ class IbanValidatorTest extends TestCase
 
     /**
      * Tests BBAN extraction.
-     *
-     * @return void
      */
     public function testGetBban(): void
     {
@@ -130,19 +112,17 @@ class IbanValidatorTest extends TestCase
 
     /**
      * Tests check digits calculation.
-     *
-     * @return void
      */
     public function testCalculateCheckDigits(): void
     {
         // Test with Spanish IBAN
         $ibanWithPlaceholder = 'ES0021000418450200051332';
-        $calculated = $this->validator->calculateCheckDigits($ibanWithPlaceholder);
+        $calculated          = $this->validator->calculateCheckDigits($ibanWithPlaceholder);
         $this->assertEquals('91', $calculated);
 
         // Test with UK IBAN
         $ibanWithPlaceholder = 'GB00WEST12345698765432';
-        $calculated = $this->validator->calculateCheckDigits($ibanWithPlaceholder);
+        $calculated          = $this->validator->calculateCheckDigits($ibanWithPlaceholder);
         $this->assertEquals('82', $calculated);
     }
 }

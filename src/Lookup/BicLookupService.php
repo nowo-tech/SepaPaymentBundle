@@ -28,15 +28,11 @@ class BicLookupService implements BicLookupServiceInterface
 
     /**
      * Cache TTL in seconds (default: 86400 = 24 hours).
-     *
-     * @var int
      */
     private int $cacheTtl = 86400;
 
     /**
      * IBAN validator instance.
-     *
-     * @var IbanValidator
      */
     private IbanValidator $ibanValidator;
 
@@ -119,8 +115,8 @@ class BicLookupService implements BicLookupServiceInterface
      * Constructor.
      *
      * @param IbanValidator $ibanValidator IBAN validator instance
-     * @param object|null   $cache         Optional cache interface for caching lookups (must implement get/set methods)
-     * @param int           $cacheTtl      Cache TTL in seconds (default: 86400)
+     * @param object|null $cache Optional cache interface for caching lookups (must implement get/set methods)
+     * @param int $cacheTtl Cache TTL in seconds (default: 86400)
      */
     public function __construct(
         IbanValidator $ibanValidator,
@@ -128,8 +124,8 @@ class BicLookupService implements BicLookupServiceInterface
         int $cacheTtl = 86400
     ) {
         $this->ibanValidator = $ibanValidator;
-        $this->cache = $cache;
-        $this->cacheTtl = $cacheTtl;
+        $this->cache         = $cache;
+        $this->cacheTtl      = $cacheTtl;
     }
 
     /**
@@ -150,10 +146,10 @@ class BicLookupService implements BicLookupServiceInterface
         }
 
         // Check cache first
-        if (null !== $this->cache && method_exists($this->cache, 'get')) {
-            $cacheKey = 'bic_lookup_' . md5($normalizedIban);
+        if ($this->cache !== null && method_exists($this->cache, 'get')) {
+            $cacheKey  = 'bic_lookup_' . md5($normalizedIban);
             $cachedBic = $this->cache->get($cacheKey);
-            if (null !== $cachedBic) {
+            if ($cachedBic !== null) {
                 return $cachedBic;
             }
         }
@@ -171,7 +167,7 @@ class BicLookupService implements BicLookupServiceInterface
         $bic = $this->lookupBicByCountry($countryCode, $bban);
 
         // Cache the result
-        if (null !== $this->cache && null !== $bic && method_exists($this->cache, 'set')) {
+        if ($this->cache !== null && $bic !== null && method_exists($this->cache, 'set')) {
             $cacheKey = 'bic_lookup_' . md5($normalizedIban);
             $this->cache->set($cacheKey, $bic, $this->cacheTtl);
         }
@@ -203,7 +199,7 @@ class BicLookupService implements BicLookupServiceInterface
      * Looks up BIC by country code and BBAN.
      *
      * @param string $countryCode Country code (2 letters)
-     * @param string $bban        BBAN (Basic Bank Account Number)
+     * @param string $bban BBAN (Basic Bank Account Number)
      *
      * @return string|null The BIC code if found, null otherwise
      */
@@ -263,10 +259,8 @@ class BicLookupService implements BicLookupServiceInterface
      * Useful for adding bank-specific mappings not in the default database.
      *
      * @param string $countryCode Country code (2 letters)
-     * @param string $bankCode    Bank code (country-specific format)
-     * @param string $bic         BIC code
-     *
-     * @return void
+     * @param string $bankCode Bank code (country-specific format)
+     * @param string $bic BIC code
      */
     public function addMapping(string $countryCode, string $bankCode, string $bic): void
     {

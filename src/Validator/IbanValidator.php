@@ -4,7 +4,13 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Validator;
 
+use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+
+use function ord;
+use function strlen;
+
+use const STR_PAD_LEFT;
 
 /**
  * IBAN validator and utility class.
@@ -66,10 +72,10 @@ class IbanValidator
     public function format(string $iban): string
     {
         $normalized = $this->normalize($iban);
-        $formatted = '';
+        $formatted  = '';
 
         for ($i = 0; $i < strlen($normalized); ++$i) {
-            if ($i > 0 && 0 === $i % 4) {
+            if ($i > 0 && $i % 4 === 0) {
                 $formatted .= ' ';
             }
             $formatted .= $normalized[$i];
@@ -126,7 +132,7 @@ class IbanValidator
      *
      * @param string $iban The IBAN with '00' as check digits
      *
-     * @throws \InvalidArgumentException If the IBAN format is invalid
+     * @throws InvalidArgumentException If the IBAN format is invalid
      *
      * @return string The calculated check digits (2 digits)
      */
@@ -184,7 +190,7 @@ class IbanValidator
         }
 
         // Calculate mod-97, result should be 1 for valid IBAN
-        return 1 === $this->mod97($numeric);
+        return $this->mod97($numeric) === 1;
     }
 
     /**

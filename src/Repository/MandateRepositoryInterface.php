@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Repository;
 
+use DateTimeInterface;
 use Nowo\SepaPaymentBundle\Model\Mandate\Mandate;
 use Nowo\SepaPaymentBundle\Model\Mandate\MandateHistory;
 
@@ -20,8 +21,6 @@ interface MandateRepositoryInterface
      * Saves a mandate.
      *
      * @param Mandate $mandate The mandate to save
-     *
-     * @return void
      */
     public function save(Mandate $mandate): void;
 
@@ -53,11 +52,11 @@ interface MandateRepositoryInterface
     /**
      * Finds expired mandates.
      *
-     * @param \DateTimeInterface|null $beforeDate Optional date to find mandates expired before this date
+     * @param DateTimeInterface|null $beforeDate Optional date to find mandates expired before this date
      *
      * @return array<int, Mandate> Array of expired mandates
      */
-    public function findExpired(?\DateTimeInterface $beforeDate = null): array;
+    public function findExpired(?DateTimeInterface $beforeDate = null): array;
 
     /**
      * Deletes a mandate.
@@ -72,8 +71,6 @@ interface MandateRepositoryInterface
      * Adds a history entry for a mandate.
      *
      * @param MandateHistory $history The history entry
-     *
-     * @return void
      */
     public function addHistory(MandateHistory $history): void;
 

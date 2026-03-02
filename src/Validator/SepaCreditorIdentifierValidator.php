@@ -6,6 +6,11 @@ namespace Nowo\SepaPaymentBundle\Validator;
 
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
+use function ord;
+use function strlen;
+
+use const STR_PAD_LEFT;
+
 /**
  * SEPA Creditor Identifier validator.
  * Validates SEPA Creditor Identifier format and check digits according to ISO 7064 MOD97-10.
@@ -61,8 +66,8 @@ class SepaCreditorIdentifierValidator
         // Extract components
         $countryCode = substr($normalized, 0, 2);
         $checkDigits = substr($normalized, 2, 2);
-        $suffix = substr($normalized, 4, 3);
-        $nationalId = substr($normalized, 7);
+        $suffix      = substr($normalized, 4, 3);
+        $nationalId  = substr($normalized, 7);
 
         // Validate country code format (2 letters)
         if (!preg_match('/^[A-Z]{2}$/', $countryCode)) {
@@ -80,7 +85,7 @@ class SepaCreditorIdentifierValidator
         }
 
         // Validate national identifier (at least 1 character, alphanumeric)
-        if (strlen($nationalId) === 0 || !preg_match('/^[A-Z0-9]+$/', $nationalId)) {
+        if ($nationalId === '' || !preg_match('/^[A-Z0-9]+$/', $nationalId)) {
             return false;
         }
 
@@ -111,10 +116,10 @@ class SepaCreditorIdentifierValidator
      * 5. Apply MOD97-10: remainder = 1 if valid
      *
      * @param string $fullIdentifier The full identifier
-     * @param string $countryCode    Country code (2 letters)
-     * @param string $checkDigits    Check digits (2 digits)
-     * @param string $suffix         Suffix (3 characters)
-     * @param string $nationalId     National identifier
+     * @param string $countryCode Country code (2 letters)
+     * @param string $checkDigits Check digits (2 digits)
+     * @param string $suffix Suffix (3 characters)
+     * @param string $nationalId National identifier
      *
      * @return bool True if check digits are valid
      */
@@ -143,7 +148,7 @@ class SepaCreditorIdentifierValidator
 
         // Apply MOD97-10 algorithm
         // Calculate modulo 97, then subtract from 98 to get check digits
-        $remainder = $this->mod97($numericString);
+        $remainder             = $this->mod97($numericString);
         $calculatedCheckDigits = 98 - $remainder;
 
         // Format check digits to 2 digits (pad with zero if needed)
@@ -162,7 +167,7 @@ class SepaCreditorIdentifierValidator
     private function mod97(string $number): int
     {
         $remainder = 0;
-        $length = strlen($number);
+        $length    = strlen($number);
 
         for ($i = 0; $i < $length; ++$i) {
             $remainder = ($remainder * 10 + (int) $number[$i]) % 97;
@@ -222,10 +227,8 @@ class SepaCreditorIdentifierValidator
         }
 
         // CIF format: 1 letter + 7 digits + 1 letter/digit (e.g., A12345674)
-        if (preg_match('/^[A-Z]\d{7}[A-Z0-9]$/', $nif)) {
-            return true;
-        }
+        return (bool) (preg_match('/^[A-Z]\d{7}[A-Z0-9]$/', $nif))
 
-        return false;
+        ;
     }
 }

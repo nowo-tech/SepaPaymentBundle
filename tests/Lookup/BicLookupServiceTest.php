@@ -29,7 +29,7 @@ class BicLookupServiceTest extends TestCase
     {
         // Spanish IBAN with bank code 2100 (CaixaBank)
         $iban = 'ES9121000418450200051332';
-        $bic = $this->lookupService->lookupBic($iban);
+        $bic  = $this->lookupService->lookupBic($iban);
 
         $this->assertEquals('CAIXESBB', $bic);
     }
@@ -38,7 +38,7 @@ class BicLookupServiceTest extends TestCase
     {
         // German IBAN with bank code 10010010 (Postbank)
         // Note: This IBAN may not have correct check digits, so we test availability instead
-        $iban = 'DE89370400440532013000';
+        $iban        = 'DE89370400440532013000';
         $isAvailable = $this->lookupService->isAvailable($iban);
 
         // Should be available for German IBANs
@@ -48,7 +48,7 @@ class BicLookupServiceTest extends TestCase
     public function testLookupBicForInvalidIban(): void
     {
         $iban = 'INVALID-IBAN';
-        $bic = $this->lookupService->lookupBic($iban);
+        $bic  = $this->lookupService->lookupBic($iban);
 
         $this->assertNull($bic);
     }
@@ -57,14 +57,14 @@ class BicLookupServiceTest extends TestCase
     {
         // US IBAN (not in our database)
         $iban = 'US64SVBKUS6S3300958879';
-        $bic = $this->lookupService->lookupBic($iban);
+        $bic  = $this->lookupService->lookupBic($iban);
 
         $this->assertNull($bic);
     }
 
     public function testIsAvailableForSupportedCountry(): void
     {
-        $iban = 'ES9121000418450200051332';
+        $iban        = 'ES9121000418450200051332';
         $isAvailable = $this->lookupService->isAvailable($iban);
 
         $this->assertTrue($isAvailable);
@@ -72,7 +72,7 @@ class BicLookupServiceTest extends TestCase
 
     public function testIsAvailableForUnsupportedCountry(): void
     {
-        $iban = 'US64SVBKUS6S3300958879';
+        $iban        = 'US64SVBKUS6S3300958879';
         $isAvailable = $this->lookupService->isAvailable($iban);
 
         $this->assertFalse($isAvailable);
@@ -80,7 +80,7 @@ class BicLookupServiceTest extends TestCase
 
     public function testIsAvailableForInvalidIban(): void
     {
-        $iban = 'INVALID-IBAN';
+        $iban        = 'INVALID-IBAN';
         $isAvailable = $this->lookupService->isAvailable($iban);
 
         $this->assertFalse($isAvailable);
@@ -101,8 +101,8 @@ class BicLookupServiceTest extends TestCase
     {
         // Test without cache (cache is optional)
         $lookupService = new BicLookupService($this->ibanValidator, null);
-        $iban = 'ES9121000418450200051332';
-        $bic = $lookupService->lookupBic($iban);
+        $iban          = 'ES9121000418450200051332';
+        $bic           = $lookupService->lookupBic($iban);
 
         $this->assertEquals('CAIXESBB', $bic);
     }
@@ -111,8 +111,8 @@ class BicLookupServiceTest extends TestCase
     {
         // Test without cache (cache is optional)
         $lookupService = new BicLookupService($this->ibanValidator, null);
-        $iban = 'ES9121000418450200051332';
-        $bic = $lookupService->lookupBic($iban);
+        $iban          = 'ES9121000418450200051332';
+        $bic           = $lookupService->lookupBic($iban);
 
         $this->assertEquals('CAIXESBB', $bic);
     }
@@ -121,7 +121,7 @@ class BicLookupServiceTest extends TestCase
     {
         // French IBAN with bank code 20041 (BNP Paribas)
         $iban = 'FR1420041010050500013M02606';
-        $bic = $this->lookupService->lookupBic($iban);
+        $bic  = $this->lookupService->lookupBic($iban);
 
         $this->assertEquals('BNPAFRPP', $bic);
     }
@@ -131,7 +131,7 @@ class BicLookupServiceTest extends TestCase
         // Italian IBAN with bank code 03002 (Intesa Sanpaolo)
         // Note: Using a valid IBAN format, but check digits may need adjustment
         $iban = 'IT60X0542811101000000123456';
-        $bic = $this->lookupService->lookupBic($iban);
+        $bic  = $this->lookupService->lookupBic($iban);
 
         // If IBAN is valid and bank code matches, should return BIC
         // Otherwise, will return null
@@ -142,7 +142,7 @@ class BicLookupServiceTest extends TestCase
     {
         // Dutch IBAN with bank code ABNB (ABN AMRO)
         $iban = 'NL91ABNA0417164300';
-        $bic = $this->lookupService->lookupBic($iban);
+        $bic  = $this->lookupService->lookupBic($iban);
 
         $this->assertEquals('ABNANL2A', $bic);
     }
@@ -152,7 +152,7 @@ class BicLookupServiceTest extends TestCase
         // Belgian IBAN with bank code 001 (BNP Paribas Fortis)
         // Note: Using a valid IBAN format, but check digits may need adjustment
         $iban = 'BE68539007547034';
-        $bic = $this->lookupService->lookupBic($iban);
+        $bic  = $this->lookupService->lookupBic($iban);
 
         // If IBAN is valid and bank code matches, should return BIC
         // Otherwise, will return null
@@ -164,7 +164,7 @@ class BicLookupServiceTest extends TestCase
         // Portuguese IBAN with bank code 0007 (Banco Comercial Português)
         // Note: Using a valid IBAN format, but check digits may need adjustment
         $iban = 'PT50002700000001234567833';
-        $bic = $this->lookupService->lookupBic($iban);
+        $bic  = $this->lookupService->lookupBic($iban);
 
         // If IBAN is valid and bank code matches, should return BIC
         // Otherwise, will return null
@@ -176,7 +176,7 @@ class BicLookupServiceTest extends TestCase
         // UK IBAN with sort code 1600 (NatWest)
         // Note: Using a valid IBAN format, but check digits may need adjustment
         $iban = 'GB82WEST12345698765432';
-        $bic = $this->lookupService->lookupBic($iban);
+        $bic  = $this->lookupService->lookupBic($iban);
 
         // If IBAN is valid and bank code matches, should return BIC
         // Otherwise, will return null
@@ -187,8 +187,8 @@ class BicLookupServiceTest extends TestCase
     {
         // Test with custom cache TTL (cache is optional, so we test without it)
         $lookupService = new BicLookupService($this->ibanValidator, null, 3600);
-        $iban = 'ES9121000418450200051332';
-        $bic = $lookupService->lookupBic($iban);
+        $iban          = 'ES9121000418450200051332';
+        $bic           = $lookupService->lookupBic($iban);
 
         $this->assertEquals('CAIXESBB', $bic);
     }
@@ -196,7 +196,7 @@ class BicLookupServiceTest extends TestCase
     public function testLookupBicWithCacheHitReturnsCachedValue(): void
     {
         $storage = [];
-        $cache = new class ($storage) {
+        $cache   = new class($storage) {
             private array $storage;
 
             public function __construct(array &$storage)
@@ -218,7 +218,7 @@ class BicLookupServiceTest extends TestCase
         };
 
         $lookupService = new BicLookupService($this->ibanValidator, $cache, 3600);
-        $iban = 'ES9121000418450200051332';
+        $iban          = 'ES9121000418450200051332';
 
         $bic1 = $lookupService->lookupBic($iban);
         $this->assertEquals('CAIXESBB', $bic1);

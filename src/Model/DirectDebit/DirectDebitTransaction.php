@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Model\DirectDebit;
 
+use DateTimeInterface;
+
+use function is_array;
+
 /**
  * Direct Debit transaction data.
  *
@@ -14,15 +18,11 @@ class DirectDebitTransaction
 {
     /**
      * Remittance information (optional).
-     *
-     * @var string|null
      */
     private ?string $remittanceInformation = null;
 
     /**
      * Debtor BIC (optional).
-     *
-     * @var string|null
      */
     private ?string $debtorBic = null;
 
@@ -37,19 +37,19 @@ class DirectDebitTransaction
     /**
      * Constructor.
      *
-     * @param float              $amount                Amount to debit
-     * @param string             $debtorIban            Debtor IBAN
-     * @param string             $debtorName            Debtor name
-     * @param string             $debtorMandate         Debtor mandate identifier
-     * @param \DateTimeInterface $debtorMandateSignDate Debtor mandate sign date
-     * @param string             $endToEndId            End-to-end identifier
+     * @param float $amount Amount to debit
+     * @param string $debtorIban Debtor IBAN
+     * @param string $debtorName Debtor name
+     * @param string $debtorMandate Debtor mandate identifier
+     * @param DateTimeInterface $debtorMandateSignDate Debtor mandate sign date
+     * @param string $endToEndId End-to-end identifier
      */
     public function __construct(
         private float $amount,
         private string $debtorIban,
         private string $debtorName,
         private string $debtorMandate,
-        private \DateTimeInterface $debtorMandateSignDate,
+        private DateTimeInterface $debtorMandateSignDate,
         private string $endToEndId
     ) {
     }
@@ -97,9 +97,9 @@ class DirectDebitTransaction
     /**
      * Gets the debtor mandate sign date.
      *
-     * @return \DateTimeInterface The debtor mandate sign date
+     * @return DateTimeInterface The debtor mandate sign date
      */
-    public function getDebtorMandateSignDate(): \DateTimeInterface
+    public function getDebtorMandateSignDate(): DateTimeInterface
     {
         return $this->debtorMandateSignDate;
     }
@@ -118,8 +118,6 @@ class DirectDebitTransaction
      * Sets the remittance information.
      *
      * @param string|null $remittanceInformation The remittance information
-     *
-     * @return self
      */
     public function setRemittanceInformation(?string $remittanceInformation): self
     {
@@ -142,8 +140,6 @@ class DirectDebitTransaction
      * Sets the debtor BIC.
      *
      * @param string|null $debtorBic The debtor BIC
-     *
-     * @return self
      */
     public function setDebtorBic(?string $debtorBic): self
     {
@@ -166,8 +162,6 @@ class DirectDebitTransaction
      * Sets additional data.
      *
      * @param array<string, mixed> $additionalData Additional data
-     *
-     * @return self
      */
     public function setAdditionalData(array $additionalData): self
     {
@@ -189,10 +183,8 @@ class DirectDebitTransaction
     /**
      * Sets a specific additional data field.
      *
-     * @param string $key   The field key
-     * @param mixed  $value The field value
-     *
-     * @return self
+     * @param string $key The field key
+     * @param mixed $value The field value
      */
     public function setAdditionalField(string $key, mixed $value): self
     {
@@ -204,8 +196,8 @@ class DirectDebitTransaction
     /**
      * Gets a specific additional data field.
      *
-     * @param string $key     The field key
-     * @param mixed  $default Default value if key doesn't exist
+     * @param string $key The field key
+     * @param mixed $default Default value if key doesn't exist
      *
      * @return mixed The field value or default
      */
@@ -218,12 +210,10 @@ class DirectDebitTransaction
      * Sets the debtor address.
      * Address will be included in the generated XML (as of v0.0.8).
      *
-     * @param array<string, string|null>|string|null $street     Address array or street address
-     * @param string|null                            $city       City (ignored if first param is array)
-     * @param string|null                            $postalCode Postal code (ignored if first param is array)
-     * @param string|null                            $country    Country code (ignored if first param is array)
-     *
-     * @return self
+     * @param array<string, string|null>|string|null $street Address array or street address
+     * @param string|null $city City (ignored if first param is array)
+     * @param string|null $postalCode Postal code (ignored if first param is array)
+     * @param string|null $country Country code (ignored if first param is array)
      */
     public function setDebtorAddress(array|string|null $street = null, ?string $city = null, ?string $postalCode = null, ?string $country = null): self
     {
@@ -232,10 +222,10 @@ class DirectDebitTransaction
         }
 
         $this->additionalData['debtorAddress'] = [
-            'street' => $street,
-            'city' => $city,
+            'street'     => $street,
+            'city'       => $city,
             'postalCode' => $postalCode,
-            'country' => $country,
+            'country'    => $country,
         ];
 
         return $this;
@@ -245,16 +235,14 @@ class DirectDebitTransaction
      * Sets the debtor address from array.
      *
      * @param array<string, string|null> $address Address array with keys: street, city, postalCode, country
-     *
-     * @return self
      */
     public function setDebtorAddressFromArray(array $address): self
     {
         $this->additionalData['debtorAddress'] = [
-            'street' => $address['street'] ?? $address['address'] ?? null,
-            'city' => $address['city'] ?? null,
+            'street'     => $address['street'] ?? $address['address'] ?? null,
+            'city'       => $address['city'] ?? null,
             'postalCode' => $address['postalCode'] ?? $address['postal_code'] ?? null,
-            'country' => $address['country'] ?? null,
+            'country'    => $address['country'] ?? null,
         ];
 
         return $this;

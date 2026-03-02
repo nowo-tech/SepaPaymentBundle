@@ -24,11 +24,9 @@ interface ValidationCacheInterface
     /**
      * Sets a validation result in cache.
      *
-     * @param string $key   Cache key
-     * @param bool   $value Validation result
-     * @param int    $ttl   Time to live in seconds (optional, uses default if not provided)
-     *
-     * @return void
+     * @param string $key Cache key
+     * @param bool $value Validation result
+     * @param int $ttl Time to live in seconds (optional, uses default if not provided)
      */
     public function set(string $key, bool $value, ?int $ttl = null): void;
 
@@ -45,15 +43,11 @@ interface ValidationCacheInterface
      * Deletes a cached value.
      *
      * @param string $key Cache key
-     *
-     * @return void
      */
     public function delete(string $key): void;
 
     /**
      * Clears all cached validation results.
-     *
-     * @return void
      */
     public function clear(): void;
 }

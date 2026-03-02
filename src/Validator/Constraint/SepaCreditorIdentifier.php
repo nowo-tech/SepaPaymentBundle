@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Validator\Constraint;
 
+use Attribute;
 use Symfony\Component\Validator\Constraint;
 
 /**
@@ -13,7 +14,7 @@ use Symfony\Component\Validator\Constraint;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
  * @copyright 2025 Nowo.tech
  */
-#[\Attribute(\Attribute::TARGET_PROPERTY | \Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
+#[Attribute(Attribute::TARGET_PROPERTY | Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
 class SepaCreditorIdentifier extends Constraint
 {
     public const INVALID_SEPA_CREDITOR_IDENTIFIER_ERROR = 'c7d8e9f0-1a2b-3c4d-5e6f-7a8b9c0d1e2f';

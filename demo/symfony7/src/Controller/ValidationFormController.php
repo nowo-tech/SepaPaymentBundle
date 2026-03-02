@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Form\PaymentValidationFormType;
@@ -18,7 +20,6 @@ class ValidationFormController extends AbstractController
      * Demo form with SEPA validation constraints.
      *
      * @param Request $request Request object
-     * @return Response
      */
     #[Route('/demo-validation-form', name: 'demo_validation_form')]
     public function validationForm(Request $request): Response
@@ -27,7 +28,7 @@ class ValidationFormController extends AbstractController
         $form->handleRequest($request);
 
         $submittedData = null;
-        $isValid = false;
+        $isValid       = false;
 
         if ($form->isSubmitted()) {
             $isValid = $form->isValid();
@@ -37,10 +38,10 @@ class ValidationFormController extends AbstractController
         }
 
         return $this->render('demo/validation_form.html.twig', [
-            'form' => $form,
+            'form'          => $form,
             'submittedData' => $submittedData,
-            'isValid' => $isValid,
-            'isSubmitted' => $form->isSubmitted(),
+            'isValid'       => $isValid,
+            'isSubmitted'   => $form->isSubmitted(),
         ]);
     }
 }

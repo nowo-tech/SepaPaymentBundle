@@ -17,8 +17,6 @@ class TransactionTest extends TestCase
 {
     /**
      * Tests transaction creation.
-     *
-     * @return void
      */
     public function testTransactionCreation(): void
     {
@@ -27,7 +25,7 @@ class TransactionTest extends TestCase
             100.50,
             'EUR',
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
 
         $this->assertEquals('E2E-001', $transaction->getEndToEndId());
@@ -41,8 +39,6 @@ class TransactionTest extends TestCase
 
     /**
      * Tests setting creditor BIC.
-     *
-     * @return void
      */
     public function testSetCreditorBic(): void
     {
@@ -51,7 +47,7 @@ class TransactionTest extends TestCase
             100.50,
             'EUR',
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
 
         $transaction->setCreditorBic('CAIXESBBXXX');
@@ -63,8 +59,6 @@ class TransactionTest extends TestCase
 
     /**
      * Tests setting remittance information.
-     *
-     * @return void
      */
     public function testSetRemittanceInformation(): void
     {
@@ -73,7 +67,7 @@ class TransactionTest extends TestCase
             100.50,
             'EUR',
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
 
         $transaction->setRemittanceInformation('Invoice 12345');
@@ -85,8 +79,6 @@ class TransactionTest extends TestCase
 
     /**
      * Tests setting creditor address.
-     *
-     * @return void
      */
     public function testSetCreditorAddress(): void
     {
@@ -95,7 +87,7 @@ class TransactionTest extends TestCase
             100.50,
             'EUR',
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
 
         $this->assertNull($transaction->getCreditorAddress());
@@ -120,13 +112,13 @@ class TransactionTest extends TestCase
             100.50,
             'EUR',
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
         $transaction->setCreditorAddress([
-            'street' => 'Array Street',
-            'city' => 'Berlin',
+            'street'     => 'Array Street',
+            'city'       => 'Berlin',
             'postalCode' => '10115',
-            'country' => 'DE',
+            'country'    => 'DE',
         ]);
         $address = $transaction->getCreditorAddress();
         $this->assertNotNull($address);
@@ -136,8 +128,6 @@ class TransactionTest extends TestCase
 
     /**
      * Tests setting creditor address from array.
-     *
-     * @return void
      */
     public function testSetCreditorAddressFromArray(): void
     {
@@ -146,14 +136,14 @@ class TransactionTest extends TestCase
             100.50,
             'EUR',
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
 
         $transaction->setCreditorAddressFromArray([
-            'street' => '456 Oak Avenue',
-            'city' => 'Madrid',
+            'street'     => '456 Oak Avenue',
+            'city'       => 'Madrid',
             'postalCode' => '28001',
-            'country' => 'ES',
+            'country'    => 'ES',
         ]);
 
         $address = $transaction->getCreditorAddress();
@@ -166,8 +156,6 @@ class TransactionTest extends TestCase
 
     /**
      * Tests setting creditor address from array with snake_case keys.
-     *
-     * @return void
      */
     public function testSetCreditorAddressFromArraySnakeCase(): void
     {
@@ -176,14 +164,14 @@ class TransactionTest extends TestCase
             100.50,
             'EUR',
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
 
         $transaction->setCreditorAddressFromArray([
-            'address' => '789 Pine Street',
-            'city' => 'Barcelona',
+            'address'     => '789 Pine Street',
+            'city'        => 'Barcelona',
             'postal_code' => '08001',
-            'country' => 'ES',
+            'country'     => 'ES',
         ]);
 
         $address = $transaction->getCreditorAddress();

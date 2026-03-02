@@ -17,22 +17,16 @@ class AfterValidationEvent extends Event
 {
     /**
      * Validation type (e.g., 'iban', 'bic', 'credit_card').
-     *
-     * @var string
      */
     private string $validationType;
 
     /**
      * Value that was validated.
-     *
-     * @var string
      */
     private string $value;
 
     /**
      * Validation result.
-     *
-     * @var bool
      */
     private bool $result;
 
@@ -40,14 +34,14 @@ class AfterValidationEvent extends Event
      * Constructor.
      *
      * @param string $validationType Validation type
-     * @param string $value          Value that was validated
-     * @param bool   $result         Validation result
+     * @param string $value Value that was validated
+     * @param bool $result Validation result
      */
     public function __construct(string $validationType, string $value, bool $result)
     {
         $this->validationType = $validationType;
-        $this->value = $value;
-        $this->result = $result;
+        $this->value          = $value;
+        $this->result         = $result;
     }
 
     /**

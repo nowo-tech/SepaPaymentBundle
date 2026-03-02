@@ -9,6 +9,8 @@ use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
+use function is_string;
+
 /**
  * BIC constraint validator.
  * Uses BicValidator service for validation logic.
@@ -20,8 +22,6 @@ class BicValidator extends ConstraintValidator
 {
     /**
      * BIC validator service.
-     *
-     * @var BicValidatorService
      */
     private BicValidatorService $bicValidator;
 
@@ -44,7 +44,7 @@ class BicValidator extends ConstraintValidator
             throw new UnexpectedTypeException($constraint, Bic::class);
         }
 
-        if (null === $value || '' === $value) {
+        if ($value === null || $value === '') {
             return;
         }
 

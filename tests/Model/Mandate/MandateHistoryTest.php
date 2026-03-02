@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Tests\Model\Mandate;
 
+use DateTime;
 use Nowo\SepaPaymentBundle\Model\Mandate\MandateHistory;
 use PHPUnit\Framework\TestCase;
 
@@ -17,14 +18,14 @@ class MandateHistoryTest extends TestCase
 {
     public function testConstructorAndGetters(): void
     {
-        $timestamp = new \DateTime('2024-01-15 10:30:00');
-        $history = new MandateHistory(
+        $timestamp = new DateTime('2024-01-15 10:30:00');
+        $history   = new MandateHistory(
             'MANDATE-001',
             $timestamp,
             'status_change',
             'active',
             'revoked',
-            'Mandate revoked by customer'
+            'Mandate revoked by customer',
         );
 
         $this->assertEquals('MANDATE-001', $history->getMandateId());
@@ -39,11 +40,11 @@ class MandateHistoryTest extends TestCase
     {
         $history = new MandateHistory(
             'MANDATE-002',
-            new \DateTime(),
+            new DateTime(),
             'sequence_change',
             'FRST',
             'RCUR',
-            null
+            null,
         );
 
         $this->assertNull($history->getDescription());
@@ -51,14 +52,14 @@ class MandateHistoryTest extends TestCase
 
     public function testToArray(): void
     {
-        $timestamp = new \DateTime('2024-01-15 10:30:00');
-        $history = new MandateHistory(
+        $timestamp = new DateTime('2024-01-15 10:30:00');
+        $history   = new MandateHistory(
             'MANDATE-001',
             $timestamp,
             'status_change',
             'pending',
             'active',
-            'Created'
+            'Created',
         );
 
         $array = $history->toArray();
@@ -74,8 +75,8 @@ class MandateHistoryTest extends TestCase
 
     public function testToArrayWithNullDescription(): void
     {
-        $history = new MandateHistory('M-1', new \DateTime(), 'created', '', 'active', null);
-        $array = $history->toArray();
+        $history = new MandateHistory('M-1', new DateTime(), 'created', '', 'active', null);
+        $array   = $history->toArray();
 
         $this->assertArrayHasKey('description', $array);
         $this->assertNull($array['description']);

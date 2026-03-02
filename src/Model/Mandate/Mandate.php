@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Model\Mandate;
 
+use DateTime;
+use DateTimeInterface;
+use RuntimeException;
+
 /**
  * SEPA mandate entity.
  * Represents a SEPA Direct Debit mandate with all required information.
@@ -15,59 +19,47 @@ class Mandate
 {
     /**
      * BIC of the debtor's bank (optional).
-     *
-     * @var string|null
      */
     private ?string $debtorBic = null;
 
     /**
      * Whether the mandate is active.
-     *
-     * @var bool
      */
     private bool $active = true;
 
     /**
      * Mandate status.
-     *
-     * @var MandateStatus
      */
     private MandateStatus $status = MandateStatus::ACTIVE;
 
     /**
      * Expiration date (optional, defaults to 36 months after signature date).
-     *
-     * @var \DateTimeInterface|null
      */
-    private ?\DateTimeInterface $expirationDate = null;
+    private ?DateTimeInterface $expirationDate = null;
 
     /**
      * Revocation date (if revoked).
-     *
-     * @var \DateTimeInterface|null
      */
-    private ?\DateTimeInterface $revocationDate = null;
+    private ?DateTimeInterface $revocationDate = null;
 
     /**
      * Revocation reason (if revoked).
-     *
-     * @var string|null
      */
     private ?string $revocationReason = null;
 
     /**
      * Constructor.
      *
-     * @param string             $mandateId     Mandate identifier
-     * @param \DateTimeInterface $signatureDate Date when the mandate was signed
-     * @param string             $debtorIban    IBAN of the debtor
-     * @param string             $debtorName    Name of the debtor
-     * @param string             $type          Type of mandate (CORE, B2B)
-     * @param string             $sequenceType  Sequence type (FRST, RCUR, OOFF, FNAL)
+     * @param string $mandateId Mandate identifier
+     * @param DateTimeInterface $signatureDate Date when the mandate was signed
+     * @param string $debtorIban IBAN of the debtor
+     * @param string $debtorName Name of the debtor
+     * @param string $type Type of mandate (CORE, B2B)
+     * @param string $sequenceType Sequence type (FRST, RCUR, OOFF, FNAL)
      */
     public function __construct(
         private string $mandateId,
-        private \DateTimeInterface $signatureDate,
+        private DateTimeInterface $signatureDate,
         private string $debtorIban,
         private string $debtorName,
         private string $type = 'CORE',
@@ -88,9 +80,9 @@ class Mandate
     /**
      * Gets the signature date.
      *
-     * @return \DateTimeInterface The signature date
+     * @return DateTimeInterface The signature date
      */
-    public function getSignatureDate(): \DateTimeInterface
+    public function getSignatureDate(): DateTimeInterface
     {
         return $this->signatureDate;
     }
@@ -109,8 +101,6 @@ class Mandate
      * Sets the debtor BIC.
      *
      * @param string|null $debtorBic The debtor BIC
-     *
-     * @return self
      */
     public function setDebtorBic(?string $debtorBic): self
     {
@@ -153,8 +143,6 @@ class Mandate
      * Sets the sequence type.
      *
      * @param string $sequenceType The sequence type (FRST, RCUR, OOFF, FNAL)
-     *
-     * @return self
      */
     public function setSequenceType(string $sequenceType): self
     {
@@ -177,8 +165,6 @@ class Mandate
      * Sets whether the mandate is active.
      *
      * @param bool $active Whether the mandate is active
-     *
-     * @return self
      */
     public function setActive(bool $active): self
     {
@@ -211,8 +197,6 @@ class Mandate
      * Sets the mandate status.
      *
      * @param MandateStatus $status The mandate status
-     *
-     * @return self
      */
     public function setStatus(MandateStatus $status): self
     {
@@ -225,9 +209,9 @@ class Mandate
     /**
      * Gets the expiration date.
      *
-     * @return \DateTimeInterface|null The expiration date or null if not set
+     * @return DateTimeInterface|null The expiration date or null if not set
      */
-    public function getExpirationDate(): ?\DateTimeInterface
+    public function getExpirationDate(): ?DateTimeInterface
     {
         if ($this->expirationDate === null) {
             // Default: 36 months after signature date
@@ -243,11 +227,9 @@ class Mandate
     /**
      * Sets the expiration date.
      *
-     * @param \DateTimeInterface|null $expirationDate The expiration date
-     *
-     * @return self
+     * @param DateTimeInterface|null $expirationDate The expiration date
      */
-    public function setExpirationDate(?\DateTimeInterface $expirationDate): self
+    public function setExpirationDate(?DateTimeInterface $expirationDate): self
     {
         $this->expirationDate = $expirationDate;
 
@@ -257,18 +239,18 @@ class Mandate
     /**
      * Checks if the mandate is expired.
      *
-     * @param \DateTimeInterface|null $checkDate Optional date to check against (defaults to now)
+     * @param DateTimeInterface|null $checkDate Optional date to check against (defaults to now)
      *
      * @return bool True if expired, false otherwise
      */
-    public function isExpired(?\DateTimeInterface $checkDate = null): bool
+    public function isExpired(?DateTimeInterface $checkDate = null): bool
     {
         $expirationDate = $this->getExpirationDate();
         if ($expirationDate === null) {
             return false;
         }
 
-        $checkDate ??= new \DateTime();
+        $checkDate ??= new DateTime();
 
         return $expirationDate < $checkDate;
     }
@@ -276,9 +258,9 @@ class Mandate
     /**
      * Gets the revocation date.
      *
-     * @return \DateTimeInterface|null The revocation date or null if not revoked
+     * @return DateTimeInterface|null The revocation date or null if not revoked
      */
-    public function getRevocationDate(): ?\DateTimeInterface
+    public function getRevocationDate(): ?DateTimeInterface
     {
         return $this->revocationDate;
     }
@@ -297,14 +279,12 @@ class Mandate
      * Revokes the mandate.
      *
      * @param string|null $reason Optional revocation reason
-     *
-     * @return self
      */
     public function revoke(?string $reason = null): self
     {
-        $this->status = MandateStatus::REVOKED;
-        $this->active = false;
-        $this->revocationDate = new \DateTime();
+        $this->status           = MandateStatus::REVOKED;
+        $this->active           = false;
+        $this->revocationDate   = new DateTime();
         $this->revocationReason = $reason;
 
         return $this;
@@ -312,8 +292,6 @@ class Mandate
 
     /**
      * Suspends the mandate.
-     *
-     * @return self
      */
     public function suspend(): self
     {
@@ -325,18 +303,16 @@ class Mandate
 
     /**
      * Reactivates the mandate.
-     *
-     * @return self
      */
     public function reactivate(): self
     {
         if ($this->isExpired()) {
-            throw new \RuntimeException('Cannot reactivate an expired mandate');
+            throw new RuntimeException('Cannot reactivate an expired mandate');
         }
 
-        $this->status = MandateStatus::ACTIVE;
-        $this->active = true;
-        $this->revocationDate = null;
+        $this->status           = MandateStatus::ACTIVE;
+        $this->active           = true;
+        $this->revocationDate   = null;
         $this->revocationReason = null;
 
         return $this;

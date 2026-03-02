@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Tests\Validator;
 
+use InvalidArgumentException;
 use Nowo\SepaPaymentBundle\Validator\XsdValidator;
 use PHPUnit\Framework\TestCase;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -18,29 +19,23 @@ class XsdValidatorTest extends TestCase
 {
     /**
      * XSD validator instance.
-     *
-     * @var XsdValidator
      */
     private XsdValidator $validator;
 
     /**
      * Sets up the test environment.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
         $translator = $this->createMock(TranslatorInterface::class);
         $translator->method('trans')->willReturnCallback(
-            \Nowo\SepaPaymentBundle\Tests\Helper\TranslationHelper::createTranslatorCallback()
+            \Nowo\SepaPaymentBundle\Tests\Helper\TranslationHelper::createTranslatorCallback(),
         );
         $this->validator = new XsdValidator($translator);
     }
 
     /**
      * Tests validation of valid Credit Transfer XML (without XSD file).
-     *
-     * @return void
      */
     public function testValidateCreditTransferWithoutXsdFile(): void
     {
@@ -83,8 +78,6 @@ class XsdValidatorTest extends TestCase
 
     /**
      * Tests validation of valid Direct Debit XML (without XSD file).
-     *
-     * @return void
      */
     public function testValidateDirectDebitWithoutXsdFile(): void
     {
@@ -161,12 +154,10 @@ class XsdValidatorTest extends TestCase
 
     /**
      * Tests validation of invalid XML format.
-     *
-     * @return void
      */
     public function testValidateInvalidXml(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/^Invalid XML format/');
 
         $this->validator->validate('Invalid XML');
@@ -174,12 +165,10 @@ class XsdValidatorTest extends TestCase
 
     /**
      * Tests validation of malformed XML.
-     *
-     * @return void
      */
     public function testValidateMalformedXml(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/^Invalid XML format/');
 
         $xml = <<<'XML'
@@ -194,8 +183,6 @@ class XsdValidatorTest extends TestCase
 
     /**
      * Tests validation with non-existent XSD file path.
-     *
-     * @return void
      */
     public function testValidateWithNonExistentXsdFile(): void
     {
@@ -217,8 +204,6 @@ class XsdValidatorTest extends TestCase
 
     /**
      * Tests validation against schema string.
-     *
-     * @return void
      */
     public function testValidateAgainstSchemaString(): void
     {
@@ -248,8 +233,6 @@ class XsdValidatorTest extends TestCase
 
     /**
      * Tests validation against schema string with invalid XML.
-     *
-     * @return void
      */
     public function testValidateAgainstSchemaStringInvalidXml(): void
     {
@@ -273,7 +256,7 @@ class XsdValidatorTest extends TestCase
             </xs:schema>
             XSD;
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/^XSD validation failed/');
 
         $this->validator->validateAgainstSchemaString($xml, $xsd);
@@ -284,7 +267,7 @@ class XsdValidatorTest extends TestCase
      */
     public function testValidateAgainstSchemaStringNonWellFormedXml(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessageMatches('/Invalid XML format|invalid_xml_format/');
 
         $xsd = <<<'XSD'
@@ -299,8 +282,6 @@ class XsdValidatorTest extends TestCase
 
     /**
      * Tests validation with different schema types.
-     *
-     * @return void
      */
     public function testValidateWithDifferentSchemaTypes(): void
     {
@@ -377,7 +358,7 @@ class XsdValidatorTest extends TestCase
                     <wrongelement>invalid</wrongelement>
                 </root>
                 XML;
-            $this->expectException(\InvalidArgumentException::class);
+            $this->expectException(InvalidArgumentException::class);
             $this->expectExceptionMessageMatches('/XSD validation failed|xsd_validation_failed/');
             $this->validator->validate($xml, $tempXsd, 'credit_transfer');
         } finally {

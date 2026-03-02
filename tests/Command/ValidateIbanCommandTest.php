@@ -19,15 +19,11 @@ class ValidateIbanCommandTest extends TestCase
 {
     /**
      * Command instance.
-     *
-     * @var ValidateIbanCommand
      */
     private ValidateIbanCommand $command;
 
     /**
      * Sets up the test environment.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
@@ -37,8 +33,6 @@ class ValidateIbanCommandTest extends TestCase
 
     /**
      * Tests command execution with valid IBAN.
-     *
-     * @return void
      */
     public function testExecuteWithValidIban(): void
     {
@@ -54,8 +48,6 @@ class ValidateIbanCommandTest extends TestCase
 
     /**
      * Tests command execution with invalid IBAN.
-     *
-     * @return void
      */
     public function testExecuteWithInvalidIban(): void
     {
@@ -69,8 +61,6 @@ class ValidateIbanCommandTest extends TestCase
 
     /**
      * Tests command execution displays all IBAN information.
-     *
-     * @return void
      */
     public function testExecuteDisplaysIbanInformation(): void
     {
@@ -88,8 +78,6 @@ class ValidateIbanCommandTest extends TestCase
 
     /**
      * Tests command with formatted IBAN (with spaces).
-     *
-     * @return void
      */
     public function testExecuteWithFormattedIban(): void
     {
@@ -103,8 +91,6 @@ class ValidateIbanCommandTest extends TestCase
 
     /**
      * Tests command with lowercase IBAN.
-     *
-     * @return void
      */
     public function testExecuteWithLowercaseIban(): void
     {

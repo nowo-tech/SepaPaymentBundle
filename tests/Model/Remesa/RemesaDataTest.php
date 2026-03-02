@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Tests\Model\Remesa;
 
+use DateTime;
 use Nowo\SepaPaymentBundle\Model\Remesa\RemesaData;
 use Nowo\SepaPaymentBundle\Model\Remesa\Transaction;
 use PHPUnit\Framework\TestCase;
@@ -20,12 +21,12 @@ class RemesaDataTest extends TestCase
     {
         $remesaData = new RemesaData(
             'MSG-001',
-            new \DateTime('2024-01-15 10:00:00'),
+            new DateTime('2024-01-15 10:00:00'),
             'My Company',
             'PMT-001',
             'ES9121000418450200051332',
             'My Company Name',
-            new \DateTime('2024-01-20')
+            new DateTime('2024-01-20'),
         );
 
         $this->assertEquals('MSG-001', $remesaData->getMessageId());
@@ -41,10 +42,10 @@ class RemesaDataTest extends TestCase
         $this->assertTrue($remesaData->isBatchBooking());
 
         $remesaData->setCreditorAddressFromArray([
-            'street' => 'Calle 1',
-            'city' => 'Madrid',
+            'street'     => 'Calle 1',
+            'city'       => 'Madrid',
             'postalCode' => '28001',
-            'country' => 'ES',
+            'country'    => 'ES',
         ]);
         $this->assertNotNull($remesaData->getCreditorAddress());
         $this->assertEquals('Madrid', $remesaData->getCreditorAddress()['city']);
@@ -57,12 +58,12 @@ class RemesaDataTest extends TestCase
     {
         $remesaData = new RemesaData(
             'MSG-001',
-            new \DateTime('2024-01-15'),
+            new DateTime('2024-01-15'),
             'Init',
             'PMT-001',
             'ES9121000418450200051332',
             'Creditor',
-            new \DateTime('2024-01-20')
+            new DateTime('2024-01-20'),
         );
 
         $transaction = new Transaction(
@@ -70,7 +71,7 @@ class RemesaDataTest extends TestCase
             100.50,
             'EUR',
             'GB82WEST12345698765432',
-            'John Doe'
+            'John Doe',
         );
         $transaction->setDebtorBic('WESTGB22');
         $transaction->setRemittanceInformation('Ref');
@@ -88,12 +89,12 @@ class RemesaDataTest extends TestCase
     {
         $remesaData = new RemesaData(
             'MSG-001',
-            new \DateTime('2024-01-15'),
+            new DateTime('2024-01-15'),
             'Init',
             'PMT-001',
             'ES9121000418450200051332',
             'Creditor',
-            new \DateTime('2024-01-20')
+            new DateTime('2024-01-20'),
         );
         $creditTransferData = $remesaData->getCreditTransferData();
         $this->assertNotNull($creditTransferData);

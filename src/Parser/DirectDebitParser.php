@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Parser;
 
+use DOMDocument;
+use DOMNode;
+use DOMXPath;
+use Exception;
+use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 /**
@@ -23,18 +28,18 @@ class DirectDebitParser
      *
      * @param string $xml The XML content
      *
-     * @throws \InvalidArgumentException If the XML is invalid
+     * @throws InvalidArgumentException If the XML is invalid
      *
      * @return array<string, mixed> Parsed data
      */
     public function parseDirectDebit(string $xml): array
     {
-        $dom = new \DOMDocument();
+        $dom = new DOMDocument();
         if (!@$dom->loadXML($xml)) {
-            throw new \InvalidArgumentException('Invalid XML format');
+            throw new InvalidArgumentException('Invalid XML format');
         }
 
-        $xpath = new \DOMXPath($dom);
+        $xpath = new DOMXPath($dom);
         $xpath->registerNamespace('sepa', 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.02');
 
         $data = [];
@@ -134,7 +139,7 @@ class DirectDebitParser
         }
 
         // Extract transactions
-        $transactions = [];
+        $transactions      = [];
         $drctDbtTxInfNodes = $xpath->query('//sepa:DrctDbtTxInf');
         foreach ($drctDbtTxInfNodes as $txInf) {
             $transaction = [];
@@ -146,7 +151,7 @@ class DirectDebitParser
 
             $instdAmt = $xpath->query('.//sepa:InstdAmt', $txInf)->item(0);
             if ($instdAmt) {
-                $transaction['amount'] = (float) $instdAmt->nodeValue;
+                $transaction['amount']   = (float) $instdAmt->nodeValue;
                 $transaction['currency'] = $instdAmt->getAttribute('Ccy');
             }
 
@@ -217,12 +222,12 @@ class DirectDebitParser
     /**
      * Extracts address information from a parent node.
      *
-     * @param \DOMXPath $xpath      The XPath object
-     * @param \DOMNode  $parentNode The parent node containing address information
+     * @param DOMXPath $xpath The XPath object
+     * @param DOMNode $parentNode The parent node containing address information
      *
      * @return array<string, string> Address array with keys: street, city, postalCode, country
      */
-    private function extractAddress(\DOMXPath $xpath, \DOMNode $parentNode): array
+    private function extractAddress(DOMXPath $xpath, DOMNode $parentNode): array
     {
         $address = [];
 
@@ -267,20 +272,20 @@ class DirectDebitParser
                 return false;
             }
 
-            $dom = new \DOMDocument();
+            $dom = new DOMDocument();
             if (!@$dom->loadXML($xml)) {
                 return false;
             }
 
-            $xpath = new \DOMXPath($dom);
+            $xpath = new DOMXPath($dom);
             $xpath->registerNamespace('sepa', 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.02');
 
             // Check for required elements
-            $msgId = $xpath->query('//sepa:MsgId')->item(0);
+            $msgId             = $xpath->query('//sepa:MsgId')->item(0);
             $cstmrDrctDbtInitn = $xpath->query('//sepa:CstmrDrctDbtInitn')->item(0);
 
-            return null !== $msgId && null !== $cstmrDrctDbtInitn;
-        } catch (\Exception $e) {
+            return $msgId !== null && $cstmrDrctDbtInitn !== null;
+        } catch (Exception $e) {
             return false;
         }
     }

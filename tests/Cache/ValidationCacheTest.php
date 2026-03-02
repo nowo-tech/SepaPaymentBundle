@@ -20,7 +20,7 @@ class ValidationCacheTest extends TestCase
      */
     public function testGetSet(): void
     {
-        $cache = new ArrayCache();
+        $cache           = new ArrayCache();
         $validationCache = new ValidationCache($cache);
 
         $this->assertNull($validationCache->get('test_key'));
@@ -55,7 +55,7 @@ class ValidationCacheTest extends TestCase
      */
     public function testDelete(): void
     {
-        $cache = new ArrayCache();
+        $cache           = new ArrayCache();
         $validationCache = new ValidationCache($cache);
 
         $validationCache->set('test_key', true);
@@ -71,7 +71,7 @@ class ValidationCacheTest extends TestCase
      */
     public function testClear(): void
     {
-        $cache = new ArrayCache();
+        $cache           = new ArrayCache();
         $validationCache = new ValidationCache($cache);
 
         $validationCache->set('key1', true);
@@ -89,7 +89,7 @@ class ValidationCacheTest extends TestCase
      */
     public function testCustomTtl(): void
     {
-        $cache = new ArrayCache();
+        $cache           = new ArrayCache();
         $validationCache = new ValidationCache($cache, 7200);
 
         // Should not throw exception
@@ -102,7 +102,7 @@ class ValidationCacheTest extends TestCase
      */
     public function testKeyNormalization(): void
     {
-        $cache = new ArrayCache();
+        $cache           = new ArrayCache();
         $validationCache = new ValidationCache($cache);
 
         $validationCache->set('test_key', true);
@@ -118,7 +118,7 @@ class ValidationCacheTest extends TestCase
      */
     public function testGetWithAdapterWithoutHasMethodReturnsNull(): void
     {
-        $cacheWithoutHas = new class () {
+        $cacheWithoutHas = new class {
             private array $storage = [];
 
             public function get(string $key): mixed
@@ -164,7 +164,7 @@ class ValidationCacheTest extends TestCase
     public function testGetWhenStoredValueIsNull(): void
     {
         $normalizedKey = 'sepa_validation_' . md5('null_key');
-        $cache = new class ($normalizedKey) {
+        $cache         = new class($normalizedKey) {
             private string $key;
 
             public function __construct(string $key)

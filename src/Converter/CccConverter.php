@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Converter;
 
+use InvalidArgumentException;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+
+use function sprintf;
 
 /**
  * CCC (Código Cuenta Cliente) to IBAN converter.
@@ -32,11 +35,11 @@ class CccConverter
     /**
      * Converts a Spanish CCC (Código Cuenta Cliente) to IBAN.
      * CCC format: EEEE OOOO DD NNNNNNNNNN (20 digits)
-     * Where: EEEE = Bank code, OOOO = Branch code, DD = Check digits, NNNNNNNNNN = Account number
+     * Where: EEEE = Bank code, OOOO = Branch code, DD = Check digits, NNNNNNNNNN = Account number.
      *
      * @param string $ccc The CCC to convert (with or without spaces)
      *
-     * @throws \InvalidArgumentException If the CCC format is invalid
+     * @throws InvalidArgumentException If the CCC format is invalid
      *
      * @return string The IBAN (ES + check digits + CCC)
      */
@@ -47,13 +50,13 @@ class CccConverter
 
         // Validate CCC format (20 digits)
         if (!preg_match('/^\d{20}$/', $ccc)) {
-            throw new \InvalidArgumentException('Invalid CCC format. Expected 20 digits.');
+            throw new InvalidArgumentException('Invalid CCC format. Expected 20 digits.');
         }
 
         // Calculate IBAN check digits
         // IBAN = ES + check digits (00) + CCC
         $ibanWithPlaceholder = 'ES00' . $ccc;
-        $checkDigits = $this->ibanValidator->calculateCheckDigits($ibanWithPlaceholder);
+        $checkDigits         = $this->ibanValidator->calculateCheckDigits($ibanWithPlaceholder);
 
         // Return complete IBAN
         return 'ES' . $checkDigits . $ccc;
@@ -61,7 +64,7 @@ class CccConverter
 
     /**
      * Validates a Spanish CCC (Código Cuenta Cliente).
-     * CCC format: EEEE OOOO DD NNNNNNNNNN (20 digits)
+     * CCC format: EEEE OOOO DD NNNNNNNNNN (20 digits).
      *
      * @param string $ccc The CCC to validate
      *
@@ -78,9 +81,9 @@ class CccConverter
         }
 
         // Extract components
-        $bankCode = substr($ccc, 0, 4);
-        $branchCode = substr($ccc, 4, 4);
-        $checkDigits = substr($ccc, 8, 2);
+        $bankCode      = substr($ccc, 0, 4);
+        $branchCode    = substr($ccc, 4, 4);
+        $checkDigits   = substr($ccc, 8, 2);
         $accountNumber = substr($ccc, 10, 10);
 
         // Validate check digits
@@ -134,8 +137,8 @@ class CccConverter
     /**
      * Calculates CCC check digits.
      *
-     * @param string $bankCode      Bank code (4 digits)
-     * @param string $branchCode    Branch code (4 digits)
+     * @param string $bankCode Bank code (4 digits)
+     * @param string $branchCode Branch code (4 digits)
      * @param string $accountNumber Account number (10 digits)
      *
      * @return string The check digits (2 digits)
@@ -149,7 +152,7 @@ class CccConverter
 
         // Calculate first check digit (bank + branch)
         $bankBranch = $bankCode . $branchCode;
-        $sum1 = 0;
+        $sum1       = 0;
         for ($i = 0; $i < 8; ++$i) {
             $sum1 += (int) $bankBranch[$i] * $weights1[$i];
         }

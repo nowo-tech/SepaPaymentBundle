@@ -4,11 +4,17 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Service;
 
+use DateTime;
+use DateTimeInterface;
+use InvalidArgumentException;
 use Nowo\SepaPaymentBundle\Model\Mandate\Mandate;
 use Nowo\SepaPaymentBundle\Model\Mandate\MandateHistory;
 use Nowo\SepaPaymentBundle\Model\Mandate\MandateStatus;
 use Nowo\SepaPaymentBundle\Repository\MandateRepositoryInterface;
+use RuntimeException;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+
+use function in_array;
 
 /**
  * Mandate service.
@@ -48,18 +54,18 @@ class MandateService
     /**
      * Creates a new mandate.
      *
-     * @param string             $mandateId     Mandate identifier
-     * @param \DateTimeInterface $signatureDate Signature date
-     * @param string             $debtorIban    Debtor IBAN
-     * @param string             $debtorName    Debtor name
-     * @param string             $type          Mandate type (CORE, B2B)
-     * @param string             $sequenceType  Sequence type (FRST, RCUR, OOFF, FNAL)
+     * @param string $mandateId Mandate identifier
+     * @param DateTimeInterface $signatureDate Signature date
+     * @param string $debtorIban Debtor IBAN
+     * @param string $debtorName Debtor name
+     * @param string $type Mandate type (CORE, B2B)
+     * @param string $sequenceType Sequence type (FRST, RCUR, OOFF, FNAL)
      *
      * @return Mandate The created mandate
      */
     public function createMandate(
         string $mandateId,
-        \DateTimeInterface $signatureDate,
+        DateTimeInterface $signatureDate,
         string $debtorIban,
         string $debtorName,
         string $type = 'CORE',
@@ -67,7 +73,7 @@ class MandateService
     ): Mandate {
         // Check if mandate already exists
         if ($this->repository->findById($mandateId) !== null) {
-            throw new \InvalidArgumentException("Mandate with ID '{$mandateId}' already exists");
+            throw new InvalidArgumentException("Mandate with ID '{$mandateId}' already exists");
         }
 
         $mandate = new Mandate($mandateId, $signatureDate, $debtorIban, $debtorName, $type, $sequenceType);
@@ -76,11 +82,11 @@ class MandateService
         // Add history entry
         $this->repository->addHistory(new MandateHistory(
             $mandateId,
-            new \DateTime(),
+            new DateTime(),
             'created',
             '',
             'active',
-            'Mandate created'
+            'Mandate created',
         ));
 
         return $mandate;
@@ -90,10 +96,10 @@ class MandateService
      * Updates the sequence type of a mandate.
      * Validates that the transition is allowed.
      *
-     * @param string $mandateId    Mandate identifier
+     * @param string $mandateId Mandate identifier
      * @param string $sequenceType New sequence type
      *
-     * @throws \InvalidArgumentException If mandate not found or transition is invalid
+     * @throws InvalidArgumentException If mandate not found or transition is invalid
      *
      * @return Mandate The updated mandate
      */
@@ -101,16 +107,14 @@ class MandateService
     {
         $mandate = $this->repository->findById($mandateId);
         if ($mandate === null) {
-            throw new \InvalidArgumentException("Mandate with ID '{$mandateId}' not found");
+            throw new InvalidArgumentException("Mandate with ID '{$mandateId}' not found");
         }
 
         $oldSequenceType = $mandate->getSequenceType();
 
         // Validate transition
         if (!$this->isValidSequenceTransition($oldSequenceType, $sequenceType)) {
-            throw new \InvalidArgumentException(
-                "Invalid sequence type transition from '{$oldSequenceType}' to '{$sequenceType}'"
-            );
+            throw new InvalidArgumentException("Invalid sequence type transition from '{$oldSequenceType}' to '{$sequenceType}'");
         }
 
         $mandate->setSequenceType($sequenceType);
@@ -119,11 +123,11 @@ class MandateService
         // Add history entry
         $this->repository->addHistory(new MandateHistory(
             $mandateId,
-            new \DateTime(),
+            new DateTime(),
             'sequence_change',
             $oldSequenceType,
             $sequenceType,
-            "Sequence type changed from {$oldSequenceType} to {$sequenceType}"
+            "Sequence type changed from {$oldSequenceType} to {$sequenceType}",
         ));
 
         return $mandate;
@@ -132,10 +136,10 @@ class MandateService
     /**
      * Revokes a mandate.
      *
-     * @param string      $mandateId Mandate identifier
-     * @param string|null $reason    Optional revocation reason
+     * @param string $mandateId Mandate identifier
+     * @param string|null $reason Optional revocation reason
      *
-     * @throws \InvalidArgumentException If mandate not found
+     * @throws InvalidArgumentException If mandate not found
      *
      * @return Mandate The revoked mandate
      */
@@ -143,7 +147,7 @@ class MandateService
     {
         $mandate = $this->repository->findById($mandateId);
         if ($mandate === null) {
-            throw new \InvalidArgumentException("Mandate with ID '{$mandateId}' not found");
+            throw new InvalidArgumentException("Mandate with ID '{$mandateId}' not found");
         }
 
         $oldStatus = $mandate->getStatus()->value;
@@ -153,11 +157,11 @@ class MandateService
         // Add history entry
         $this->repository->addHistory(new MandateHistory(
             $mandateId,
-            new \DateTime(),
+            new DateTime(),
             'status_change',
             $oldStatus,
             MandateStatus::REVOKED->value,
-            $reason ? "Mandate revoked: {$reason}" : 'Mandate revoked'
+            $reason ? "Mandate revoked: {$reason}" : 'Mandate revoked',
         ));
 
         return $mandate;
@@ -168,7 +172,7 @@ class MandateService
      *
      * @param string $mandateId Mandate identifier
      *
-     * @throws \InvalidArgumentException If mandate not found
+     * @throws InvalidArgumentException If mandate not found
      *
      * @return Mandate The suspended mandate
      */
@@ -176,7 +180,7 @@ class MandateService
     {
         $mandate = $this->repository->findById($mandateId);
         if ($mandate === null) {
-            throw new \InvalidArgumentException("Mandate with ID '{$mandateId}' not found");
+            throw new InvalidArgumentException("Mandate with ID '{$mandateId}' not found");
         }
 
         $oldStatus = $mandate->getStatus()->value;
@@ -186,11 +190,11 @@ class MandateService
         // Add history entry
         $this->repository->addHistory(new MandateHistory(
             $mandateId,
-            new \DateTime(),
+            new DateTime(),
             'status_change',
             $oldStatus,
             MandateStatus::SUSPENDED->value,
-            'Mandate suspended'
+            'Mandate suspended',
         ));
 
         return $mandate;
@@ -201,8 +205,8 @@ class MandateService
      *
      * @param string $mandateId Mandate identifier
      *
-     * @throws \InvalidArgumentException If mandate not found
-     * @throws \RuntimeException         If mandate is expired
+     * @throws InvalidArgumentException If mandate not found
+     * @throws RuntimeException If mandate is expired
      *
      * @return Mandate The reactivated mandate
      */
@@ -210,7 +214,7 @@ class MandateService
     {
         $mandate = $this->repository->findById($mandateId);
         if ($mandate === null) {
-            throw new \InvalidArgumentException("Mandate with ID '{$mandateId}' not found");
+            throw new InvalidArgumentException("Mandate with ID '{$mandateId}' not found");
         }
 
         $oldStatus = $mandate->getStatus()->value;
@@ -220,11 +224,11 @@ class MandateService
         // Add history entry
         $this->repository->addHistory(new MandateHistory(
             $mandateId,
-            new \DateTime(),
+            new DateTime(),
             'status_change',
             $oldStatus,
             MandateStatus::ACTIVE->value,
-            'Mandate reactivated'
+            'Mandate reactivated',
         ));
 
         return $mandate;
@@ -233,7 +237,7 @@ class MandateService
     /**
      * Validates a mandate for use in a Direct Debit transaction.
      *
-     * @param string $mandateId    Mandate identifier
+     * @param string $mandateId Mandate identifier
      * @param string $sequenceType Required sequence type for the transaction
      *
      * @return bool True if valid, false otherwise
@@ -256,18 +260,16 @@ class MandateService
         }
 
         // Check if sequence type transition is valid
-        if (!$this->isValidSequenceTransition($mandate->getSequenceType(), $sequenceType)) {
-            return false;
-        }
+        return !(!$this->isValidSequenceTransition($mandate->getSequenceType(), $sequenceType))
 
-        return true;
+        ;
     }
 
     /**
      * Checks if a sequence type transition is valid.
      *
      * @param string $fromSequenceType Current sequence type
-     * @param string $toSequenceType   Target sequence type
+     * @param string $toSequenceType Target sequence type
      *
      * @return bool True if transition is valid, false otherwise
      */
@@ -329,11 +331,11 @@ class MandateService
     /**
      * Finds expired mandates.
      *
-     * @param \DateTimeInterface|null $beforeDate Optional date to find mandates expired before this date
+     * @param DateTimeInterface|null $beforeDate Optional date to find mandates expired before this date
      *
      * @return array<int, Mandate> Array of expired mandates
      */
-    public function findExpiredMandates(?\DateTimeInterface $beforeDate = null): array
+    public function findExpiredMandates(?DateTimeInterface $beforeDate = null): array
     {
         return $this->repository->findExpired($beforeDate);
     }

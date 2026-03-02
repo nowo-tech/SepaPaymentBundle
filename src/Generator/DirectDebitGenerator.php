@@ -4,11 +4,18 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Generator;
 
+use DateTime;
+use DateTimeInterface;
 use Digitick\Sepa\DomBuilder\DomBuilderFactory;
 use Digitick\Sepa\GroupHeader;
 use Digitick\Sepa\PaymentInformation;
 use Digitick\Sepa\TransferFile\CustomerDirectDebitTransferFile;
 use Digitick\Sepa\TransferInformation\CustomerDirectDebitTransferInformation;
+use DOMDocument;
+use DOMElement;
+use DOMXPath;
+use Exception;
+use InvalidArgumentException;
 use Nowo\SepaPaymentBundle\Event\AfterDirectDebitGenerationEvent;
 use Nowo\SepaPaymentBundle\Event\BeforeDirectDebitGenerationEvent;
 use Nowo\SepaPaymentBundle\Logger\SepaPaymentLogger;
@@ -20,6 +27,15 @@ use Nowo\SepaPaymentBundle\Validator\XsdValidator;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Response;
+
+use function count;
+use function in_array;
+use function is_array;
+use function is_string;
+use function sprintf;
+use function strlen;
+
+use const ENT_XML1;
 
 /**
  * SEPA Direct Debit generator.
@@ -36,47 +52,37 @@ class DirectDebitGenerator
 
     /**
      * Whether to validate generated XML against XSD schema.
-     *
-     * @var bool
      */
     private bool $validateXsd = false;
 
     /**
      * XSD validator instance (optional).
-     *
-     * @var XsdValidator|null
      */
     private ?XsdValidator $xsdValidator = null;
 
     /**
      * Event dispatcher instance (optional).
-     *
-     * @var EventDispatcherInterface|null
      */
     private ?EventDispatcherInterface $eventDispatcher = null;
 
     /**
      * Logger instance (optional).
-     *
-     * @var SepaPaymentLogger|null
      */
     private ?SepaPaymentLogger $logger = null;
 
     /**
      * BIC lookup service instance (optional).
-     *
-     * @var BicLookupServiceInterface|null
      */
     private ?BicLookupServiceInterface $bicLookupService = null;
 
     /**
      * Constructor.
      *
-     * @param IbanValidator                  $ibanValidator    IBAN validator instance
-     * @param XsdValidator|null              $xsdValidator     Optional XSD validator instance
-     * @param bool                           $validateXsd      Whether to enable XSD validation (default: false)
-     * @param EventDispatcherInterface|null  $eventDispatcher  Optional event dispatcher for Symfony events
-     * @param SepaPaymentLogger|null         $logger           Optional logger for structured logging
+     * @param IbanValidator $ibanValidator IBAN validator instance
+     * @param XsdValidator|null $xsdValidator Optional XSD validator instance
+     * @param bool $validateXsd Whether to enable XSD validation (default: false)
+     * @param EventDispatcherInterface|null $eventDispatcher Optional event dispatcher for Symfony events
+     * @param SepaPaymentLogger|null $logger Optional logger for structured logging
      * @param BicLookupServiceInterface|null $bicLookupService Optional BIC lookup service for auto-filling BIC
      */
     public function __construct(
@@ -87,10 +93,10 @@ class DirectDebitGenerator
         ?SepaPaymentLogger $logger = null,
         ?BicLookupServiceInterface $bicLookupService = null
     ) {
-        $this->xsdValidator = $xsdValidator;
-        $this->validateXsd = $validateXsd && null !== $xsdValidator;
-        $this->eventDispatcher = $eventDispatcher;
-        $this->logger = $logger;
+        $this->xsdValidator     = $xsdValidator;
+        $this->validateXsd      = $validateXsd && $xsdValidator !== null;
+        $this->eventDispatcher  = $eventDispatcher;
+        $this->logger           = $logger;
         $this->bicLookupService = $bicLookupService;
     }
 
@@ -99,7 +105,7 @@ class DirectDebitGenerator
      *
      * @param array<string, mixed> $data The direct debit data in array format
      *
-     * @throws \InvalidArgumentException If the data is invalid
+     * @throws InvalidArgumentException If the data is invalid
      *
      * @return string The XML content
      */
@@ -113,7 +119,7 @@ class DirectDebitGenerator
     /**
      * Creates an HTTP Response with XML content for download.
      *
-     * @param string $xmlData  The XML content
+     * @param string $xmlData The XML content
      * @param string $filename The filename for the download (e.g., "direct-debit.xml")
      *
      * @return Response The HTTP response with XML content
@@ -121,7 +127,7 @@ class DirectDebitGenerator
     public function createResponse(string $xmlData, string $filename): Response
     {
         return new Response($xmlData, Response::HTTP_OK, [
-            'Content-Type' => 'application/xml',
+            'Content-Type'        => 'application/xml',
             'Content-Disposition' => sprintf('attachment; filename="%s"', $filename),
         ]);
     }
@@ -131,23 +137,23 @@ class DirectDebitGenerator
      *
      * @param DirectDebitData $directDebitData The direct debit data
      *
-     * @throws \InvalidArgumentException If the data is invalid
+     * @throws InvalidArgumentException If the data is invalid
      *
      * @return string The XML content
      */
     public function generate(DirectDebitData $directDebitData): string
     {
         $transactionCount = count($directDebitData->getTransactions());
-        $messageId = $directDebitData->getMessageId();
+        $messageId        = $directDebitData->getMessageId();
 
         // Log generation start
-        if (null !== $this->logger) {
+        if ($this->logger !== null) {
             $this->logger->logDirectDebitGenerationStart($messageId, $transactionCount);
         }
 
         try {
             // Dispatch before generation event
-            if (null !== $this->eventDispatcher) {
+            if ($this->eventDispatcher !== null) {
                 $beforeEvent = new BeforeDirectDebitGenerationEvent($directDebitData);
                 $this->eventDispatcher->dispatch($beforeEvent);
                 $directDebitData = $beforeEvent->getDirectDebitData();
@@ -158,7 +164,7 @@ class DirectDebitGenerator
             // Create and configure group header
             $groupHeader = new GroupHeader(
                 $directDebitData->getMessageId(),
-                $directDebitData->getInitiatingPartyName()
+                $directDebitData->getInitiatingPartyName(),
             );
 
             // Create transfer file (pain.008.001.02 format) with group header
@@ -166,9 +172,9 @@ class DirectDebitGenerator
 
             // Auto-fill creditor BIC if missing
             $creditorBic = $directDebitData->getCreditorBic();
-            if (null === $creditorBic && null !== $this->bicLookupService) {
+            if ($creditorBic === null && $this->bicLookupService !== null) {
                 $lookedUpBic = $this->bicLookupService->lookupBic($directDebitData->getCreditorIban());
-                if (null !== $lookedUpBic) {
+                if ($lookedUpBic !== null) {
                     $creditorBic = $lookedUpBic;
                 }
             }
@@ -179,7 +185,7 @@ class DirectDebitGenerator
                 $this->ibanValidator->normalize($directDebitData->getCreditorIban()),
                 $creditorBic ?? '',
                 $directDebitData->getCreditorName(),
-                'EUR'
+                'EUR',
             );
             // Payment method is automatically set based on the transfer file type (CustomerDirectDebitTransferFile)
             $paymentInformation->setDueDate($directDebitData->getDueDate());
@@ -189,7 +195,7 @@ class DirectDebitGenerator
 
             // Set creditor address if available
             $creditorAddress = $directDebitData->getCreditorAddress();
-            if (null !== $creditorAddress) {
+            if ($creditorAddress !== null) {
                 $this->setCreditorPostalAddress($paymentInformation, $creditorAddress);
             }
 
@@ -199,27 +205,27 @@ class DirectDebitGenerator
                     (int) round($transaction->getAmount() * 100), // Convert to cents
                     $this->ibanValidator->normalize($transaction->getDebtorIban()),
                     $transaction->getDebtorName(),
-                    $transaction->getEndToEndId()
+                    $transaction->getEndToEndId(),
                 );
 
                 $transferInformation->setMandateId($transaction->getDebtorMandate());
                 $transferInformation->setMandateSignDate($transaction->getDebtorMandateSignDate());
 
-                if (null !== $transaction->getRemittanceInformation()) {
+                if ($transaction->getRemittanceInformation() !== null) {
                     $transferInformation->setRemittanceInformation($transaction->getRemittanceInformation());
                 }
 
                 // Auto-fill debtor BIC if missing
                 $debtorBic = $transaction->getDebtorBic();
-                if (null === $debtorBic && null !== $this->bicLookupService) {
+                if ($debtorBic === null && $this->bicLookupService !== null) {
                     $lookedUpBic = $this->bicLookupService->lookupBic($transaction->getDebtorIban());
-                    if (null !== $lookedUpBic) {
+                    if ($lookedUpBic !== null) {
                         $debtorBic = $lookedUpBic;
                     }
                 }
 
                 // Set debtor BIC if available
-                if (null !== $debtorBic) {
+                if ($debtorBic !== null) {
                     $transferInformation->setBic($debtorBic);
                 }
 
@@ -235,36 +241,36 @@ class DirectDebitGenerator
 
             // Generate XML
             $domBuilder = DomBuilderFactory::createDomBuilder($transferFile);
-            $xml = $domBuilder->asXml();
+            $xml        = $domBuilder->asXml();
 
             // Add addresses to XML if they were provided
             $xml = $this->addAddressesToXml($xml, $directDebitData);
 
             // Validate against XSD schema if enabled
-            if ($this->validateXsd && null !== $this->xsdValidator) {
+            if ($this->validateXsd && $this->xsdValidator !== null) {
                 try {
                     $this->xsdValidator->validateDirectDebit($xml);
-                } catch (\InvalidArgumentException $e) {
-                    throw new \InvalidArgumentException('Generated XML failed XSD validation: ' . $e->getMessage(), 0, $e);
+                } catch (InvalidArgumentException $e) {
+                    throw new InvalidArgumentException('Generated XML failed XSD validation: ' . $e->getMessage(), 0, $e);
                 }
             }
 
             // Dispatch after generation event
-            if (null !== $this->eventDispatcher) {
+            if ($this->eventDispatcher !== null) {
                 $afterEvent = new AfterDirectDebitGenerationEvent($xml, $directDebitData->getMessageId());
                 $this->eventDispatcher->dispatch($afterEvent);
                 $xml = $afterEvent->getXml();
             }
 
             // Log generation success
-            if (null !== $this->logger) {
+            if ($this->logger !== null) {
                 $this->logger->logDirectDebitGenerationSuccess($messageId, $transactionCount, strlen($xml));
             }
 
             return $xml;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Log generation failure
-            if (null !== $this->logger) {
+            if ($this->logger !== null) {
                 $this->logger->logDirectDebitGenerationFailure($messageId, $e->getMessage());
             }
 
@@ -278,7 +284,7 @@ class DirectDebitGenerator
      *
      * @param array<string, mixed> $data The data in array format
      *
-     * @throws \InvalidArgumentException If the data is invalid
+     * @throws InvalidArgumentException If the data is invalid
      *
      * @return DirectDebitData The DirectDebitData object
      */
@@ -291,16 +297,16 @@ class DirectDebitGenerator
         $required = ['reference', 'bankAccountOwner', 'paymentInfoId', 'dueDate', 'creditorName', 'creditorIban', 'seqType', 'creditorId', 'localInstrumentCode'];
         foreach ($required as $field) {
             if (!isset($data[$field])) {
-                throw new \InvalidArgumentException("Missing required field: {$field}");
+                throw new InvalidArgumentException("Missing required field: {$field}");
             }
         }
 
         // Parse due date
         $dueDate = $data['dueDate'];
         if (is_string($dueDate)) {
-            $dueDate = new \DateTime($dueDate);
-        } elseif (!$dueDate instanceof \DateTimeInterface) {
-            throw new \InvalidArgumentException('dueDate must be a string or DateTimeInterface');
+            $dueDate = new DateTime($dueDate);
+        } elseif (!$dueDate instanceof DateTimeInterface) {
+            throw new InvalidArgumentException('dueDate must be a string or DateTimeInterface');
         }
 
         $directDebitData = new DirectDebitData(
@@ -312,7 +318,7 @@ class DirectDebitGenerator
             $data['creditorIban'],
             $data['seqType'],
             $data['creditorId'],
-            $data['localInstrumentCode']
+            $data['localInstrumentCode'],
         );
 
         if (isset($data['creditorBic'])) {
@@ -329,7 +335,7 @@ class DirectDebitGenerator
                 $data['creditor_street'] ?? $data['creditorStreet'] ?? null,
                 $data['creditor_city'] ?? $data['creditorCity'] ?? null,
                 $data['creditor_postal_code'] ?? $data['creditorPostalCode'] ?? null,
-                $data['creditor_country'] ?? $data['creditorCountry'] ?? null
+                $data['creditor_country'] ?? $data['creditorCountry'] ?? null,
             );
         }
 
@@ -338,7 +344,7 @@ class DirectDebitGenerator
             foreach ($data['transactions'] as $transactionData) {
                 // Normalize transaction array keys
                 $transactionData = $this->normalizeTransactionArrayKeys($transactionData);
-                $transaction = $this->createTransactionFromArray($transactionData, $dueDate);
+                $transaction     = $this->createTransactionFromArray($transactionData, $dueDate);
                 $directDebitData->addTransaction($transaction);
             }
         }
@@ -357,24 +363,24 @@ class DirectDebitGenerator
     private function normalizeArrayKeys(array $data): array
     {
         $mapping = [
-            'message_id' => 'reference',
+            'message_id'            => 'reference',
             'initiating_party_name' => 'bankAccountOwner',
-            'payment_name' => 'paymentInfoId',
-            'due_date' => 'dueDate',
-            'creditor_name' => 'creditorName',
-            'creditor_iban' => 'creditorIban',
-            'creditor_bic' => 'creditorBic',
-            'sequence_type' => 'seqType',
-            'creditor_id' => 'creditorId',
-            'instrument_code' => 'localInstrumentCode',
-            'items' => 'transactions',
-            'creditor_address' => 'creditorAddress',
+            'payment_name'          => 'paymentInfoId',
+            'due_date'              => 'dueDate',
+            'creditor_name'         => 'creditorName',
+            'creditor_iban'         => 'creditorIban',
+            'creditor_bic'          => 'creditorBic',
+            'sequence_type'         => 'seqType',
+            'creditor_id'           => 'creditorId',
+            'instrument_code'       => 'localInstrumentCode',
+            'items'                 => 'transactions',
+            'creditor_address'      => 'creditorAddress',
         ];
 
         $normalized = [];
         foreach ($data as $key => $value) {
             // If key exists in mapping, use mapped key, otherwise keep original
-            $normalizedKey = $mapping[$key] ?? $key;
+            $normalizedKey              = $mapping[$key] ?? $key;
             $normalized[$normalizedKey] = $value;
         }
 
@@ -391,21 +397,21 @@ class DirectDebitGenerator
     private function normalizeTransactionArrayKeys(array $data): array
     {
         $mapping = [
-            'instruction_id' => 'endToEndId',
-            'debtor_iban' => 'debtorIban',
-            'debtor_name' => 'debtorName',
-            'debtor_mandate' => 'debtorMandate',
+            'instruction_id'                => 'endToEndId',
+            'debtor_iban'                   => 'debtorIban',
+            'debtor_name'                   => 'debtorName',
+            'debtor_mandate'                => 'debtorMandate',
             'debtor_mandate_signature_date' => 'debtorMandateSignDate',
-            'debtor_mandate_sign_date' => 'debtorMandateSignDate',
-            'information' => 'remittanceInformation',
-            'remittance_information' => 'remittanceInformation',
-            'debtor_address' => 'debtorAddress',
+            'debtor_mandate_sign_date'      => 'debtorMandateSignDate',
+            'information'                   => 'remittanceInformation',
+            'remittance_information'        => 'remittanceInformation',
+            'debtor_address'                => 'debtorAddress',
         ];
 
         $normalized = [];
         foreach ($data as $key => $value) {
             // If key exists in mapping, use mapped key, otherwise keep original
-            $normalizedKey = $mapping[$key] ?? $key;
+            $normalizedKey              = $mapping[$key] ?? $key;
             $normalized[$normalizedKey] = $value;
         }
 
@@ -416,18 +422,18 @@ class DirectDebitGenerator
      * Creates DirectDebitTransaction from array format.
      *
      * @param array<string, mixed> $transactionData The transaction data
-     * @param \DateTimeInterface   $defaultDate     Default date for mandate sign date if not provided
+     * @param DateTimeInterface $defaultDate Default date for mandate sign date if not provided
      *
-     * @throws \InvalidArgumentException If the data is invalid
+     * @throws InvalidArgumentException If the data is invalid
      *
      * @return DirectDebitTransaction The DirectDebitTransaction object
      */
-    private function createTransactionFromArray(array $transactionData, \DateTimeInterface $defaultDate): DirectDebitTransaction
+    private function createTransactionFromArray(array $transactionData, DateTimeInterface $defaultDate): DirectDebitTransaction
     {
         $required = ['amount', 'debtorIban', 'debtorName', 'debtorMandate', 'endToEndId'];
         foreach ($required as $field) {
             if (!isset($transactionData[$field])) {
-                throw new \InvalidArgumentException("Missing required transaction field: {$field}");
+                throw new InvalidArgumentException("Missing required transaction field: {$field}");
             }
         }
 
@@ -435,7 +441,7 @@ class DirectDebitGenerator
         $amount = (float) $transactionData['amount'];
         // If amount seems to be in cents (very large number), convert to currency units
         if ($amount > 10000) {
-            $amount = $amount / 100;
+            $amount /= 100;
         }
 
         // Parse mandate sign date
@@ -443,8 +449,8 @@ class DirectDebitGenerator
         if (isset($transactionData['debtorMandateSignDate'])) {
             $signDate = $transactionData['debtorMandateSignDate'];
             if (is_string($signDate)) {
-                $mandateSignDate = new \DateTime($signDate);
-            } elseif ($signDate instanceof \DateTimeInterface) {
+                $mandateSignDate = new DateTime($signDate);
+            } elseif ($signDate instanceof DateTimeInterface) {
                 $mandateSignDate = $signDate;
             }
         }
@@ -455,7 +461,7 @@ class DirectDebitGenerator
             $transactionData['debtorName'],
             $transactionData['debtorMandate'],
             $mandateSignDate,
-            $transactionData['endToEndId']
+            $transactionData['endToEndId'],
         );
 
         if (isset($transactionData['remittanceInformation'])) {
@@ -477,7 +483,7 @@ class DirectDebitGenerator
                 $transactionData['debtor_street'] ?? $transactionData['debtorStreet'] ?? null,
                 $transactionData['debtor_city'] ?? $transactionData['debtorCity'] ?? null,
                 $transactionData['debtor_postal_code'] ?? $transactionData['debtorPostalCode'] ?? null,
-                $transactionData['debtor_country'] ?? $transactionData['debtorCountry'] ?? null
+                $transactionData['debtor_country'] ?? $transactionData['debtorCountry'] ?? null,
             );
         }
 
@@ -501,9 +507,7 @@ class DirectDebitGenerator
      * This method can be extended to support additional fields from the Digitick\Sepa library.
      *
      * @param CustomerDirectDebitTransferInformation $transferInformation The transfer information object
-     * @param DirectDebitTransaction                 $transaction         The transaction data
-     *
-     * @return void
+     * @param DirectDebitTransaction $transaction The transaction data
      */
     private function applyAdditionalData(
         CustomerDirectDebitTransferInformation $transferInformation,
@@ -513,7 +517,7 @@ class DirectDebitGenerator
 
         // Set debtor address if available
         $debtorAddress = $transaction->getDebtorAddress();
-        if (null !== $debtorAddress) {
+        if ($debtorAddress !== null) {
             $this->setPostalAddress($transferInformation, $debtorAddress);
         }
 
@@ -533,9 +537,7 @@ class DirectDebitGenerator
      * Uses available methods from the Digitick\Sepa library.
      *
      * @param CustomerDirectDebitTransferInformation $transferInformation The transfer information object
-     * @param array<string, string|null>             $address             Address array with keys: street, city, postalCode, country
-     *
-     * @return void
+     * @param array<string, string|null> $address Address array with keys: street, city, postalCode, country
      */
     private function setPostalAddress(
         CustomerDirectDebitTransferInformation $transferInformation,
@@ -548,21 +550,21 @@ class DirectDebitGenerator
                 $address['street'] ?? '',
                 $address['city'] ?? '',
                 $address['postalCode'] ?? '',
-                $address['country'] ?? ''
+                $address['country'] ?? '',
             );
         } elseif (method_exists($transferInformation, 'setDebtorPostalAddress')) {
             $transferInformation->setDebtorPostalAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
                 $address['postalCode'] ?? '',
-                $address['country'] ?? ''
+                $address['country'] ?? '',
             );
         } elseif (method_exists($transferInformation, 'setAddress')) {
             $transferInformation->setAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
                 $address['postalCode'] ?? '',
-                $address['country'] ?? ''
+                $address['country'] ?? '',
             );
         }
         // Note: If the library doesn't support addresses in this format,
@@ -573,10 +575,8 @@ class DirectDebitGenerator
      * Sets creditor postal address on payment information.
      * Uses available methods from the Digitick\Sepa library.
      *
-     * @param PaymentInformation         $paymentInformation The payment information object
-     * @param array<string, string|null> $address            Address array with keys: street, city, postalCode, country
-     *
-     * @return void
+     * @param PaymentInformation $paymentInformation The payment information object
+     * @param array<string, string|null> $address Address array with keys: street, city, postalCode, country
      */
     private function setCreditorPostalAddress(
         PaymentInformation $paymentInformation,
@@ -588,21 +588,21 @@ class DirectDebitGenerator
                 $address['street'] ?? '',
                 $address['city'] ?? '',
                 $address['postalCode'] ?? '',
-                $address['country'] ?? ''
+                $address['country'] ?? '',
             );
         } elseif (method_exists($paymentInformation, 'setPostalAddress')) {
             $paymentInformation->setPostalAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
                 $address['postalCode'] ?? '',
-                $address['country'] ?? ''
+                $address['country'] ?? '',
             );
         } elseif (method_exists($paymentInformation, 'setAddress')) {
             $paymentInformation->setAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
                 $address['postalCode'] ?? '',
-                $address['country'] ?? ''
+                $address['country'] ?? '',
             );
         }
         // Note: If the library doesn't support addresses in this format,
@@ -613,7 +613,7 @@ class DirectDebitGenerator
      * Adds addresses to the generated XML using DOM manipulation.
      * This ensures addresses are included even if the library doesn't support them directly.
      *
-     * @param string          $xml             The generated XML
+     * @param string $xml The generated XML
      * @param DirectDebitData $directDebitData The direct debit data with addresses
      *
      * @return string The XML with addresses added
@@ -621,24 +621,24 @@ class DirectDebitGenerator
     private function addAddressesToXml(string $xml, DirectDebitData $directDebitData): string
     {
         try {
-            $dom = new \DOMDocument();
+            $dom                     = new DOMDocument();
             $dom->preserveWhiteSpace = false;
-            $dom->formatOutput = true;
+            $dom->formatOutput       = true;
 
             if (!@$dom->loadXML($xml)) {
                 // If XML is invalid, return original
                 return $xml;
             }
 
-            $xpath = new \DOMXPath($dom);
+            $xpath = new DOMXPath($dom);
             // Detect namespace from root element
-            $root = $dom->documentElement;
+            $root      = $dom->documentElement;
             $namespace = $root->namespaceURI ?? 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.02';
             $xpath->registerNamespace('ns', $namespace);
 
             // Add creditor address if available
             $creditorAddress = $directDebitData->getCreditorAddress();
-            if (null !== $creditorAddress) {
+            if ($creditorAddress !== null) {
                 $this->addCreditorAddressToDom($dom, $xpath, $creditorAddress, $namespace);
             }
 
@@ -646,13 +646,13 @@ class DirectDebitGenerator
             $transactions = $directDebitData->getTransactions();
             foreach ($transactions as $index => $transaction) {
                 $debtorAddress = $transaction->getDebtorAddress();
-                if (null !== $debtorAddress) {
+                if ($debtorAddress !== null) {
                     $this->addDebtorAddressToDom($dom, $xpath, $debtorAddress, $index, $namespace);
                 }
             }
 
             return $dom->saveXML();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // If DOM manipulation fails, return original XML
             return $xml;
         }
@@ -661,14 +661,12 @@ class DirectDebitGenerator
     /**
      * Adds creditor address to DOM.
      *
-     * @param \DOMDocument $dom       The DOM document
-     * @param \DOMXPath    $xpath     The XPath object
-     * @param array        $address   The address array
-     * @param string       $namespace The namespace URI
-     *
-     * @return void
+     * @param DOMDocument $dom The DOM document
+     * @param DOMXPath $xpath The XPath object
+     * @param array $address The address array
+     * @param string $namespace The namespace URI
      */
-    private function addCreditorAddressToDom(\DOMDocument $dom, \DOMXPath $xpath, array $address, string $namespace): void
+    private function addCreditorAddressToDom(DOMDocument $dom, DOMXPath $xpath, array $address, string $namespace): void
     {
         // Find Cdtr (Creditor) element
         $creditorNodes = $xpath->query('//ns:Cdtr');
@@ -687,15 +685,13 @@ class DirectDebitGenerator
     /**
      * Adds debtor address to DOM.
      *
-     * @param \DOMDocument $dom       The DOM document
-     * @param \DOMXPath    $xpath     The XPath object
-     * @param array        $address   The address array
-     * @param int          $index     Transaction index
-     * @param string       $namespace The namespace URI
-     *
-     * @return void
+     * @param DOMDocument $dom The DOM document
+     * @param DOMXPath $xpath The XPath object
+     * @param array $address The address array
+     * @param int $index Transaction index
+     * @param string $namespace The namespace URI
      */
-    private function addDebtorAddressToDom(\DOMDocument $dom, \DOMXPath $xpath, array $address, int $index, string $namespace): void
+    private function addDebtorAddressToDom(DOMDocument $dom, DOMXPath $xpath, array $address, int $index, string $namespace): void
     {
         // Find Dbtr (Debtor) elements
         $debtorNodes = $xpath->query('//ns:Dbtr');
@@ -719,14 +715,12 @@ class DirectDebitGenerator
      * Creates a PstlAdr (Postal Address) element in the DOM.
      * Only creates the element if at least one address field is provided.
      *
-     * @param \DOMDocument $dom        The DOM document
-     * @param \DOMElement  $parentNode The parent node
-     * @param array        $address    The address array
-     * @param string       $namespace  The namespace URI
-     *
-     * @return void
+     * @param DOMDocument $dom The DOM document
+     * @param DOMElement $parentNode The parent node
+     * @param array $address The address array
+     * @param string $namespace The namespace URI
      */
-    private function createPostalAddressElement(\DOMDocument $dom, \DOMElement $parentNode, array $address, string $namespace): void
+    private function createPostalAddressElement(DOMDocument $dom, DOMElement $parentNode, array $address, string $namespace): void
     {
         // Check if at least one address field is provided
         $hasAddress = !empty($address['street'])
@@ -791,19 +785,17 @@ class DirectDebitGenerator
      *
      * @param DirectDebitData $directDebitData The direct debit data to validate
      *
-     * @throws \InvalidArgumentException If the data is invalid
-     *
-     * @return void
+     * @throws InvalidArgumentException If the data is invalid
      */
     private function validateDirectDebitData(DirectDebitData $directDebitData): void
     {
         if (!$this->ibanValidator->isValid($directDebitData->getCreditorIban())) {
-            throw new \InvalidArgumentException('Invalid creditor IBAN: ' . $directDebitData->getCreditorIban());
+            throw new InvalidArgumentException('Invalid creditor IBAN: ' . $directDebitData->getCreditorIban());
         }
 
         foreach ($directDebitData->getTransactions() as $transaction) {
             if (!$this->ibanValidator->isValid($transaction->getDebtorIban())) {
-                throw new \InvalidArgumentException('Invalid debtor IBAN: ' . $transaction->getDebtorIban());
+                throw new InvalidArgumentException('Invalid debtor IBAN: ' . $transaction->getDebtorIban());
             }
         }
     }

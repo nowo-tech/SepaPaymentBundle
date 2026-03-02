@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Validator;
 
+use DateTime;
+use DateTimeInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+
+use function in_array;
+use function sprintf;
 
 /**
  * SEPA business rules validator.
@@ -60,15 +65,15 @@ class SepaBusinessRulesValidator
     /**
      * Validates if an execution date is valid (must be a future date or today).
      *
-     * @param \DateTimeInterface $executionDate The execution date
-     * @param bool               $allowToday    Whether to allow today's date (default: true)
+     * @param DateTimeInterface $executionDate The execution date
+     * @param bool $allowToday Whether to allow today's date (default: true)
      *
      * @return bool True if valid, false otherwise
      */
-    public function isValidExecutionDate(\DateTimeInterface $executionDate, bool $allowToday = true): bool
+    public function isValidExecutionDate(DateTimeInterface $executionDate, bool $allowToday = true): bool
     {
-        $today = new \DateTime('today');
-        $executionDateOnly = new \DateTime($executionDate->format('Y-m-d'));
+        $today             = new DateTime('today');
+        $executionDateOnly = new DateTime($executionDate->format('Y-m-d'));
 
         if ($allowToday) {
             return $executionDateOnly >= $today;
@@ -80,11 +85,11 @@ class SepaBusinessRulesValidator
     /**
      * Validates if a date is a business day (Monday to Friday).
      *
-     * @param \DateTimeInterface $date The date to validate
+     * @param DateTimeInterface $date The date to validate
      *
      * @return bool True if it's a business day, false otherwise
      */
-    public function isBusinessDay(\DateTimeInterface $date): bool
+    public function isBusinessDay(DateTimeInterface $date): bool
     {
         $dayOfWeek = (int) $date->format('N'); // 1 (Monday) to 7 (Sunday)
 
@@ -106,14 +111,14 @@ class SepaBusinessRulesValidator
     /**
      * Validates if a mandate expiration date is valid (must be in the future).
      *
-     * @param \DateTimeInterface $expirationDate The mandate expiration date
+     * @param DateTimeInterface $expirationDate The mandate expiration date
      *
      * @return bool True if valid, false otherwise
      */
-    public function isValidMandateExpirationDate(\DateTimeInterface $expirationDate): bool
+    public function isValidMandateExpirationDate(DateTimeInterface $expirationDate): bool
     {
-        $today = new \DateTime('today');
-        $expirationDateOnly = new \DateTime($expirationDate->format('Y-m-d'));
+        $today              = new DateTime('today');
+        $expirationDateOnly = new DateTime($expirationDate->format('Y-m-d'));
 
         return $expirationDateOnly > $today;
     }
@@ -124,10 +129,10 @@ class SepaBusinessRulesValidator
      * - FRST → RCUR (First to Recurring)
      * - RCUR → RCUR (Recurring to Recurring)
      * - OOFF → OOFF (One-off to One-off)
-     * - FNAL → FNAL (Final to Final)
+     * - FNAL → FNAL (Final to Final).
      *
      * @param string|null $previousSequenceType Previous sequence type
-     * @param string      $newSequenceType      New sequence type
+     * @param string $newSequenceType New sequence type
      *
      * @return bool True if valid transition, false otherwise
      */
@@ -135,7 +140,7 @@ class SepaBusinessRulesValidator
     {
         // Use '' instead of null as key for PHP 8.4+ compatibility (null as array offset deprecated)
         $validTransitions = [
-            '' => ['FRST', 'OOFF'], // First transaction can be FRST or OOFF
+            ''     => ['FRST', 'OOFF'], // First transaction can be FRST or OOFF
             'FRST' => ['RCUR', 'FNAL'],
             'RCUR' => ['RCUR', 'FNAL'],
             'OOFF' => ['OOFF'],
@@ -150,14 +155,14 @@ class SepaBusinessRulesValidator
     /**
      * Validates all business rules for a credit transfer.
      *
-     * @param float              $amount           Transaction amount
-     * @param int                $transactionCount Number of transactions
-     * @param \DateTimeInterface $executionDate    Execution date
-     * @param string             $currency         Currency code
+     * @param float $amount Transaction amount
+     * @param int $transactionCount Number of transactions
+     * @param DateTimeInterface $executionDate Execution date
+     * @param string $currency Currency code
      *
      * @return array<string, string> Array of validation errors (empty if valid)
      */
-    public function validateCreditTransfer(float $amount, int $transactionCount, \DateTimeInterface $executionDate, string $currency): array
+    public function validateCreditTransfer(float $amount, int $transactionCount, DateTimeInterface $executionDate, string $currency): array
     {
         $errors = [];
 
@@ -183,22 +188,22 @@ class SepaBusinessRulesValidator
     /**
      * Validates all business rules for a direct debit.
      *
-     * @param float                   $amount                Transaction amount
-     * @param int                     $transactionCount      Number of transactions
-     * @param \DateTimeInterface      $dueDate               Due date
-     * @param string                  $currency              Currency code
-     * @param string                  $sequenceType          Sequence type (FRST, RCUR, OOFF, FNAL)
-     * @param \DateTimeInterface|null $mandateExpirationDate Mandate expiration date (optional)
+     * @param float $amount Transaction amount
+     * @param int $transactionCount Number of transactions
+     * @param DateTimeInterface $dueDate Due date
+     * @param string $currency Currency code
+     * @param string $sequenceType Sequence type (FRST, RCUR, OOFF, FNAL)
+     * @param DateTimeInterface|null $mandateExpirationDate Mandate expiration date (optional)
      *
      * @return array<string, string> Array of validation errors (empty if valid)
      */
     public function validateDirectDebit(
         float $amount,
         int $transactionCount,
-        \DateTimeInterface $dueDate,
+        DateTimeInterface $dueDate,
         string $currency,
         string $sequenceType,
-        ?\DateTimeInterface $mandateExpirationDate = null
+        ?DateTimeInterface $mandateExpirationDate = null
     ): array {
         $errors = $this->validateCreditTransfer($amount, $transactionCount, $dueDate, $currency);
 
@@ -207,7 +212,7 @@ class SepaBusinessRulesValidator
             $errors[] = sprintf('Invalid sequence type: %s. Must be one of: %s', $sequenceType, implode(', ', $validSequenceTypes));
         }
 
-        if (null !== $mandateExpirationDate && !$this->isValidMandateExpirationDate($mandateExpirationDate)) {
+        if ($mandateExpirationDate !== null && !$this->isValidMandateExpirationDate($mandateExpirationDate)) {
             $errors[] = 'Mandate expiration date must be in the future';
         }
 

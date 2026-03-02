@@ -20,7 +20,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  */
 #[AsCommand(
     name: 'nowo:sepa:validate-iban',
-    description: 'Validates an IBAN and shows detailed information'
+    description: 'Validates an IBAN and shows detailed information',
 )]
 class ValidateIbanCommand extends Command
 {
@@ -37,8 +37,6 @@ class ValidateIbanCommand extends Command
 
     /**
      * Configures the command.
-     *
-     * @return void
      */
     protected function configure(): void
     {
@@ -50,14 +48,14 @@ class ValidateIbanCommand extends Command
     /**
      * Executes the command.
      *
-     * @param InputInterface  $input  Input interface
+     * @param InputInterface $input Input interface
      * @param OutputInterface $output Output interface
      *
      * @return int Command exit code
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io = new SymfonyStyle($input, $output);
+        $io   = new SymfonyStyle($input, $output);
         $iban = $input->getArgument('iban');
 
         $io->title('IBAN Validation');
@@ -80,7 +78,7 @@ class ValidateIbanCommand extends Command
                 ['Check Digits', $this->ibanValidator->getCheckDigits($iban)],
                 ['BBAN', $this->ibanValidator->getBban($iban)],
                 ['Valid', $isValid ? 'Yes' : 'No'],
-            ]
+            ],
         );
 
         return $isValid ? Command::SUCCESS : Command::FAILURE;

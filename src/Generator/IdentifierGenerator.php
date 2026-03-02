@@ -6,6 +6,8 @@ namespace Nowo\SepaPaymentBundle\Generator;
 
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
+use function sprintf;
+
 /**
  * Identifier generator for SEPA operations.
  * Generates unique identifiers for messages, payments, and transactions.
@@ -20,7 +22,7 @@ class IdentifierGenerator
 
     /**
      * Generates a unique message identifier.
-     * Format: MSG-{timestamp}-{random}
+     * Format: MSG-{timestamp}-{random}.
      *
      * @param string|null $prefix Optional prefix (default: 'MSG')
      *
@@ -35,7 +37,7 @@ class IdentifierGenerator
 
     /**
      * Generates a unique payment information identifier.
-     * Format: PMT-{timestamp}-{random}
+     * Format: PMT-{timestamp}-{random}.
      *
      * @param string|null $prefix Optional prefix (default: 'PMT')
      *
@@ -50,7 +52,7 @@ class IdentifierGenerator
 
     /**
      * Generates a unique end-to-end identifier.
-     * Format: E2E-{timestamp}-{random}
+     * Format: E2E-{timestamp}-{random}.
      *
      * @param string|null $prefix Optional prefix (default: 'E2E')
      *
@@ -65,7 +67,7 @@ class IdentifierGenerator
 
     /**
      * Generates a unique mandate identifier.
-     * Format: MANDATE-{timestamp}-{random}
+     * Format: MANDATE-{timestamp}-{random}.
      *
      * @param string|null $prefix Optional prefix (default: 'MANDATE')
      *

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Tests\Model\CreditTransfer;
 
+use DateTime;
 use Nowo\SepaPaymentBundle\Model\CreditTransfer\CreditTransferData;
 use Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction;
 use PHPUnit\Framework\TestCase;
@@ -18,13 +19,11 @@ class CreditTransferDataTest extends TestCase
 {
     /**
      * Tests credit transfer data creation.
-     *
-     * @return void
      */
     public function testCreditTransferDataCreation(): void
     {
-        $creationDate = new \DateTime('2024-01-15 10:00:00');
-        $executionDate = new \DateTime('2024-01-20');
+        $creationDate  = new DateTime('2024-01-15 10:00:00');
+        $executionDate = new DateTime('2024-01-20');
 
         $creditTransferData = new CreditTransferData(
             'MSG-001',
@@ -33,7 +32,7 @@ class CreditTransferDataTest extends TestCase
             'PMT-001',
             'ES9121000418450200051332',
             'My Company Name',
-            $executionDate
+            $executionDate,
         );
 
         $this->assertEquals('MSG-001', $creditTransferData->getMessageId());
@@ -48,8 +47,6 @@ class CreditTransferDataTest extends TestCase
 
     /**
      * Tests setting creditor BIC.
-     *
-     * @return void
      */
     public function testSetCreditorBic(): void
     {
@@ -64,8 +61,6 @@ class CreditTransferDataTest extends TestCase
 
     /**
      * Tests setting batch booking.
-     *
-     * @return void
      */
     public function testSetBatchBooking(): void
     {
@@ -77,8 +72,6 @@ class CreditTransferDataTest extends TestCase
 
     /**
      * Tests adding transactions.
-     *
-     * @return void
      */
     public function testAddTransaction(): void
     {
@@ -89,7 +82,7 @@ class CreditTransferDataTest extends TestCase
             100.50,
             'EUR',
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         );
 
         $transaction2 = new Transaction(
@@ -97,7 +90,7 @@ class CreditTransferDataTest extends TestCase
             200.75,
             'EUR',
             'GB82WEST12345698765432',
-            'Jane Smith'
+            'Jane Smith',
         );
 
         $creditTransferData->addTransaction($transaction1);
@@ -111,8 +104,6 @@ class CreditTransferDataTest extends TestCase
 
     /**
      * Tests total amount calculation.
-     *
-     * @return void
      */
     public function testGetTotalAmount(): void
     {
@@ -123,7 +114,7 @@ class CreditTransferDataTest extends TestCase
             100.50,
             'EUR',
             'ES9121000418450200051332',
-            'John Doe'
+            'John Doe',
         ));
 
         $creditTransferData->addTransaction(new Transaction(
@@ -131,7 +122,7 @@ class CreditTransferDataTest extends TestCase
             200.75,
             'EUR',
             'GB82WEST12345698765432',
-            'Jane Smith'
+            'Jane Smith',
         ));
 
         $this->assertEquals(301.25, $creditTransferData->getTotalAmount());
@@ -139,8 +130,6 @@ class CreditTransferDataTest extends TestCase
 
     /**
      * Tests total amount with no transactions.
-     *
-     * @return void
      */
     public function testGetTotalAmountWithNoTransactions(): void
     {
@@ -151,8 +140,6 @@ class CreditTransferDataTest extends TestCase
 
     /**
      * Tests setting creditor address.
-     *
-     * @return void
      */
     public function testSetCreditorAddress(): void
     {
@@ -172,18 +159,16 @@ class CreditTransferDataTest extends TestCase
 
     /**
      * Tests setting creditor address from array.
-     *
-     * @return void
      */
     public function testSetCreditorAddressFromArray(): void
     {
         $creditTransferData = $this->createCreditTransferData();
 
         $creditTransferData->setCreditorAddressFromArray([
-            'street' => '456 Corporate Avenue',
-            'city' => 'Barcelona',
+            'street'     => '456 Corporate Avenue',
+            'city'       => 'Barcelona',
             'postalCode' => '08001',
-            'country' => 'ES',
+            'country'    => 'ES',
         ]);
 
         $address = $creditTransferData->getCreditorAddress();
@@ -196,18 +181,16 @@ class CreditTransferDataTest extends TestCase
 
     /**
      * Tests setting creditor address from array with snake_case keys.
-     *
-     * @return void
      */
     public function testSetCreditorAddressFromArraySnakeCase(): void
     {
         $creditTransferData = $this->createCreditTransferData();
 
         $creditTransferData->setCreditorAddressFromArray([
-            'address' => '789 Office Plaza',
-            'city' => 'Valencia',
+            'address'     => '789 Office Plaza',
+            'city'        => 'Valencia',
             'postal_code' => '46001',
-            'country' => 'ES',
+            'country'     => 'ES',
         ]);
 
         $address = $creditTransferData->getCreditorAddress();
@@ -227,12 +210,12 @@ class CreditTransferDataTest extends TestCase
     {
         return new CreditTransferData(
             'MSG-001',
-            new \DateTime('2024-01-15 10:00:00'),
+            new DateTime('2024-01-15 10:00:00'),
             'My Company',
             'PMT-001',
             'ES9121000418450200051332',
             'My Company Name',
-            new \DateTime('2024-01-20')
+            new DateTime('2024-01-20'),
         );
     }
 }

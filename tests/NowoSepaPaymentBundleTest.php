@@ -17,8 +17,6 @@ class NowoSepaPaymentBundleTest extends TestCase
 {
     /**
      * Tests bundle instantiation.
-     *
-     * @return void
      */
     public function testBundleInstantiation(): void
     {
@@ -28,12 +26,10 @@ class NowoSepaPaymentBundleTest extends TestCase
 
     /**
      * Tests container extension.
-     *
-     * @return void
      */
     public function testGetContainerExtension(): void
     {
-        $bundle = new NowoSepaPaymentBundle();
+        $bundle    = new NowoSepaPaymentBundle();
         $extension = $bundle->getContainerExtension();
 
         $this->assertNotNull($extension);

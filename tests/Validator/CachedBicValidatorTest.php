@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Tests\Validator;
 
+use ArrayObject;
 use Nowo\SepaPaymentBundle\Cache\ValidationCache;
 use Nowo\SepaPaymentBundle\Tests\Cache\ArrayCache;
 use Nowo\SepaPaymentBundle\Validator\BicValidator;
@@ -23,8 +24,8 @@ class CachedBicValidatorTest extends TestCase
      */
     public function testValidationWithCache(): void
     {
-        $bicValidator = new BicValidator();
-        $cache = new \ArrayObject();
+        $bicValidator    = new BicValidator();
+        $cache           = new ArrayObject();
         $validationCache = new ValidationCache($cache);
         $cachedValidator = new CachedBicValidator($bicValidator, $validationCache);
 
@@ -45,7 +46,7 @@ class CachedBicValidatorTest extends TestCase
      */
     public function testValidationWithoutCache(): void
     {
-        $bicValidator = new BicValidator();
+        $bicValidator    = new BicValidator();
         $cachedValidator = new CachedBicValidator($bicValidator, null);
 
         $bic = 'CAIXESBBXXX';
@@ -57,7 +58,7 @@ class CachedBicValidatorTest extends TestCase
      */
     public function testDelegateMethods(): void
     {
-        $bicValidator = new BicValidator();
+        $bicValidator    = new BicValidator();
         $cachedValidator = new CachedBicValidator($bicValidator, null);
 
         $bic = 'CAIXESBBXXX';
@@ -74,8 +75,8 @@ class CachedBicValidatorTest extends TestCase
      */
     public function testInvalidBicCaching(): void
     {
-        $bicValidator = new BicValidator();
-        $cache = new \ArrayObject();
+        $bicValidator    = new BicValidator();
+        $cache           = new ArrayObject();
         $validationCache = new ValidationCache($cache);
         $cachedValidator = new CachedBicValidator($bicValidator, $validationCache);
 
@@ -95,12 +96,12 @@ class CachedBicValidatorTest extends TestCase
      */
     public function testValidationWithArrayCacheCacheHit(): void
     {
-        $bicValidator = new BicValidator();
-        $arrayCache = new ArrayCache();
+        $bicValidator    = new BicValidator();
+        $arrayCache      = new ArrayCache();
         $validationCache = new ValidationCache($arrayCache);
         $cachedValidator = new CachedBicValidator($bicValidator, $validationCache);
 
-        $bic = 'CAIXESBBXXX';
+        $bic     = 'CAIXESBBXXX';
         $result1 = $cachedValidator->isValid($bic);
         $this->assertTrue($result1);
 

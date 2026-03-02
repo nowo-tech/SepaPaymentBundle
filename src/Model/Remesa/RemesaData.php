@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Model\Remesa;
 
+use DateTimeInterface;
 use Nowo\SepaPaymentBundle\Model\CreditTransfer\CreditTransferData;
 use Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction as CreditTransferTransaction;
+
+use const E_USER_DEPRECATED;
 
 /**
  * Remesa data container (deprecated).
@@ -19,32 +22,30 @@ class RemesaData
 {
     /**
      * Credit transfer data instance.
-     *
-     * @var CreditTransferData
      */
     private CreditTransferData $creditTransferData;
 
     /**
      * Constructor.
      *
-     * @param string             $messageId              Message identifier
-     * @param \DateTimeInterface $creationDate           Creation date
-     * @param string             $initiatingPartyName    Initiating party name
-     * @param string             $paymentInfoId          Payment information identifier
-     * @param string             $creditorIban           Creditor IBAN
-     * @param string             $creditorName           Creditor name
-     * @param \DateTimeInterface $requestedExecutionDate Requested execution date
+     * @param string $messageId Message identifier
+     * @param DateTimeInterface $creationDate Creation date
+     * @param string $initiatingPartyName Initiating party name
+     * @param string $paymentInfoId Payment information identifier
+     * @param string $creditorIban Creditor IBAN
+     * @param string $creditorName Creditor name
+     * @param DateTimeInterface $requestedExecutionDate Requested execution date
      */
     public function __construct(
         string $messageId,
-        \DateTimeInterface $creationDate,
+        DateTimeInterface $creationDate,
         string $initiatingPartyName,
         string $paymentInfoId,
         string $creditorIban,
         string $creditorName,
-        \DateTimeInterface $requestedExecutionDate
+        DateTimeInterface $requestedExecutionDate
     ) {
-        @trigger_error('RemesaData is deprecated since 1.1.0. Use CreditTransferData instead.', \E_USER_DEPRECATED);
+        @trigger_error('RemesaData is deprecated since 1.1.0. Use CreditTransferData instead.', E_USER_DEPRECATED);
 
         $this->creditTransferData = new CreditTransferData(
             $messageId,
@@ -53,7 +54,7 @@ class RemesaData
             $paymentInfoId,
             $creditorIban,
             $creditorName,
-            $requestedExecutionDate
+            $requestedExecutionDate,
         );
     }
 
@@ -70,9 +71,9 @@ class RemesaData
     /**
      * Gets the creation date.
      *
-     * @return \DateTimeInterface The creation date
+     * @return DateTimeInterface The creation date
      */
-    public function getCreationDate(): \DateTimeInterface
+    public function getCreationDate(): DateTimeInterface
     {
         return $this->creditTransferData->getCreationDate();
     }
@@ -111,8 +112,6 @@ class RemesaData
      * Sets the creditor BIC.
      *
      * @param string|null $creditorBic The creditor BIC
-     *
-     * @return self
      */
     public function setCreditorBic(?string $creditorBic): self
     {
@@ -144,9 +143,9 @@ class RemesaData
     /**
      * Gets the requested execution date.
      *
-     * @return \DateTimeInterface The requested execution date
+     * @return DateTimeInterface The requested execution date
      */
-    public function getRequestedExecutionDate(): \DateTimeInterface
+    public function getRequestedExecutionDate(): DateTimeInterface
     {
         return $this->creditTransferData->getRequestedExecutionDate();
     }
@@ -155,8 +154,6 @@ class RemesaData
      * Sets whether batch booking is enabled.
      *
      * @param bool $batchBooking Whether batch booking is enabled
-     *
-     * @return self
      */
     public function setBatchBooking(bool $batchBooking): self
     {
@@ -179,8 +176,6 @@ class RemesaData
      * Adds a transaction.
      *
      * @param Transaction $transaction The transaction to add
-     *
-     * @return self
      */
     public function addTransaction(Transaction $transaction): self
     {
@@ -191,7 +186,7 @@ class RemesaData
             $transaction->getAmount(),
             $transaction->getCurrency(),
             $transaction->getDebtorIban(), // Remesa\Transaction.getDebtorIban() -> CreditTransfer\Transaction.creditorIban
-            $transaction->getDebtorName()  // Remesa\Transaction.getDebtorName() -> CreditTransfer\Transaction.creditorName
+            $transaction->getDebtorName(),  // Remesa\Transaction.getDebtorName() -> CreditTransfer\Transaction.creditorName
         );
 
         if ($transaction->getDebtorBic() !== null) {
@@ -226,7 +221,7 @@ class RemesaData
                 $creditTransferTransaction->getAmount(),
                 $creditTransferTransaction->getCurrency(),
                 $creditTransferTransaction->getCreditorIban(), // CreditTransfer\Transaction.creditorIban -> Remesa\Transaction.debtorIban
-                $creditTransferTransaction->getCreditorName()  // CreditTransfer\Transaction.creditorName -> Remesa\Transaction.debtorName
+                $creditTransferTransaction->getCreditorName(),  // CreditTransfer\Transaction.creditorName -> Remesa\Transaction.debtorName
             );
 
             if ($creditTransferTransaction->getCreditorBic() !== null) {
@@ -260,12 +255,10 @@ class RemesaData
     /**
      * Sets the creditor address.
      *
-     * @param array<string, string|null>|string|null $street     Address array or street address
-     * @param string|null                            $city       City (ignored if first param is array)
-     * @param string|null                            $postalCode Postal code (ignored if first param is array)
-     * @param string|null                            $country    Country code (ignored if first param is array)
-     *
-     * @return self
+     * @param array<string, string|null>|string|null $street Address array or street address
+     * @param string|null $city City (ignored if first param is array)
+     * @param string|null $postalCode Postal code (ignored if first param is array)
+     * @param string|null $country Country code (ignored if first param is array)
      */
     public function setCreditorAddress(array|string|null $street = null, ?string $city = null, ?string $postalCode = null, ?string $country = null): self
     {
@@ -278,8 +271,6 @@ class RemesaData
      * Sets the creditor address from array.
      *
      * @param array<string, string|null> $address Address array with keys: street, city, postalCode, country
-     *
-     * @return self
      */
     public function setCreditorAddressFromArray(array $address): self
     {
@@ -301,8 +292,6 @@ class RemesaData
     /**
      * Gets the underlying CreditTransferData instance.
      * Internal use only.
-     *
-     * @return CreditTransferData
      *
      * @internal
      */

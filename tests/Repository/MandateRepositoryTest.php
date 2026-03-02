@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Tests\Repository;
 
+use DateTime;
 use Nowo\SepaPaymentBundle\Model\Mandate\Mandate;
 use Nowo\SepaPaymentBundle\Model\Mandate\MandateHistory;
 use Nowo\SepaPaymentBundle\Model\Mandate\MandateStatus;
@@ -29,11 +30,11 @@ class MandateRepositoryTest extends TestCase
     {
         $mandate = new Mandate(
             'MANDATE-001',
-            new \DateTime('2024-01-01'),
+            new DateTime('2024-01-01'),
             'ES9121000418450200051332',
             'John Doe',
             'CORE',
-            'FRST'
+            'FRST',
         );
         $this->repository->save($mandate);
 
@@ -45,9 +46,9 @@ class MandateRepositoryTest extends TestCase
 
     public function testFindByDebtorIban(): void
     {
-        $mandate1 = new Mandate('M1', new \DateTime('2024-01-01'), 'ES9121000418450200051332', 'John', 'CORE', 'FRST');
-        $mandate2 = new Mandate('M2', new \DateTime('2024-01-02'), 'ES9121000418450200051332', 'Jane', 'CORE', 'RCUR');
-        $mandate3 = new Mandate('M3', new \DateTime('2024-01-03'), 'GB82WEST12345698765432', 'Bob', 'CORE', 'FRST');
+        $mandate1 = new Mandate('M1', new DateTime('2024-01-01'), 'ES9121000418450200051332', 'John', 'CORE', 'FRST');
+        $mandate2 = new Mandate('M2', new DateTime('2024-01-02'), 'ES9121000418450200051332', 'Jane', 'CORE', 'RCUR');
+        $mandate3 = new Mandate('M3', new DateTime('2024-01-03'), 'GB82WEST12345698765432', 'Bob', 'CORE', 'FRST');
 
         $this->repository->save($mandate1);
         $this->repository->save($mandate2);
@@ -60,7 +61,7 @@ class MandateRepositoryTest extends TestCase
 
     public function testFindActive(): void
     {
-        $mandate = new Mandate('M1', new \DateTime('2024-01-01'), 'ES9121000418450200051332', 'John', 'CORE', 'FRST');
+        $mandate = new Mandate('M1', new DateTime('2024-01-01'), 'ES9121000418450200051332', 'John', 'CORE', 'FRST');
         $mandate->setStatus(MandateStatus::ACTIVE);
         $this->repository->save($mandate);
 
@@ -74,20 +75,20 @@ class MandateRepositoryTest extends TestCase
 
     public function testFindExpired(): void
     {
-        $oldDate = new \DateTime('2020-01-01');
+        $oldDate = new DateTime('2020-01-01');
         $mandate = new Mandate('M-EXP', $oldDate, 'ES9121000418450200051332', 'John', 'CORE', 'FRST');
         $this->repository->save($mandate);
 
-        $expired = $this->repository->findExpired(new \DateTime('2024-06-01'));
+        $expired = $this->repository->findExpired(new DateTime('2024-06-01'));
         $this->assertCount(1, $expired);
 
-        $expiredBefore = $this->repository->findExpired(new \DateTime('2022-01-01'));
+        $expiredBefore = $this->repository->findExpired(new DateTime('2022-01-01'));
         $this->assertCount(0, $expiredBefore);
     }
 
     public function testDelete(): void
     {
-        $mandate = new Mandate('M-DEL', new \DateTime('2024-01-01'), 'ES9121000418450200051332', 'John', 'CORE', 'FRST');
+        $mandate = new Mandate('M-DEL', new DateTime('2024-01-01'), 'ES9121000418450200051332', 'John', 'CORE', 'FRST');
         $this->repository->save($mandate);
         $this->assertTrue($this->repository->delete('M-DEL'));
         $this->assertNull($this->repository->findById('M-DEL'));
@@ -96,11 +97,11 @@ class MandateRepositoryTest extends TestCase
 
     public function testAddHistoryAndGetHistory(): void
     {
-        $mandate = new Mandate('M-HIST', new \DateTime('2024-01-01'), 'ES9121000418450200051332', 'John', 'CORE', 'FRST');
+        $mandate = new Mandate('M-HIST', new DateTime('2024-01-01'), 'ES9121000418450200051332', 'John', 'CORE', 'FRST');
         $this->repository->save($mandate);
 
-        $history1 = new MandateHistory('M-HIST', new \DateTime('2024-01-01 10:00:00'), 'status_change', 'PENDING', MandateStatus::ACTIVE->value);
-        $history2 = new MandateHistory('M-HIST', new \DateTime('2024-01-02 10:00:00'), 'status_change', MandateStatus::ACTIVE->value, MandateStatus::REVOKED->value);
+        $history1 = new MandateHistory('M-HIST', new DateTime('2024-01-01 10:00:00'), 'status_change', 'PENDING', MandateStatus::ACTIVE->value);
+        $history2 = new MandateHistory('M-HIST', new DateTime('2024-01-02 10:00:00'), 'status_change', MandateStatus::ACTIVE->value, MandateStatus::REVOKED->value);
         $this->repository->addHistory($history2);
         $this->repository->addHistory($history1);
 
@@ -116,9 +117,9 @@ class MandateRepositoryTest extends TestCase
 
     public function testClear(): void
     {
-        $mandate = new Mandate('M-CLR', new \DateTime('2024-01-01'), 'ES9121000418450200051332', 'John', 'CORE', 'FRST');
+        $mandate = new Mandate('M-CLR', new DateTime('2024-01-01'), 'ES9121000418450200051332', 'John', 'CORE', 'FRST');
         $this->repository->save($mandate);
-        $this->repository->addHistory(new MandateHistory('M-CLR', new \DateTime(), 'status_change', 'PENDING', MandateStatus::ACTIVE->value));
+        $this->repository->addHistory(new MandateHistory('M-CLR', new DateTime(), 'status_change', 'PENDING', MandateStatus::ACTIVE->value));
 
         $this->repository->clear();
         $this->assertNull($this->repository->findById('M-CLR'));

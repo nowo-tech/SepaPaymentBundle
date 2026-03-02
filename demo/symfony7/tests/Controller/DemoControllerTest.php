@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -60,4 +62,3 @@ class DemoControllerTest extends WebTestCase
         $this->assertStringContainsString('<?xml', $client->getResponse()->getContent());
     }
 }
-

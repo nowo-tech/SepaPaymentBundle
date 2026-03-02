@@ -7,6 +7,7 @@ namespace Nowo\SepaPaymentBundle\Tests\Command;
 use Nowo\SepaPaymentBundle\Command\ParseDirectDebitCommand;
 use Nowo\SepaPaymentBundle\Parser\DirectDebitParser;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 use Symfony\Component\Console\Tester\CommandTester;
 
 /**
@@ -22,7 +23,7 @@ class ParseDirectDebitCommandTest extends TestCase
      */
     public function testParseValidDirectDebit(): void
     {
-        $parser = new DirectDebitParser();
+        $parser  = new DirectDebitParser();
         $command = new ParseDirectDebitCommand($parser);
 
         $commandTester = new CommandTester($command);
@@ -124,7 +125,7 @@ class ParseDirectDebitCommandTest extends TestCase
      */
     public function testParseWithJsonOutput(): void
     {
-        $parser = new DirectDebitParser();
+        $parser  = new DirectDebitParser();
         $command = new ParseDirectDebitCommand($parser);
 
         $commandTester = new CommandTester($command);
@@ -209,7 +210,7 @@ class ParseDirectDebitCommandTest extends TestCase
      */
     public function testParseInvalidFile(): void
     {
-        $parser = new DirectDebitParser();
+        $parser  = new DirectDebitParser();
         $command = new ParseDirectDebitCommand($parser);
 
         $commandTester = new CommandTester($command);
@@ -224,7 +225,7 @@ class ParseDirectDebitCommandTest extends TestCase
      */
     public function testParseInvalidXml(): void
     {
-        $parser = new DirectDebitParser();
+        $parser  = new DirectDebitParser();
         $command = new ParseDirectDebitCommand($parser);
 
         $commandTester = new CommandTester($command);
@@ -248,8 +249,8 @@ class ParseDirectDebitCommandTest extends TestCase
      */
     public function testParseWhenFileCannotBeRead(): void
     {
-        $parser = new DirectDebitParser();
-        $command = new ParseDirectDebitCommand($parser);
+        $parser        = new DirectDebitParser();
+        $command       = new ParseDirectDebitCommand($parser);
         $commandTester = new CommandTester($command);
 
         // Passing a directory path causes file_get_contents to return false
@@ -264,7 +265,7 @@ class ParseDirectDebitCommandTest extends TestCase
                 str_contains($display, 'Could not read file')
                 || str_contains($display, 'Invalid SEPA Direct Debit XML')
                 || str_contains($display, 'Invalid'),
-                'Expected error message when file cannot be read. Got: ' . $display
+                'Expected error message when file cannot be read. Got: ' . $display,
             );
         } finally {
             if (is_dir($tempDir)) {
@@ -280,9 +281,9 @@ class ParseDirectDebitCommandTest extends TestCase
     {
         $parser = $this->createMock(DirectDebitParser::class);
         $parser->method('isValidDirectDebit')->willReturn(true);
-        $parser->method('parseDirectDebit')->willThrowException(new \RuntimeException('Parse error'));
+        $parser->method('parseDirectDebit')->willThrowException(new RuntimeException('Parse error'));
 
-        $command = new ParseDirectDebitCommand($parser);
+        $command       = new ParseDirectDebitCommand($parser);
         $commandTester = new CommandTester($command);
 
         $tempFile = sys_get_temp_dir() . '/test_dd_' . uniqid() . '.xml';
@@ -307,21 +308,21 @@ class ParseDirectDebitCommandTest extends TestCase
         $parser = $this->createMock(DirectDebitParser::class);
         $parser->method('isValidDirectDebit')->willReturn(true);
         $parser->method('parseDirectDebit')->willReturn([
-            'messageId' => 'MSG-001',
-            'creationDate' => '2024-01-15T10:00:00',
+            'messageId'           => 'MSG-001',
+            'creationDate'        => '2024-01-15T10:00:00',
             'initiatingPartyName' => 'Company',
-            'paymentInfoId' => 'PMT-001',
-            'sequenceType' => 'RCUR',
-            'dueDate' => '2024-01-20',
+            'paymentInfoId'       => 'PMT-001',
+            'sequenceType'        => 'RCUR',
+            'dueDate'             => '2024-01-20',
             'localInstrumentCode' => 'CORE',
-            'creditorName' => 'Creditor',
-            'creditorIban' => 'ES9121000418450200051332',
-            'creditorBic' => null,
-            'creditorId' => 'ES98ZZZ',
-            'transactions' => [],
+            'creditorName'        => 'Creditor',
+            'creditorIban'        => 'ES9121000418450200051332',
+            'creditorBic'         => null,
+            'creditorId'          => 'ES98ZZZ',
+            'transactions'        => [],
         ]);
 
-        $command = new ParseDirectDebitCommand($parser);
+        $command       = new ParseDirectDebitCommand($parser);
         $commandTester = new CommandTester($command);
 
         $tempFile = sys_get_temp_dir() . '/test_dd_empty_' . uniqid() . '.xml';

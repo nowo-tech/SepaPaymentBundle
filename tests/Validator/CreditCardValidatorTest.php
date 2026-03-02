@@ -17,15 +17,11 @@ class CreditCardValidatorTest extends TestCase
 {
     /**
      * Credit card validator instance.
-     *
-     * @var CreditCardValidator
      */
     private CreditCardValidator $validator;
 
     /**
      * Sets up the test environment.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
@@ -34,8 +30,6 @@ class CreditCardValidatorTest extends TestCase
 
     /**
      * Tests valid credit card numbers.
-     *
-     * @return void
      */
     public function testValidCardNumbers(): void
     {
@@ -54,8 +48,6 @@ class CreditCardValidatorTest extends TestCase
 
     /**
      * Tests invalid credit card numbers.
-     *
-     * @return void
      */
     public function testInvalidCardNumbers(): void
     {
@@ -74,8 +66,6 @@ class CreditCardValidatorTest extends TestCase
 
     /**
      * Tests card number normalization.
-     *
-     * @return void
      */
     public function testNormalize(): void
     {
@@ -86,8 +76,6 @@ class CreditCardValidatorTest extends TestCase
 
     /**
      * Tests card number formatting.
-     *
-     * @return void
      */
     public function testFormat(): void
     {
@@ -97,8 +85,6 @@ class CreditCardValidatorTest extends TestCase
 
     /**
      * Tests card type detection - Visa.
-     *
-     * @return void
      */
     public function testGetCardTypeVisa(): void
     {
@@ -108,8 +94,6 @@ class CreditCardValidatorTest extends TestCase
 
     /**
      * Tests card type detection - Mastercard.
-     *
-     * @return void
      */
     public function testGetCardTypeMastercard(): void
     {
@@ -119,8 +103,6 @@ class CreditCardValidatorTest extends TestCase
 
     /**
      * Tests card type detection - Amex.
-     *
-     * @return void
      */
     public function testGetCardTypeAmex(): void
     {
@@ -130,8 +112,6 @@ class CreditCardValidatorTest extends TestCase
 
     /**
      * Tests card type detection - Discover.
-     *
-     * @return void
      */
     public function testGetCardTypeDiscover(): void
     {
@@ -141,8 +121,6 @@ class CreditCardValidatorTest extends TestCase
 
     /**
      * Tests card type detection - Unknown.
-     *
-     * @return void
      */
     public function testGetCardTypeUnknown(): void
     {
@@ -152,8 +130,6 @@ class CreditCardValidatorTest extends TestCase
 
     /**
      * Tests BIN extraction.
-     *
-     * @return void
      */
     public function testGetBin(): void
     {
@@ -163,8 +139,6 @@ class CreditCardValidatorTest extends TestCase
 
     /**
      * Tests last four digits extraction.
-     *
-     * @return void
      */
     public function testGetLastFour(): void
     {
@@ -175,8 +149,6 @@ class CreditCardValidatorTest extends TestCase
 
     /**
      * Tests card number masking.
-     *
-     * @return void
      */
     public function testMask(): void
     {
@@ -187,8 +159,6 @@ class CreditCardValidatorTest extends TestCase
 
     /**
      * Tests validation for specific card type.
-     *
-     * @return void
      */
     public function testIsValidForType(): void
     {

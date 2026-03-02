@@ -22,8 +22,6 @@ class SepaPaymentLogger
 
     /**
      * Logger instance.
-     *
-     * @var LoggerInterface
      */
     private LoggerInterface $logger;
 
@@ -40,18 +38,16 @@ class SepaPaymentLogger
     /**
      * Logs Credit Transfer generation start.
      *
-     * @param string               $messageId        Message ID
-     * @param int                  $transactionCount Number of transactions
-     * @param array<string, mixed> $context          Additional context
-     *
-     * @return void
+     * @param string $messageId Message ID
+     * @param int $transactionCount Number of transactions
+     * @param array<string, mixed> $context Additional context
      */
     public function logCreditTransferGenerationStart(string $messageId, int $transactionCount, array $context = []): void
     {
         $this->logger->info('SEPA Credit Transfer generation started', array_merge([
-            'operation' => 'credit_transfer_generation',
-            'status' => 'started',
-            'message_id' => $messageId,
+            'operation'         => 'credit_transfer_generation',
+            'status'            => 'started',
+            'message_id'        => $messageId,
             'transaction_count' => $transactionCount,
         ], $context));
     }
@@ -59,58 +55,52 @@ class SepaPaymentLogger
     /**
      * Logs Credit Transfer generation success.
      *
-     * @param string               $messageId        Message ID
-     * @param int                  $transactionCount Number of transactions
-     * @param int                  $xmlLength        XML length in bytes
-     * @param array<string, mixed> $context          Additional context
-     *
-     * @return void
+     * @param string $messageId Message ID
+     * @param int $transactionCount Number of transactions
+     * @param int $xmlLength XML length in bytes
+     * @param array<string, mixed> $context Additional context
      */
     public function logCreditTransferGenerationSuccess(string $messageId, int $transactionCount, int $xmlLength, array $context = []): void
     {
         $this->logger->info('SEPA Credit Transfer generation completed successfully', array_merge([
-            'operation' => 'credit_transfer_generation',
-            'status' => 'success',
-            'message_id' => $messageId,
+            'operation'         => 'credit_transfer_generation',
+            'status'            => 'success',
+            'message_id'        => $messageId,
             'transaction_count' => $transactionCount,
-            'xml_length' => $xmlLength,
+            'xml_length'        => $xmlLength,
         ], $context));
     }
 
     /**
      * Logs Credit Transfer generation failure.
      *
-     * @param string               $messageId Message ID
-     * @param string               $error     Error message
-     * @param array<string, mixed> $context   Additional context
-     *
-     * @return void
+     * @param string $messageId Message ID
+     * @param string $error Error message
+     * @param array<string, mixed> $context Additional context
      */
     public function logCreditTransferGenerationFailure(string $messageId, string $error, array $context = []): void
     {
         $this->logger->error('SEPA Credit Transfer generation failed', array_merge([
-            'operation' => 'credit_transfer_generation',
-            'status' => 'failure',
+            'operation'  => 'credit_transfer_generation',
+            'status'     => 'failure',
             'message_id' => $messageId,
-            'error' => $error,
+            'error'      => $error,
         ], $context));
     }
 
     /**
      * Logs Direct Debit generation start.
      *
-     * @param string               $messageId        Message ID
-     * @param int                  $transactionCount Number of transactions
-     * @param array<string, mixed> $context          Additional context
-     *
-     * @return void
+     * @param string $messageId Message ID
+     * @param int $transactionCount Number of transactions
+     * @param array<string, mixed> $context Additional context
      */
     public function logDirectDebitGenerationStart(string $messageId, int $transactionCount, array $context = []): void
     {
         $this->logger->info('SEPA Direct Debit generation started', array_merge([
-            'operation' => 'direct_debit_generation',
-            'status' => 'started',
-            'message_id' => $messageId,
+            'operation'         => 'direct_debit_generation',
+            'status'            => 'started',
+            'message_id'        => $messageId,
             'transaction_count' => $transactionCount,
         ], $context));
     }
@@ -118,114 +108,102 @@ class SepaPaymentLogger
     /**
      * Logs Direct Debit generation success.
      *
-     * @param string               $messageId        Message ID
-     * @param int                  $transactionCount Number of transactions
-     * @param int                  $xmlLength        XML length in bytes
-     * @param array<string, mixed> $context          Additional context
-     *
-     * @return void
+     * @param string $messageId Message ID
+     * @param int $transactionCount Number of transactions
+     * @param int $xmlLength XML length in bytes
+     * @param array<string, mixed> $context Additional context
      */
     public function logDirectDebitGenerationSuccess(string $messageId, int $transactionCount, int $xmlLength, array $context = []): void
     {
         $this->logger->info('SEPA Direct Debit generation completed successfully', array_merge([
-            'operation' => 'direct_debit_generation',
-            'status' => 'success',
-            'message_id' => $messageId,
+            'operation'         => 'direct_debit_generation',
+            'status'            => 'success',
+            'message_id'        => $messageId,
             'transaction_count' => $transactionCount,
-            'xml_length' => $xmlLength,
+            'xml_length'        => $xmlLength,
         ], $context));
     }
 
     /**
      * Logs Direct Debit generation failure.
      *
-     * @param string               $messageId Message ID
-     * @param string               $error     Error message
-     * @param array<string, mixed> $context   Additional context
-     *
-     * @return void
+     * @param string $messageId Message ID
+     * @param string $error Error message
+     * @param array<string, mixed> $context Additional context
      */
     public function logDirectDebitGenerationFailure(string $messageId, string $error, array $context = []): void
     {
         $this->logger->error('SEPA Direct Debit generation failed', array_merge([
-            'operation' => 'direct_debit_generation',
-            'status' => 'failure',
+            'operation'  => 'direct_debit_generation',
+            'status'     => 'failure',
             'message_id' => $messageId,
-            'error' => $error,
+            'error'      => $error,
         ], $context));
     }
 
     /**
      * Logs IBAN validation.
      *
-     * @param string               $iban    IBAN to validate
-     * @param bool                 $isValid Validation result
+     * @param string $iban IBAN to validate
+     * @param bool $isValid Validation result
      * @param array<string, mixed> $context Additional context
-     *
-     * @return void
      */
     public function logIbanValidation(string $iban, bool $isValid, array $context = []): void
     {
         $level = $isValid ? 'info' : 'warning';
         $this->logger->log($level, 'IBAN validation', array_merge([
             'operation' => 'iban_validation',
-            'iban' => $iban,
-            'is_valid' => $isValid,
+            'iban'      => $iban,
+            'is_valid'  => $isValid,
         ], $context));
     }
 
     /**
      * Logs BIC validation.
      *
-     * @param string               $bic     BIC to validate
-     * @param bool                 $isValid Validation result
+     * @param string $bic BIC to validate
+     * @param bool $isValid Validation result
      * @param array<string, mixed> $context Additional context
-     *
-     * @return void
      */
     public function logBicValidation(string $bic, bool $isValid, array $context = []): void
     {
         $level = $isValid ? 'info' : 'warning';
         $this->logger->log($level, 'BIC validation', array_merge([
             'operation' => 'bic_validation',
-            'bic' => $bic,
-            'is_valid' => $isValid,
+            'bic'       => $bic,
+            'is_valid'  => $isValid,
         ], $context));
     }
 
     /**
      * Logs business rules validation.
      *
-     * @param string               $rule    Rule name
-     * @param bool                 $isValid Validation result
+     * @param string $rule Rule name
+     * @param bool $isValid Validation result
      * @param array<string, mixed> $context Additional context
-     *
-     * @return void
      */
     public function logBusinessRulesValidation(string $rule, bool $isValid, array $context = []): void
     {
         $level = $isValid ? 'info' : 'warning';
         $this->logger->log($level, 'Business rules validation', array_merge([
             'operation' => 'business_rules_validation',
-            'rule' => $rule,
-            'is_valid' => $isValid,
+            'rule'      => $rule,
+            'is_valid'  => $isValid,
         ], $context));
     }
 
     /**
      * Logs Credit Transfer parsing.
      *
-     * @param string               $messageId        Parsed message ID
-     * @param int                  $transactionCount Number of transactions parsed
-     * @param array<string, mixed> $context          Additional context
-     *
-     * @return void
+     * @param string $messageId Parsed message ID
+     * @param int $transactionCount Number of transactions parsed
+     * @param array<string, mixed> $context Additional context
      */
     public function logCreditTransferParsing(string $messageId, int $transactionCount, array $context = []): void
     {
         $this->logger->info('SEPA Credit Transfer parsed', array_merge([
-            'operation' => 'credit_transfer_parsing',
-            'message_id' => $messageId,
+            'operation'         => 'credit_transfer_parsing',
+            'message_id'        => $messageId,
             'transaction_count' => $transactionCount,
         ], $context));
     }
@@ -233,17 +211,15 @@ class SepaPaymentLogger
     /**
      * Logs Direct Debit parsing.
      *
-     * @param string               $messageId        Parsed message ID
-     * @param int                  $transactionCount Number of transactions parsed
-     * @param array<string, mixed> $context          Additional context
-     *
-     * @return void
+     * @param string $messageId Parsed message ID
+     * @param int $transactionCount Number of transactions parsed
+     * @param array<string, mixed> $context Additional context
      */
     public function logDirectDebitParsing(string $messageId, int $transactionCount, array $context = []): void
     {
         $this->logger->info('SEPA Direct Debit parsed', array_merge([
-            'operation' => 'direct_debit_parsing',
-            'message_id' => $messageId,
+            'operation'         => 'direct_debit_parsing',
+            'message_id'        => $messageId,
             'transaction_count' => $transactionCount,
         ], $context));
     }
@@ -251,36 +227,32 @@ class SepaPaymentLogger
     /**
      * Logs parsing error.
      *
-     * @param string               $error   Error message
+     * @param string $error Error message
      * @param array<string, mixed> $context Additional context
-     *
-     * @return void
      */
     public function logParsingError(string $error, array $context = []): void
     {
         $this->logger->error('SEPA XML parsing failed', array_merge([
             'operation' => 'parsing',
-            'status' => 'failure',
-            'error' => $error,
+            'status'    => 'failure',
+            'error'     => $error,
         ], $context));
     }
 
     /**
      * Logs XSD validation.
      *
-     * @param string               $type    Validation type (credit_transfer or direct_debit)
-     * @param bool                 $isValid Validation result
+     * @param string $type Validation type (credit_transfer or direct_debit)
+     * @param bool $isValid Validation result
      * @param array<string, mixed> $context Additional context
-     *
-     * @return void
      */
     public function logXsdValidation(string $type, bool $isValid, array $context = []): void
     {
         $level = $isValid ? 'info' : 'error';
         $this->logger->log($level, 'XSD schema validation', array_merge([
             'operation' => 'xsd_validation',
-            'type' => $type,
-            'is_valid' => $isValid,
+            'type'      => $type,
+            'is_valid'  => $isValid,
         ], $context));
     }
 }

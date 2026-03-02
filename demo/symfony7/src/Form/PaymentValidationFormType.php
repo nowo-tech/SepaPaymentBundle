@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Form;
 
 use Nowo\SepaPaymentBundle\Validator\Constraint\Bic;
@@ -23,11 +25,11 @@ class PaymentValidationFormType extends AbstractType
     {
         $builder
             ->add('iban', TextType::class, [
-                'label' => 'IBAN',
+                'label'    => 'IBAN',
                 'required' => true,
-                'attr' => [
+                'attr'     => [
                     'placeholder' => 'ES9121000418450200051332',
-                    'class' => 'form-control',
+                    'class'       => 'form-control',
                 ],
                 'constraints' => [
                     new NotBlank(message: 'IBAN is required.'),
@@ -35,11 +37,11 @@ class PaymentValidationFormType extends AbstractType
                 ],
             ])
             ->add('bic', TextType::class, [
-                'label' => 'BIC',
+                'label'    => 'BIC',
                 'required' => true,
-                'attr' => [
+                'attr'     => [
                     'placeholder' => 'ESPBESMM',
-                    'class' => 'form-control',
+                    'class'       => 'form-control',
                 ],
                 'constraints' => [
                     new NotBlank(message: 'BIC is required.'),
@@ -47,12 +49,12 @@ class PaymentValidationFormType extends AbstractType
                 ],
             ])
             ->add('countryCode', TextType::class, [
-                'label' => 'SEPA Country Code',
+                'label'    => 'SEPA Country Code',
                 'required' => true,
-                'attr' => [
+                'attr'     => [
                     'placeholder' => 'ES',
-                    'class' => 'form-control',
-                    'maxlength' => 2,
+                    'class'       => 'form-control',
+                    'maxlength'   => 2,
                 ],
                 'constraints' => [
                     new NotBlank(message: 'Country code is required.'),
@@ -60,22 +62,22 @@ class PaymentValidationFormType extends AbstractType
                 ],
             ])
             ->add('creditorIdentifier', TextType::class, [
-                'label' => 'SEPA Creditor Identifier',
+                'label'    => 'SEPA Creditor Identifier',
                 'required' => false,
-                'attr' => [
+                'attr'     => [
                     'placeholder' => 'ES97ZZZM12345678',
-                    'class' => 'form-control',
+                    'class'       => 'form-control',
                 ],
                 'constraints' => [
                     new SepaCreditorIdentifier(),
                 ],
             ])
             ->add('creditCard', TextType::class, [
-                'label' => 'Credit Card Number',
+                'label'    => 'Credit Card Number',
                 'required' => false,
-                'attr' => [
+                'attr'     => [
                     'placeholder' => '4532015112830366',
-                    'class' => 'form-control',
+                    'class'       => 'form-control',
                 ],
                 'constraints' => [
                     new CreditCard(),
@@ -86,7 +88,7 @@ class PaymentValidationFormType extends AbstractType
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'data_class' => null,
+            'data_class'      => null,
             'csrf_protection' => true,
         ]);
     }

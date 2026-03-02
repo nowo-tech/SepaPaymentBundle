@@ -9,6 +9,8 @@ use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
+use function is_string;
+
 /**
  * SEPA Country constraint validator.
  * Uses SepaCountryValidator service for validation logic.
@@ -20,8 +22,6 @@ class SepaCountryValidator extends ConstraintValidator
 {
     /**
      * SEPA Country validator service.
-     *
-     * @var SepaCountryValidatorService
      */
     private SepaCountryValidatorService $sepaCountryValidator;
 
@@ -44,7 +44,7 @@ class SepaCountryValidator extends ConstraintValidator
             throw new UnexpectedTypeException($constraint, SepaCountry::class);
         }
 
-        if (null === $value || '' === $value) {
+        if ($value === null || $value === '') {
             return;
         }
 

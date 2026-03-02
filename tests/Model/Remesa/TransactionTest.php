@@ -22,7 +22,7 @@ class TransactionTest extends TestCase
             100.50,
             'EUR',
             'GB82WEST12345698765432',
-            'John Doe'
+            'John Doe',
         );
 
         $this->assertEquals('E2E-001', $transaction->getEndToEndId());
@@ -48,7 +48,7 @@ class TransactionTest extends TestCase
 
     public function testGetCreditTransferTransaction(): void
     {
-        $transaction = new Transaction('E2E-001', 50.0, 'EUR', 'ES9121000418450200051332', 'Creditor');
+        $transaction   = new Transaction('E2E-001', 50.0, 'EUR', 'ES9121000418450200051332', 'Creditor');
         $ctTransaction = $transaction->getCreditTransferTransaction();
         $this->assertNotNull($ctTransaction);
         $this->assertEquals('E2E-001', $ctTransaction->getEndToEndId());

@@ -7,6 +7,8 @@ namespace Nowo\SepaPaymentBundle\Tests\Validator;
 use Nowo\SepaPaymentBundle\Validator\SepaCountryValidator;
 use PHPUnit\Framework\TestCase;
 
+use function count;
+
 /**
  * Test cases for SepaCountryValidator.
  *

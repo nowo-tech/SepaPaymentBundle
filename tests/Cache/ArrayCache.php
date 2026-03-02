@@ -39,9 +39,9 @@ class ArrayCache
     /**
      * Sets a value in cache.
      *
-     * @param string $key   Cache key
-     * @param mixed  $value Value to cache
-     * @param int    $ttl   Time to live (ignored in this simple implementation)
+     * @param string $key Cache key
+     * @param mixed $value Value to cache
+     * @param int $ttl Time to live (ignored in this simple implementation)
      *
      * @return bool True on success
      */

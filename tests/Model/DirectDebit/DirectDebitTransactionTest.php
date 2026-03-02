@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Tests\Model\DirectDebit;
 
+use DateTime;
 use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitTransaction;
 use PHPUnit\Framework\TestCase;
 
@@ -17,12 +18,10 @@ class DirectDebitTransactionTest extends TestCase
 {
     /**
      * Tests transaction creation.
-     *
-     * @return void
      */
     public function testDirectDebitTransactionCreation(): void
     {
-        $mandateSignDate = new \DateTime('2023-12-01');
+        $mandateSignDate = new DateTime('2023-12-01');
 
         $transaction = new DirectDebitTransaction(
             100.50,
@@ -30,7 +29,7 @@ class DirectDebitTransactionTest extends TestCase
             'John Doe',
             'MANDATE-001',
             $mandateSignDate,
-            'E2E-001'
+            'E2E-001',
         );
 
         $this->assertEquals(100.50, $transaction->getAmount());
@@ -44,8 +43,6 @@ class DirectDebitTransactionTest extends TestCase
 
     /**
      * Tests setting remittance information.
-     *
-     * @return void
      */
     public function testSetRemittanceInformation(): void
     {
@@ -54,8 +51,8 @@ class DirectDebitTransactionTest extends TestCase
             'ES9121000418450200051332',
             'John Doe',
             'MANDATE-001',
-            new \DateTime('2023-12-01'),
-            'E2E-001'
+            new DateTime('2023-12-01'),
+            'E2E-001',
         );
 
         $transaction->setRemittanceInformation('Invoice 12345');
@@ -67,8 +64,6 @@ class DirectDebitTransactionTest extends TestCase
 
     /**
      * Tests setting debtor BIC.
-     *
-     * @return void
      */
     public function testSetDebtorBic(): void
     {
@@ -77,8 +72,8 @@ class DirectDebitTransactionTest extends TestCase
             'ES9121000418450200051332',
             'John Doe',
             'MANDATE-001',
-            new \DateTime('2023-12-01'),
-            'E2E-001'
+            new DateTime('2023-12-01'),
+            'E2E-001',
         );
 
         $this->assertNull($transaction->getDebtorBic());
@@ -92,8 +87,6 @@ class DirectDebitTransactionTest extends TestCase
 
     /**
      * Tests setting additional data.
-     *
-     * @return void
      */
     public function testSetAdditionalData(): void
     {
@@ -102,16 +95,16 @@ class DirectDebitTransactionTest extends TestCase
             'ES9121000418450200051332',
             'John Doe',
             'MANDATE-001',
-            new \DateTime('2023-12-01'),
-            'E2E-001'
+            new DateTime('2023-12-01'),
+            'E2E-001',
         );
 
         $this->assertEquals([], $transaction->getAdditionalData());
 
         $additionalData = [
             'internalReference' => 'INT-12345',
-            'customerId' => 'CUST-789',
-            'customField' => 'customValue',
+            'customerId'        => 'CUST-789',
+            'customField'       => 'customValue',
         ];
 
         $transaction->setAdditionalData($additionalData);
@@ -120,8 +113,6 @@ class DirectDebitTransactionTest extends TestCase
 
     /**
      * Tests setting a specific additional field.
-     *
-     * @return void
      */
     public function testSetAdditionalField(): void
     {
@@ -130,8 +121,8 @@ class DirectDebitTransactionTest extends TestCase
             'ES9121000418450200051332',
             'John Doe',
             'MANDATE-001',
-            new \DateTime('2023-12-01'),
-            'E2E-001'
+            new DateTime('2023-12-01'),
+            'E2E-001',
         );
 
         $transaction->setAdditionalField('internalReference', 'INT-12345');
@@ -142,14 +133,12 @@ class DirectDebitTransactionTest extends TestCase
 
         $this->assertEquals([
             'internalReference' => 'INT-12345',
-            'customerId' => 'CUST-789',
+            'customerId'        => 'CUST-789',
         ], $transaction->getAdditionalData());
     }
 
     /**
      * Tests getting additional field with default value.
-     *
-     * @return void
      */
     public function testGetAdditionalFieldWithDefault(): void
     {
@@ -158,8 +147,8 @@ class DirectDebitTransactionTest extends TestCase
             'ES9121000418450200051332',
             'John Doe',
             'MANDATE-001',
-            new \DateTime('2023-12-01'),
-            'E2E-001'
+            new DateTime('2023-12-01'),
+            'E2E-001',
         );
 
         $this->assertNull($transaction->getAdditionalField('nonExistent'));
@@ -169,8 +158,6 @@ class DirectDebitTransactionTest extends TestCase
 
     /**
      * Tests that additional data can store various types.
-     *
-     * @return void
      */
     public function testAdditionalDataTypes(): void
     {
@@ -179,8 +166,8 @@ class DirectDebitTransactionTest extends TestCase
             'ES9121000418450200051332',
             'John Doe',
             'MANDATE-001',
-            new \DateTime('2023-12-01'),
-            'E2E-001'
+            new DateTime('2023-12-01'),
+            'E2E-001',
         );
 
         $transaction->setAdditionalField('stringValue', 'test');
@@ -198,8 +185,6 @@ class DirectDebitTransactionTest extends TestCase
 
     /**
      * Tests setting debtor address.
-     *
-     * @return void
      */
     public function testSetDebtorAddress(): void
     {
@@ -208,8 +193,8 @@ class DirectDebitTransactionTest extends TestCase
             'ES9121000418450200051332',
             'John Doe',
             'MANDATE-001',
-            new \DateTime('2023-12-01'),
-            'E2E-001'
+            new DateTime('2023-12-01'),
+            'E2E-001',
         );
 
         $this->assertNull($transaction->getDebtorAddress());
@@ -234,14 +219,14 @@ class DirectDebitTransactionTest extends TestCase
             'ES9121000418450200051332',
             'Jane Doe',
             'MANDATE-002',
-            new \DateTime('2024-01-01'),
-            'E2E-002'
+            new DateTime('2024-01-01'),
+            'E2E-002',
         );
         $transaction->setDebtorAddress([
-            'street' => 'Array Ave',
-            'city' => 'Paris',
+            'street'     => 'Array Ave',
+            'city'       => 'Paris',
             'postalCode' => '75001',
-            'country' => 'FR',
+            'country'    => 'FR',
         ]);
         $address = $transaction->getDebtorAddress();
         $this->assertNotNull($address);
@@ -251,8 +236,6 @@ class DirectDebitTransactionTest extends TestCase
 
     /**
      * Tests setting debtor address from array.
-     *
-     * @return void
      */
     public function testSetDebtorAddressFromArray(): void
     {
@@ -261,15 +244,15 @@ class DirectDebitTransactionTest extends TestCase
             'ES9121000418450200051332',
             'John Doe',
             'MANDATE-001',
-            new \DateTime('2023-12-01'),
-            'E2E-001'
+            new DateTime('2023-12-01'),
+            'E2E-001',
         );
 
         $transaction->setDebtorAddressFromArray([
-            'street' => '456 Oak Avenue',
-            'city' => 'Madrid',
+            'street'     => '456 Oak Avenue',
+            'city'       => 'Madrid',
             'postalCode' => '28001',
-            'country' => 'ES',
+            'country'    => 'ES',
         ]);
 
         $address = $transaction->getDebtorAddress();
@@ -282,8 +265,6 @@ class DirectDebitTransactionTest extends TestCase
 
     /**
      * Tests setting debtor address from array with snake_case keys.
-     *
-     * @return void
      */
     public function testSetDebtorAddressFromArraySnakeCase(): void
     {
@@ -292,15 +273,15 @@ class DirectDebitTransactionTest extends TestCase
             'ES9121000418450200051332',
             'John Doe',
             'MANDATE-001',
-            new \DateTime('2023-12-01'),
-            'E2E-001'
+            new DateTime('2023-12-01'),
+            'E2E-001',
         );
 
         $transaction->setDebtorAddressFromArray([
-            'address' => '789 Pine Street',
-            'city' => 'Barcelona',
+            'address'     => '789 Pine Street',
+            'city'        => 'Barcelona',
             'postal_code' => '08001',
-            'country' => 'ES',
+            'country'     => 'ES',
         ]);
 
         $address = $transaction->getDebtorAddress();

@@ -23,16 +23,14 @@ class NowoSepaPaymentExtension extends Extension
      * Loads the services configuration and processes the bundle configuration.
      * Loads the services.yaml file from the bundle's Resources/config directory.
      *
-     * @param array<string, mixed> $configs   Array of configuration values
-     * @param ContainerBuilder     $container The container builder object
-     *
-     * @return void
+     * @param array<string, mixed> $configs Array of configuration values
+     * @param ContainerBuilder $container The container builder object
      */
     public function load(array $configs, ContainerBuilder $container): void
     {
-        $processor = new Processor();
+        $processor     = new Processor();
         $configuration = new Configuration();
-        $config = $processor->processConfiguration($configuration, $configs);
+        $config        = $processor->processConfiguration($configuration, $configs);
 
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.yaml');

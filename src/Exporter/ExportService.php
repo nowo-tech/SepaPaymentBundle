@@ -4,7 +4,15 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Exporter;
 
+use InvalidArgumentException;
+use RuntimeException;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+
+use function is_array;
+
+use const JSON_ERROR_NONE;
+use const JSON_PRETTY_PRINT;
+use const JSON_UNESCAPED_UNICODE;
 
 /**
  * Export service for converting SEPA payment data to various formats.
@@ -21,8 +29,8 @@ class ExportService
     /**
      * Exports Credit Transfer data to JSON format.
      *
-     * @param array<string, mixed> $data        The credit transfer data (from parser or array format)
-     * @param bool                 $prettyPrint Whether to pretty print JSON (default: true)
+     * @param array<string, mixed> $data The credit transfer data (from parser or array format)
+     * @param bool $prettyPrint Whether to pretty print JSON (default: true)
      *
      * @return string JSON string
      */
@@ -30,8 +38,8 @@ class ExportService
     {
         $json = json_encode($data, $prettyPrint ? JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE : JSON_UNESCAPED_UNICODE);
 
-        if (false === $json) {
-            throw new \RuntimeException('Failed to encode data to JSON: ' . json_last_error_msg());
+        if ($json === false) {
+            throw new RuntimeException('Failed to encode data to JSON: ' . json_last_error_msg());
         }
 
         return $json;
@@ -40,8 +48,8 @@ class ExportService
     /**
      * Exports Direct Debit data to JSON format.
      *
-     * @param array<string, mixed> $data        The direct debit data (from parser or array format)
-     * @param bool                 $prettyPrint Whether to pretty print JSON (default: true)
+     * @param array<string, mixed> $data The direct debit data (from parser or array format)
+     * @param bool $prettyPrint Whether to pretty print JSON (default: true)
      *
      * @return string JSON string
      */
@@ -53,9 +61,9 @@ class ExportService
     /**
      * Exports Credit Transfer data to CSV format.
      *
-     * @param array<string, mixed> $data      The credit transfer data (from parser or array format)
-     * @param string               $delimiter CSV delimiter (default: ',')
-     * @param string               $enclosure CSV enclosure (default: '"')
+     * @param array<string, mixed> $data The credit transfer data (from parser or array format)
+     * @param string $delimiter CSV delimiter (default: ',')
+     * @param string $enclosure CSV enclosure (default: '"')
      *
      * @return string CSV string
      */
@@ -131,9 +139,9 @@ class ExportService
     /**
      * Exports Direct Debit data to CSV format.
      *
-     * @param array<string, mixed> $data      The direct debit data (from parser or array format)
-     * @param string               $delimiter CSV delimiter (default: ',')
-     * @param string               $enclosure CSV enclosure (default: '"')
+     * @param array<string, mixed> $data The direct debit data (from parser or array format)
+     * @param string $delimiter CSV delimiter (default: ',')
+     * @param string $enclosure CSV enclosure (default: '"')
      *
      * @return string CSV string
      */
@@ -233,11 +241,11 @@ class ExportService
         $data = json_decode($json, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \InvalidArgumentException('Invalid JSON format: ' . json_last_error_msg());
+            throw new InvalidArgumentException('Invalid JSON format: ' . json_last_error_msg());
         }
 
         if (!is_array($data)) {
-            throw new \InvalidArgumentException('JSON must contain an object/array');
+            throw new InvalidArgumentException('JSON must contain an object/array');
         }
 
         return $data;
@@ -258,9 +266,9 @@ class ExportService
     /**
      * Converts an array to CSV format.
      *
-     * @param array<int, array<int, mixed>> $rows      Array of rows
-     * @param string                        $delimiter CSV delimiter
-     * @param string                        $enclosure CSV enclosure
+     * @param array<int, array<int, mixed>> $rows Array of rows
+     * @param string $delimiter CSV delimiter
+     * @param string $enclosure CSV enclosure
      *
      * @return string CSV string
      */
@@ -268,8 +276,8 @@ class ExportService
     {
         $output = fopen('php://temp', 'r+');
 
-        if (false === $output) {
-            throw new \RuntimeException('Failed to open temporary stream for CSV generation');
+        if ($output === false) {
+            throw new RuntimeException('Failed to open temporary stream for CSV generation');
         }
 
         foreach ($rows as $row) {
@@ -280,8 +288,8 @@ class ExportService
         $csv = stream_get_contents($output);
         fclose($output);
 
-        if (false === $csv) {
-            throw new \RuntimeException('Failed to generate CSV content');
+        if ($csv === false) {
+            throw new RuntimeException('Failed to generate CSV content');
         }
 
         return $csv;

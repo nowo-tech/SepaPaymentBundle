@@ -9,6 +9,8 @@ use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
+use function is_string;
+
 /**
  * SEPA Creditor Identifier constraint validator.
  * Uses SepaCreditorIdentifierValidator service for validation logic.
@@ -20,8 +22,6 @@ class SepaCreditorIdentifierValidator extends ConstraintValidator
 {
     /**
      * SEPA Creditor Identifier validator service.
-     *
-     * @var SepaCreditorIdentifierValidatorService
      */
     private SepaCreditorIdentifierValidatorService $sepaCreditorIdentifierValidator;
 
@@ -44,7 +44,7 @@ class SepaCreditorIdentifierValidator extends ConstraintValidator
             throw new UnexpectedTypeException($constraint, SepaCreditorIdentifier::class);
         }
 
-        if (null === $value || '' === $value) {
+        if ($value === null || $value === '') {
             return;
         }
 

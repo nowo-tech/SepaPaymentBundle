@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Model\Mandate;
 
+use function in_array;
+
 /**
  * Mandate status enumeration.
  *
@@ -12,9 +14,9 @@ namespace Nowo\SepaPaymentBundle\Model\Mandate;
  */
 enum MandateStatus: string
 {
-    case ACTIVE = 'active';
-    case EXPIRED = 'expired';
-    case REVOKED = 'revoked';
+    case ACTIVE    = 'active';
+    case EXPIRED   = 'expired';
+    case REVOKED   = 'revoked';
     case SUSPENDED = 'suspended';
 
     /**
@@ -24,7 +26,7 @@ enum MandateStatus: string
      */
     public static function getValues(): array
     {
-        return array_map(fn (self $status) => $status->value, self::cases());
+        return array_map(static fn (self $status) => $status->value, self::cases());
     }
 
     /**

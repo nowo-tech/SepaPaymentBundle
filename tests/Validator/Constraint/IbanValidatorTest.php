@@ -30,8 +30,6 @@ class IbanValidatorTest extends TestCase
 
     /**
      * Constraint validator instance.
-     *
-     * @var ConstraintIbanValidator
      */
     private ConstraintIbanValidator $validator;
 
@@ -44,26 +42,22 @@ class IbanValidatorTest extends TestCase
 
     /**
      * Sets up the test environment.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
         $this->ibanValidatorService = $this->createMock(IbanValidatorService::class);
-        $this->validator = new ConstraintIbanValidator($this->ibanValidatorService);
-        $this->context = $this->createMock(ExecutionContextInterface::class);
+        $this->validator            = new ConstraintIbanValidator($this->ibanValidatorService);
+        $this->context              = $this->createMock(ExecutionContextInterface::class);
         $this->validator->initialize($this->context);
     }
 
     /**
      * Tests valid IBAN validation.
-     *
-     * @return void
      */
     public function testValidIban(): void
     {
         $constraint = new Iban();
-        $iban = 'ES9121000418450200051332';
+        $iban       = 'ES9121000418450200051332';
 
         $this->ibanValidatorService
             ->expects($this->once())
@@ -80,13 +74,11 @@ class IbanValidatorTest extends TestCase
 
     /**
      * Tests invalid IBAN validation.
-     *
-     * @return void
      */
     public function testInvalidIban(): void
     {
         $constraint = new Iban();
-        $iban = 'INVALID-IBAN';
+        $iban       = 'INVALID-IBAN';
 
         $this->ibanValidatorService
             ->expects($this->once())
@@ -117,8 +109,6 @@ class IbanValidatorTest extends TestCase
 
     /**
      * Tests null value is skipped.
-     *
-     * @return void
      */
     public function testNullValueIsSkipped(): void
     {
@@ -137,8 +127,6 @@ class IbanValidatorTest extends TestCase
 
     /**
      * Tests empty string value is skipped.
-     *
-     * @return void
      */
     public function testEmptyStringValueIsSkipped(): void
     {
@@ -157,14 +145,12 @@ class IbanValidatorTest extends TestCase
 
     /**
      * Tests custom message.
-     *
-     * @return void
      */
     public function testCustomMessage(): void
     {
         $customMessage = 'Custom IBAN error message';
-        $constraint = new Iban(message: $customMessage);
-        $iban = 'INVALID-IBAN';
+        $constraint    = new Iban(message: $customMessage);
+        $iban          = 'INVALID-IBAN';
 
         $this->ibanValidatorService
             ->expects($this->once())
@@ -195,8 +181,6 @@ class IbanValidatorTest extends TestCase
 
     /**
      * Tests that wrong constraint type throws UnexpectedTypeException.
-     *
-     * @return void
      */
     public function testWrongConstraintTypeThrows(): void
     {
@@ -207,8 +191,6 @@ class IbanValidatorTest extends TestCase
 
     /**
      * Tests that non-string value throws UnexpectedTypeException.
-     *
-     * @return void
      */
     public function testNonStringValueThrows(): void
     {

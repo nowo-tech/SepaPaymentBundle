@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Tests\Event;
 
+use DateTime;
 use Nowo\SepaPaymentBundle\Event\AfterCreditTransferGenerationEvent;
 use Nowo\SepaPaymentBundle\Event\AfterDirectDebitGenerationEvent;
 use Nowo\SepaPaymentBundle\Event\BeforeCreditTransferGenerationEvent;
@@ -24,12 +25,12 @@ class EventTest extends TestCase
     {
         $data = new CreditTransferData(
             'MSG-001',
-            new \DateTime(),
+            new DateTime(),
             'Test Company',
             'PMT-001',
             'ES9121000418450200051332',
             'Test Company Name',
-            new \DateTime('tomorrow')
+            new DateTime('tomorrow'),
         );
 
         $event = new BeforeCreditTransferGenerationEvent($data);
@@ -38,12 +39,12 @@ class EventTest extends TestCase
 
         $newData = new CreditTransferData(
             'MSG-002',
-            new \DateTime(),
+            new DateTime(),
             'New Company',
             'PMT-002',
             'ES9121000418450200051332',
             'New Company Name',
-            new \DateTime('tomorrow')
+            new DateTime('tomorrow'),
         );
 
         $event->setCreditTransferData($newData);
@@ -52,7 +53,7 @@ class EventTest extends TestCase
 
     public function testAfterCreditTransferGenerationEvent(): void
     {
-        $xml = '<?xml version="1.0" encoding="UTF-8"?><Document></Document>';
+        $xml       = '<?xml version="1.0" encoding="UTF-8"?><Document></Document>';
         $messageId = 'MSG-001';
 
         $event = new AfterCreditTransferGenerationEvent($xml, $messageId);
@@ -71,12 +72,12 @@ class EventTest extends TestCase
             'MSG-001',
             'Test Company',
             'PMT-001',
-            new \DateTime('tomorrow'),
+            new DateTime('tomorrow'),
             'Test Company Name',
             'ES9121000418450200051332',
             'FRST',
             'ES98ZZZ09999999999',
-            'CORE'
+            'CORE',
         );
 
         $event = new BeforeDirectDebitGenerationEvent($data);
@@ -87,12 +88,12 @@ class EventTest extends TestCase
             'MSG-002',
             'New Company',
             'PMT-002',
-            new \DateTime('tomorrow'),
+            new DateTime('tomorrow'),
             'New Company Name',
             'ES9121000418450200051332',
             'FRST',
             'ES98ZZZ09999999999',
-            'CORE'
+            'CORE',
         );
 
         $event->setDirectDebitData($newData);
@@ -101,7 +102,7 @@ class EventTest extends TestCase
 
     public function testAfterDirectDebitGenerationEvent(): void
     {
-        $xml = '<?xml version="1.0" encoding="UTF-8"?><Document></Document>';
+        $xml       = '<?xml version="1.0" encoding="UTF-8"?><Document></Document>';
         $messageId = 'MSG-001';
 
         $event = new AfterDirectDebitGenerationEvent($xml, $messageId);

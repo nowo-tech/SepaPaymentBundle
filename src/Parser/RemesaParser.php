@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Nowo\SepaPaymentBundle\Parser;
 
 use Deprecated;
+use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+
+use const E_USER_DEPRECATED;
 
 /**
  * SEPA Credit Transfer XML parser (deprecated).
@@ -22,8 +25,6 @@ class RemesaParser
 
     /**
      * Credit transfer parser instance.
-     *
-     * @var CreditTransferParser
      */
     private CreditTransferParser $parser;
 
@@ -42,14 +43,14 @@ class RemesaParser
      *
      * @param string $xml The XML content
      *
-     * @throws \InvalidArgumentException If the XML is invalid
+     * @throws InvalidArgumentException If the XML is invalid
      *
      * @return array<string, mixed> Parsed data
      */
     #[Deprecated(message: 'Use CreditTransferParser::parseCreditTransfer() instead', since: '1.1.0')]
     public function parseCreditTransfer(string $xml): array
     {
-        @trigger_error('RemesaParser is deprecated since 1.1.0. Use CreditTransferParser instead.', \E_USER_DEPRECATED);
+        @trigger_error('RemesaParser is deprecated since 1.1.0. Use CreditTransferParser instead.', E_USER_DEPRECATED);
 
         return $this->parser->parseCreditTransfer($xml);
     }
@@ -66,7 +67,7 @@ class RemesaParser
     #[Deprecated(message: 'Use CreditTransferParser::isValidCreditTransfer() instead', since: '1.1.0')]
     public function isValidCreditTransfer(string $xml): bool
     {
-        @trigger_error('RemesaParser is deprecated since 1.1.0. Use CreditTransferParser instead.', \E_USER_DEPRECATED);
+        @trigger_error('RemesaParser is deprecated since 1.1.0. Use CreditTransferParser instead.', E_USER_DEPRECATED);
 
         return $this->parser->isValidCreditTransfer($xml);
     }

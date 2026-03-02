@@ -4,11 +4,18 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Generator;
 
+use DateTime;
+use DateTimeInterface;
 use Digitick\Sepa\DomBuilder\DomBuilderFactory;
 use Digitick\Sepa\GroupHeader;
 use Digitick\Sepa\PaymentInformation;
 use Digitick\Sepa\TransferFile\CustomerCreditTransferFile;
 use Digitick\Sepa\TransferInformation\CustomerCreditTransferInformation;
+use DOMDocument;
+use DOMElement;
+use DOMXPath;
+use Exception;
+use InvalidArgumentException;
 use Nowo\SepaPaymentBundle\Event\AfterCreditTransferGenerationEvent;
 use Nowo\SepaPaymentBundle\Event\BeforeCreditTransferGenerationEvent;
 use Nowo\SepaPaymentBundle\Logger\SepaPaymentLogger;
@@ -21,6 +28,14 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\Translation\TranslatorInterface;
+
+use function count;
+use function is_array;
+use function is_string;
+use function sprintf;
+use function strlen;
+
+use const ENT_XML1;
 
 /**
  * SEPA Credit Transfer generator.
@@ -37,55 +52,43 @@ class CreditTransferGenerator
 
     /**
      * Whether to validate generated XML against XSD schema.
-     *
-     * @var bool
      */
     private bool $validateXsd = false;
 
     /**
      * XSD validator instance (optional).
-     *
-     * @var XsdValidator|null
      */
     private ?XsdValidator $xsdValidator = null;
 
     /**
      * Event dispatcher instance (optional).
-     *
-     * @var EventDispatcherInterface|null
      */
     private ?EventDispatcherInterface $eventDispatcher = null;
 
     /**
      * Logger instance (optional).
-     *
-     * @var SepaPaymentLogger|null
      */
     private ?SepaPaymentLogger $logger = null;
 
     /**
      * BIC lookup service instance (optional).
-     *
-     * @var BicLookupServiceInterface|null
      */
     private ?BicLookupServiceInterface $bicLookupService = null;
 
     /**
      * Translator instance.
-     *
-     * @var TranslatorInterface
      */
     private TranslatorInterface $translator;
 
     /**
      * Constructor.
      *
-     * @param IbanValidator                  $ibanValidator    IBAN validator instance
-     * @param TranslatorInterface            $translator       Translator for internationalized error messages
-     * @param XsdValidator|null              $xsdValidator     Optional XSD validator instance
-     * @param bool                           $validateXsd      Whether to enable XSD validation (default: false)
-     * @param EventDispatcherInterface|null  $eventDispatcher  Optional event dispatcher for Symfony events
-     * @param SepaPaymentLogger|null         $logger           Optional logger for structured logging
+     * @param IbanValidator $ibanValidator IBAN validator instance
+     * @param TranslatorInterface $translator Translator for internationalized error messages
+     * @param XsdValidator|null $xsdValidator Optional XSD validator instance
+     * @param bool $validateXsd Whether to enable XSD validation (default: false)
+     * @param EventDispatcherInterface|null $eventDispatcher Optional event dispatcher for Symfony events
+     * @param SepaPaymentLogger|null $logger Optional logger for structured logging
      * @param BicLookupServiceInterface|null $bicLookupService Optional BIC lookup service for auto-filling BIC
      */
     public function __construct(
@@ -97,11 +100,11 @@ class CreditTransferGenerator
         ?SepaPaymentLogger $logger = null,
         ?BicLookupServiceInterface $bicLookupService = null
     ) {
-        $this->translator = $translator;
-        $this->xsdValidator = $xsdValidator;
-        $this->validateXsd = $validateXsd && null !== $xsdValidator;
-        $this->eventDispatcher = $eventDispatcher;
-        $this->logger = $logger;
+        $this->translator       = $translator;
+        $this->xsdValidator     = $xsdValidator;
+        $this->validateXsd      = $validateXsd && $xsdValidator !== null;
+        $this->eventDispatcher  = $eventDispatcher;
+        $this->logger           = $logger;
         $this->bicLookupService = $bicLookupService;
     }
 
@@ -110,7 +113,7 @@ class CreditTransferGenerator
      *
      * @param array<string, mixed> $data The credit transfer data in array format
      *
-     * @throws \InvalidArgumentException If the data is invalid
+     * @throws InvalidArgumentException If the data is invalid
      *
      * @return string The XML content
      */
@@ -126,23 +129,23 @@ class CreditTransferGenerator
      *
      * @param CreditTransferData $creditTransferData The credit transfer data
      *
-     * @throws \InvalidArgumentException If the data is invalid
+     * @throws InvalidArgumentException If the data is invalid
      *
      * @return string The XML content
      */
     public function generate(CreditTransferData $creditTransferData): string
     {
         $transactionCount = count($creditTransferData->getTransactions());
-        $messageId = $creditTransferData->getMessageId();
+        $messageId        = $creditTransferData->getMessageId();
 
         // Log generation start
-        if (null !== $this->logger) {
+        if ($this->logger !== null) {
             $this->logger->logCreditTransferGenerationStart($messageId, $transactionCount);
         }
 
         try {
             // Dispatch before generation event
-            if (null !== $this->eventDispatcher) {
+            if ($this->eventDispatcher !== null) {
                 $beforeEvent = new BeforeCreditTransferGenerationEvent($creditTransferData);
                 $this->eventDispatcher->dispatch($beforeEvent);
                 $creditTransferData = $beforeEvent->getCreditTransferData();
@@ -153,7 +156,7 @@ class CreditTransferGenerator
             // Create and configure group header
             $groupHeader = new GroupHeader(
                 $creditTransferData->getMessageId(),
-                $creditTransferData->getInitiatingPartyName()
+                $creditTransferData->getInitiatingPartyName(),
             );
 
             // Create transfer file (pain.001.001.03 format) with group header
@@ -161,9 +164,9 @@ class CreditTransferGenerator
 
             // Auto-fill creditor BIC if missing
             $creditorBic = $creditTransferData->getCreditorBic();
-            if (null === $creditorBic && null !== $this->bicLookupService) {
+            if ($creditorBic === null && $this->bicLookupService !== null) {
                 $lookedUpBic = $this->bicLookupService->lookupBic($creditTransferData->getCreditorIban());
-                if (null !== $lookedUpBic) {
+                if ($lookedUpBic !== null) {
                     $creditorBic = $lookedUpBic;
                 }
             }
@@ -174,7 +177,7 @@ class CreditTransferGenerator
                 $this->ibanValidator->normalize($creditTransferData->getCreditorIban()),
                 $creditorBic ?? '',
                 $creditTransferData->getCreditorName(),
-                'EUR'
+                'EUR',
             );
             // Payment method is automatically set based on the transfer file type (CustomerCreditTransferFile)
             $paymentInformation->setBatchBooking($creditTransferData->isBatchBooking());
@@ -182,7 +185,7 @@ class CreditTransferGenerator
 
             // Set creditor address if available
             $creditorAddress = $creditTransferData->getCreditorAddress();
-            if (null !== $creditorAddress) {
+            if ($creditorAddress !== null) {
                 $this->setCreditorPostalAddress($paymentInformation, $creditorAddress);
             }
 
@@ -192,29 +195,29 @@ class CreditTransferGenerator
                     (int) round($transaction->getAmount() * 100), // Convert to cents
                     $this->ibanValidator->normalize($transaction->getCreditorIban()),
                     $transaction->getCreditorName(),
-                    $transaction->getEndToEndId()
+                    $transaction->getEndToEndId(),
                 );
 
                 // Auto-fill creditor BIC if missing
                 $creditorBic = $transaction->getCreditorBic();
-                if (null === $creditorBic && null !== $this->bicLookupService) {
+                if ($creditorBic === null && $this->bicLookupService !== null) {
                     $lookedUpBic = $this->bicLookupService->lookupBic($transaction->getCreditorIban());
-                    if (null !== $lookedUpBic) {
+                    if ($lookedUpBic !== null) {
                         $creditorBic = $lookedUpBic;
                     }
                 }
 
-                if (null !== $creditorBic) {
+                if ($creditorBic !== null) {
                     $transferInformation->setBic($creditorBic);
                 }
 
-                if (null !== $transaction->getRemittanceInformation()) {
+                if ($transaction->getRemittanceInformation() !== null) {
                     $transferInformation->setRemittanceInformation($transaction->getRemittanceInformation());
                 }
 
                 // Set creditor address if available
                 $creditorAddress = $transaction->getCreditorAddress();
-                if (null !== $creditorAddress) {
+                if ($creditorAddress !== null) {
                     $this->setPostalAddress($transferInformation, $creditorAddress);
                 }
 
@@ -225,38 +228,38 @@ class CreditTransferGenerator
 
             // Generate XML
             $domBuilder = DomBuilderFactory::createDomBuilder($transferFile);
-            $xml = $domBuilder->asXml();
+            $xml        = $domBuilder->asXml();
 
             // Add addresses to XML if they were provided
             $xml = $this->addAddressesToXml($xml, $creditTransferData);
 
             // Validate against XSD schema if enabled
-            if ($this->validateXsd && null !== $this->xsdValidator) {
+            if ($this->validateXsd && $this->xsdValidator !== null) {
                 try {
                     $this->xsdValidator->validateCreditTransfer($xml);
-                } catch (\InvalidArgumentException $e) {
+                } catch (InvalidArgumentException $e) {
                     $message = $this->translator->trans('validation.generated_xml_failed_xsd', ['%error%' => $e->getMessage()], 'nowo_sepa_payment');
 
-                    throw new \InvalidArgumentException($message, 0, $e);
+                    throw new InvalidArgumentException($message, 0, $e);
                 }
             }
 
             // Dispatch after generation event
-            if (null !== $this->eventDispatcher) {
+            if ($this->eventDispatcher !== null) {
                 $afterEvent = new AfterCreditTransferGenerationEvent($xml, $creditTransferData->getMessageId());
                 $this->eventDispatcher->dispatch($afterEvent);
                 $xml = $afterEvent->getXml();
             }
 
             // Log generation success
-            if (null !== $this->logger) {
+            if ($this->logger !== null) {
                 $this->logger->logCreditTransferGenerationSuccess($messageId, $transactionCount, strlen($xml));
             }
 
             return $xml;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Log generation failure
-            if (null !== $this->logger) {
+            if ($this->logger !== null) {
                 $this->logger->logCreditTransferGenerationFailure($messageId, $e->getMessage());
             }
 
@@ -267,7 +270,7 @@ class CreditTransferGenerator
     /**
      * Creates an HTTP Response with XML content for download.
      *
-     * @param string $xmlData  The XML content
+     * @param string $xmlData The XML content
      * @param string $filename The filename for the download (e.g., "credit-transfer.xml")
      *
      * @return Response The HTTP response with XML content
@@ -275,8 +278,8 @@ class CreditTransferGenerator
     public function createResponse(string $xmlData, string $filename): Response
     {
         return new Response($xmlData, Response::HTTP_OK, [
-            'Content-Type' => 'application/xml',
-        'Content-Disposition' => sprintf('attachment; filename="%s"', $filename),
+            'Content-Type'        => 'application/xml',
+            'Content-Disposition' => sprintf('attachment; filename="%s"', $filename),
         ]);
     }
 
@@ -286,7 +289,7 @@ class CreditTransferGenerator
      *
      * @param array<string, mixed> $data The data in array format
      *
-     * @throws \InvalidArgumentException If the data is invalid
+     * @throws InvalidArgumentException If the data is invalid
      *
      * @return CreditTransferData The CreditTransferData object
      */
@@ -301,27 +304,27 @@ class CreditTransferGenerator
             if (!isset($data[$field])) {
                 $message = $this->translator->trans('validation.missing_required_field', ['%field%' => $field], 'nowo_sepa_payment');
 
-                throw new \InvalidArgumentException($message);
+                throw new InvalidArgumentException($message);
             }
         }
 
         // Parse dates
-        $creationDate = $data['creationDate'] ?? new \DateTime();
+        $creationDate = $data['creationDate'] ?? new DateTime();
         if (is_string($creationDate)) {
-            $creationDate = new \DateTime($creationDate);
-        } elseif (!$creationDate instanceof \DateTimeInterface) {
+            $creationDate = new DateTime($creationDate);
+        } elseif (!$creationDate instanceof DateTimeInterface) {
             $message = $this->translator->trans('validation.invalid_creation_date', [], 'nowo_sepa_payment');
 
-            throw new \InvalidArgumentException($message);
+            throw new InvalidArgumentException($message);
         }
 
         $requestedExecutionDate = $data['requestedExecutionDate'];
         if (is_string($requestedExecutionDate)) {
-            $requestedExecutionDate = new \DateTime($requestedExecutionDate);
-        } elseif (!$requestedExecutionDate instanceof \DateTimeInterface) {
+            $requestedExecutionDate = new DateTime($requestedExecutionDate);
+        } elseif (!$requestedExecutionDate instanceof DateTimeInterface) {
             $message = $this->translator->trans('validation.invalid_execution_date', [], 'nowo_sepa_payment');
 
-            throw new \InvalidArgumentException($message);
+            throw new InvalidArgumentException($message);
         }
 
         $creditTransferData = new CreditTransferData(
@@ -331,7 +334,7 @@ class CreditTransferGenerator
             $data['paymentInfoId'],
             $data['debtorIban'],
             $data['debtorName'],
-            $requestedExecutionDate
+            $requestedExecutionDate,
         );
 
         if (isset($data['debtorBic'])) {
@@ -352,7 +355,7 @@ class CreditTransferGenerator
                 $data['debtor_street'] ?? $data['debtorStreet'] ?? null,
                 $data['debtor_city'] ?? $data['debtorCity'] ?? null,
                 $data['debtor_postal_code'] ?? $data['debtorPostalCode'] ?? null,
-                $data['debtor_country'] ?? $data['debtorCountry'] ?? null
+                $data['debtor_country'] ?? $data['debtorCountry'] ?? null,
             );
         }
 
@@ -361,7 +364,7 @@ class CreditTransferGenerator
             foreach ($data['transactions'] as $transactionData) {
                 // Normalize transaction array keys
                 $transactionData = $this->normalizeTransactionArrayKeys($transactionData);
-                $transaction = $this->createTransactionFromArray($transactionData);
+                $transaction     = $this->createTransactionFromArray($transactionData);
                 $creditTransferData->addTransaction($transaction);
             }
         }
@@ -380,24 +383,24 @@ class CreditTransferGenerator
     private function normalizeArrayKeys(array $data): array
     {
         $mapping = [
-            'message_id' => 'reference',
-            'initiating_party_name' => 'initiatingPartyName',
-            'payment_name' => 'paymentInfoId',
-            'payment_info_id' => 'paymentInfoId',
-            'creation_date' => 'creationDate',
+            'message_id'               => 'reference',
+            'initiating_party_name'    => 'initiatingPartyName',
+            'payment_name'             => 'paymentInfoId',
+            'payment_info_id'          => 'paymentInfoId',
+            'creation_date'            => 'creationDate',
             'requested_execution_date' => 'requestedExecutionDate',
-            'debtor_name' => 'debtorName',
-            'debtor_iban' => 'debtorIban',
-            'debtor_bic' => 'debtorBic',
-            'batch_booking' => 'batchBooking',
-            'items' => 'transactions',
-            'debtor_address' => 'debtorAddress',
+            'debtor_name'              => 'debtorName',
+            'debtor_iban'              => 'debtorIban',
+            'debtor_bic'               => 'debtorBic',
+            'batch_booking'            => 'batchBooking',
+            'items'                    => 'transactions',
+            'debtor_address'           => 'debtorAddress',
         ];
 
         $normalized = [];
         foreach ($data as $key => $value) {
             // If key exists in mapping, use mapped key, otherwise keep original
-            $normalizedKey = $mapping[$key] ?? $key;
+            $normalizedKey              = $mapping[$key] ?? $key;
             $normalized[$normalizedKey] = $value;
         }
 
@@ -414,20 +417,20 @@ class CreditTransferGenerator
     private function normalizeTransactionArrayKeys(array $data): array
     {
         $mapping = [
-            'instruction_id' => 'endToEndId',
-            'end_to_end_id' => 'endToEndId',
-            'creditor_iban' => 'creditorIban',
-            'creditor_name' => 'creditorName',
-            'creditor_bic' => 'creditorBic',
-            'information' => 'remittanceInformation',
+            'instruction_id'         => 'endToEndId',
+            'end_to_end_id'          => 'endToEndId',
+            'creditor_iban'          => 'creditorIban',
+            'creditor_name'          => 'creditorName',
+            'creditor_bic'           => 'creditorBic',
+            'information'            => 'remittanceInformation',
             'remittance_information' => 'remittanceInformation',
-            'creditor_address' => 'creditorAddress',
+            'creditor_address'       => 'creditorAddress',
         ];
 
         $normalized = [];
         foreach ($data as $key => $value) {
             // If key exists in mapping, use mapped key, otherwise keep original
-            $normalizedKey = $mapping[$key] ?? $key;
+            $normalizedKey              = $mapping[$key] ?? $key;
             $normalized[$normalizedKey] = $value;
         }
 
@@ -439,7 +442,7 @@ class CreditTransferGenerator
      *
      * @param array<string, mixed> $transactionData The transaction data
      *
-     * @throws \InvalidArgumentException If the data is invalid
+     * @throws InvalidArgumentException If the data is invalid
      *
      * @return Transaction The Transaction object
      */
@@ -450,7 +453,7 @@ class CreditTransferGenerator
             if (!isset($transactionData[$field])) {
                 $message = $this->translator->trans('validation.missing_required_transaction_field', ['%field%' => $field], 'nowo_sepa_payment');
 
-                throw new \InvalidArgumentException($message);
+                throw new InvalidArgumentException($message);
             }
         }
 
@@ -458,7 +461,7 @@ class CreditTransferGenerator
         $amount = (float) $transactionData['amount'];
         // If amount seems to be in cents (very large number), convert to currency units
         if ($amount > 10000) {
-            $amount = $amount / 100;
+            $amount /= 100;
         }
 
         // Currency defaults to EUR if not provided
@@ -469,7 +472,7 @@ class CreditTransferGenerator
             $amount,
             $currency,
             $transactionData['creditorIban'],
-            $transactionData['creditorName']
+            $transactionData['creditorName'],
         );
 
         if (isset($transactionData['creditorBic'])) {
@@ -490,7 +493,7 @@ class CreditTransferGenerator
                 $transactionData['creditor_street'] ?? $transactionData['creditorStreet'] ?? null,
                 $transactionData['creditor_city'] ?? $transactionData['creditorCity'] ?? null,
                 $transactionData['creditor_postal_code'] ?? $transactionData['creditorPostalCode'] ?? null,
-                $transactionData['creditor_country'] ?? $transactionData['creditorCountry'] ?? null
+                $transactionData['creditor_country'] ?? $transactionData['creditorCountry'] ?? null,
             );
         }
 
@@ -503,9 +506,7 @@ class CreditTransferGenerator
      * are also added via DOM manipulation in addAddressesToXml() method.
      *
      * @param CustomerCreditTransferInformation $transferInformation The transfer information object
-     * @param array<string, string|null>        $address             Address array with keys: street, city, postalCode, country
-     *
-     * @return void
+     * @param array<string, string|null> $address Address array with keys: street, city, postalCode, country
      */
     private function setPostalAddress(
         CustomerCreditTransferInformation $transferInformation,
@@ -514,19 +515,19 @@ class CreditTransferGenerator
         // Try to set postal address using available methods from the library
         // If these methods don't exist, addresses will be added via DOM manipulation
         if (method_exists($transferInformation, 'setCountry')) {
-            /** @phpstan-ignore-next-line */
+            /* @phpstan-ignore-next-line */
             $transferInformation->setCountry($address['country'] ?? '');
         }
         if (method_exists($transferInformation, 'setTownName')) {
-            /** @phpstan-ignore-next-line */
+            /* @phpstan-ignore-next-line */
             $transferInformation->setTownName($address['city'] ?? '');
         }
         if (method_exists($transferInformation, 'setTownName')) {
-            /** @phpstan-ignore-next-line */
+            /* @phpstan-ignore-next-line */
             $transferInformation->setPostCode($address['postalCode'] ?? '');
         }
         if (method_exists($transferInformation, 'setPostCode')) {
-            /** @phpstan-ignore-next-line */
+            /* @phpstan-ignore-next-line */
             $transferInformation->setStreetName($address['street'] ?? '');
         }
 
@@ -539,10 +540,8 @@ class CreditTransferGenerator
      * Note: The Digitick\Sepa library may not support this directly, so addresses
      * are also added via DOM manipulation in addAddressesToXml() method.
      *
-     * @param PaymentInformation         $paymentInformation The payment information object
-     * @param array<string, string|null> $address            Address array with keys: street, city, postalCode, country
-     *
-     * @return void
+     * @param PaymentInformation $paymentInformation The payment information object
+     * @param array<string, string|null> $address Address array with keys: street, city, postalCode, country
      */
     private function setCreditorPostalAddress(
         PaymentInformation $paymentInformation,
@@ -551,28 +550,28 @@ class CreditTransferGenerator
         // Try to set creditor postal address using available methods from the library
         // If these methods don't exist, addresses will be added via DOM manipulation
         if (method_exists($paymentInformation, 'setCreditorPostalAddress')) {
-            /** @phpstan-ignore-next-line */
+            /* @phpstan-ignore-next-line */
             $paymentInformation->setCreditorPostalAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
                 $address['postalCode'] ?? '',
-                $address['country'] ?? ''
+                $address['country'] ?? '',
             );
         } elseif (method_exists($paymentInformation, 'setPostalAddress')) {
-            /** @phpstan-ignore-next-line */
+            /* @phpstan-ignore-next-line */
             $paymentInformation->setPostalAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
                 $address['postalCode'] ?? '',
-                $address['country'] ?? ''
+                $address['country'] ?? '',
             );
         } elseif (method_exists($paymentInformation, 'setAddress')) {
-            /** @phpstan-ignore-next-line */
+            /* @phpstan-ignore-next-line */
             $paymentInformation->setAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
                 $address['postalCode'] ?? '',
-                $address['country'] ?? ''
+                $address['country'] ?? '',
             );
         }
         // Note: Addresses are always added to XML via DOM manipulation in addAddressesToXml()
@@ -584,7 +583,7 @@ class CreditTransferGenerator
      * This method ensures addresses are included in the final XML even if the Digitick\Sepa
      * library doesn't support them directly through its API methods.
      *
-     * @param string             $xml                The generated XML from the library
+     * @param string $xml The generated XML from the library
      * @param CreditTransferData $creditTransferData The credit transfer data containing creditor and debtor addresses
      *
      * @return string The XML with addresses added via DOM manipulation
@@ -592,24 +591,24 @@ class CreditTransferGenerator
     private function addAddressesToXml(string $xml, CreditTransferData $creditTransferData): string
     {
         try {
-            $dom = new \DOMDocument();
+            $dom                     = new DOMDocument();
             $dom->preserveWhiteSpace = false;
-            $dom->formatOutput = true;
+            $dom->formatOutput       = true;
 
             if (!@$dom->loadXML($xml)) {
                 // If XML is invalid, return original
                 return $xml;
             }
 
-            $xpath = new \DOMXPath($dom);
+            $xpath = new DOMXPath($dom);
             // Detect namespace from root element
-            $root = $dom->documentElement;
+            $root      = $dom->documentElement;
             $namespace = $root->namespaceURI ?? 'urn:iso:std:iso:20022:tech:xsd:pain.001.001.03';
             $xpath->registerNamespace('ns', $namespace);
 
             // Add creditor address if available
             $creditorAddress = $creditTransferData->getCreditorAddress();
-            if (null !== $creditorAddress) {
+            if ($creditorAddress !== null) {
                 $this->addDebtorAddressToDom($dom, $xpath, $creditorAddress, $namespace);
             }
 
@@ -617,13 +616,13 @@ class CreditTransferGenerator
             $transactions = $creditTransferData->getTransactions();
             foreach ($transactions as $index => $transaction) {
                 $creditorAddress = $transaction->getCreditorAddress();
-                if (null !== $creditorAddress) {
+                if ($creditorAddress !== null) {
                     $this->addCreditorAddressToDom($dom, $xpath, $creditorAddress, $index, $namespace);
                 }
             }
 
             return $dom->saveXML();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // If DOM manipulation fails, return original XML
             return $xml;
         }
@@ -632,14 +631,12 @@ class CreditTransferGenerator
     /**
      * Adds creditor address to DOM.
      *
-     * @param \DOMDocument $dom       The DOM document
-     * @param \DOMXPath    $xpath     The XPath object
-     * @param array        $address   The address array
-     * @param string       $namespace The namespace URI
-     *
-     * @return void
+     * @param DOMDocument $dom The DOM document
+     * @param DOMXPath $xpath The XPath object
+     * @param array $address The address array
+     * @param string $namespace The namespace URI
      */
-    private function addDebtorAddressToDom(\DOMDocument $dom, \DOMXPath $xpath, array $address, string $namespace): void
+    private function addDebtorAddressToDom(DOMDocument $dom, DOMXPath $xpath, array $address, string $namespace): void
     {
         // Find Cdtr (Creditor) element
         $creditorNodes = $xpath->query('//ns:Dbtr');
@@ -658,15 +655,13 @@ class CreditTransferGenerator
     /**
      * Adds debtor address to DOM.
      *
-     * @param \DOMDocument $dom       The DOM document
-     * @param \DOMXPath    $xpath     The XPath object
-     * @param array        $address   The address array
-     * @param int          $index     Transaction index
-     * @param string       $namespace The namespace URI
-     *
-     * @return void
+     * @param DOMDocument $dom The DOM document
+     * @param DOMXPath $xpath The XPath object
+     * @param array $address The address array
+     * @param int $index Transaction index
+     * @param string $namespace The namespace URI
      */
-    private function addCreditorAddressToDom(\DOMDocument $dom, \DOMXPath $xpath, array $address, int $index, string $namespace): void
+    private function addCreditorAddressToDom(DOMDocument $dom, DOMXPath $xpath, array $address, int $index, string $namespace): void
     {
         // Find Dbtr (Debtor) elements
         $debtorNodes = $xpath->query('//ns:Cdtr');
@@ -690,14 +685,12 @@ class CreditTransferGenerator
      * Creates a PstlAdr (Postal Address) element in the DOM.
      * Only creates the element if at least one address field is provided.
      *
-     * @param \DOMDocument $dom        The DOM document
-     * @param \DOMElement  $parentNode The parent node
-     * @param array        $address    The address array
-     * @param string       $namespace  The namespace URI
-     *
-     * @return void
+     * @param DOMDocument $dom The DOM document
+     * @param DOMElement $parentNode The parent node
+     * @param array $address The address array
+     * @param string $namespace The namespace URI
      */
-    private function createPostalAddressElement(\DOMDocument $dom, \DOMElement $parentNode, array $address, string $namespace): void
+    private function createPostalAddressElement(DOMDocument $dom, DOMElement $parentNode, array $address, string $namespace): void
     {
         // Check if at least one address field is provided
         $hasAddress = !empty($address['street'])
@@ -762,23 +755,21 @@ class CreditTransferGenerator
      *
      * @param CreditTransferData $creditTransferData The credit transfer data to validate
      *
-     * @throws \InvalidArgumentException If the data is invalid
-     *
-     * @return void
+     * @throws InvalidArgumentException If the data is invalid
      */
     private function validateCreditTransferData(CreditTransferData $creditTransferData): void
     {
         if (!$this->ibanValidator->isValid($creditTransferData->getCreditorIban())) {
             $message = $this->translator->trans('validation.invalid_creditor_iban', ['%iban%' => $creditTransferData->getCreditorIban()], 'nowo_sepa_payment');
 
-            throw new \InvalidArgumentException($message);
+            throw new InvalidArgumentException($message);
         }
 
         foreach ($creditTransferData->getTransactions() as $transaction) {
             if (!$this->ibanValidator->isValid($transaction->getCreditorIban())) {
                 $message = $this->translator->trans('validation.invalid_creditor_iban', ['%iban%' => $transaction->getCreditorIban()], 'nowo_sepa_payment');
 
-                throw new \InvalidArgumentException($message);
+                throw new InvalidArgumentException($message);
             }
         }
     }
