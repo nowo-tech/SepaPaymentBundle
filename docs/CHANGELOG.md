@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - No changes yet.
 
+## [1.2.15] - 2026-03-04
+
+### Added
+- **MandateStatusTest**: Unit tests for `MandateStatus::getValues()` and `MandateStatus::isValid()`
+- **BicLookupService**: Tests for country not in switch (default branch), addMapping then lookup for existing country
+- **CreditCardValidator**: Tests for getCardType (Diners Club, JCB), mask with short number, getCardType with zero
+- **CreditTransferGenerator**: Test for BIC lookup filling transaction creditor BIC when IBAN is Spanish
+
+### Improved
+- **Demo Symfony 6.4**: Pinned `brick/math` to `^0.13` in `composer.json` for PHP 8.1 compatibility (avoids resolution to 0.14.x which requires PHP 8.2+)
+- **Test coverage**: Line coverage improved; `@codeCoverageIgnore` added for library-compatibility branches and defensive paths in CreditTransferGenerator and DirectDebitGenerator (alternative Digitick\Sepa API and DOM fallbacks that are not exercised with current library version)
+
+### Backward Compatibility
+- **No breaking changes**: Patch release; no migration required.
+
 ## [1.2.12] - 2026-03-04
 
 ### Added

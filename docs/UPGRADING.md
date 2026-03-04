@@ -2,6 +2,23 @@
 
 This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
+## Upgrading from 1.2.12 to 1.2.15
+
+### ✨ Added (1.2.15)
+
+- **Tests**: MandateStatusTest, additional BicLookupService and CreditCardValidator tests, CreditTransferGenerator BIC lookup test for transactions.
+
+### 🔧 Improved (1.2.15)
+
+- **Demo Symfony 6.4**: `brick/math` constrained to `^0.13` so dependencies resolve on PHP 8.1 (avoids brick/math 0.14 requiring PHP 8.2+).
+- **Test coverage**: Coverage improvements and `@codeCoverageIgnore` for library-compatibility and defensive branches in generators (no behaviour change).
+
+### Backward Compatibility
+
+- **No breaking changes**: Patch release; no migration required.
+
+---
+
 ## Upgrading from 1.2.11 to 1.2.12
 
 ### ✨ Added (1.2.12)
