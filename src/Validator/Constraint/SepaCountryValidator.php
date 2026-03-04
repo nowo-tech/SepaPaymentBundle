@@ -15,8 +15,8 @@ use function is_string;
  * SEPA Country constraint validator.
  * Uses SepaCountryValidator service for validation logic.
  *
- * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
- * @copyright 2025 Nowo.tech
+ * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
+ * @copyright 2026 Nowo.tech
  */
 class SepaCountryValidator extends ConstraintValidator
 {

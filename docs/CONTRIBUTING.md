@@ -4,7 +4,7 @@ Thank you for your interest in contributing to SEPA Payment Bundle! This documen
 
 ## Code of Conduct
 
-This project adheres to a code of conduct. By participating, you are expected to uphold this code. Please report unacceptable behavior to hectorfranco@nowo.com.
+This project adheres to a code of conduct. By participating, you are expected to uphold this code. Please report unacceptable behavior to hectorfranco@nowo.tech.
 
 ## How can I contribute?
 
@@ -163,7 +163,7 @@ class MyClass
 If you have questions about contributing, please:
 
 - Open an issue with the `question` label
-- Contact the maintainer: hectorfranco@nowo.com
+- Contact the maintainer: hectorfranco@nowo.tech
 
 Thank you for contributing! 🎉
 

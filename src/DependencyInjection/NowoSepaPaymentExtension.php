@@ -14,8 +14,8 @@ use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
  * Extension class that loads and manages the SepaPayment bundle configuration.
  * Handles service definitions and configuration processing.
  *
- * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
- * @copyright 2025 Nowo.tech
+ * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
+ * @copyright 2026 Nowo.tech
  */
 class NowoSepaPaymentExtension extends Extension
 {

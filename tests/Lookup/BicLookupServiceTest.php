@@ -11,8 +11,8 @@ use PHPUnit\Framework\TestCase;
 /**
  * Test cases for BicLookupService.
  *
- * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
- * @copyright 2025 Nowo.tech
+ * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
+ * @copyright 2026 Nowo.tech
  */
 class BicLookupServiceTest extends TestCase
 {
@@ -245,5 +245,27 @@ class BicLookupServiceTest extends TestCase
         $this->lookupService->addMapping('XX', '0000', 'TESTXX1X');
         $this->lookupService->addMapping('XX', '0001', 'TESTXX2X');
         $this->assertTrue(true);
+    }
+
+    /**
+     * Tests lookupBic for a country not in the switch (default branch returns null).
+     */
+    public function testLookupBicForCountryNotInSwitchReturnsNull(): void
+    {
+        // Austria (AT) is not in the BIC database switch
+        $iban = 'AT611904300234573201';
+        $bic  = $this->lookupService->lookupBic($iban);
+
+        $this->assertNull($bic);
+    }
+
+    /**
+     * Tests addMapping then lookup uses the custom mapping for existing country.
+     */
+    public function testAddMappingForExistingCountryThenLookup(): void
+    {
+        $this->lookupService->addMapping('ES', '2100', 'CUSTOMES');
+        $bic = $this->lookupService->lookupBic('ES9121000418450200051332');
+        $this->assertEquals('CUSTOMES', $bic);
     }
 }

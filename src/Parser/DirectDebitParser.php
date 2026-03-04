@@ -17,8 +17,8 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
  * SEPA Direct Debit XML parser.
  * Parses SEPA Direct Debit XML files to extract information.
  *
- * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
- * @copyright 2025 Nowo.tech
+ * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
+ * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
 class DirectDebitParser
