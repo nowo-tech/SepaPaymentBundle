@@ -585,7 +585,7 @@ class DirectDebitGenerator
                 $address['postalCode'] ?? '',
                 $address['country'] ?? '',
             );
-            // @codeCoverageIgnoreEnd
+        // @codeCoverageIgnoreEnd
         } elseif (method_exists($paymentInformation, 'setAddress')) {
             // @codeCoverageIgnoreStart - alternative library API
             $paymentInformation->setAddress(
