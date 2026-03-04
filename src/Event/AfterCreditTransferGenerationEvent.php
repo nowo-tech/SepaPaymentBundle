@@ -16,25 +16,21 @@ use Symfony\Contracts\EventDispatcher\Event;
 class AfterCreditTransferGenerationEvent extends Event
 {
     /**
-     * Generated XML (can be modified by listeners).
-     */
-    private string $xml;
-
-    /**
-     * Message ID.
-     */
-    private string $messageId;
-
-    /**
      * Constructor.
      *
      * @param string $xml The generated XML
      * @param string $messageId The message ID
      */
-    public function __construct(string $xml, string $messageId)
-    {
-        $this->xml       = $xml;
-        $this->messageId = $messageId;
+    public function __construct(
+        /**
+         * Generated XML (can be modified by listeners).
+         */
+        private string $xml,
+        /**
+         * Message ID.
+         */
+        private readonly string $messageId
+    ) {
     }
 
     /**

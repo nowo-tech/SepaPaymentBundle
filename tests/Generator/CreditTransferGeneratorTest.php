@@ -1049,9 +1049,7 @@ class CreditTransferGeneratorTest extends TestCase
         $testLogger = new TestLogger();
         $sepaLogger = new SepaPaymentLogger($testLogger);
         $translator = $this->createMock(TranslatorInterface::class);
-        $translator->method('trans')->willReturnCallback(static function ($id, $parameters = [], $domain = null) {
-            return $id;
-        });
+        $translator->method('trans')->willReturnCallback(static fn ($id, $parameters = [], $domain = null) => $id);
         $generator = new CreditTransferGenerator(new IbanValidator(), $translator, null, false, null, $sepaLogger);
 
         $creditTransferData = new CreditTransferData(
@@ -1108,7 +1106,7 @@ class CreditTransferGeneratorTest extends TestCase
         try {
             $generator->generate($creditTransferData);
             $this->fail('Expected InvalidArgumentException');
-        } catch (InvalidArgumentException $e) {
+        } catch (InvalidArgumentException) {
             $this->assertCount(2, $testLogger->logs); // Start and failure logs
             $this->assertEquals('SEPA Credit Transfer generation started', $testLogger->logs[0]['message']);
             $this->assertEquals('SEPA Credit Transfer generation failed', $testLogger->logs[1]['message']);
@@ -1423,7 +1421,6 @@ class CreditTransferGeneratorTest extends TestCase
         );
         $ref    = new ReflectionClass(CreditTransferGenerator::class);
         $method = $ref->getMethod('addAddressesToXml');
-        $method->setAccessible(true);
         $result = $method->invoke($this->generator, $invalidXml, $creditTransferData);
         $this->assertSame($invalidXml, $result);
     }
@@ -1449,7 +1446,6 @@ class CreditTransferGeneratorTest extends TestCase
         $creditTransferData->addTransaction($transaction);
         $ref    = new ReflectionClass(CreditTransferGenerator::class);
         $method = $ref->getMethod('addAddressesToXml');
-        $method->setAccessible(true);
         $result = $method->invoke($this->generator, $xmlNoNs, $creditTransferData);
         $this->assertStringContainsString('PstlAdr', $result);
         $this->assertStringContainsString('S1', $result);
@@ -1476,7 +1472,6 @@ class CreditTransferGeneratorTest extends TestCase
         $creditTransferData->setCreditorAddress(['street' => 'NewStreet', 'country' => 'ES']);
         $ref    = new ReflectionClass(CreditTransferGenerator::class);
         $method = $ref->getMethod('addAddressesToXml');
-        $method->setAccessible(true);
         $result = $method->invoke($this->generator, $xmlWithExisting, $creditTransferData);
         $this->assertStringContainsString('NewStreet', $result);
         $this->assertStringNotContainsString('Old', $result);
@@ -1506,7 +1501,6 @@ class CreditTransferGeneratorTest extends TestCase
         $creditTransferData->addTransaction($t2);
         $ref    = new ReflectionClass(CreditTransferGenerator::class);
         $method = $ref->getMethod('addAddressesToXml');
-        $method->setAccessible(true);
         $result = $method->invoke($this->generator, $xmlOneCdtr, $creditTransferData);
         $this->assertStringContainsString('First', $result);
         $this->assertStringNotContainsString('Second', $result);
@@ -1530,7 +1524,6 @@ class CreditTransferGeneratorTest extends TestCase
         $creditTransferData->setCreditorAddress(['street' => '', 'city' => '', 'postalCode' => '', 'country' => '']);
         $ref    = new ReflectionClass(CreditTransferGenerator::class);
         $method = $ref->getMethod('addAddressesToXml');
-        $method->setAccessible(true);
         $result = $method->invoke($this->generator, $xmlNoNs, $creditTransferData);
         $this->assertStringNotContainsString('PstlAdr', $result);
     }
@@ -1553,7 +1546,6 @@ class CreditTransferGeneratorTest extends TestCase
         $creditTransferData->setCreditorAddress(['street' => 'Street', 'country' => 'ES']);
         $ref    = new ReflectionClass(CreditTransferGenerator::class);
         $method = $ref->getMethod('addAddressesToXml');
-        $method->setAccessible(true);
         $result = $method->invoke($this->generator, $xmlNoNm, $creditTransferData);
         $this->assertStringContainsString('PstlAdr', $result);
         $this->assertStringContainsString('Street', $result);

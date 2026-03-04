@@ -58,11 +58,11 @@ class Mandate
      * @param string $sequenceType Sequence type (FRST, RCUR, OOFF, FNAL)
      */
     public function __construct(
-        private string $mandateId,
-        private DateTimeInterface $signatureDate,
-        private string $debtorIban,
-        private string $debtorName,
-        private string $type = 'CORE',
+        private readonly string $mandateId,
+        private readonly DateTimeInterface $signatureDate,
+        private readonly string $debtorIban,
+        private readonly string $debtorName,
+        private readonly string $type = 'CORE',
         private string $sequenceType = 'FRST'
     ) {
     }
@@ -213,9 +213,10 @@ class Mandate
      */
     public function getExpirationDate(): ?DateTimeInterface
     {
-        if ($this->expirationDate === null) {
-            // Default: 36 months after signature date
-            $expirationDate = clone $this->signatureDate;
+        if (!$this->expirationDate instanceof DateTimeInterface) {
+            // PHPStan: DateTimeInterface has no modify(); only DateTime/DateTimeImmutable do.
+            // Fix: create DateTime instance from interface to call modify().
+            $expirationDate = DateTime::createFromInterface($this->signatureDate);
             $expirationDate->modify('+36 months');
 
             return $expirationDate;
@@ -246,7 +247,7 @@ class Mandate
     public function isExpired(?DateTimeInterface $checkDate = null): bool
     {
         $expirationDate = $this->getExpirationDate();
-        if ($expirationDate === null) {
+        if (!$expirationDate instanceof DateTimeInterface) {
             return false;
         }
 

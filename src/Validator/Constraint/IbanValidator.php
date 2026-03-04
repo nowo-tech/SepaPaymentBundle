@@ -21,24 +21,23 @@ use function is_string;
 class IbanValidator extends ConstraintValidator
 {
     /**
-     * IBAN validator service.
-     */
-    private IbanValidatorService $ibanValidator;
-
-    /**
      * Constructor.
      *
      * @param IbanValidatorService $ibanValidator IBAN validator service
      */
-    public function __construct(IbanValidatorService $ibanValidator)
-    {
-        $this->ibanValidator = $ibanValidator;
+    public function __construct(
+        /**
+         * IBAN validator service.
+         */
+        private readonly IbanValidatorService $ibanValidator
+    ) {
     }
 
     /**
      * {@inheritdoc}
      */
-    public function validate($value, Constraint $constraint): void
+    /** PHPStan: missingType.parameter — $value typed as mixed. */
+    public function validate(mixed $value, Constraint $constraint): void
     {
         if (!$constraint instanceof Iban) {
             throw new UnexpectedTypeException($constraint, Iban::class);

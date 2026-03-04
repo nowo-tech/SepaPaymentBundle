@@ -33,9 +33,7 @@ class RemesaParserTest extends TestCase
     #[IgnoreDeprecations]
     public function testParseCreditTransfer(): void
     {
-        set_error_handler(static function (int $errno): bool {
-            return $errno === E_DEPRECATED || $errno === E_USER_DEPRECATED;
-        }, E_ALL);
+        set_error_handler(static fn (int $errno): bool => $errno === E_DEPRECATED || $errno === E_USER_DEPRECATED, E_ALL);
 
         try {
             $this->runParseCreditTransfer();
@@ -79,9 +77,7 @@ class RemesaParserTest extends TestCase
     #[IgnoreDeprecations]
     public function testIsValidCreditTransfer(): void
     {
-        set_error_handler(static function (int $errno): bool {
-            return $errno === E_DEPRECATED || $errno === E_USER_DEPRECATED;
-        }, E_ALL);
+        set_error_handler(static fn (int $errno): bool => $errno === E_DEPRECATED || $errno === E_USER_DEPRECATED, E_ALL);
 
         try {
             $this->runIsValidCreditTransfer();

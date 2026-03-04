@@ -100,7 +100,7 @@ class BicLookupServiceTest extends TestCase
     public function testLookupBicWithCache(): void
     {
         // Test without cache (cache is optional)
-        $lookupService = new BicLookupService($this->ibanValidator, null);
+        $lookupService = new BicLookupService($this->ibanValidator);
         $iban          = 'ES9121000418450200051332';
         $bic           = $lookupService->lookupBic($iban);
 
@@ -110,7 +110,7 @@ class BicLookupServiceTest extends TestCase
     public function testLookupBicWithCacheHit(): void
     {
         // Test without cache (cache is optional)
-        $lookupService = new BicLookupService($this->ibanValidator, null);
+        $lookupService = new BicLookupService($this->ibanValidator);
         $iban          = 'ES9121000418450200051332';
         $bic           = $lookupService->lookupBic($iban);
 
@@ -197,8 +197,10 @@ class BicLookupServiceTest extends TestCase
     {
         $storage = [];
         $cache   = new class($storage) {
+            /** @var array<string, mixed> */
             private array $storage;
 
+            /** @param array<string, mixed> $storage */
             public function __construct(array &$storage)
             {
                 $this->storage = &$storage;

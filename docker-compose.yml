@@ -1,5 +1,3 @@
-# Single compose for dev and tests (PCOV in Dockerfile for coverage)
-name: sepa-payment-bundle
 services:
   php:
     build:
@@ -10,12 +8,32 @@ services:
     volumes:
       - .:/app
       - composer-cache:/root/.composer/cache
-      - coverage-data:/app/coverage
     environment:
       - COMPOSER_ALLOW_SUPERUSER=1
+      - XDEBUG_MODE=coverage
     command: ["tail", "-f", "/dev/null"]
     networks:
       - sepa-payment-bundle-network
+
+  # Service for running tests
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sepa-payment-bundle-test
+    working_dir: /app
+    volumes:
+      - .:/app
+      - composer-cache:/root/.composer/cache
+      - coverage-data:/app/coverage
+    environment:
+      - COMPOSER_ALLOW_SUPERUSER=1
+      - XDEBUG_MODE=coverage
+    command: ["tail", "-f", "/dev/null"]
+    networks:
+      - sepa-payment-bundle-network
+    profiles:
+      - test
 
 volumes:
   composer-cache:
@@ -26,3 +44,4 @@ volumes:
 networks:
   sepa-payment-bundle-network:
     driver: bridge
+

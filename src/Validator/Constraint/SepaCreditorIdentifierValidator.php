@@ -21,24 +21,23 @@ use function is_string;
 class SepaCreditorIdentifierValidator extends ConstraintValidator
 {
     /**
-     * SEPA Creditor Identifier validator service.
-     */
-    private SepaCreditorIdentifierValidatorService $sepaCreditorIdentifierValidator;
-
-    /**
      * Constructor.
      *
      * @param SepaCreditorIdentifierValidatorService $sepaCreditorIdentifierValidator SEPA Creditor Identifier validator service
      */
-    public function __construct(SepaCreditorIdentifierValidatorService $sepaCreditorIdentifierValidator)
-    {
-        $this->sepaCreditorIdentifierValidator = $sepaCreditorIdentifierValidator;
+    public function __construct(
+        /**
+         * SEPA Creditor Identifier validator service.
+         */
+        private readonly SepaCreditorIdentifierValidatorService $sepaCreditorIdentifierValidator
+    ) {
     }
 
     /**
      * {@inheritdoc}
      */
-    public function validate($value, Constraint $constraint): void
+    /** PHPStan: missingType.parameter — $value typed as mixed. */
+    public function validate(mixed $value, Constraint $constraint): void
     {
         if (!$constraint instanceof SepaCreditorIdentifier) {
             throw new UnexpectedTypeException($constraint, SepaCreditorIdentifier::class);

@@ -21,24 +21,23 @@ use function is_string;
 class BicValidator extends ConstraintValidator
 {
     /**
-     * BIC validator service.
-     */
-    private BicValidatorService $bicValidator;
-
-    /**
      * Constructor.
      *
      * @param BicValidatorService $bicValidator BIC validator service
      */
-    public function __construct(BicValidatorService $bicValidator)
-    {
-        $this->bicValidator = $bicValidator;
+    public function __construct(
+        /**
+         * BIC validator service.
+         */
+        private readonly BicValidatorService $bicValidator
+    ) {
     }
 
     /**
      * {@inheritdoc}
+     * PHPStan: missingType.parameter — $value untyped; ConstraintValidator API uses mixed, type in PHPDoc.
      */
-    public function validate($value, Constraint $constraint): void
+    public function validate(mixed $value, Constraint $constraint): void
     {
         if (!$constraint instanceof Bic) {
             throw new UnexpectedTypeException($constraint, Bic::class);

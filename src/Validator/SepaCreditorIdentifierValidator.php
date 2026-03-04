@@ -90,7 +90,7 @@ class SepaCreditorIdentifierValidator
         }
 
         // Validate check digits using MOD97-10 algorithm
-        return $this->validateCheckDigits($normalized, $countryCode, $checkDigits, $suffix, $nationalId);
+        return $this->validateCheckDigits($countryCode, $checkDigits, $nationalId);
     }
 
     /**
@@ -115,19 +115,15 @@ class SepaCreditorIdentifierValidator
      * 4. Convert letters to digits (A=10, B=11, ..., Z=35)
      * 5. Apply MOD97-10: remainder = 1 if valid
      *
-     * @param string $fullIdentifier The full identifier
      * @param string $countryCode Country code (2 letters)
      * @param string $checkDigits Check digits (2 digits)
-     * @param string $suffix Suffix (3 characters)
      * @param string $nationalId National identifier
      *
      * @return bool True if check digits are valid
      */
     private function validateCheckDigits(
-        string $fullIdentifier,
         string $countryCode,
         string $checkDigits,
-        string $suffix,
         string $nationalId
     ): bool {
         // Build string for MOD97-10 calculation:
@@ -227,8 +223,6 @@ class SepaCreditorIdentifierValidator
         }
 
         // CIF format: 1 letter + 7 digits + 1 letter/digit (e.g., A12345674)
-        return (bool) preg_match('/^[A-Z]\d{7}[A-Z0-9]$/', $nif)
-
-        ;
+        return (bool) preg_match('/^[A-Z]\d{7}[A-Z0-9]$/', $nif);
     }
 }

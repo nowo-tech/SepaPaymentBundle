@@ -53,13 +53,13 @@ class CreditTransferData
      * @param DateTimeInterface $requestedExecutionDate Requested execution date
      */
     public function __construct(
-        private string $messageId,
-        private DateTimeInterface $creationDate,
-        private string $initiatingPartyName,
-        private string $paymentInfoId,
-        private string $creditorIban,
-        private string $creditorName,
-        private DateTimeInterface $requestedExecutionDate
+        private readonly string $messageId,
+        private readonly DateTimeInterface $creationDate,
+        private readonly string $initiatingPartyName,
+        private readonly string $paymentInfoId,
+        private readonly string $creditorIban,
+        private readonly string $creditorName,
+        private readonly DateTimeInterface $requestedExecutionDate
     ) {
     }
 

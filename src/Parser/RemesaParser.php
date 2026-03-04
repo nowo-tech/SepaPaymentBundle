@@ -26,7 +26,7 @@ class RemesaParser
     /**
      * Credit transfer parser instance.
      */
-    private CreditTransferParser $parser;
+    private readonly CreditTransferParser $parser;
 
     /**
      * Constructor.

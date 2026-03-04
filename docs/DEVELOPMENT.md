@@ -87,14 +87,32 @@ open coverage/index.html
 
 ## Code Quality
 
-The bundle uses PHP-CS-Fixer to enforce code style (PSR-12).
+The bundle uses PHP-CS-Fixer (code style), Rector (refactoring), and PHPStan (static analysis).
 
 ```bash
 # Check code style
 composer cs-check
+# or: make cs-check
 
 # Fix code style
 composer cs-fix
+# or: make cs-fix
+
+# Rector: dry-run (no changes)
+composer rector-dry
+# or: make rector-dry
+
+# Rector: apply changes
+composer rector
+# or: make rector
+
+# PHPStan (level 8)
+composer phpstan
+# or: make phpstan
+
+# Full release check (cs-fix, cs-check, rector-dry, phpstan, test)
+composer release-check
+# or: make release-check
 ```
 
 ## CI/CD

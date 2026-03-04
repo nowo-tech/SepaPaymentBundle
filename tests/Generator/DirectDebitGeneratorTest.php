@@ -7,6 +7,7 @@ namespace Nowo\SepaPaymentBundle\Tests\Generator;
 use DateTime;
 use InvalidArgumentException;
 use Nowo\SepaPaymentBundle\Event\AfterDirectDebitGenerationEvent;
+use Nowo\SepaPaymentBundle\Event\BeforeDirectDebitGenerationEvent;
 use Nowo\SepaPaymentBundle\Generator\DirectDebitGenerator;
 use Nowo\SepaPaymentBundle\Logger\SepaPaymentLogger;
 use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitData;
@@ -1362,6 +1363,58 @@ class DirectDebitGeneratorTest extends TestCase
     }
 
     /**
+     * Tests that when a listener modifies the data in BeforeDirectDebitGenerationEvent, the generator uses the modified data.
+     */
+    public function testGenerateWithBeforeEventModifiesData(): void
+    {
+        $dispatcher = new EventDispatcher();
+        $dispatcher->addListener(BeforeDirectDebitGenerationEvent::class, static function (BeforeDirectDebitGenerationEvent $event): void {
+            $original = $event->getDirectDebitData();
+            $modified = new DirectDebitData(
+                'MODIFIED-BY-BEFORE-LISTENER',
+                $original->getInitiatingPartyName(),
+                $original->getPaymentInfoId(),
+                $original->getDueDate(),
+                $original->getCreditorName(),
+                $original->getCreditorIban(),
+                $original->getSequenceType(),
+                $original->getCreditorId(),
+                $original->getLocalInstrumentCode(),
+            );
+            foreach ($original->getTransactions() as $tx) {
+                $modified->addTransaction($tx);
+            }
+            $event->setDirectDebitData($modified);
+        });
+
+        $generator = new DirectDebitGenerator(new IbanValidator(), null, false, $dispatcher);
+        $data      = new DirectDebitData(
+            'MSG-ORIGINAL',
+            'My Company',
+            'PMT-001',
+            new DateTime('2024-01-20'),
+            'Creditor Name',
+            'ES9121000418450200051332',
+            'FRST',
+            'ES1234567890123456789012',
+            'CORE',
+        );
+        $data->addTransaction(new DirectDebitTransaction(
+            25.00,
+            'GB82WEST12345698765432',
+            'John Doe',
+            'MANDATE-001',
+            new DateTime('2024-01-01'),
+            'E2E-001',
+        ));
+
+        $xml = $generator->generate($data);
+        $this->assertStringContainsString('CstmrDrctDbtInitn', $xml);
+        $this->assertStringContainsString('MODIFIED-BY-BEFORE-LISTENER', $xml);
+        $this->assertStringNotContainsString('MSG-ORIGINAL', $xml);
+    }
+
+    /**
      * Tests generation with BIC lookup service (creditor BIC auto-filled).
      */
     public function testGenerateWithBicLookupService(): void
@@ -1507,7 +1560,7 @@ class DirectDebitGeneratorTest extends TestCase
         try {
             $generator->generate($data);
             $this->fail('Expected InvalidArgumentException');
-        } catch (InvalidArgumentException $e) {
+        } catch (InvalidArgumentException) {
             $this->assertCount(2, $testLogger->logs);
             $this->assertEquals('SEPA Direct Debit generation started', $testLogger->logs[0]['message']);
             $this->assertEquals('SEPA Direct Debit generation failed', $testLogger->logs[1]['message']);
@@ -1572,7 +1625,6 @@ class DirectDebitGeneratorTest extends TestCase
         );
         $ref    = new ReflectionClass(DirectDebitGenerator::class);
         $method = $ref->getMethod('addAddressesToXml');
-        $method->setAccessible(true);
         $result = $method->invoke($this->generator, $invalidXml, $data);
         $this->assertSame($invalidXml, $result);
     }
@@ -1606,7 +1658,6 @@ class DirectDebitGeneratorTest extends TestCase
         $data->getTransactions()[0]->setDebtorAddress(['street' => 'S2', 'city' => 'C2', 'postalCode' => 'P2', 'country' => 'ES']);
         $ref    = new ReflectionClass(DirectDebitGenerator::class);
         $method = $ref->getMethod('addAddressesToXml');
-        $method->setAccessible(true);
         $result = $method->invoke($this->generator, $xmlNoNs, $data);
         $this->assertStringContainsString('PstlAdr', $result);
         $this->assertStringContainsString('S1', $result);
@@ -1634,7 +1685,6 @@ class DirectDebitGeneratorTest extends TestCase
         $data->setCreditorAddress(['street' => 'NewStreet', 'country' => 'ES']);
         $ref    = new ReflectionClass(DirectDebitGenerator::class);
         $method = $ref->getMethod('addAddressesToXml');
-        $method->setAccessible(true);
         $result = $method->invoke($this->generator, $xmlWithExisting, $data);
         $this->assertStringContainsString('NewStreet', $result);
         $this->assertStringNotContainsString('Old', $result);
@@ -1666,7 +1716,6 @@ class DirectDebitGeneratorTest extends TestCase
         $data->addTransaction($t2);
         $ref    = new ReflectionClass(DirectDebitGenerator::class);
         $method = $ref->getMethod('addAddressesToXml');
-        $method->setAccessible(true);
         $result = $method->invoke($this->generator, $xmlOneDbtr, $data);
         $this->assertStringContainsString('First', $result);
         $this->assertStringNotContainsString('Second', $result);
@@ -1692,7 +1741,6 @@ class DirectDebitGeneratorTest extends TestCase
         $data->setCreditorAddress(['street' => '', 'city' => '', 'postalCode' => '', 'country' => '']);
         $ref    = new ReflectionClass(DirectDebitGenerator::class);
         $method = $ref->getMethod('addAddressesToXml');
-        $method->setAccessible(true);
         $result = $method->invoke($this->generator, $xmlNoNs, $data);
         $this->assertStringNotContainsString('PstlAdr', $result);
     }

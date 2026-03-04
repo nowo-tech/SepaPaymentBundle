@@ -42,11 +42,11 @@ class Transaction
      * @param string $creditorName Creditor name (beneficiary that receives)
      */
     public function __construct(
-        private string $endToEndId,
-        private float $amount,
-        private string $currency,
-        private string $creditorIban,
-        private string $creditorName
+        private readonly string $endToEndId,
+        private readonly float $amount,
+        private readonly string $currency,
+        private readonly string $creditorIban,
+        private readonly string $creditorName
     ) {
     }
 

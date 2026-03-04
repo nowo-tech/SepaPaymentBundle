@@ -11,7 +11,7 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use function sprintf;
 
 /**
- * CCC (Código Cuenta Cliente) to IBAN converter.
+ * CCC (Client Account Code) to IBAN converter.
  * Converts Spanish CCC format to IBAN format.
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
@@ -28,12 +28,12 @@ class CccConverter
      * @param IbanValidator $ibanValidator IBAN validator instance
      */
     public function __construct(
-        private IbanValidator $ibanValidator
+        private readonly IbanValidator $ibanValidator
     ) {
     }
 
     /**
-     * Converts a Spanish CCC (Código Cuenta Cliente) to IBAN.
+     * Converts a Spanish CCC (Client Account Code) to IBAN.
      * CCC format: EEEE OOOO DD NNNNNNNNNN (20 digits)
      * Where: EEEE = Bank code, OOOO = Branch code, DD = Check digits, NNNNNNNNNN = Account number.
      *
@@ -63,7 +63,7 @@ class CccConverter
     }
 
     /**
-     * Validates a Spanish CCC (Código Cuenta Cliente).
+     * Validates a Spanish CCC (Client Account Code).
      * CCC format: EEEE OOOO DD NNNNNNNNNN (20 digits).
      *
      * @param string $ccc The CCC to validate

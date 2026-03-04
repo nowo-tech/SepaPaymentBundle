@@ -42,7 +42,7 @@ class IbanValidator
         }
 
         // Check format: 2 letters (country code) + 2 digits (check digits) + alphanumeric (BBAN)
-        if (!preg_match('/^[A-Z]{2}[0-9]{2}[A-Z0-9]+$/', $iban)) {
+        if (!preg_match('/^[A-Z]{2}\d{2}[A-Z0-9]+$/', $iban)) {
             return false;
         }
 

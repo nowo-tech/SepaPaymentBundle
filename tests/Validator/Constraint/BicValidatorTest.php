@@ -26,7 +26,7 @@ class BicValidatorTest extends TestCase
      *
      * @var BicValidatorService|\PHPUnit\Framework\MockObject\MockObject
      */
-    private $bicValidatorService;
+    private \PHPUnit\Framework\MockObject\MockObject $bicValidatorService;
 
     /**
      * Constraint validator instance.
@@ -38,7 +38,7 @@ class BicValidatorTest extends TestCase
      *
      * @var ExecutionContextInterface|\PHPUnit\Framework\MockObject\MockObject
      */
-    private $context;
+    private \PHPUnit\Framework\MockObject\MockObject $context;
 
     /**
      * Sets up the test environment.

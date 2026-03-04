@@ -40,10 +40,14 @@ class TransactionTest extends TestCase
         $transaction->setDebtorAddress('Street', 'London', 'SW1', 'GB');
         $addr = $transaction->getDebtorAddress();
         $this->assertNotNull($addr);
+        $this->assertArrayHasKey('city', $addr);
         $this->assertEquals('London', $addr['city']);
 
         $transaction->setDebtorAddressFromArray(['street' => 'Ave', 'city' => 'Paris', 'postalCode' => '75001', 'country' => 'FR']);
-        $this->assertEquals('Paris', $transaction->getDebtorAddress()['city']);
+        $addr2 = $transaction->getDebtorAddress();
+        $this->assertNotNull($addr2);
+        $this->assertArrayHasKey('city', $addr2);
+        $this->assertEquals('Paris', $addr2['city']);
     }
 
     public function testGetCreditTransferTransaction(): void

@@ -19,7 +19,8 @@ class NowoSepaPaymentBundle extends Bundle
 {
     /**
      * Overridden to allow for the custom extension alias.
-     * Creates and returns the container extension instance if not already created.
+     * PHPStan: Parent Bundle::getContainerExtension() can return ExtensionInterface|false; we always return the extension.
+     * Fix: return extension only if it is ExtensionInterface (normalize false to null for declared type).
      *
      * @return ExtensionInterface|null The container extension instance, or null if not available
      */
@@ -29,6 +30,8 @@ class NowoSepaPaymentBundle extends Bundle
             $this->extension = new NowoSepaPaymentExtension();
         }
 
-        return $this->extension;
+        $ext = $this->extension;
+
+        return $ext instanceof ExtensionInterface ? $ext : null;
     }
 }

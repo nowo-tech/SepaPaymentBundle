@@ -50,15 +50,15 @@ class DirectDebitData
      * @param string $localInstrumentCode Local instrument code (CORE, B2B)
      */
     public function __construct(
-        private string $messageId,
-        private string $initiatingPartyName,
-        private string $paymentInfoId,
-        private DateTimeInterface $dueDate,
-        private string $creditorName,
-        private string $creditorIban,
-        private string $sequenceType,
-        private string $creditorId,
-        private string $localInstrumentCode
+        private readonly string $messageId,
+        private readonly string $initiatingPartyName,
+        private readonly string $paymentInfoId,
+        private readonly DateTimeInterface $dueDate,
+        private readonly string $creditorName,
+        private readonly string $creditorIban,
+        private readonly string $sequenceType,
+        private readonly string $creditorId,
+        private readonly string $localInstrumentCode
     ) {
     }
 

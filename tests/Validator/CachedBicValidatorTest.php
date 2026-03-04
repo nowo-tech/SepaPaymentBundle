@@ -47,7 +47,7 @@ class CachedBicValidatorTest extends TestCase
     public function testValidationWithoutCache(): void
     {
         $bicValidator    = new BicValidator();
-        $cachedValidator = new CachedBicValidator($bicValidator, null);
+        $cachedValidator = new CachedBicValidator($bicValidator);
 
         $bic = 'CAIXESBBXXX';
         $this->assertTrue($cachedValidator->isValid($bic));
@@ -59,7 +59,7 @@ class CachedBicValidatorTest extends TestCase
     public function testDelegateMethods(): void
     {
         $bicValidator    = new BicValidator();
-        $cachedValidator = new CachedBicValidator($bicValidator, null);
+        $cachedValidator = new CachedBicValidator($bicValidator);
 
         $bic = 'CAIXESBBXXX';
 

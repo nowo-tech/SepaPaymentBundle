@@ -45,12 +45,12 @@ class DirectDebitTransaction
      * @param string $endToEndId End-to-end identifier
      */
     public function __construct(
-        private float $amount,
-        private string $debtorIban,
-        private string $debtorName,
-        private string $debtorMandate,
-        private DateTimeInterface $debtorMandateSignDate,
-        private string $endToEndId
+        private readonly float $amount,
+        private readonly string $debtorIban,
+        private readonly string $debtorName,
+        private readonly string $debtorMandate,
+        private readonly DateTimeInterface $debtorMandateSignDate,
+        private readonly string $endToEndId
     ) {
     }
 

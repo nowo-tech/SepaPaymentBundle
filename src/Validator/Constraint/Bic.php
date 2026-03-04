@@ -23,11 +23,14 @@ class Bic extends Constraint
 
     /**
      * {@inheritdoc}
+     * PHPStan: missingType.iterableValue — $options must have iterable value type.
+     *
+     * @param array<string, mixed> $options
      */
     public function __construct(
         ?string $message = null,
         ?array $groups = null,
-        $payload = null,
+        mixed $payload = null,
         array $options = []
     ) {
         parent::__construct($options, $groups, $payload);

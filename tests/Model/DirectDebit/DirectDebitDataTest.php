@@ -22,8 +22,8 @@ class DirectDebitDataTest extends TestCase
      */
     public function testDirectDebitDataCreation(): void
     {
-        $dueDate         = new DateTime('2024-01-20');
-        $mandateSignDate = new DateTime('2023-12-01');
+        $dueDate = new DateTime('2024-01-20');
+        new DateTime('2023-12-01');
 
         $directDebitData = new DirectDebitData(
             'MSG-001',

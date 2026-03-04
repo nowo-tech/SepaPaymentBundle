@@ -17,18 +17,16 @@ use Symfony\Contracts\EventDispatcher\Event;
 class BeforeCreditTransferGenerationEvent extends Event
 {
     /**
-     * Credit transfer data (can be modified by listeners).
-     */
-    private CreditTransferData $creditTransferData;
-
-    /**
      * Constructor.
      *
      * @param CreditTransferData $creditTransferData The credit transfer data
      */
-    public function __construct(CreditTransferData $creditTransferData)
-    {
-        $this->creditTransferData = $creditTransferData;
+    public function __construct(
+        /**
+         * Credit transfer data (can be modified by listeners).
+         */
+        private CreditTransferData $creditTransferData
+    ) {
     }
 
     /**

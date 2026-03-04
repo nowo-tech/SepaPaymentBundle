@@ -23,7 +23,7 @@ class RemesaData
     /**
      * Credit transfer data instance.
      */
-    private CreditTransferData $creditTransferData;
+    private readonly CreditTransferData $creditTransferData;
 
     /**
      * Constructor.

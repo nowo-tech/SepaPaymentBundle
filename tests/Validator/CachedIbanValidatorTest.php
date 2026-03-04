@@ -49,7 +49,7 @@ class CachedIbanValidatorTest extends TestCase
     public function testValidationWithoutCache(): void
     {
         $ibanValidator   = new IbanValidator();
-        $cachedValidator = new CachedIbanValidator($ibanValidator, null);
+        $cachedValidator = new CachedIbanValidator($ibanValidator);
 
         $iban = 'ES9121000418450200051332';
         $this->assertTrue($cachedValidator->isValid($iban));
@@ -61,7 +61,7 @@ class CachedIbanValidatorTest extends TestCase
     public function testDelegateMethods(): void
     {
         $ibanValidator   = new IbanValidator();
-        $cachedValidator = new CachedIbanValidator($ibanValidator, null);
+        $cachedValidator = new CachedIbanValidator($ibanValidator);
 
         $iban = 'ES9121000418450200051332';
 
@@ -117,7 +117,7 @@ class CachedIbanValidatorTest extends TestCase
     public function testCalculateCheckDigits(): void
     {
         $ibanValidator   = new IbanValidator();
-        $cachedValidator = new CachedIbanValidator($ibanValidator, null);
+        $cachedValidator = new CachedIbanValidator($ibanValidator);
         $digits          = $cachedValidator->calculateCheckDigits('ES0021000418450200051332');
         $this->assertEquals(2, strlen($digits));
         $this->assertMatchesRegularExpression('/^\d{2}$/', $digits);

@@ -17,18 +17,16 @@ use Symfony\Contracts\EventDispatcher\Event;
 class BeforeDirectDebitGenerationEvent extends Event
 {
     /**
-     * Direct debit data (can be modified by listeners).
-     */
-    private DirectDebitData $directDebitData;
-
-    /**
      * Constructor.
      *
      * @param DirectDebitData $directDebitData The direct debit data
      */
-    public function __construct(DirectDebitData $directDebitData)
-    {
-        $this->directDebitData = $directDebitData;
+    public function __construct(
+        /**
+         * Direct debit data (can be modified by listeners).
+         */
+        private DirectDebitData $directDebitData
+    ) {
     }
 
     /**

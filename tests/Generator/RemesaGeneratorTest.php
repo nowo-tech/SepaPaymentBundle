@@ -31,6 +31,7 @@ class RemesaGeneratorTest extends TestCase
     protected function setUp(): void
     {
         $translator = new class implements TranslatorInterface {
+            /** @param array<string, mixed> $parameters */
             public function trans(string $id, array $parameters = [], ?string $domain = null, ?string $locale = null): string
             {
                 return $id;
@@ -134,8 +135,8 @@ class RemesaGeneratorTest extends TestCase
         $response = $this->generator->createResponse($xml, 'test-remesa.xml');
 
         $this->assertEquals(200, $response->getStatusCode());
-        $this->assertStringContainsString('application/xml', $response->headers->get('Content-Type'));
-        $this->assertStringContainsString('attachment; filename="test-remesa.xml"', $response->headers->get('Content-Disposition'));
+        $this->assertStringContainsString('application/xml', (string) $response->headers->get('Content-Type'));
+        $this->assertStringContainsString('attachment; filename="test-remesa.xml"', (string) $response->headers->get('Content-Disposition'));
         $this->assertEquals($xml, $response->getContent());
     }
 

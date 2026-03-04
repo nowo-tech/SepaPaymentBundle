@@ -16,32 +16,26 @@ use Symfony\Contracts\EventDispatcher\Event;
 class AfterValidationEvent extends Event
 {
     /**
-     * Validation type (e.g., 'iban', 'bic', 'credit_card').
-     */
-    private string $validationType;
-
-    /**
-     * Value that was validated.
-     */
-    private string $value;
-
-    /**
-     * Validation result.
-     */
-    private bool $result;
-
-    /**
      * Constructor.
      *
      * @param string $validationType Validation type
      * @param string $value Value that was validated
      * @param bool $result Validation result
      */
-    public function __construct(string $validationType, string $value, bool $result)
-    {
-        $this->validationType = $validationType;
-        $this->value          = $value;
-        $this->result         = $result;
+    public function __construct(
+        /**
+         * Validation type (e.g., 'iban', 'bic', 'credit_card').
+         */
+        private readonly string $validationType,
+        /**
+         * Value that was validated.
+         */
+        private readonly string $value,
+        /**
+         * Validation result.
+         */
+        private readonly bool $result
+    ) {
     }
 
     /**

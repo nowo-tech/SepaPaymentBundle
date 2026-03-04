@@ -160,7 +160,7 @@ class SepaBusinessRulesValidator
      * @param DateTimeInterface $executionDate Execution date
      * @param string $currency Currency code
      *
-     * @return array<string, string> Array of validation errors (empty if valid)
+     * @return array<int, string> List of validation error messages (empty if valid)
      */
     public function validateCreditTransfer(float $amount, int $transactionCount, DateTimeInterface $executionDate, string $currency): array
     {
@@ -195,7 +195,7 @@ class SepaBusinessRulesValidator
      * @param string $sequenceType Sequence type (FRST, RCUR, OOFF, FNAL)
      * @param DateTimeInterface|null $mandateExpirationDate Mandate expiration date (optional)
      *
-     * @return array<string, string> Array of validation errors (empty if valid)
+     * @return array<int, string> List of validation error messages (empty if valid)
      */
     public function validateDirectDebit(
         float $amount,
@@ -212,7 +212,7 @@ class SepaBusinessRulesValidator
             $errors[] = sprintf('Invalid sequence type: %s. Must be one of: %s', $sequenceType, implode(', ', $validSequenceTypes));
         }
 
-        if ($mandateExpirationDate !== null && !$this->isValidMandateExpirationDate($mandateExpirationDate)) {
+        if ($mandateExpirationDate instanceof DateTimeInterface && !$this->isValidMandateExpirationDate($mandateExpirationDate)) {
             $errors[] = 'Mandate expiration date must be in the future';
         }
 

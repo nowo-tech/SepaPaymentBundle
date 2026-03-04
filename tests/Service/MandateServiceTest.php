@@ -72,7 +72,7 @@ class MandateServiceTest extends TestCase
 
     public function testUpdateSequenceType(): void
     {
-        $mandate = $this->service->createMandate(
+        $this->service->createMandate(
             'MANDATE-001',
             new DateTime('2024-01-01'),
             'ES9121000418450200051332',
@@ -105,7 +105,7 @@ class MandateServiceTest extends TestCase
 
     public function testRevokeMandate(): void
     {
-        $mandate = $this->service->createMandate(
+        $this->service->createMandate(
             'MANDATE-001',
             new DateTime('2024-01-01'),
             'ES9121000418450200051332',
@@ -122,7 +122,7 @@ class MandateServiceTest extends TestCase
 
     public function testSuspendMandate(): void
     {
-        $mandate = $this->service->createMandate(
+        $this->service->createMandate(
             'MANDATE-001',
             new DateTime('2024-01-01'),
             'ES9121000418450200051332',
@@ -137,7 +137,7 @@ class MandateServiceTest extends TestCase
 
     public function testReactivateMandate(): void
     {
-        $mandate = $this->service->createMandate(
+        $this->service->createMandate(
             'MANDATE-001',
             new DateTime('2024-01-01'),
             'ES9121000418450200051332',
@@ -153,7 +153,7 @@ class MandateServiceTest extends TestCase
 
     public function testValidateMandateForTransaction(): void
     {
-        $mandate = $this->service->createMandate(
+        $this->service->createMandate(
             'MANDATE-001',
             new DateTime('2024-01-01'),
             'ES9121000418450200051332',
@@ -168,7 +168,7 @@ class MandateServiceTest extends TestCase
 
     public function testValidateMandateForTransactionReturnsFalseIfNotActive(): void
     {
-        $mandate = $this->service->createMandate(
+        $this->service->createMandate(
             'MANDATE-001',
             new DateTime('2024-01-01'),
             'ES9121000418450200051332',
@@ -192,7 +192,7 @@ class MandateServiceTest extends TestCase
 
     public function testGetMandateHistory(): void
     {
-        $mandate = $this->service->createMandate(
+        $this->service->createMandate(
             'MANDATE-001',
             new DateTime('2024-01-01'),
             'ES9121000418450200051332',

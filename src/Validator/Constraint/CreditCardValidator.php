@@ -21,24 +21,23 @@ use function is_string;
 class CreditCardValidator extends ConstraintValidator
 {
     /**
-     * Credit Card validator service.
-     */
-    private CreditCardValidatorService $creditCardValidator;
-
-    /**
      * Constructor.
      *
      * @param CreditCardValidatorService $creditCardValidator Credit Card validator service
      */
-    public function __construct(CreditCardValidatorService $creditCardValidator)
-    {
-        $this->creditCardValidator = $creditCardValidator;
+    public function __construct(
+        /**
+         * Credit Card validator service.
+         */
+        private readonly CreditCardValidatorService $creditCardValidator
+    ) {
     }
 
     /**
      * {@inheritdoc}
      */
-    public function validate($value, Constraint $constraint): void
+    /** PHPStan: missingType.parameter — $value typed as mixed. */
+    public function validate(mixed $value, Constraint $constraint): void
     {
         if (!$constraint instanceof CreditCard) {
             throw new UnexpectedTypeException($constraint, CreditCard::class);

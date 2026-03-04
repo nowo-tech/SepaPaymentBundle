@@ -514,4 +514,15 @@ class ExportServiceTest extends TestCase
 
         $this->exporter->exportCreditTransferToJson($data);
     }
+
+    /**
+     * Tests importDirectDebitFromJson with invalid JSON (covers method and exception path).
+     */
+    public function testImportDirectDebitFromJsonWithInvalidJson(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid JSON format');
+
+        $this->exporter->importDirectDebitFromJson('not valid json {{{');
+    }
 }

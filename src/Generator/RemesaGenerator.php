@@ -31,7 +31,7 @@ class RemesaGenerator
     /**
      * Credit transfer generator instance.
      */
-    private CreditTransferGenerator $generator;
+    private readonly CreditTransferGenerator $generator;
 
     /**
      * Constructor.
