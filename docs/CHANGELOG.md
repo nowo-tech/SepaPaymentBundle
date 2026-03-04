@@ -18,7 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **CreditTransferGenerator**: Test for BIC lookup filling transaction creditor BIC when IBAN is Spanish
 
 ### Improved
-- **Demo Symfony 6.4**: Pinned `brick/math` to `^0.13` in `composer.json` for PHP 8.1 compatibility (avoids resolution to 0.14.x which requires PHP 8.2+)
+- **Bundle / CI**: Added `brick/math` constraint `^0.11 || ^0.12 || ^0.13` in root `composer.json` so installs on PHP 8.1 (including GitHub CI) resolve to a PHP 8.1‑compatible version (avoids `brick/math` 0.14.x which requires PHP 8.2+)
+- **Demo Symfony 6.4**: Constrained `brick/math` to `^0.11 || ^0.12 || ^0.13` in demo `composer.json` for PHP 8.1 compatibility (same reason as above)
 - **Test coverage**: Line coverage improved; `@codeCoverageIgnore` added for library-compatibility branches and defensive paths in CreditTransferGenerator and DirectDebitGenerator (alternative Digitick\Sepa API and DOM fallbacks that are not exercised with current library version)
 
 ### Backward Compatibility

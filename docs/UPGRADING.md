@@ -10,7 +10,8 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
 ### 🔧 Improved (1.2.15)
 
-- **Demo Symfony 6.4**: `brick/math` constrained to `^0.13` so dependencies resolve on PHP 8.1 (avoids brick/math 0.14 requiring PHP 8.2+).
+- **Bundle / CI**: Root `composer.json` now requires `brick/math` `^0.11 || ^0.12 || ^0.13` so that installs on PHP 8.1 (including GitHub Actions CI) resolve to a PHP 8.1‑compatible version (avoids `brick/math` 0.14.x requiring PHP 8.2+).
+- **Demo Symfony 6.4**: Demo `composer.json` constrains `brick/math` to `^0.11 || ^0.12 || ^0.13` for the same PHP 8.1 compatibility when running demos locally.
 - **Test coverage**: Coverage improvements and `@codeCoverageIgnore` for library-compatibility and defensive branches in generators (no behaviour change).
 
 ### Backward Compatibility
