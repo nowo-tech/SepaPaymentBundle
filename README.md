@@ -157,7 +157,7 @@ Created by [Héctor Franco Aceituno](https://github.com/HecFranco) at [Nowo.tech
 - [Usage](docs/USAGE.md)
 - [Contributing](docs/CONTRIBUTING.md)
 - [Changelog](docs/CHANGELOG.md)
-- [Upgrading](docs/UPGRADE.md)
+- [Upgrading](docs/UPGRADING.md)
 - [Release](docs/RELEASE_CHECKLIST.md)
 - [Security](docs/CONTRIBUTING.md)
 

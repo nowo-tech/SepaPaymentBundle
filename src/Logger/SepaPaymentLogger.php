@@ -12,8 +12,8 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
  * Structured logger for SEPA Payment Bundle operations.
  * Provides contextual logging for generation, validation, and parsing operations.
  *
- * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
- * @copyright 2025 Nowo.tech
+ * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
+ * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
 class SepaPaymentLogger

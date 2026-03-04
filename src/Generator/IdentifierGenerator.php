@@ -12,8 +12,8 @@ use function sprintf;
  * Identifier generator for SEPA operations.
  * Generates unique identifiers for messages, payments, and transactions.
  *
- * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
- * @copyright 2025 Nowo.tech
+ * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
+ * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
 class IdentifierGenerator

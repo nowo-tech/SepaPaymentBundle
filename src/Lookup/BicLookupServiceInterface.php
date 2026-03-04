@@ -8,8 +8,8 @@ namespace Nowo\SepaPaymentBundle\Lookup;
  * Interface for BIC lookup services.
  * Provides methods to look up BIC codes from IBANs.
  *
- * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
- * @copyright 2025 Nowo.tech
+ * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
+ * @copyright 2026 Nowo.tech
  */
 interface BicLookupServiceInterface
 {

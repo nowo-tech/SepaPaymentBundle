@@ -12,8 +12,8 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
  * Symfony bundle for SEPA payment management.
  * Provides tools for IBAN validation, mandate management, and SEPA credit transfer generation.
  *
- * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
- * @copyright 2025 Nowo.tech
+ * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
+ * @copyright 2026 Nowo.tech
  */
 class NowoSepaPaymentBundle extends Bundle
 {

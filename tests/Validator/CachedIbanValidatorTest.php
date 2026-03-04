@@ -16,8 +16,8 @@ use function strlen;
 /**
  * Tests for CachedIbanValidator.
  *
- * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
- * @copyright 2025 Nowo.tech
+ * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
+ * @copyright 2026 Nowo.tech
  */
 class CachedIbanValidatorTest extends TestCase
 {

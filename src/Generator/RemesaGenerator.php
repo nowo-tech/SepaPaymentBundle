@@ -20,8 +20,8 @@ use const E_USER_DEPRECATED;
  *
  * @deprecated Since 1.1.0, use CreditTransferGenerator instead. This class will be removed in 2.0.0.
  *
- * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
- * @copyright 2025 Nowo.tech
+ * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
+ * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
 class RemesaGenerator

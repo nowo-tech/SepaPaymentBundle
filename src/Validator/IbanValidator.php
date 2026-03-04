@@ -16,8 +16,8 @@ use const STR_PAD_LEFT;
  * IBAN validator and utility class.
  * Validates IBAN format and calculates check digits according to ISO 13616 standard.
  *
- * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
- * @copyright 2025 Nowo.tech
+ * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
+ * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
 class IbanValidator

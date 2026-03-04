@@ -12,8 +12,8 @@ use function is_array;
  * Credit Transfer data container.
  * Contains all information needed to generate a SEPA Credit Transfer.
  *
- * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
- * @copyright 2025 Nowo.tech
+ * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
+ * @copyright 2026 Nowo.tech
  */
 class CreditTransferData
 {

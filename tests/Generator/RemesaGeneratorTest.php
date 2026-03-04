@@ -21,8 +21,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * #[IgnoreDeprecations] is used so CI passes on all matrix combinations
  * (PHP 8.1–8.5, Symfony 6.4 / 7.0 / 8.0) without risky tests.
  *
- * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
- * @copyright 2025 Nowo.tech
+ * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
+ * @copyright 2026 Nowo.tech
  */
 class RemesaGeneratorTest extends TestCase
 {

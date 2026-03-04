@@ -13,8 +13,8 @@ use function strlen;
  * SEPA country validator.
  * Validates if a country is a SEPA member country.
  *
- * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
- * @copyright 2025 Nowo.tech
+ * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
+ * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
 class SepaCountryValidator

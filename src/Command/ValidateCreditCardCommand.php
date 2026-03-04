@@ -17,8 +17,8 @@ use function strlen;
 /**
  * Console command to validate credit card numbers.
  *
- * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
- * @copyright 2025 Nowo.tech
+ * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
+ * @copyright 2026 Nowo.tech
  */
 #[AsCommand(
     name: 'sepa:validate-credit-card',

@@ -22,8 +22,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 /**
  * Test cases for CreditTransferGenerator.
  *
- * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
- * @copyright 2025 Nowo.tech
+ * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
+ * @copyright 2026 Nowo.tech
  */
 class CreditTransferGeneratorTest extends TestCase
 {
@@ -1163,6 +1163,59 @@ class CreditTransferGeneratorTest extends TestCase
 
         $xml = $generator->generate($creditTransferData);
         $this->assertStringContainsString('CAIXESBBXXX', $xml);
+    }
+
+    /**
+     * Tests that BIC lookup fills transaction creditor BIC when missing and IBAN is Spanish.
+     */
+    public function testGenerateWithBicLookupServiceFillsTransactionCreditorBic(): void
+    {
+        $bicLookup = new class implements \Nowo\SepaPaymentBundle\Lookup\BicLookupServiceInterface {
+            public function lookupBic(string $iban): ?string
+            {
+                return str_starts_with($iban, 'ES') ? 'CAIXESBBXXX' : (str_starts_with($iban, 'FR') ? 'BNPAFRPP' : null);
+            }
+
+            public function isAvailable(string $iban): bool
+            {
+                return str_starts_with($iban, 'ES') || str_starts_with($iban, 'FR');
+            }
+        };
+        $translator = $this->createMock(TranslatorInterface::class);
+        $translator->method('trans')->willReturnCallback(
+            \Nowo\SepaPaymentBundle\Tests\Helper\TranslationHelper::createTranslatorCallback(),
+        );
+        $generator = new CreditTransferGenerator(
+            new IbanValidator(),
+            $translator,
+            null,
+            false,
+            null,
+            null,
+            $bicLookup,
+        );
+
+        $creditTransferData = new CreditTransferData(
+            'MSG-BIC-TX',
+            new DateTime(),
+            'Test Company',
+            'PMT-BIC-TX',
+            'ES9121000418450200051332',
+            'Test Company Name',
+            new DateTime('tomorrow'),
+        );
+        // Transaction with Spanish creditor IBAN and no BIC - lookup should fill BIC
+        $creditTransferData->addTransaction(new Transaction(
+            'E2E-ES',
+            25.00,
+            'EUR',
+            'ES7921000813610123456789',
+            'Spanish Creditor',
+        ));
+
+        $xml = $generator->generate($creditTransferData);
+        $this->assertStringContainsString('CAIXESBBXXX', $xml);
+        $this->assertStringContainsString('ES7921000813610123456789', $xml);
     }
 
     /**

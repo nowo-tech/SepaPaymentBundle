@@ -10,8 +10,8 @@ use Symfony\Contracts\EventDispatcher\Event;
  * Event dispatched after Credit Transfer XML generation.
  * Allows listeners to modify the generated XML.
  *
- * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
- * @copyright 2025 Nowo.tech
+ * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
+ * @copyright 2026 Nowo.tech
  */
 class AfterCreditTransferGenerationEvent extends Event
 {

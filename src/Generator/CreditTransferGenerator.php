@@ -43,8 +43,8 @@ use const ENT_XML1;
  * Generates SEPA Credit Transfer XML files using Digitick\Sepa library according to ISO 20022 standard.
  * Used for payment remittances where the debtor sends money to the creditor.
  *
- * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
- * @copyright 2025 Nowo.tech
+ * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
+ * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
 class CreditTransferGenerator
@@ -531,19 +531,23 @@ class CreditTransferGenerator
                 $address['country'] ?? '',
             );
         } elseif (method_exists($paymentInformation, 'setPostalAddress')) {
+            // @codeCoverageIgnoreStart - alternative library API
             $paymentInformation->setPostalAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
                 $address['postalCode'] ?? '',
                 $address['country'] ?? '',
             );
+            // @codeCoverageIgnoreEnd
         } elseif (method_exists($paymentInformation, 'setAddress')) {
+            // @codeCoverageIgnoreStart - alternative library API
             $paymentInformation->setAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
                 $address['postalCode'] ?? '',
                 $address['country'] ?? '',
             );
+            // @codeCoverageIgnoreEnd
         }
         // Note: Addresses are always added to XML via DOM manipulation in addAddressesToXml()
         // even if the library methods don't exist, ensuring addresses are included in the final XML
@@ -568,7 +572,9 @@ class CreditTransferGenerator
 
             if (!@$dom->loadXML($xml)) {
                 // If XML is invalid, return original
+                // @codeCoverageIgnoreStart - defensive; library always produces valid XML
                 return $xml;
+                // @codeCoverageIgnoreEnd
             }
 
             $xpath = new DOMXPath($dom);
@@ -595,10 +601,12 @@ class CreditTransferGenerator
             // PHPStan: saveXML() returns string|false; we guarantee valid XML from loadXML() so we return string or fallback to original
             $saved = $dom->saveXML();
 
-            return $saved !== false ? $saved : $xml;
+            return $saved !== false ? $saved : $xml; // @codeCoverageIgnore - defensive
         } catch (Exception) {
             // If DOM manipulation fails, return original XML
+            // @codeCoverageIgnoreStart - defensive
             return $xml;
+            // @codeCoverageIgnoreEnd
         }
     }
 
@@ -615,11 +623,12 @@ class CreditTransferGenerator
         // Find Cdtr (Creditor) element
         $creditorNodes = $xpath->query('//ns:Dbtr');
         if ($creditorNodes === false || $creditorNodes->length === 0) {
-            // Try without namespace prefix
+            // @codeCoverageIgnoreStart - fallback when namespace prefix not in XML
             $creditorNodes = $xpath->query('//Dbtr');
             if ($creditorNodes === false || $creditorNodes->length === 0) {
                 return;
             }
+            // @codeCoverageIgnoreEnd
         }
 
         $creditorNode = $creditorNodes->item(0);
@@ -643,11 +652,12 @@ class CreditTransferGenerator
         // Find Dbtr (Debtor) elements
         $debtorNodes = $xpath->query('//ns:Cdtr');
         if ($debtorNodes === false || $debtorNodes->length === 0) {
-            // Try without namespace prefix
+            // @codeCoverageIgnoreStart - fallback when namespace prefix not in XML
             $debtorNodes = $xpath->query('//Cdtr');
             if ($debtorNodes === false || $debtorNodes->length <= $index) {
                 return;
             }
+            // @codeCoverageIgnoreEnd
         }
 
         if ($debtorNodes->length <= $index) {

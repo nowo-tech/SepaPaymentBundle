@@ -10,8 +10,8 @@ use PHPUnit\Framework\TestCase;
 /**
  * Test cases for CreditCardValidator.
  *
- * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
- * @copyright 2025 Nowo.tech
+ * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
+ * @copyright 2026 Nowo.tech
  */
 class CreditCardValidatorTest extends TestCase
 {
@@ -126,6 +126,41 @@ class CreditCardValidatorTest extends TestCase
     {
         $this->assertEquals(CreditCardValidator::TYPE_UNKNOWN, $this->validator->getCardType('1234567890123456'));
         $this->assertEquals(CreditCardValidator::TYPE_UNKNOWN, $this->validator->getCardType(''));
+    }
+
+    /**
+     * Tests card type detection - Diners Club.
+     */
+    public function testGetCardTypeDinersClub(): void
+    {
+        $this->assertEquals(CreditCardValidator::TYPE_DINERS_CLUB, $this->validator->getCardType('30569309025904'));
+        $this->assertEquals(CreditCardValidator::TYPE_DINERS_CLUB, $this->validator->getCardType('36942143870374'));
+    }
+
+    /**
+     * Tests card type detection - JCB.
+     */
+    public function testGetCardTypeJcb(): void
+    {
+        $this->assertEquals(CreditCardValidator::TYPE_JCB, $this->validator->getCardType('3530111333300000'));
+    }
+
+    /**
+     * Tests getCardType when normalized is '0' returns unknown.
+     */
+    public function testGetCardTypeWithZeroReturnsUnknown(): void
+    {
+        $this->assertEquals(CreditCardValidator::TYPE_UNKNOWN, $this->validator->getCardType('0'));
+    }
+
+    /**
+     * Tests mask with short number (length < 4).
+     */
+    public function testMaskWithShortNumber(): void
+    {
+        $this->assertEquals('***', $this->validator->mask('123'));
+        $this->assertEquals('*', $this->validator->mask('1'));
+        $this->assertEquals('', $this->validator->mask(''));
     }
 
     /**

@@ -15,8 +15,8 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
  * This is a simple implementation that stores mandates in memory.
  * For production use, implement a database-backed repository.
  *
- * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
- * @copyright 2025 Nowo.tech
+ * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
+ * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
 class MandateRepository implements MandateRepositoryInterface

@@ -11,8 +11,8 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
  * Service for looking up BIC codes from IBANs.
  * Uses a local database of common IBAN to BIC mappings.
  *
- * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
- * @copyright 2025 Nowo.tech
+ * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
+ * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
 class BicLookupService implements BicLookupServiceInterface

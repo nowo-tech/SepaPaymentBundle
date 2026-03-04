@@ -11,8 +11,8 @@ use Symfony\Component\Validator\Constraint;
  * SEPA Creditor Identifier validation constraint.
  * Validates SEPA Creditor Identifier format and check digits.
  *
- * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
- * @copyright 2025 Nowo.tech
+ * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
+ * @copyright 2026 Nowo.tech
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
 class SepaCreditorIdentifier extends Constraint

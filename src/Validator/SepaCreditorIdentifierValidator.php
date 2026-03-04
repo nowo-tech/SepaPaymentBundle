@@ -27,8 +27,8 @@ use const STR_PAD_LEFT;
  * - ZZZ: Suffix (usually "ZZZ" or "000")
  * - NIF: Spanish tax identifier (1 letter + 8 digits)
  *
- * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
- * @copyright 2025 Nowo.tech
+ * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
+ * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
 class SepaCreditorIdentifierValidator

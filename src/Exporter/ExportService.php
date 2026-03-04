@@ -18,8 +18,8 @@ use const JSON_UNESCAPED_UNICODE;
  * Export service for converting SEPA payment data to various formats.
  * Supports JSON and CSV export formats.
  *
- * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
- * @copyright 2025 Nowo.tech
+ * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
+ * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
 class ExportService

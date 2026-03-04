@@ -11,8 +11,8 @@ use Symfony\Component\Validator\Constraint;
  * BIC validation constraint.
  * Validates BIC format according to ISO 13616 standard.
  *
- * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
- * @copyright 2025 Nowo.tech
+ * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
+ * @copyright 2026 Nowo.tech
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
 class Bic extends Constraint

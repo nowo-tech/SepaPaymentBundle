@@ -43,8 +43,8 @@ use const ENT_XML1;
  * Generates SEPA Direct Debit XML files using Digitick\Sepa library according to ISO 20022 standard.
  * Used for collection remittances where the creditor collects money from the debtor based on a SEPA mandate.
  *
- * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
- * @copyright 2025 Nowo.tech
+ * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
+ * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
 class DirectDebitGenerator
@@ -545,12 +545,14 @@ class DirectDebitGenerator
                 $address['country'] ?? '',
             );
         } elseif (method_exists($transferInformation, 'setAddress')) {
+            // @codeCoverageIgnoreStart - alternative library API; current Digitick\Sepa uses setDebtorPostalAddress
             $transferInformation->setAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
                 $address['postalCode'] ?? '',
                 $address['country'] ?? '',
             );
+            // @codeCoverageIgnoreEnd
         }
         // Note: If the library doesn't support addresses in this format,
         // the address is still stored in additionalData for internal use
@@ -576,19 +578,23 @@ class DirectDebitGenerator
                 $address['country'] ?? '',
             );
         } elseif (method_exists($paymentInformation, 'setPostalAddress')) {
+            // @codeCoverageIgnoreStart - alternative library API
             $paymentInformation->setPostalAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
                 $address['postalCode'] ?? '',
                 $address['country'] ?? '',
             );
+            // @codeCoverageIgnoreEnd
         } elseif (method_exists($paymentInformation, 'setAddress')) {
+            // @codeCoverageIgnoreStart - alternative library API
             $paymentInformation->setAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
                 $address['postalCode'] ?? '',
                 $address['country'] ?? '',
             );
+            // @codeCoverageIgnoreEnd
         }
         // Note: If the library doesn't support addresses in this format,
         // the address is still stored internally for internal use
@@ -612,7 +618,9 @@ class DirectDebitGenerator
 
             if (!@$dom->loadXML($xml)) {
                 // If XML is invalid, return original
+                // @codeCoverageIgnoreStart - defensive; library always produces valid XML
                 return $xml;
+                // @codeCoverageIgnoreEnd
             }
 
             $xpath = new DOMXPath($dom);
@@ -639,10 +647,12 @@ class DirectDebitGenerator
             // PHPStan: saveXML() returns string|false; we guarantee valid XML from loadXML(), return string or original
             $saved = $dom->saveXML();
 
-            return $saved !== false ? $saved : $xml;
+            return $saved !== false ? $saved : $xml; // @codeCoverageIgnore - defensive; saveXML() does not fail on valid DOM
         } catch (Exception) {
             // If DOM manipulation fails, return original XML
+            // @codeCoverageIgnoreStart - defensive
             return $xml;
+            // @codeCoverageIgnoreEnd
         }
     }
 
@@ -658,10 +668,12 @@ class DirectDebitGenerator
     {
         $creditorNodes = $xpath->query('//ns:Cdtr');
         if ($creditorNodes === false || $creditorNodes->length === 0) {
+            // @codeCoverageIgnoreStart - fallback when namespace prefix not in XML
             $creditorNodes = $xpath->query('//Cdtr');
             if ($creditorNodes === false || $creditorNodes->length === 0) {
                 return;
             }
+            // @codeCoverageIgnoreEnd
         }
 
         $creditorNode = $creditorNodes->item(0);
@@ -684,10 +696,12 @@ class DirectDebitGenerator
     {
         $debtorNodes = $xpath->query('//ns:Dbtr');
         if ($debtorNodes === false || $debtorNodes->length === 0) {
+            // @codeCoverageIgnoreStart - fallback when namespace prefix not in XML
             $debtorNodes = $xpath->query('//Dbtr');
             if ($debtorNodes === false || $debtorNodes->length <= $index) {
                 return;
             }
+            // @codeCoverageIgnoreEnd
         }
 
         if ($debtorNodes->length <= $index) {

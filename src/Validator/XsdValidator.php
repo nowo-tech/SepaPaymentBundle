@@ -14,8 +14,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * XSD Schema validator for SEPA XML files.
  * Validates XML content against official SEPA XSD schemas (ISO 20022).
  *
- * @author Héctor Franco Aceituno <hectorfranco@nowo.com>
- * @copyright 2025 Nowo.tech
+ * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
+ * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
 class XsdValidator
