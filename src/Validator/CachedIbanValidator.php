@@ -26,8 +26,8 @@ class CachedIbanValidator
      * @param ValidationCacheInterface $cache Optional cache instance
      */
     public function __construct(
-        private IbanValidator $ibanValidator,
-        private ?ValidationCacheInterface $cache = null
+        private readonly IbanValidator $ibanValidator,
+        private readonly ?ValidationCacheInterface $cache = null
     ) {
     }
 
@@ -44,7 +44,7 @@ class CachedIbanValidator
         $cacheKey   = 'iban_' . $normalized;
 
         // Check cache first
-        if ($this->cache !== null) {
+        if ($this->cache instanceof ValidationCacheInterface) {
             $cached = $this->cache->get($cacheKey);
             if ($cached !== null) {
                 return $cached;
@@ -55,7 +55,7 @@ class CachedIbanValidator
         $result = $this->ibanValidator->isValid($iban);
 
         // Cache result
-        if ($this->cache !== null) {
+        if ($this->cache instanceof ValidationCacheInterface) {
             $this->cache->set($cacheKey, $result);
         }
 

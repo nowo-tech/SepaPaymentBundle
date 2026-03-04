@@ -21,7 +21,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  */
 #[AsCommand(
     name: 'nowo:sepa:ccc-to-iban',
-    description: 'Converts a Spanish CCC (Código Cuenta Cliente) to IBAN',
+    description: 'Converts a Spanish CCC (Client Account Code) to IBAN',
 )]
 class ConvertCccCommand extends Command
 {
@@ -31,7 +31,7 @@ class ConvertCccCommand extends Command
      * @param CccConverter $cccConverter CCC converter instance
      */
     public function __construct(
-        private CccConverter $cccConverter
+        private readonly CccConverter $cccConverter
     ) {
         parent::__construct();
     }
@@ -43,7 +43,7 @@ class ConvertCccCommand extends Command
     {
         $this
             ->addArgument('ccc', InputArgument::REQUIRED, 'The CCC to convert (20 digits)')
-            ->setHelp('This command converts a Spanish CCC (Código Cuenta Cliente) to IBAN format.');
+            ->setHelp('This command converts a Spanish CCC (Client Account Code) to IBAN format.');
     }
 
     /**

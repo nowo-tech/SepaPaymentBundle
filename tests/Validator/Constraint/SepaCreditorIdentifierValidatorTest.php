@@ -26,7 +26,7 @@ class SepaCreditorIdentifierValidatorTest extends TestCase
      *
      * @var \PHPUnit\Framework\MockObject\MockObject|SepaCreditorIdentifierValidatorService
      */
-    private $sepaCreditorIdentifierValidatorService;
+    private \PHPUnit\Framework\MockObject\MockObject $sepaCreditorIdentifierValidatorService;
 
     /**
      * Constraint validator instance.
@@ -38,7 +38,7 @@ class SepaCreditorIdentifierValidatorTest extends TestCase
      *
      * @var ExecutionContextInterface|\PHPUnit\Framework\MockObject\MockObject
      */
-    private $context;
+    private \PHPUnit\Framework\MockObject\MockObject $context;
 
     /**
      * Sets up the test environment.

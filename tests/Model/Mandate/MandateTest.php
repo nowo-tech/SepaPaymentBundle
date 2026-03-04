@@ -187,7 +187,7 @@ class MandateTest extends TestCase
         $this->assertEquals('Customer request', $mandate->getRevocationReason());
 
         $mandate2 = new Mandate('M-2', new DateTime(), 'ES9121000418450200051332', 'Jane');
-        $mandate2->revoke(null);
+        $mandate2->revoke();
         $this->assertNull($mandate2->getRevocationReason());
     }
 

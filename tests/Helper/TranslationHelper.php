@@ -69,8 +69,6 @@ class TranslationHelper
      */
     public static function createTranslatorCallback(): callable
     {
-        return static function (string $id, array $parameters = [], ?string $domain = null) {
-            return self::translate($id, $parameters, $domain);
-        };
+        return static fn (string $id, array $parameters = [], ?string $domain = null): string => self::translate($id, $parameters, $domain);
     }
 }

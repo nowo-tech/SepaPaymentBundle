@@ -32,7 +32,7 @@ class ValidateCreditCardCommand extends Command
      * @param CreditCardValidator $creditCardValidator Credit card validator instance
      */
     public function __construct(
-        private CreditCardValidator $creditCardValidator
+        private readonly CreditCardValidator $creditCardValidator
     ) {
         parent::__construct();
     }

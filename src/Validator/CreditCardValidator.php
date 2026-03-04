@@ -95,7 +95,11 @@ class CreditCardValidator
      */
     public function normalize(string $cardNumber): string
     {
-        return preg_replace('/[^0-9]/', '', trim($cardNumber));
+        // PHPStan: preg_replace can return null on error; declared return type is string.
+        // Fix: ensure string with coalescence to original value (digits only) or empty string.
+        $result = preg_replace('/[^0-9]/', '', trim($cardNumber));
+
+        return $result ?? '';
     }
 
     /**
@@ -131,7 +135,7 @@ class CreditCardValidator
     {
         $normalized = $this->normalize($cardNumber);
 
-        if (empty($normalized)) {
+        if ($normalized === '' || $normalized === '0') {
             return self::TYPE_UNKNOWN;
         }
 

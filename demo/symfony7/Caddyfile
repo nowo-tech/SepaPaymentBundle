@@ -7,6 +7,6 @@
     encode zstd br gzip
 
     php_server {
-        worker /app/public/index.php 2
+        try_files {path} /index.php
     }
 }

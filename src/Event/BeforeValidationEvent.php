@@ -16,16 +16,6 @@ use Symfony\Contracts\EventDispatcher\Event;
 class BeforeValidationEvent extends Event
 {
     /**
-     * Validation type (e.g., 'iban', 'bic', 'credit_card').
-     */
-    private string $validationType;
-
-    /**
-     * Value to validate.
-     */
-    private string $value;
-
-    /**
      * Validation result (can be modified by listeners).
      */
     private ?bool $result = null;
@@ -36,10 +26,16 @@ class BeforeValidationEvent extends Event
      * @param string $validationType Validation type
      * @param string $value Value to validate
      */
-    public function __construct(string $validationType, string $value)
-    {
-        $this->validationType = $validationType;
-        $this->value          = $value;
+    public function __construct(
+        /**
+         * Validation type (e.g., 'iban', 'bic', 'credit_card').
+         */
+        private readonly string $validationType,
+        /**
+         * Value to validate.
+         */
+        private readonly string $value
+    ) {
     }
 
     /**

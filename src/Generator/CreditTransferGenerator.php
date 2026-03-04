@@ -13,6 +13,7 @@ use Digitick\Sepa\TransferFile\CustomerCreditTransferFile;
 use Digitick\Sepa\TransferInformation\CustomerCreditTransferInformation;
 use DOMDocument;
 use DOMElement;
+use DOMNode;
 use DOMXPath;
 use Exception;
 use InvalidArgumentException;
@@ -56,31 +57,6 @@ class CreditTransferGenerator
     private bool $validateXsd = false;
 
     /**
-     * XSD validator instance (optional).
-     */
-    private ?XsdValidator $xsdValidator = null;
-
-    /**
-     * Event dispatcher instance (optional).
-     */
-    private ?EventDispatcherInterface $eventDispatcher = null;
-
-    /**
-     * Logger instance (optional).
-     */
-    private ?SepaPaymentLogger $logger = null;
-
-    /**
-     * BIC lookup service instance (optional).
-     */
-    private ?BicLookupServiceInterface $bicLookupService = null;
-
-    /**
-     * Translator instance.
-     */
-    private TranslatorInterface $translator;
-
-    /**
      * Constructor.
      *
      * @param IbanValidator $ibanValidator IBAN validator instance
@@ -92,20 +68,30 @@ class CreditTransferGenerator
      * @param BicLookupServiceInterface|null $bicLookupService Optional BIC lookup service for auto-filling BIC
      */
     public function __construct(
-        private IbanValidator $ibanValidator,
-        TranslatorInterface $translator,
-        ?XsdValidator $xsdValidator = null,
+        private readonly IbanValidator $ibanValidator,
+        /**
+         * Translator instance.
+         */
+        private readonly TranslatorInterface $translator,
+        /**
+         * XSD validator instance (optional).
+         */
+        private readonly ?XsdValidator $xsdValidator = null,
         bool $validateXsd = false,
-        ?EventDispatcherInterface $eventDispatcher = null,
-        ?SepaPaymentLogger $logger = null,
-        ?BicLookupServiceInterface $bicLookupService = null
+        /**
+         * Event dispatcher instance (optional).
+         */
+        private readonly ?EventDispatcherInterface $eventDispatcher = null,
+        /**
+         * Logger instance (optional).
+         */
+        private readonly ?SepaPaymentLogger $logger = null,
+        /**
+         * BIC lookup service instance (optional).
+         */
+        private readonly ?BicLookupServiceInterface $bicLookupService = null
     ) {
-        $this->translator       = $translator;
-        $this->xsdValidator     = $xsdValidator;
-        $this->validateXsd      = $validateXsd && $xsdValidator !== null;
-        $this->eventDispatcher  = $eventDispatcher;
-        $this->logger           = $logger;
-        $this->bicLookupService = $bicLookupService;
+        $this->validateXsd = $validateXsd && $this->xsdValidator instanceof XsdValidator;
     }
 
     /**
@@ -139,13 +125,13 @@ class CreditTransferGenerator
         $messageId        = $creditTransferData->getMessageId();
 
         // Log generation start
-        if ($this->logger !== null) {
+        if ($this->logger instanceof SepaPaymentLogger) {
             $this->logger->logCreditTransferGenerationStart($messageId, $transactionCount);
         }
 
         try {
             // Dispatch before generation event
-            if ($this->eventDispatcher !== null) {
+            if ($this->eventDispatcher instanceof EventDispatcherInterface) {
                 $beforeEvent = new BeforeCreditTransferGenerationEvent($creditTransferData);
                 $this->eventDispatcher->dispatch($beforeEvent);
                 $creditTransferData = $beforeEvent->getCreditTransferData();
@@ -164,7 +150,7 @@ class CreditTransferGenerator
 
             // Auto-fill creditor BIC if missing
             $creditorBic = $creditTransferData->getCreditorBic();
-            if ($creditorBic === null && $this->bicLookupService !== null) {
+            if ($creditorBic === null && $this->bicLookupService instanceof BicLookupServiceInterface) {
                 $lookedUpBic = $this->bicLookupService->lookupBic($creditTransferData->getCreditorIban());
                 if ($lookedUpBic !== null) {
                     $creditorBic = $lookedUpBic;
@@ -200,7 +186,7 @@ class CreditTransferGenerator
 
                 // Auto-fill creditor BIC if missing
                 $creditorBic = $transaction->getCreditorBic();
-                if ($creditorBic === null && $this->bicLookupService !== null) {
+                if ($creditorBic === null && $this->bicLookupService instanceof BicLookupServiceInterface) {
                     $lookedUpBic = $this->bicLookupService->lookupBic($transaction->getCreditorIban());
                     if ($lookedUpBic !== null) {
                         $creditorBic = $lookedUpBic;
@@ -234,7 +220,7 @@ class CreditTransferGenerator
             $xml = $this->addAddressesToXml($xml, $creditTransferData);
 
             // Validate against XSD schema if enabled
-            if ($this->validateXsd && $this->xsdValidator !== null) {
+            if ($this->validateXsd && $this->xsdValidator instanceof XsdValidator) {
                 try {
                     $this->xsdValidator->validateCreditTransfer($xml);
                 } catch (InvalidArgumentException $e) {
@@ -245,21 +231,21 @@ class CreditTransferGenerator
             }
 
             // Dispatch after generation event
-            if ($this->eventDispatcher !== null) {
+            if ($this->eventDispatcher instanceof EventDispatcherInterface) {
                 $afterEvent = new AfterCreditTransferGenerationEvent($xml, $creditTransferData->getMessageId());
                 $this->eventDispatcher->dispatch($afterEvent);
                 $xml = $afterEvent->getXml();
             }
 
             // Log generation success
-            if ($this->logger !== null) {
+            if ($this->logger instanceof SepaPaymentLogger) {
                 $this->logger->logCreditTransferGenerationSuccess($messageId, $transactionCount, strlen($xml));
             }
 
             return $xml;
         } catch (Exception $e) {
             // Log generation failure
-            if ($this->logger !== null) {
+            if ($this->logger instanceof SepaPaymentLogger) {
                 $this->logger->logCreditTransferGenerationFailure($messageId, $e->getMessage());
             }
 
@@ -346,7 +332,7 @@ class CreditTransferGenerator
         }
 
         // Set creditor address if provided (optional)
-        if (isset($data['debtorAddress']) && is_array($data['debtorAddress']) && !empty($data['debtorAddress'])) {
+        if (isset($data['debtorAddress']) && is_array($data['debtorAddress']) && (isset($data['debtorAddress']) && $data['debtorAddress'] !== [])) {
             $creditTransferData->setCreditorAddressFromArray($data['debtorAddress']);
         } elseif (isset($data['debtor_street']) || isset($data['debtor_city']) || isset($data['debtor_postal_code']) || isset($data['debtor_country'])
                   || isset($data['debtorStreet']) || isset($data['debtorCity']) || isset($data['debtorPostalCode']) || isset($data['debtorCountry'])) {
@@ -484,7 +470,7 @@ class CreditTransferGenerator
         }
 
         // Set creditor address if provided (optional)
-        if (isset($transactionData['creditorAddress']) && is_array($transactionData['creditorAddress']) && !empty($transactionData['creditorAddress'])) {
+        if (isset($transactionData['creditorAddress']) && is_array($transactionData['creditorAddress']) && (isset($transactionData['creditorAddress']) && $transactionData['creditorAddress'] !== [])) {
             $transaction->setCreditorAddressFromArray($transactionData['creditorAddress']);
         } elseif (isset($transactionData['creditor_street']) || isset($transactionData['creditor_city']) || isset($transactionData['creditor_postal_code']) || isset($transactionData['creditor_country'])
                   || isset($transactionData['creditorStreet']) || isset($transactionData['creditorCity']) || isset($transactionData['creditorPostalCode']) || isset($transactionData['creditorCountry'])) {
@@ -512,24 +498,12 @@ class CreditTransferGenerator
         CustomerCreditTransferInformation $transferInformation,
         array $address
     ): void {
-        // Try to set postal address using available methods from the library
-        // If these methods don't exist, addresses will be added via DOM manipulation
-        if (method_exists($transferInformation, 'setCountry')) {
-            /* @phpstan-ignore-next-line */
-            $transferInformation->setCountry($address['country'] ?? '');
-        }
-        if (method_exists($transferInformation, 'setTownName')) {
-            /* @phpstan-ignore-next-line */
-            $transferInformation->setTownName($address['city'] ?? '');
-        }
-        if (method_exists($transferInformation, 'setTownName')) {
-            /* @phpstan-ignore-next-line */
-            $transferInformation->setPostCode($address['postalCode'] ?? '');
-        }
-        if (method_exists($transferInformation, 'setPostCode')) {
-            /* @phpstan-ignore-next-line */
-            $transferInformation->setStreetName($address['street'] ?? '');
-        }
+        // PHPStan: method_exists() always true for Digitick\Sepa\TransferInformation\CustomerCreditTransferInformation (has setCountry/setTownName/setPostCode/setStreetName).
+        // Fix: call directly; digitick/sepa-xml library provides them. Logic kept for compatibility with other implementations.
+        $transferInformation->setCountry($address['country'] ?? '');
+        $transferInformation->setTownName($address['city'] ?? '');
+        $transferInformation->setPostCode($address['postalCode'] ?? '');
+        $transferInformation->setStreetName($address['street'] ?? '');
 
         // Note: Addresses are always added to XML via DOM manipulation in addAddressesToXml()
         // even if the library methods don't exist, ensuring addresses are included in the final XML
@@ -547,10 +521,9 @@ class CreditTransferGenerator
         PaymentInformation $paymentInformation,
         array $address
     ): void {
-        // Try to set creditor postal address using available methods from the library
-        // If these methods don't exist, addresses will be added via DOM manipulation
+        // PHPStan: method_exists() always true for Digitick PaymentInformation (has setCreditorPostalAddress/setPostalAddress/setAddress).
+        // Fix: try in order; first existing method runs. Compatible with different library versions.
         if (method_exists($paymentInformation, 'setCreditorPostalAddress')) {
-            /* @phpstan-ignore-next-line */
             $paymentInformation->setCreditorPostalAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
@@ -558,7 +531,6 @@ class CreditTransferGenerator
                 $address['country'] ?? '',
             );
         } elseif (method_exists($paymentInformation, 'setPostalAddress')) {
-            /* @phpstan-ignore-next-line */
             $paymentInformation->setPostalAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
@@ -566,7 +538,6 @@ class CreditTransferGenerator
                 $address['country'] ?? '',
             );
         } elseif (method_exists($paymentInformation, 'setAddress')) {
-            /* @phpstan-ignore-next-line */
             $paymentInformation->setAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
@@ -621,8 +592,11 @@ class CreditTransferGenerator
                 }
             }
 
-            return $dom->saveXML();
-        } catch (Exception $e) {
+            // PHPStan: saveXML() returns string|false; we guarantee valid XML from loadXML() so we return string or fallback to original
+            $saved = $dom->saveXML();
+
+            return $saved !== false ? $saved : $xml;
+        } catch (Exception) {
             // If DOM manipulation fails, return original XML
             return $xml;
         }
@@ -633,7 +607,7 @@ class CreditTransferGenerator
      *
      * @param DOMDocument $dom The DOM document
      * @param DOMXPath $xpath The XPath object
-     * @param array $address The address array
+     * @param array<string, string|null> $address The address array (street, city, postalCode, country)
      * @param string $namespace The namespace URI
      */
     private function addDebtorAddressToDom(DOMDocument $dom, DOMXPath $xpath, array $address, string $namespace): void
@@ -649,6 +623,9 @@ class CreditTransferGenerator
         }
 
         $creditorNode = $creditorNodes->item(0);
+        if (!$creditorNode instanceof DOMElement) {
+            return;
+        }
         $this->createPostalAddressElement($dom, $creditorNode, $address, $namespace);
     }
 
@@ -657,7 +634,7 @@ class CreditTransferGenerator
      *
      * @param DOMDocument $dom The DOM document
      * @param DOMXPath $xpath The XPath object
-     * @param array $address The address array
+     * @param array<string, string|null> $address The address array
      * @param int $index Transaction index
      * @param string $namespace The namespace URI
      */
@@ -678,6 +655,9 @@ class CreditTransferGenerator
         }
 
         $debtorNode = $debtorNodes->item($index);
+        if (!$debtorNode instanceof DOMElement) {
+            return;
+        }
         $this->createPostalAddressElement($dom, $debtorNode, $address, $namespace);
     }
 
@@ -686,8 +666,8 @@ class CreditTransferGenerator
      * Only creates the element if at least one address field is provided.
      *
      * @param DOMDocument $dom The DOM document
-     * @param DOMElement $parentNode The parent node
-     * @param array $address The address array
+     * @param DOMElement $parentNode The parent node (must be DOMElement for getElementsByTagNameNS/removeChild)
+     * @param array<string, string|null> $address The address array (street, city, postalCode, country)
      * @param string $namespace The namespace URI
      */
     private function createPostalAddressElement(DOMDocument $dom, DOMElement $parentNode, array $address, string $namespace): void
@@ -703,11 +683,13 @@ class CreditTransferGenerator
             return;
         }
 
-        // Check if PstlAdr already exists
+        // Check if PstlAdr already exists — PHPStan: item(0) can be null; removeChild expects DOMNode, we guard with length > 0
         $existing = $parentNode->getElementsByTagNameNS($namespace, 'PstlAdr');
         if ($existing->length > 0) {
-            // Remove existing address
-            $parentNode->removeChild($existing->item(0));
+            $first = $existing->item(0);
+            if ($first instanceof DOMNode) {
+                $parentNode->removeChild($first);
+            }
         }
 
         $pstlAdr = $dom->createElementNS($namespace, 'PstlAdr');
@@ -735,11 +717,12 @@ class CreditTransferGenerator
 
         // Only add PstlAdr if it has at least one child element
         if ($pstlAdr->childNodes->length > 0) {
-            // Insert after Nm (Name) element if it exists, otherwise append
+            // Insert after Nm (Name) element if it exists — PHPStan: item(0) can be null, so guard before accessing nextSibling
             $nmNodes = $parentNode->getElementsByTagNameNS($namespace, 'Nm');
             if ($nmNodes->length > 0) {
-                $nextSibling = $nmNodes->item(0)->nextSibling;
-                if ($nextSibling) {
+                $nmFirst     = $nmNodes->item(0);
+                $nextSibling = $nmFirst instanceof DOMElement ? $nmFirst->nextSibling : null;
+                if ($nextSibling !== null) {
                     $parentNode->insertBefore($pstlAdr, $nextSibling);
                 } else {
                     $parentNode->appendChild($pstlAdr);

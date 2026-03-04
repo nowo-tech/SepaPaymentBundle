@@ -11,9 +11,9 @@ get-port = $(shell grep -E '^PORT=' $(1)/.env 2>/dev/null | cut -d '=' -f2 || ec
 # Helper function to get demo version name
 get-version = $(shell echo $(1) | sed 's/symfony/Symfony /' | sed 's/6/6.4/' | sed 's/7/7.0/' | sed 's/8/8.0/')
 
-.PHONY: help clean test-all test-coverage-all verify-all check-all release-verify
-.PHONY: $(foreach demo,$(DEMOS),up-$(demo) down-$(demo) restart-$(demo) build-$(demo) install-$(demo) update-bundle-$(demo) shell-$(demo) logs-$(demo) test-$(demo) test-coverage-$(demo) verify-$(demo))
-.PHONY: up down restart build install update-bundle test shell logs test-coverage verify
+.PHONY: help clean test-all test-coverage-all verify-all check-all
+.PHONY: $(foreach demo,$(DEMOS),up-$(demo) down-$(demo) restart-$(demo) build-$(demo) install-$(demo) update-$(demo) update-bundle-$(demo) shell-$(demo) logs-$(demo) test-$(demo) test-coverage-$(demo) verify-$(demo))
+.PHONY: up down restart build install update update-bundle test shell logs test-coverage verify release-verify
 
 # Default target
 help:
@@ -26,189 +26,76 @@ help:
 		echo "$$version Demo (Port 8001):"; \
 		echo "  up-$$demo        Start $$version demo containers"; \
 		echo "  down-$$demo      Stop $$version demo containers"; \
-		echo "  restart-$$demo  Restart $$version demo containers"; \
-		echo "  build-$$demo    Rebuild $$version image (no cache)"; \
+		echo "  restart-$$demo   Restart $$version demo containers"; \
+		echo "  build-$$demo     Rebuild $$version image (no cache)"; \
 		echo "  install-$$demo   Install dependencies for $$version demo"; \
-		echo "  update-bundle-$$demo  Update bundle from path repo and clear cache"; \
+		echo "  update-$$demo   Run composer update in $$version demo"; \
+		echo "  update-bundle-$$demo  Update bundle from path in $$version demo"; \
 		echo "  shell-$$demo     Open shell in $$version PHP container"; \
 		echo "  logs-$$demo      Show $$version container logs"; \
 		echo "  test-$$demo      Run tests for $$version demo"; \
 		echo "  test-coverage-$$demo  Run tests with coverage for $$version demo"; \
+		echo "  verify-$$demo    Ensure up and check HTTP 200"; \
 		echo ""; \
 	done
 	@echo "Testing:"
 	@echo "  test-all           Run tests for all demos"
 	@echo "  test-coverage-all  Run tests with coverage for all demos"
 	@echo "  verify-all         Verify all demos are running correctly (HTTP 200)"
-	@echo "  release-verify    Start each demo, healthcheck (HTTP 200), then stop (for release-check)"
 	@echo ""
 	@echo "Generic commands (use with DEMO=<name>):"
 	@echo "  up <demo>         Start a specific demo (e.g., make up DEMO=symfony6)"
 	@echo "  down <demo>        Stop a specific demo (e.g., make down DEMO=symfony6)"
-	@echo "  restart <demo>     Restart containers (e.g., make restart DEMO=symfony6)"
-	@echo "  build <demo>       Rebuild image no cache (e.g., make build DEMO=symfony6)"
+	@echo "  restart <demo>     Restart a specific demo"
+	@echo "  build <demo>       Rebuild image for a specific demo"
 	@echo "  install <demo>     Install dependencies (e.g., make install DEMO=symfony6)"
-	@echo "  update-bundle <demo>  Update bundle from path repo (e.g., make update-bundle DEMO=symfony6)"
+	@echo "  update <demo>      Run composer update in a specific demo"
+	@echo "  update-bundle <demo>  Update bundle from path in a specific demo"
 	@echo "  test <demo>        Run tests (e.g., make test DEMO=symfony6)"
 	@echo "  shell <demo>       Open shell in a specific demo container"
 	@echo "  logs <demo>        Show logs of a specific demo"
 	@echo ""
 	@echo "Other commands:"
 	@echo "  clean              Remove vendor and cache from all demos"
+	@echo "  release-verify     Start each demo, healthcheck (HTTP 200), then stop (for release-check)"
 	@echo ""
 
-# Generate up targets for each demo
-define up-target-template
-up-$(1):
-	@VERSION=$$$$(echo $(1) | sed 's/symfony/Symfony /' | sed 's/6/6.4/' | sed 's/7/7.0/' | sed 's/8/8.0/'); \
-	echo "🚀 Starting $$$$VERSION demo..."; \
-	if ! command -v docker-compose >/dev/null 2>&1 && ! command -v docker compose >/dev/null 2>&1; then \
-		echo "❌ Error: docker-compose or 'docker compose' is not available"; \
-		echo "Please install Docker Desktop and enable WSL 2 integration"; \
-		echo "See: https://docs.docker.com/go/wsl2/"; \
-		exit 1; \
-	fi; \
-	cd $(1) && \
-	if [ ! -f .env ]; then cp .env.example .env 2>/dev/null || true; fi && \
-	PORT=$$$$(grep "^PORT=" .env 2>/dev/null | cut -d= -f2 | head -1 || echo 8001); \
-	echo "🔍 Checking port $$$$PORT..."; \
-	CONTAINER=$$$$(docker ps --format "{{.Names}}" --filter "publish=$$$$PORT" 2>/dev/null | head -1); \
-	if [ -n "$$$$CONTAINER" ]; then \
-		echo "⚠️  Port $$$$PORT is in use by container: $$$$CONTAINER"; \
-		echo "🛑 Stopping container $$$$CONTAINER..."; \
-		docker stop $$$$CONTAINER 2>/dev/null || true; \
-		docker rm $$$$CONTAINER 2>/dev/null || true; \
-		echo "✅ Port $$$$PORT is now free"; \
-	fi && \
-	if command -v docker-compose >/dev/null 2>&1; then \
-		DOCKER_COMPOSE_CMD="docker-compose"; \
-	else \
-		DOCKER_COMPOSE_CMD="docker compose"; \
-	fi && \
-	$$$$DOCKER_COMPOSE_CMD build && \
-	$$$$DOCKER_COMPOSE_CMD up -d && \
-	echo "⏳ Waiting for demo to be ready..." && \
-	sleep 5 && \
-	MAX_ATTEMPTS=12; \
-	ATTEMPT=1; \
-	while [ $$$$ATTEMPT -le $$$$MAX_ATTEMPTS ]; do \
-		if curl -s -o /dev/null -w "%{http_code}" http://localhost:$$$$PORT 2>/dev/null | grep -q "200"; then \
-			echo "✅ $$$$VERSION demo is running and responding at http://localhost:$$$$PORT"; \
-			exit 0; \
-		fi; \
-		echo "⏳ Attempt $$$$ATTEMPT/$$$$MAX_ATTEMPTS: Waiting for demo to respond..."; \
-		sleep 5; \
-		ATTEMPT=$$$$((ATTEMPT + 1)); \
-	done; \
-	echo "❌ Demo failed to respond after $$$$MAX_ATTEMPTS attempts"; \
-	exit 1
+# Delegate to each demo's Makefile
+up-%:
+	@$(MAKE) -C $* up
 
-down-$(1):
-	@VERSION=$$$$(echo $(1) | sed 's/symfony/Symfony /' | sed 's/6/6.4/' | sed 's/7/7.0/' | sed 's/8/8.0/'); \
-	echo "🛑 Stopping $$$$VERSION demo..."; \
-	if command -v docker-compose >/dev/null 2>&1; then \
-		DOCKER_COMPOSE_CMD="docker-compose"; \
-	else \
-		DOCKER_COMPOSE_CMD="docker compose"; \
-	fi; \
-	cd $(1) && $$$$DOCKER_COMPOSE_CMD down
+down-%:
+	@$(MAKE) -C $* down
 
-restart-$(1):
-	@$(MAKE) -C $(1) ensure-up; \
-	VERSION=$$$$(echo $(1) | sed 's/symfony/Symfony /' | sed 's/6/6.4/' | sed 's/7/7.0/' | sed 's/8/8.0/'); \
-	echo "🔄 Restarting $$$$VERSION demo..."; \
-	if command -v docker-compose >/dev/null 2>&1; then \
-		DOCKER_COMPOSE_CMD="docker-compose"; \
-	else \
-		DOCKER_COMPOSE_CMD="docker compose"; \
-	fi; \
-	cd $(1) && $$$$DOCKER_COMPOSE_CMD restart
+restart-%:
+	@$(MAKE) -C $* restart
 
-build-$(1):
-	@VERSION=$$$$(echo $(1) | sed 's/symfony/Symfony /' | sed 's/6/6.4/' | sed 's/7/7.0/' | sed 's/8/8.0/'); \
-	echo "🔨 Rebuilding $$$$VERSION image (no cache)..."; \
-	if command -v docker-compose >/dev/null 2>&1; then \
-		DOCKER_COMPOSE_CMD="docker-compose"; \
-	else \
-		DOCKER_COMPOSE_CMD="docker compose"; \
-	fi; \
-	cd $(1) && $$$$DOCKER_COMPOSE_CMD build --no-cache
+build-%:
+	@$(MAKE) -C $* build
 
-install-$(1):
-	@VERSION=$$$$(echo $(1) | sed 's/symfony/Symfony /' | sed 's/6/6.4/' | sed 's/7/7.0/' | sed 's/8/8.0/'); \
-	echo "📦 Installing dependencies for $$$$VERSION demo..."; \
-	if command -v docker-compose >/dev/null 2>&1; then \
-		DOCKER_COMPOSE_CMD="docker-compose"; \
-	else \
-		DOCKER_COMPOSE_CMD="docker compose"; \
-	fi; \
-	cd $(1) && $$$$DOCKER_COMPOSE_CMD up -d && $$$$DOCKER_COMPOSE_CMD exec php sh -c 'rm -rf vendor/nowo-tech/sepa-payment-bundle 2>/dev/null; composer update --no-interaction && (case "$(1)" in symfony6|symfony7) sed -i "s/wdt\.php/wdt.xml/g; s/profiler\.php/profiler.xml/g" config/routes/web_profiler.yaml 2>/dev/null || true ;; esac) && rm -rf vendor/nowo-tech/sepa-payment-bundle && ln -s /var/sepa-payment-bundle vendor/nowo-tech/sepa-payment-bundle && composer run-script post-install-cmd'
+install-%:
+	@$(MAKE) -C $* install
 
-update-$(1):
-	@VERSION=$$$$(echo $(1) | sed 's/symfony/Symfony /' | sed 's/6/6.4/' | sed 's/7/7.0/' | sed 's/8/8.0/'); \
-	echo "🔄 Updating composer.lock for $$$$VERSION demo..."; \
-	if command -v docker-compose >/dev/null 2>&1; then \
-		DOCKER_COMPOSE_CMD="docker-compose"; \
-	else \
-		DOCKER_COMPOSE_CMD="docker compose"; \
-	fi; \
-	cd $(1) && $$$$DOCKER_COMPOSE_CMD exec php composer update --no-interaction
+update-%:
+	@$(MAKE) -C $* update
 
-update-bundle-$(1):
-	@$(MAKE) -C $(1) update-bundle
+update-bundle-%:
+	@$(MAKE) -C $* update-bundle
 
-shell-$(1):
-	@if command -v docker-compose >/dev/null 2>&1; then \
-		DOCKER_COMPOSE_CMD="docker-compose"; \
-	else \
-		DOCKER_COMPOSE_CMD="docker compose"; \
-	fi; \
-	cd $(1) && $$$$DOCKER_COMPOSE_CMD exec php sh
+shell-%:
+	@$(MAKE) -C $* shell
 
-logs-$(1):
-	@if command -v docker-compose >/dev/null 2>&1; then \
-		DOCKER_COMPOSE_CMD="docker-compose"; \
-	else \
-		DOCKER_COMPOSE_CMD="docker compose"; \
-	fi; \
-	cd $(1) && $$$$DOCKER_COMPOSE_CMD logs -f
+logs-%:
+	@$(MAKE) -C $* logs
 
-test-$(1):
-	@VERSION=$$$$(echo $(1) | sed 's/symfony/Symfony /' | sed 's/6/6.4/' | sed 's/7/7.0/' | sed 's/8/8.0/'); \
-	echo "🧪 Running tests for $$$$VERSION demo..."; \
-	if command -v docker-compose >/dev/null 2>&1; then \
-		DOCKER_COMPOSE_CMD="docker-compose"; \
-	else \
-		DOCKER_COMPOSE_CMD="docker compose"; \
-	fi; \
-	cd $(1) && $$$$DOCKER_COMPOSE_CMD exec php composer test
+test-%:
+	@$(MAKE) -C $* test
 
-test-coverage-$(1):
-	@VERSION=$$$$(echo $(1) | sed 's/symfony/Symfony /' | sed 's/6/6.4/' | sed 's/7/7.0/' | sed 's/8/8.0/'); \
-	echo "📊 Running tests with coverage for $$$$VERSION demo..."; \
-	if command -v docker-compose >/dev/null 2>&1; then \
-		DOCKER_COMPOSE_CMD="docker-compose"; \
-	else \
-		DOCKER_COMPOSE_CMD="docker compose"; \
-	fi; \
-	cd $(1) && $$$$DOCKER_COMPOSE_CMD exec php composer test-coverage
+test-coverage-%:
+	@$(MAKE) -C $* test-coverage
 
-verify-$(1):
-	@VERSION=$$$$(echo $(1) | sed 's/symfony/Symfony /' | sed 's/6/6.4/' | sed 's/7/7.0/' | sed 's/8/8.0/'); \
-	echo "🔍 Verifying $$$$VERSION demo..."; \
-	cd $(1) && \
-	if [ ! -f .env ]; then cp .env.example .env 2>/dev/null || true; fi && \
-	PORT=$$$$(grep "^PORT=" .env 2>/dev/null | cut -d= -f2 | head -1 || echo 8001); \
-	$(MAKE) up-$(1) && \
-	if curl -s -o /dev/null -w "%{http_code}" http://localhost:$$$$PORT | grep -q "200"; then \
-		echo "✅ $$$$VERSION demo verified successfully"; \
-	else \
-		echo "❌ $$$$VERSION demo verification failed"; \
-		exit 1; \
-	fi
-endef
-
-$(foreach demo,$(DEMOS),$(eval $(call up-target-template,$(demo))))
+verify-%:
+	@$(MAKE) -C $* verify
 
 # Generic commands that work with DEMO variable
 up:
@@ -245,6 +132,13 @@ install:
 		exit 1; \
 	fi
 	@$(MAKE) install-$(DEMO)
+
+update:
+	@if [ -z "$(DEMO)" ]; then \
+		echo "❌ Error: DEMO variable is required. Usage: make update DEMO=symfony6"; \
+		exit 1; \
+	fi
+	@$(MAKE) update-$(DEMO)
 
 update-bundle:
 	@if [ -z "$(DEMO)" ]; then \
@@ -338,21 +232,6 @@ test-coverage-all:
 		echo "✅ All demos coverage generated"; \
 	fi
 
-# Release verify: for each demo, up → sleep → healthcheck (HTTP 200) → down
-release-verify:
-	@for demo in $(DEMOS); do \
-		port=$$(grep '^PORT=' $$demo/.env 2>/dev/null | cut -d= -f2 | tr -d '\r'); \
-		[ -z "$$port" ] && port=8001; \
-		echo "🔍 Release verify: $$demo (port $$port)..."; \
-		$(MAKE) up-$$demo; \
-		echo "⏳ Waiting for $$demo to be ready..."; sleep 15; \
-		code=$$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:$$port 2>/dev/null || echo "000"); \
-		$(MAKE) down-$$demo 2>/dev/null || true; \
-		if [ "$$code" != "200" ]; then echo "❌ $$demo healthcheck failed (HTTP $$code)"; exit 1; fi; \
-		echo "✅ $$demo OK (HTTP $$code)"; \
-	done
-	@echo "✅ All demos passed release-verify."
-
 # Verify all demos
 verify-all:
 	@echo "🔍 Verifying all demos..."
@@ -383,6 +262,21 @@ verify-all:
 		echo "✅ Successful: $$SUCCESSFUL/$$(echo $(DEMOS) | wc -w)"; \
 		echo "✅ All demos verified successfully!"; \
 	fi
+
+# Release verify: for each demo, up → sleep → healthcheck (HTTP 200) → down
+release-verify:
+	@for demo in $(DEMOS); do \
+		port=$$(grep '^PORT=' $$demo/.env 2>/dev/null | cut -d= -f2 | tr -d '\r'); \
+		[ -z "$$port" ] && port=8001; \
+		echo "🔍 Release verify: $$demo (port $$port)..."; \
+		$(MAKE) up-$$demo; \
+		echo "⏳ Waiting for $$demo to be ready..."; sleep 10; \
+		code=$$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:$$port 2>/dev/null || echo "000"); \
+		$(MAKE) down-$$demo 2>/dev/null || true; \
+		if [ "$$code" != "200" ]; then echo "❌ $$demo healthcheck failed (HTTP $$code)"; exit 1; fi; \
+		echo "✅ $$demo OK (HTTP $$code)"; \
+	done
+	@echo "✅ All demos passed release-verify."
 
 # Clean all demos
 clean:

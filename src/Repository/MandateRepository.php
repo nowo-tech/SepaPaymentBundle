@@ -110,7 +110,7 @@ class MandateRepository implements MandateRepositoryInterface
         foreach ($this->mandates as $mandate) {
             // Check if mandate has expiration date and is expired
             $expirationDate = $this->getExpirationDate($mandate);
-            if ($expirationDate !== null && $expirationDate < $checkDate) {
+            if ($expirationDate < $checkDate) {
                 $result[] = $mandate;
             }
         }
@@ -150,9 +150,7 @@ class MandateRepository implements MandateRepositoryInterface
         $this->history[$mandateId][] = $history;
 
         // Sort by timestamp (oldest first)
-        usort($this->history[$mandateId], static function (MandateHistory $a, MandateHistory $b) {
-            return $a->getTimestamp() <=> $b->getTimestamp();
-        });
+        usort($this->history[$mandateId], static fn (MandateHistory $a, MandateHistory $b): int => $a->getTimestamp() <=> $b->getTimestamp());
     }
 
     /**
@@ -173,9 +171,9 @@ class MandateRepository implements MandateRepositoryInterface
      *
      * @param Mandate $mandate The mandate
      *
-     * @return DateTimeInterface|null The expiration date or null if not applicable
+     * @return DateTimeInterface The expiration date or null if not applicable
      */
-    private function getExpirationDate(Mandate $mandate): ?DateTimeInterface
+    private function getExpirationDate(Mandate $mandate): DateTimeInterface
     {
         // SEPA mandates expire 36 months after signature date
         $signatureDate  = $mandate->getSignatureDate();

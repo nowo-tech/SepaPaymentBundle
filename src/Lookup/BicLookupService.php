@@ -20,96 +20,13 @@ class BicLookupService implements BicLookupServiceInterface
     public const SERVICE_NAME = 'nowo_sepa_payment.lookup.bic_lookup_service';
 
     /**
-     * Cache interface (optional).
-     *
-     * @var object|null
-     */
-    private $cache;
-
-    /**
-     * Cache TTL in seconds (default: 86400 = 24 hours).
-     */
-    private int $cacheTtl = 86400;
-
-    /**
-     * IBAN validator instance.
-     */
-    private IbanValidator $ibanValidator;
-
-    /**
      * Local database of IBAN to BIC mappings.
-     * Key: Bank code pattern (first 4 digits of BBAN for Spanish banks, or country-specific pattern)
-     * Value: BIC code.
+     * PHPStan: property.defaultValue — literal with numeric-looking keys is inferred as array<int|string, string>;
+     * fix: initialize in constructor from a method with explicit return type.
      *
-     * @var array<string, string>
+     * @var array<string, array<string, string>>
      */
-    private array $bicDatabase = [
-        // Spanish banks (by bank code - first 4 digits of BBAN)
-        'ES' => [
-            '0030' => 'ESPCESMM', // Banco Santander
-            '0049' => 'BSCHESMM', // Banco Santander (alternative)
-            '0081' => 'BSABESBB', // Banco Sabadell
-            '0128' => 'BKBKESMM', // Banco Bilbao Vizcaya Argentaria
-            '0182' => 'BBVAESMM', // Banco Bilbao Vizcaya Argentaria (alternative)
-            '2038' => 'CAHMESMM', // Banco Alcalá
-            '2100' => 'CAIXESBB', // CaixaBank
-            '0049' => 'BSCHESMM', // Banco Santander
-            '2080' => 'CAGLESMM', // Banco Caja España de Inversiones
-            '2095' => 'CAZRES2Z', // Caja Rural de Zamora
-            '3058' => 'CCRIES2A', // Caja Rural de Navarra
-        ],
-        // German banks (by bank code - first 8 digits of BBAN)
-        'DE' => [
-            '10000000' => 'MARKDEFF', // Bundesbank
-            '10010010' => 'PBNKDEFF', // Postbank
-            '10011001' => 'PBNKDEFF', // Postbank (alternative)
-            '20050550' => 'HASPDEHH', // Hamburger Sparkasse
-            '50010517' => 'INGDDEFF', // ING-DiBa
-            '70020270' => 'HYVEDEMM', // UniCredit Bank
-            '70070010' => 'DEUTDEFF', // Deutsche Bank
-            '70080000' => 'DRESDEFF', // Commerzbank
-        ],
-        // French banks (by bank code - first 5 digits of BBAN)
-        'FR' => [
-            '20041' => 'BNPAFRPP', // BNP Paribas
-            '30002' => 'CRLYFRPP', // Crédit Lyonnais
-            '30003' => 'SOGEFRPP', // Société Générale
-            '30004' => 'CMCIFRPP', // Crédit Mutuel
-            '30006' => 'AGRIFRPP', // Crédit Agricole
-        ],
-        // Italian banks (by bank code - first 5 digits of BBAN)
-        'IT' => [
-            '03002' => 'BCITITMM', // Intesa Sanpaolo
-            '03069' => 'BCITITMM', // Intesa Sanpaolo (alternative)
-            '06175' => 'CRLYITMM', // Crédit Agricole Italia
-        ],
-        // UK banks (by bank code - first 4 digits of BBAN)
-        'GB' => [
-            '1600' => 'NWBKGB2L', // NatWest
-            '2000' => 'HBUKGB4B', // HSBC
-            '4000' => 'LOYDGB2L', // Lloyds Bank
-            '5000' => 'BARCGB22', // Barclays
-        ],
-        // Dutch banks (by bank code - first 4 digits of BBAN)
-        'NL' => [
-            'ABNA' => 'ABNANL2A', // ABN AMRO
-            'INGB' => 'INGBNL2A', // ING Bank
-            'RABO' => 'RABONL2U', // Rabobank
-            'SNSB' => 'SNSBNL2A', // SNS Bank
-        ],
-        // Belgian banks (by bank code - first 3 digits of BBAN)
-        'BE' => [
-            '001' => 'GEBABEBB', // BNP Paribas Fortis
-            '068' => 'GKCCBEBB', // Belfius
-            '310' => 'BBRUBEBB', // ING Belgium
-        ],
-        // Portuguese banks (by bank code - first 4 digits of BBAN)
-        'PT' => [
-            '0007' => 'BCPTPTPL', // Banco Comercial Português
-            '0010' => 'BBPIPTPL', // Banco Português de Investimento
-            '0033' => 'MILNPT1L', // Millennium BCP
-        ],
-    ];
+    private array $bicDatabase;
 
     /**
      * Constructor.
@@ -119,13 +36,91 @@ class BicLookupService implements BicLookupServiceInterface
      * @param int $cacheTtl Cache TTL in seconds (default: 86400)
      */
     public function __construct(
-        IbanValidator $ibanValidator,
-        $cache = null,
-        int $cacheTtl = 86400
+        /**
+         * IBAN validator instance.
+         */
+        private readonly IbanValidator $ibanValidator,
+        /**
+         * Cache interface (optional).
+         */
+        private $cache = null,
+        /**
+         * Cache TTL in seconds (default: 86400 = 24 hours).
+         */
+        private readonly int $cacheTtl = 86400
     ) {
-        $this->ibanValidator = $ibanValidator;
-        $this->cache         = $cache;
-        $this->cacheTtl      = $cacheTtl;
+        $this->bicDatabase = $this->getDefaultBicDatabase();
+    }
+
+    /**
+     * Default BIC database (countryCode => [ bankCode => bic ]).
+     * Separate method so PHPStan accepts the array<string, array<string, string>> type for the literal.
+     *
+     * @return array<string, array<string, string>>
+     */
+    private function getDefaultBicDatabase(): array
+    {
+        /** @var array<string, array<string, string>> $db PHPStan: literal with numeric keys inferred as int|string; force type. */
+        $db = [
+            'ES' => [
+                '0030' => 'ESPCESMM',
+                '0081' => 'BSABESBB',
+                '0128' => 'BKBKESMM',
+                '0182' => 'BBVAESMM',
+                '2038' => 'CAHMESMM',
+                '2100' => 'CAIXESBB',
+                '0049' => 'BSCHESMM',
+                '2080' => 'CAGLESMM',
+                '2095' => 'CAZRES2Z',
+                '3058' => 'CCRIES2A',
+            ],
+            'DE' => [
+                '10000000' => 'MARKDEFF',
+                '10010010' => 'PBNKDEFF',
+                '10011001' => 'PBNKDEFF',
+                '20050550' => 'HASPDEHH',
+                '50010517' => 'INGDDEFF',
+                '70020270' => 'HYVEDEMM',
+                '70070010' => 'DEUTDEFF',
+                '70080000' => 'DRESDEFF',
+            ],
+            'FR' => [
+                '20041' => 'BNPAFRPP',
+                '30002' => 'CRLYFRPP',
+                '30003' => 'SOGEFRPP',
+                '30004' => 'CMCIFRPP',
+                '30006' => 'AGRIFRPP',
+            ],
+            'IT' => [
+                '03002' => 'BCITITMM',
+                '03069' => 'BCITITMM',
+                '06175' => 'CRLYITMM',
+            ],
+            'GB' => [
+                '1600' => 'NWBKGB2L',
+                '2000' => 'HBUKGB4B',
+                '4000' => 'LOYDGB2L',
+                '5000' => 'BARCGB22',
+            ],
+            'NL' => [
+                'ABNA' => 'ABNANL2A',
+                'INGB' => 'INGBNL2A',
+                'RABO' => 'RABONL2U',
+                'SNSB' => 'SNSBNL2A',
+            ],
+            'BE' => [
+                '001' => 'GEBABEBB',
+                '068' => 'GKCCBEBB',
+                '310' => 'BBRUBEBB',
+            ],
+            'PT' => [
+                '0007' => 'BCPTPTPL',
+                '0010' => 'BBPIPTPL',
+                '0033' => 'MILNPT1L',
+            ],
+        ];
+
+        return $db;
     }
 
     /**
@@ -209,7 +204,10 @@ class BicLookupService implements BicLookupServiceInterface
 
         // Country-specific lookup patterns
         switch ($countryCode) {
-            case 'ES': // Spain: first 4 digits (bank code)
+            case 'ES':
+            case 'GB':
+            case 'NL':
+            case 'PT': // Spain: first 4 digits (bank code)
                 $bankCode = substr($bban, 0, 4);
 
                 return $countryDatabase[$bankCode] ?? null;
@@ -219,33 +217,15 @@ class BicLookupService implements BicLookupServiceInterface
 
                 return $countryDatabase[$bankCode] ?? null;
 
-            case 'FR': // France: first 5 digits (bank code)
+            case 'FR':
+
+            case 'IT': // France: first 5 digits (bank code)
                 $bankCode = substr($bban, 0, 5);
-
-                return $countryDatabase[$bankCode] ?? null;
-
-            case 'IT': // Italy: first 5 digits (bank code)
-                $bankCode = substr($bban, 0, 5);
-
-                return $countryDatabase[$bankCode] ?? null;
-
-            case 'GB': // UK: first 4 digits (sort code)
-                $bankCode = substr($bban, 0, 4);
-
-                return $countryDatabase[$bankCode] ?? null;
-
-            case 'NL': // Netherlands: first 4 characters (bank code)
-                $bankCode = substr($bban, 0, 4);
 
                 return $countryDatabase[$bankCode] ?? null;
 
             case 'BE': // Belgium: first 3 digits (bank code)
                 $bankCode = substr($bban, 0, 3);
-
-                return $countryDatabase[$bankCode] ?? null;
-
-            case 'PT': // Portugal: first 4 digits (bank code)
-                $bankCode = substr($bban, 0, 4);
 
                 return $countryDatabase[$bankCode] ?? null;
 
@@ -261,6 +241,9 @@ class BicLookupService implements BicLookupServiceInterface
      * @param string $countryCode Country code (2 letters)
      * @param string $bankCode Bank code (country-specific format)
      * @param string $bic BIC code
+     */
+    /**
+     * PHPStan: addMapping assigns to $this->bicDatabase[$countryCode][$bankCode]; nested type is already declared on $bicDatabase.
      */
     public function addMapping(string $countryCode, string $bankCode, string $bic): void
     {

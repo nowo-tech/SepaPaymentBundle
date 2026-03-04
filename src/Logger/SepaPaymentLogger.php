@@ -20,15 +20,12 @@ class SepaPaymentLogger
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.logger.sepa_payment_logger';
 
-    /**
-     * Logger instance.
-     */
-    private LoggerInterface $logger;
+    private readonly LoggerInterface $logger;
 
     /**
      * Constructor.
      *
-     * @param LoggerInterface|null $logger Optional logger instance (defaults to NullLogger if not provided)
+     * @param LoggerInterface|null $logger Optional logger instance (defaults to NullLogger if null)
      */
     public function __construct(?LoggerInterface $logger = null)
     {

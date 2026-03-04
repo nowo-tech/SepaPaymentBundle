@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Nowo\SepaPaymentBundle\Parser;
 
 use DOMDocument;
+use DOMElement;
 use DOMNode;
+use DOMNodeList;
 use DOMXPath;
 use Exception;
 use InvalidArgumentException;
@@ -44,174 +46,161 @@ class DirectDebitParser
 
         $data = [];
 
-        // Extract group header
-        $msgId = $xpath->query('//sepa:MsgId')->item(0);
-        if ($msgId) {
+        $msgId = $this->getFirstNode($xpath, '//sepa:MsgId');
+        if ($msgId instanceof DOMNode) {
             $data['messageId'] = $msgId->nodeValue;
         }
 
-        $creDtTm = $xpath->query('//sepa:CreDtTm')->item(0);
-        if ($creDtTm) {
+        $creDtTm = $this->getFirstNode($xpath, '//sepa:CreDtTm');
+        if ($creDtTm instanceof DOMNode) {
             $data['creationDate'] = $creDtTm->nodeValue;
         }
 
-        $initgPty = $xpath->query('//sepa:InitgPty/sepa:Nm')->item(0);
-        if ($initgPty) {
+        $initgPty = $this->getFirstNode($xpath, '//sepa:InitgPty/sepa:Nm');
+        if ($initgPty instanceof DOMNode) {
             $data['initiatingPartyName'] = $initgPty->nodeValue;
         }
 
-        // Extract payment information
-        $pmtInfId = $xpath->query('//sepa:PmtInfId')->item(0);
-        if ($pmtInfId) {
+        $pmtInfId = $this->getFirstNode($xpath, '//sepa:PmtInfId');
+        if ($pmtInfId instanceof DOMNode) {
             $data['paymentInfoId'] = $pmtInfId->nodeValue;
         }
 
-        $pmtMtd = $xpath->query('//sepa:PmtMtd')->item(0);
-        if ($pmtMtd) {
+        $pmtMtd = $this->getFirstNode($xpath, '//sepa:PmtMtd');
+        if ($pmtMtd instanceof DOMNode) {
             $data['paymentMethod'] = $pmtMtd->nodeValue;
         }
 
-        $nbOfTxs = $xpath->query('//sepa:NbOfTxs')->item(0);
-        if ($nbOfTxs) {
+        $nbOfTxs = $this->getFirstNode($xpath, '//sepa:NbOfTxs');
+        if ($nbOfTxs instanceof DOMNode) {
             $data['numberOfTransactions'] = (int) $nbOfTxs->nodeValue;
         }
 
-        $ctrlSum = $xpath->query('//sepa:CtrlSum')->item(0);
-        if ($ctrlSum) {
+        $ctrlSum = $this->getFirstNode($xpath, '//sepa:CtrlSum');
+        if ($ctrlSum instanceof DOMNode) {
             $data['controlSum'] = (float) $ctrlSum->nodeValue;
         }
 
-        $pmtInf = $xpath->query('//sepa:PmtInf')->item(0);
-        if ($pmtInf) {
-            // Extract sequence type
-            $seqTp = $xpath->query('.//sepa:SeqTp', $pmtInf)->item(0);
-            if ($seqTp) {
+        $pmtInf = $this->getFirstNode($xpath, '//sepa:PmtInf');
+        if ($pmtInf instanceof DOMNode) {
+            $seqTp = $this->getFirstNode($xpath, './/sepa:SeqTp', $pmtInf);
+            if ($seqTp instanceof DOMNode) {
                 $data['sequenceType'] = $seqTp->nodeValue;
             }
 
-            // Extract due date
-            $reqdColltnDt = $xpath->query('.//sepa:ReqdColltnDt', $pmtInf)->item(0);
-            if ($reqdColltnDt) {
+            $reqdColltnDt = $this->getFirstNode($xpath, './/sepa:ReqdColltnDt', $pmtInf);
+            if ($reqdColltnDt instanceof DOMNode) {
                 $data['dueDate'] = $reqdColltnDt->nodeValue;
             }
 
-            // Extract creditor information
-            $cdtr = $xpath->query('.//sepa:Cdtr', $pmtInf)->item(0);
-            if ($cdtr) {
-                $cdtrNm = $xpath->query('.//sepa:Nm', $cdtr)->item(0);
-                if ($cdtrNm) {
+            $cdtr = $this->getFirstNode($xpath, './/sepa:Cdtr', $pmtInf);
+            if ($cdtr instanceof DOMNode) {
+                $cdtrNm = $this->getFirstNode($xpath, './/sepa:Nm', $cdtr);
+                if ($cdtrNm instanceof DOMNode) {
                     $data['creditorName'] = $cdtrNm->nodeValue;
                 }
-
-                // Extract creditor address
                 $creditorAddress = $this->extractAddress($xpath, $cdtr);
-                if (!empty($creditorAddress)) {
+                if ($creditorAddress !== []) {
                     $data['creditorAddress'] = $creditorAddress;
                 }
             }
 
-            // Extract creditor account
-            $cdtrAcct = $xpath->query('.//sepa:CdtrAcct', $pmtInf)->item(0);
-            if ($cdtrAcct) {
-                $iban = $xpath->query('.//sepa:IBAN', $cdtrAcct)->item(0);
-                if ($iban) {
+            $cdtrAcct = $this->getFirstNode($xpath, './/sepa:CdtrAcct', $pmtInf);
+            if ($cdtrAcct instanceof DOMNode) {
+                $iban = $this->getFirstNode($xpath, './/sepa:IBAN', $cdtrAcct);
+                if ($iban instanceof DOMNode) {
                     $data['creditorIban'] = $iban->nodeValue;
                 }
             }
 
-            // Extract creditor identification
-            $cdtrSchmeId = $xpath->query('.//sepa:CdtrSchmeId', $pmtInf)->item(0);
-            if ($cdtrSchmeId) {
-                $id = $xpath->query('.//sepa:Id/sepa:PrvtId/sepa:Othr/sepa:Id', $cdtrSchmeId)->item(0);
-                if ($id) {
+            $cdtrSchmeId = $this->getFirstNode($xpath, './/sepa:CdtrSchmeId', $pmtInf);
+            if ($cdtrSchmeId instanceof DOMNode) {
+                $id = $this->getFirstNode($xpath, './/sepa:Id/sepa:PrvtId/sepa:Othr/sepa:Id', $cdtrSchmeId);
+                if ($id instanceof DOMNode) {
                     $data['creditorId'] = $id->nodeValue;
                 }
             }
 
-            // Extract local instrument code
-            $lclInstrm = $xpath->query('.//sepa:LclInstrm', $pmtInf)->item(0);
-            if ($lclInstrm) {
-                $cd = $xpath->query('.//sepa:Cd', $lclInstrm)->item(0);
-                if ($cd) {
+            $lclInstrm = $this->getFirstNode($xpath, './/sepa:LclInstrm', $pmtInf);
+            if ($lclInstrm instanceof DOMNode) {
+                $cd = $this->getFirstNode($xpath, './/sepa:Cd', $lclInstrm);
+                if ($cd instanceof DOMNode) {
                     $data['localInstrumentCode'] = $cd->nodeValue;
                 }
             }
         }
 
-        // Extract transactions
         $transactions      = [];
         $drctDbtTxInfNodes = $xpath->query('//sepa:DrctDbtTxInf');
-        foreach ($drctDbtTxInfNodes as $txInf) {
-            $transaction = [];
+        if ($drctDbtTxInfNodes instanceof DOMNodeList) {
+            foreach ($drctDbtTxInfNodes as $txInf) {
+                $ctx = $txInf instanceof DOMNode ? $txInf : null;
+                if (!$ctx instanceof DOMNode) {
+                    continue;
+                }
+                $transaction = [];
 
-            $endToEndId = $xpath->query('.//sepa:EndToEndId', $txInf)->item(0);
-            if ($endToEndId) {
-                $transaction['endToEndId'] = $endToEndId->nodeValue;
-            }
-
-            $instdAmt = $xpath->query('.//sepa:InstdAmt', $txInf)->item(0);
-            if ($instdAmt) {
-                $transaction['amount']   = (float) $instdAmt->nodeValue;
-                $transaction['currency'] = $instdAmt->getAttribute('Ccy');
-            }
-
-            // Extract mandate related information
-            $mndtRltdInf = $xpath->query('.//sepa:MndtRltdInf', $txInf)->item(0);
-            if ($mndtRltdInf) {
-                $mndtId = $xpath->query('.//sepa:MndtId', $mndtRltdInf)->item(0);
-                if ($mndtId) {
-                    $transaction['mandateId'] = $mndtId->nodeValue;
+                $endToEndId = $this->getFirstNode($xpath, './/sepa:EndToEndId', $ctx);
+                if ($endToEndId instanceof DOMNode) {
+                    $transaction['endToEndId'] = $endToEndId->nodeValue;
                 }
 
-                $dtOfSgntr = $xpath->query('.//sepa:DtOfSgntr', $mndtRltdInf)->item(0);
-                if ($dtOfSgntr) {
-                    $transaction['mandateSignDate'] = $dtOfSgntr->nodeValue;
-                }
-            }
-
-            // Extract debtor information
-            $dbtr = $xpath->query('.//sepa:Dbtr', $txInf)->item(0);
-            if ($dbtr) {
-                $dbtrNm = $xpath->query('.//sepa:Nm', $dbtr)->item(0);
-                if ($dbtrNm) {
-                    $transaction['debtorName'] = $dbtrNm->nodeValue;
+                $instdAmt = $this->getFirstNode($xpath, './/sepa:InstdAmt', $ctx);
+                if ($instdAmt instanceof DOMNode) {
+                    $transaction['amount']   = (float) $instdAmt->nodeValue;
+                    $transaction['currency'] = $instdAmt instanceof DOMElement ? $instdAmt->getAttribute('Ccy') : '';
                 }
 
-                // Extract debtor address
-                $debtorAddress = $this->extractAddress($xpath, $dbtr);
-                if (!empty($debtorAddress)) {
-                    $transaction['debtorAddress'] = $debtorAddress;
-                }
-            }
-
-            // Extract debtor account
-            $dbtrAcct = $xpath->query('.//sepa:DbtrAcct', $txInf)->item(0);
-            if ($dbtrAcct) {
-                $iban = $xpath->query('.//sepa:IBAN', $dbtrAcct)->item(0);
-                if ($iban) {
-                    $transaction['debtorIban'] = $iban->nodeValue;
-                }
-            }
-
-            // Extract debtor agent (BIC)
-            $dbtrAgt = $xpath->query('.//sepa:DbtrAgt', $txInf)->item(0);
-            if ($dbtrAgt) {
-                $finInstnId = $xpath->query('.//sepa:FinInstnId', $dbtrAgt)->item(0);
-                if ($finInstnId) {
-                    $bic = $xpath->query('.//sepa:BIC', $finInstnId)->item(0);
-                    if ($bic) {
-                        $transaction['debtorBic'] = $bic->nodeValue;
+                $mndtRltdInf = $this->getFirstNode($xpath, './/sepa:MndtRltdInf', $ctx);
+                if ($mndtRltdInf instanceof DOMNode) {
+                    $mndtId = $this->getFirstNode($xpath, './/sepa:MndtId', $mndtRltdInf);
+                    if ($mndtId instanceof DOMNode) {
+                        $transaction['mandateId'] = $mndtId->nodeValue;
+                    }
+                    $dtOfSgntr = $this->getFirstNode($xpath, './/sepa:DtOfSgntr', $mndtRltdInf);
+                    if ($dtOfSgntr instanceof DOMNode) {
+                        $transaction['mandateSignDate'] = $dtOfSgntr->nodeValue;
                     }
                 }
-            }
 
-            // Extract remittance information
-            $rmtInf = $xpath->query('.//sepa:Ustrd', $txInf)->item(0);
-            if ($rmtInf) {
-                $transaction['remittanceInformation'] = $rmtInf->nodeValue;
-            }
+                $dbtr = $this->getFirstNode($xpath, './/sepa:Dbtr', $ctx);
+                if ($dbtr instanceof DOMNode) {
+                    $dbtrNm = $this->getFirstNode($xpath, './/sepa:Nm', $dbtr);
+                    if ($dbtrNm instanceof DOMNode) {
+                        $transaction['debtorName'] = $dbtrNm->nodeValue;
+                    }
+                    $debtorAddress = $this->extractAddress($xpath, $dbtr);
+                    if ($debtorAddress !== []) {
+                        $transaction['debtorAddress'] = $debtorAddress;
+                    }
+                }
 
-            $transactions[] = $transaction;
+                $dbtrAcct = $this->getFirstNode($xpath, './/sepa:DbtrAcct', $ctx);
+                if ($dbtrAcct instanceof DOMNode) {
+                    $iban = $this->getFirstNode($xpath, './/sepa:IBAN', $dbtrAcct);
+                    if ($iban instanceof DOMNode) {
+                        $transaction['debtorIban'] = $iban->nodeValue;
+                    }
+                }
+
+                $dbtrAgt = $this->getFirstNode($xpath, './/sepa:DbtrAgt', $ctx);
+                if ($dbtrAgt instanceof DOMNode) {
+                    $finInstnId = $this->getFirstNode($xpath, './/sepa:FinInstnId', $dbtrAgt);
+                    if ($finInstnId instanceof DOMNode) {
+                        $bic = $this->getFirstNode($xpath, './/sepa:BIC', $finInstnId);
+                        if ($bic instanceof DOMNode) {
+                            $transaction['debtorBic'] = $bic->nodeValue;
+                        }
+                    }
+                }
+
+                $rmtInf = $this->getFirstNode($xpath, './/sepa:Ustrd', $ctx);
+                if ($rmtInf instanceof DOMNode) {
+                    $transaction['remittanceInformation'] = $rmtInf->nodeValue;
+                }
+
+                $transactions[] = $transaction;
+            }
         }
 
         $data['transactions'] = $transactions;
@@ -225,31 +214,29 @@ class DirectDebitParser
      * @param DOMXPath $xpath The XPath object
      * @param DOMNode $parentNode The parent node containing address information
      *
-     * @return array<string, string> Address array with keys: street, city, postalCode, country
+     * PHPStan: return.type — nodeValue can be null; actual type is array<string, string|null>.
+     *
+     * @return array<string, string|null> Address array with keys: street, city, postalCode, country
      */
     private function extractAddress(DOMXPath $xpath, DOMNode $parentNode): array
     {
         $address = [];
-
-        $pstlAdr = $xpath->query('.//sepa:PstlAdr', $parentNode)->item(0);
-        if ($pstlAdr) {
-            $strtNm = $xpath->query('.//sepa:StrtNm', $pstlAdr)->item(0);
-            if ($strtNm) {
+        $pstlAdr = $this->getFirstNode($xpath, './/sepa:PstlAdr', $parentNode);
+        if ($pstlAdr instanceof DOMNode) {
+            $strtNm = $this->getFirstNode($xpath, './/sepa:StrtNm', $pstlAdr);
+            if ($strtNm instanceof DOMNode) {
                 $address['street'] = $strtNm->nodeValue;
             }
-
-            $twnNm = $xpath->query('.//sepa:TwnNm', $pstlAdr)->item(0);
-            if ($twnNm) {
+            $twnNm = $this->getFirstNode($xpath, './/sepa:TwnNm', $pstlAdr);
+            if ($twnNm instanceof DOMNode) {
                 $address['city'] = $twnNm->nodeValue;
             }
-
-            $pstCd = $xpath->query('.//sepa:PstCd', $pstlAdr)->item(0);
-            if ($pstCd) {
+            $pstCd = $this->getFirstNode($xpath, './/sepa:PstCd', $pstlAdr);
+            if ($pstCd instanceof DOMNode) {
                 $address['postalCode'] = $pstCd->nodeValue;
             }
-
-            $ctry = $xpath->query('.//sepa:Ctry', $pstlAdr)->item(0);
-            if ($ctry) {
+            $ctry = $this->getFirstNode($xpath, './/sepa:Ctry', $pstlAdr);
+            if ($ctry instanceof DOMNode) {
                 $address['country'] = $ctry->nodeValue;
             }
         }
@@ -280,13 +267,29 @@ class DirectDebitParser
             $xpath = new DOMXPath($dom);
             $xpath->registerNamespace('sepa', 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.02');
 
-            // Check for required elements
-            $msgId             = $xpath->query('//sepa:MsgId')->item(0);
-            $cstmrDrctDbtInitn = $xpath->query('//sepa:CstmrDrctDbtInitn')->item(0);
+            $msgId             = $this->getFirstNode($xpath, '//sepa:MsgId');
+            $cstmrDrctDbtInitn = $this->getFirstNode($xpath, '//sepa:CstmrDrctDbtInitn');
 
-            return $msgId !== null && $cstmrDrctDbtInitn !== null;
-        } catch (Exception $e) {
+            return $msgId instanceof DOMNode && $cstmrDrctDbtInitn instanceof DOMNode;
+        } catch (Exception) {
             return false;
         }
+    }
+
+    /**
+     * Returns the first node from an XPath query.
+     * PHPStan: query() returns DOMNodeList|false; helper avoids calling item() on false.
+     *
+     * @param DOMNode|null $context Context for relative query (optional)
+     */
+    private function getFirstNode(DOMXPath $xpath, string $expr, ?DOMNode $context = null): ?DOMNode
+    {
+        $list = $context instanceof DOMNode ? $xpath->query($expr, $context) : $xpath->query($expr);
+        if (!$list instanceof DOMNodeList || $list->length === 0) {
+            return null;
+        }
+        $node = $list->item(0);
+
+        return $node instanceof DOMNode ? $node : null;
     }
 }

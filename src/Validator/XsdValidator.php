@@ -6,6 +6,7 @@ namespace Nowo\SepaPaymentBundle\Validator;
 
 use DOMDocument;
 use InvalidArgumentException;
+use LibXMLError;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -22,11 +23,6 @@ class XsdValidator
     public const SERVICE_NAME = 'nowo_sepa_payment.validator.xsd_validator';
 
     /**
-     * Translator instance.
-     */
-    private TranslatorInterface $translator;
-
-    /**
      * XSD schema path for Credit Transfer (pain.001.001.03).
      */
     public const XSD_CREDIT_TRANSFER = 'pain.001.001.03';
@@ -41,9 +37,12 @@ class XsdValidator
      *
      * @param TranslatorInterface $translator Translator for internationalized error messages
      */
-    public function __construct(TranslatorInterface $translator)
-    {
-        $this->translator = $translator;
+    public function __construct(
+        /**
+         * Translator instance.
+         */
+        private readonly TranslatorInterface $translator
+    ) {
     }
 
     /**
@@ -69,7 +68,7 @@ class XsdValidator
         libxml_use_internal_errors(false);
 
         if (!$loaded) {
-            $errorMessages = array_map(static fn ($error) => trim($error->message), $errors);
+            $errorMessages = array_map(static fn (LibXMLError $error): string => trim($error->message), $errors);
             $errorsString  = implode('; ', $errorMessages);
             $message       = $this->translator->trans('validation.invalid_xml_format', ['%errors%' => $errorsString], 'nowo_sepa_payment');
 
@@ -89,8 +88,8 @@ class XsdValidator
             libxml_clear_errors();
             libxml_use_internal_errors(false);
 
-            if (!$valid && !empty($errors)) {
-                $errorMessages = array_map(static fn ($error) => trim($error->message), $errors);
+            if (!$valid && $errors !== []) {
+                $errorMessages = array_map(static fn ($error): string => trim($error->message), $errors);
                 $errorsString  = implode('; ', $errorMessages);
                 $message       = $this->translator->trans('validation.xsd_validation_failed', ['%errors%' => $errorsString], 'nowo_sepa_payment');
 
@@ -178,7 +177,7 @@ class XsdValidator
         libxml_use_internal_errors(false);
 
         if (!$loaded) {
-            $errorMessages = array_map(static fn ($error) => trim($error->message), $errors);
+            $errorMessages = array_map(static fn (LibXMLError $error): string => trim($error->message), $errors);
             $errorsString  = implode('; ', $errorMessages);
             $message       = $this->translator->trans('validation.invalid_xml_format', ['%errors%' => $errorsString], 'nowo_sepa_payment');
 
@@ -192,8 +191,8 @@ class XsdValidator
         libxml_clear_errors();
         libxml_use_internal_errors(false);
 
-        if (!$valid && !empty($errors)) {
-            $errorMessages = array_map(static fn ($error) => trim($error->message), $errors);
+        if (!$valid && $errors !== []) {
+            $errorMessages = array_map(static fn ($error): string => trim($error->message), $errors);
             $errorsString  = implode('; ', $errorMessages);
             $message       = $this->translator->trans('validation.xsd_validation_failed', ['%errors%' => $errorsString], 'nowo_sepa_payment');
 

@@ -44,7 +44,6 @@ class MandateHistoryTest extends TestCase
             'sequence_change',
             'FRST',
             'RCUR',
-            null,
         );
 
         $this->assertNull($history->getDescription());
@@ -75,7 +74,7 @@ class MandateHistoryTest extends TestCase
 
     public function testToArrayWithNullDescription(): void
     {
-        $history = new MandateHistory('M-1', new DateTime(), 'created', '', 'active', null);
+        $history = new MandateHistory('M-1', new DateTime(), 'created', '', 'active');
         $array   = $history->toArray();
 
         $this->assertArrayHasKey('description', $array);

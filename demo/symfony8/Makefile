@@ -1,67 +1,82 @@
-# Makefile for SEPA Payment Bundle Demo - Symfony 8.0
+# Makefile for SEPA Payment Bundle Demo - Symfony 8
 # Run from this directory: make up, make install, etc.
 
-COMPOSE_FILE := docker-compose.yml
-COMPOSE := docker-compose -f $(COMPOSE_FILE)
-SERVICE_PHP := php
-
-.PHONY: help up down build install shell logs test test-coverage update-bundle ensure-up
+.PHONY: help up down restart build install shell logs test test-coverage update update-bundle ensure-up verify
 
 help:
-	@echo "SEPA Payment Bundle Demo - Symfony 8.0"
+	@echo "SEPA Payment Bundle Demo - Symfony 8"
 	@echo ""
-	@echo "  make up             Start containers (port from .env PORT, default 8003)"
-	@echo "  make down           Stop containers"
-	@echo "  make build          Build image (no cache)"
-	@echo "  make install        Install dependencies (composer install in container)"
-	@echo "  make shell          Open shell in PHP container"
-	@echo "  make logs           Show container logs"
-	@echo "  make test           Run tests"
-	@echo "  make test-coverage  Run tests with coverage"
-	@echo "  make update-bundle  Update bundle from path repo and clear cache"
+	@echo "  make up             Start containers"
+	@echo "  make down            Stop containers"
+	@echo "  make restart         Restart containers"
+	@echo "  make build           Build image (no cache)"
+	@echo "  make install         Install dependencies and link bundle from path"
+	@echo "  make shell           Open shell in PHP container"
+	@echo "  make logs            Show container logs"
+	@echo "  make test            Run tests"
+	@echo "  make test-coverage   Run tests with coverage"
+	@echo "  make update          Run composer update"
+	@echo "  make update-bundle   Update bundle from path repo"
+	@echo "  make verify          Ensure up and check HTTP 200"
 	@echo ""
 
 up:
 	@if [ ! -f .env ]; then cp .env.example .env 2>/dev/null || true; fi
-	$(COMPOSE) up -d
+	docker-compose build
+	docker-compose up -d
 	@echo "Waiting for container to be ready..."
 	@sleep 5
 	@echo "Installing dependencies..."
-	@$(COMPOSE) exec -T -e COMPOSER_MEMORY_LIMIT=-1 $(SERVICE_PHP) composer install --no-interaction
-	@echo "App: http://localhost:$${PORT:-8003}"
+	@docker-compose exec -T -e COMPOSER_MEMORY_LIMIT=-1 php composer install --no-interaction
+	@$(MAKE) link-bundle
+	@echo "App ready (see .env for PORT)."
 
 down:
-	$(COMPOSE) down
+	docker-compose down
 
 restart: ensure-up
-	$(COMPOSE) restart
+	docker-compose restart
 
 build:
-	$(COMPOSE) build --no-cache
+	docker-compose build --no-cache
 
 ensure-up:
-	@if ! $(COMPOSE) exec -T $(SERVICE_PHP) true 2>/dev/null; then \
+	@if ! docker-compose exec -T php true 2>/dev/null; then \
 		echo "Starting container..."; \
-		$(COMPOSE) up -d; \
+		docker-compose up -d; \
 		sleep 5; \
 	fi
 
 install: ensure-up
-	$(COMPOSE) exec -T -e COMPOSER_MEMORY_LIMIT=-1 $(SERVICE_PHP) composer install --no-interaction
+	@docker-compose exec -T php sh -c 'rm -rf vendor/nowo-tech/sepa-payment-bundle 2>/dev/null; composer update --no-interaction'
+	@$(MAKE) link-bundle
 
-shell: ensure-up
-	$(COMPOSE) exec $(SERVICE_PHP) sh
+link-bundle: ensure-up
+	@docker-compose exec -T php sh -c 'rm -rf vendor/nowo-tech/sepa-payment-bundle; ln -sf /var/sepa-payment-bundle vendor/nowo-tech/sepa-payment-bundle && composer run-script post-install-cmd'
 
-logs:
-	$(COMPOSE) logs -f
-
-test: ensure-up
-	$(COMPOSE) exec -e APP_ENV=test $(SERVICE_PHP) composer test
-
-test-coverage: ensure-up
-	$(COMPOSE) exec $(SERVICE_PHP) composer test-coverage
+update: ensure-up
+	docker-compose exec -T php composer update --no-interaction
 
 update-bundle: ensure-up
-	$(COMPOSE) exec $(SERVICE_PHP) composer update nowo-tech/sepa-payment-bundle --no-interaction
-	$(COMPOSE) exec -T $(SERVICE_PHP) php bin/console cache:clear
-	@echo "Bundle updated."
+	docker-compose exec -T php composer update nowo-tech/sepa-payment-bundle --no-interaction
+	@$(MAKE) link-bundle
+	docker-compose exec -T php php bin/console cache:clear
+	@echo "Bundle updated. Reload the page in the browser."
+
+shell: ensure-up
+	docker-compose exec php sh
+
+logs:
+	docker-compose logs -f
+
+test: ensure-up
+	docker-compose exec php composer test
+
+test-coverage: ensure-up
+	docker-compose exec php composer test-coverage
+
+verify: ensure-up
+	@PORT=$$(grep '^PORT=' .env 2>/dev/null | cut -d= -f2 | tr -d '\r'); \
+	[ -z "$$PORT" ] && PORT=8001; \
+	code=$$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$$PORT 2>/dev/null || echo "000"); \
+	if [ "$$code" = "200" ]; then echo "✅ Demo responding (HTTP $$code)"; else echo "❌ Demo not responding (HTTP $$code)"; exit 1; fi

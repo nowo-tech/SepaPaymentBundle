@@ -7,19 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.2.13] - 2026-03-02
+## [1.2.12] - 2025-03-04
 
-### Changed
-- **CI**: Install step now uses full `composer update` instead of `composer update symfony/*` so that jobs run correctly when no `composer.lock` is present (avoids "Cannot update only a partial set of packages without a lock file" error). No impact on bundle API or runtime.
-- **Repository**: `composer.lock` is now committed and `.gitignore` no longer excludes it, for reproducible installs in CI and when developing the bundle.
+### Added
+- **Rector**: PHP refactoring tool integrated for code quality
+  - `rector.php` config (PHP 8.1, dead code, code quality, type declarations); excludes `demo/`
+  - Composer scripts: `rector`, `rector-dry`
+  - Makefile targets: `rector`, `rector-dry`
+- **PHPStan**: Static analysis at level 8
+  - `phpstan.neon.dist` and `phpstan-baseline.neon` (extensions: phpstan-symfony, phpstan-phpunit)
+  - Composer script: `phpstan`
+  - Makefile target: `phpstan`
+- **Release check**: `release-check` now runs cs-check, rector-dry, phpstan, and test (composer script and Makefile)
 
 ### Improved
-- **Code style**: PHP CS Fixer fixes applied (whitespace/formatting only).
+- **Static analysis**: Codebase passes PHPStan level 8; type safety improvements in parsers, generators, validators, and models
+  - CreditTransferParser / DirectDebitParser: `getFirstNode()` helper for XPath results; safe handling of `DOMNodeList|false` and `DOMNode`/`DOMElement`
+  - CreditTransferGenerator / DirectDebitGenerator: DOM and `saveXML()`/`getAttribute()` type guards; direct use of library methods where `method_exists` was redundant
+  - BicLookupService: BIC database initialized via `getDefaultBicDatabase()` for correct typing
+  - Mandate: `getExpirationDate()` uses `DateTime::createFromInterface()` and `modify()` with correct typing
+  - Validators: PHPDoc for `$options` and `$value` (mixed) where required by PHPStan
+  - SepaPaymentLogger: constructor normalizes `null` to `NullLogger` so the logger property is always `LoggerInterface`
+  - NowoSepaPaymentBundle: `getContainerExtension()` return type aligned with parent
+- **Documentation**: All inline code comments (including PHPStan/Rector notes) are in English
 
-## [1.2.12] - 2026-03-02
-
-### Changed
-- **Tooling**: Updated PHP-CS-Fixer configuration and Docker setup (developer experience only; no impact on bundle API or runtime)
+### Fixed
+- **PHPStan baseline**: Removed obsolete baseline entries; analysis runs with no ignored patterns (all previous issues resolved in code)
 
 ## [1.2.11] - 2026-02-11
 

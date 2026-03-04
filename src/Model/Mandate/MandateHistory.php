@@ -26,12 +26,12 @@ class MandateHistory
      * @param string|null $description Optional description
      */
     public function __construct(
-        private string $mandateId,
-        private DateTimeInterface $timestamp,
-        private string $eventType,
-        private string $oldValue,
-        private string $newValue,
-        private ?string $description = null
+        private readonly string $mandateId,
+        private readonly DateTimeInterface $timestamp,
+        private readonly string $eventType,
+        private readonly string $oldValue,
+        private readonly string $newValue,
+        private readonly ?string $description = null
     ) {
     }
 

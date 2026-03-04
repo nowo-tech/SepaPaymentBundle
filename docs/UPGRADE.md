@@ -2,30 +2,23 @@
 
 This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
-## Upgrading from 1.2.12 to 1.2.13
-
-### 🔧 CI / Repository (1.2.13)
-
-- **CI**: Workflow install step updated to use full `composer update` when no lock file is present (only affects bundle development/CI).
-- **Repository**: The bundle repository now includes `composer.lock` and no longer ignores it in `.gitignore`. This does not affect how you install or use the bundle in your application.
-
-### Backward Compatibility
-
-- **No breaking changes**: All existing code continues to work
-- **No migration required**: Patch release with CI and repository tooling only
-
----
-
 ## Upgrading from 1.2.11 to 1.2.12
 
-### 🔧 Tooling (1.2.12)
+### ✨ Added (1.2.12)
 
-- **PHP-CS-Fixer and Docker**: Configuration and Docker setup updated for developers. No changes to the bundle API or runtime behaviour.
+- **Rector**: Refactoring tool for PHP (config: `rector.php`). Use `composer rector-dry` or `make rector-dry` to check; `composer rector` or `make rector` to apply.
+- **PHPStan**: Static analysis at level 8 (config: `phpstan.neon.dist`, `phpstan-baseline.neon`). Use `composer phpstan` or `make phpstan`.
+- **Release check**: `composer release-check` and `make release-check` now include Rector (dry-run) and PHPStan in addition to cs-check and test.
+
+### 🔧 Improved (1.2.12)
+
+- **Type safety**: Internal improvements for PHPStan (parsers, generators, validators, models). No public API changes.
+- **Code comments**: All inline and PHPDoc comments are in English.
 
 ### Backward Compatibility
 
-- **No breaking changes**: All existing code continues to work
-- **No migration required**: Patch release with tooling/configuration only
+- **No breaking changes**: All existing code and CLI usage continue to work.
+- **No migration required**: Patch release with tooling and static analysis improvements only.
 
 ---
 

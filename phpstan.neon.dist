@@ -1,0 +1,21 @@
+# PHPStan configuration for SEPA Payment Bundle
+# Compatible with PHP 8.1+ and Symfony 6.x / 7.x / 8.x
+# phpstan/extension-installer auto-includes phpstan-symfony and phpstan-phpunit
+
+includes:
+    - phpstan-baseline.neon
+
+parameters:
+    level: 8
+    paths:
+        - src
+        - tests
+    excludePaths:
+        - demo/*
+        - vendor/*
+    treatPhpDocTypesAsCertain: false
+    # In tests, redundant asserts for PHPStan are acceptable (they document the expected type)
+    ignoreErrors:
+        -
+            message: '#Call to method PHPUnit\\Framework\\Assert::.* with .* will always evaluate to #'
+            path: tests/

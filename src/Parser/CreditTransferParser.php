@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Nowo\SepaPaymentBundle\Parser;
 
 use DOMDocument;
+use DOMElement;
+use DOMNode;
+use DOMNodeList;
 use DOMXPath;
 use Exception;
 use InvalidArgumentException;
@@ -43,71 +46,75 @@ class CreditTransferParser
 
         $data = [];
 
-        // Extract group header
-        $msgId = $xpath->query('//sepa:MsgId')->item(0);
-        if ($msgId) {
+        // Extract group header (PHPStan: query() returns DOMNodeList|false; use helper to avoid calling item() on false)
+        $msgId = $this->getFirstNode($xpath, '//sepa:MsgId');
+        if ($msgId instanceof DOMNode) {
             $data['messageId'] = $msgId->nodeValue;
         }
 
-        $creDtTm = $xpath->query('//sepa:CreDtTm')->item(0);
-        if ($creDtTm) {
+        $creDtTm = $this->getFirstNode($xpath, '//sepa:CreDtTm');
+        if ($creDtTm instanceof DOMNode) {
             $data['creationDate'] = $creDtTm->nodeValue;
         }
 
-        $initgPty = $xpath->query('//sepa:InitgPty/sepa:Nm')->item(0);
-        if ($initgPty) {
+        $initgPty = $this->getFirstNode($xpath, '//sepa:InitgPty/sepa:Nm');
+        if ($initgPty instanceof DOMNode) {
             $data['initiatingPartyName'] = $initgPty->nodeValue;
         }
 
-        // Extract payment information
-        $pmtInfId = $xpath->query('//sepa:PmtInfId')->item(0);
-        if ($pmtInfId) {
+        $pmtInfId = $this->getFirstNode($xpath, '//sepa:PmtInfId');
+        if ($pmtInfId instanceof DOMNode) {
             $data['paymentInfoId'] = $pmtInfId->nodeValue;
         }
 
-        $nbOfTxs = $xpath->query('//sepa:NbOfTxs')->item(0);
-        if ($nbOfTxs) {
+        $nbOfTxs = $this->getFirstNode($xpath, '//sepa:NbOfTxs');
+        if ($nbOfTxs instanceof DOMNode) {
             $data['numberOfTransactions'] = (int) $nbOfTxs->nodeValue;
         }
 
-        $ctrlSum = $xpath->query('//sepa:CtrlSum')->item(0);
-        if ($ctrlSum) {
+        $ctrlSum = $this->getFirstNode($xpath, '//sepa:CtrlSum');
+        if ($ctrlSum instanceof DOMNode) {
             $data['controlSum'] = (float) $ctrlSum->nodeValue;
         }
 
-        // Extract transactions
+        // Extract transactions (PHPStan: foreach over DOMNodeList|false; only iterate when it is DOMNodeList)
         $transactions = [];
         $txInfNodes   = $xpath->query('//sepa:CdtTrfTxInf');
-        foreach ($txInfNodes as $txInf) {
-            $transaction = [];
+        if ($txInfNodes instanceof DOMNodeList) {
+            foreach ($txInfNodes as $txInf) {
+                if (!$txInf instanceof DOMNode) {
+                    continue;
+                }
+                $transaction = [];
 
-            $endToEndId = $xpath->query('.//sepa:EndToEndId', $txInf)->item(0);
-            if ($endToEndId) {
-                $transaction['endToEndId'] = $endToEndId->nodeValue;
+                $endToEndId = $this->getFirstNode($xpath, './/sepa:EndToEndId', $txInf);
+                if ($endToEndId instanceof DOMNode) {
+                    $transaction['endToEndId'] = $endToEndId->nodeValue;
+                }
+
+                $instdAmt = $this->getFirstNode($xpath, './/sepa:InstdAmt', $txInf);
+                if ($instdAmt instanceof DOMNode) {
+                    $transaction['amount']   = (float) $instdAmt->nodeValue;
+                    $transaction['currency'] = $instdAmt instanceof DOMElement ? $instdAmt->getAttribute('Ccy') : '';
+                }
+
+                $iban = $this->getFirstNode($xpath, './/sepa:IBAN', $txInf);
+                if ($iban instanceof DOMNode) {
+                    $transaction['iban'] = $iban->nodeValue;
+                }
+
+                $name = $this->getFirstNode($xpath, './/sepa:Nm', $txInf);
+                if ($name instanceof DOMNode) {
+                    $transaction['name'] = $name->nodeValue;
+                }
+
+                $rmtInf = $this->getFirstNode($xpath, './/sepa:Ustrd', $txInf);
+                if ($rmtInf instanceof DOMNode) {
+                    $transaction['remittanceInformation'] = $rmtInf->nodeValue;
+                }
+
+                $transactions[] = $transaction;
             }
-
-            $instdAmt = $xpath->query('.//sepa:InstdAmt', $txInf)->item(0);
-            if ($instdAmt) {
-                $transaction['amount']   = (float) $instdAmt->nodeValue;
-                $transaction['currency'] = $instdAmt->getAttribute('Ccy');
-            }
-
-            $iban = $xpath->query('.//sepa:IBAN', $txInf)->item(0);
-            if ($iban) {
-                $transaction['iban'] = $iban->nodeValue;
-            }
-
-            $name = $xpath->query('.//sepa:Nm', $txInf)->item(0);
-            if ($name) {
-                $transaction['name'] = $name->nodeValue;
-            }
-
-            $rmtInf = $xpath->query('.//sepa:Ustrd', $txInf)->item(0);
-            if ($rmtInf) {
-                $transaction['remittanceInformation'] = $rmtInf->nodeValue;
-            }
-
-            $transactions[] = $transaction;
         }
 
         $data['transactions'] = $transactions;
@@ -138,13 +145,29 @@ class CreditTransferParser
             $xpath = new DOMXPath($dom);
             $xpath->registerNamespace('sepa', 'urn:iso:std:iso:20022:tech:xsd:pain.001.001.03');
 
-            // Check for required elements
-            $msgId            = $xpath->query('//sepa:MsgId')->item(0);
-            $cstmrCdtTrfInitn = $xpath->query('//sepa:CstmrCdtTrfInitn')->item(0);
+            $msgId            = $this->getFirstNode($xpath, '//sepa:MsgId');
+            $cstmrCdtTrfInitn = $this->getFirstNode($xpath, '//sepa:CstmrCdtTrfInitn');
 
-            return $msgId !== null && $cstmrCdtTrfInitn !== null;
-        } catch (Exception $e) {
+            return $msgId instanceof DOMNode && $cstmrCdtTrfInitn instanceof DOMNode;
+        } catch (Exception) {
             return false;
         }
+    }
+
+    /**
+     * Returns the first node from an XPath query.
+     * PHPStan: query() returns DOMNodeList|false and item(0) does not exist on false; this helper centralizes the check.
+     *
+     * @param DOMNode|null $context Context for relative query (optional)
+     */
+    private function getFirstNode(DOMXPath $xpath, string $expr, ?DOMNode $context = null): ?DOMNode
+    {
+        $list = $context instanceof DOMNode ? $xpath->query($expr, $context) : $xpath->query($expr);
+        if (!$list instanceof DOMNodeList || $list->length === 0) {
+            return null;
+        }
+        $node = $list->item(0);
+
+        return $node instanceof DOMNode ? $node : null;
     }
 }

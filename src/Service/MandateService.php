@@ -47,7 +47,7 @@ class MandateService
      * @param MandateRepositoryInterface $repository Mandate repository
      */
     public function __construct(
-        private MandateRepositoryInterface $repository
+        private readonly MandateRepositoryInterface $repository
     ) {
     }
 
@@ -72,7 +72,7 @@ class MandateService
         string $sequenceType = 'FRST'
     ): Mandate {
         // Check if mandate already exists
-        if ($this->repository->findById($mandateId) !== null) {
+        if ($this->repository->findById($mandateId) instanceof Mandate) {
             throw new InvalidArgumentException("Mandate with ID '{$mandateId}' already exists");
         }
 
@@ -106,7 +106,7 @@ class MandateService
     public function updateSequenceType(string $mandateId, string $sequenceType): Mandate
     {
         $mandate = $this->repository->findById($mandateId);
-        if ($mandate === null) {
+        if (!$mandate instanceof Mandate) {
             throw new InvalidArgumentException("Mandate with ID '{$mandateId}' not found");
         }
 
@@ -146,7 +146,7 @@ class MandateService
     public function revokeMandate(string $mandateId, ?string $reason = null): Mandate
     {
         $mandate = $this->repository->findById($mandateId);
-        if ($mandate === null) {
+        if (!$mandate instanceof Mandate) {
             throw new InvalidArgumentException("Mandate with ID '{$mandateId}' not found");
         }
 
@@ -179,7 +179,7 @@ class MandateService
     public function suspendMandate(string $mandateId): Mandate
     {
         $mandate = $this->repository->findById($mandateId);
-        if ($mandate === null) {
+        if (!$mandate instanceof Mandate) {
             throw new InvalidArgumentException("Mandate with ID '{$mandateId}' not found");
         }
 
@@ -213,7 +213,7 @@ class MandateService
     public function reactivateMandate(string $mandateId): Mandate
     {
         $mandate = $this->repository->findById($mandateId);
-        if ($mandate === null) {
+        if (!$mandate instanceof Mandate) {
             throw new InvalidArgumentException("Mandate with ID '{$mandateId}' not found");
         }
 
@@ -245,7 +245,7 @@ class MandateService
     public function validateMandateForTransaction(string $mandateId, string $sequenceType): bool
     {
         $mandate = $this->repository->findById($mandateId);
-        if ($mandate === null) {
+        if (!$mandate instanceof Mandate) {
             return false;
         }
 
@@ -260,9 +260,7 @@ class MandateService
         }
 
         // Check if sequence type transition is valid
-        return !(!$this->isValidSequenceTransition($mandate->getSequenceType(), $sequenceType))
-
-        ;
+        return $this->isValidSequenceTransition($mandate->getSequenceType(), $sequenceType);
     }
 
     /**

@@ -39,7 +39,7 @@ class ValidationCacheTest extends TestCase
      */
     public function testWithoutCacheAdapter(): void
     {
-        $validationCache = new ValidationCache(null);
+        $validationCache = new ValidationCache();
 
         $this->assertNull($validationCache->get('test_key'));
         $this->assertFalse($validationCache->has('test_key'));
@@ -119,6 +119,7 @@ class ValidationCacheTest extends TestCase
     public function testGetWithAdapterWithoutHasMethodReturnsNull(): void
     {
         $cacheWithoutHas = new class {
+            /** @var array<string, mixed> */
             private array $storage = [];
 
             public function get(string $key): mixed
@@ -165,11 +166,8 @@ class ValidationCacheTest extends TestCase
     {
         $normalizedKey = 'sepa_validation_' . md5('null_key');
         $cache         = new class($normalizedKey) {
-            private string $key;
-
-            public function __construct(string $key)
+            public function __construct(private readonly string $key)
             {
-                $this->key = $key;
             }
 
             public function get(string $key): mixed

@@ -30,7 +30,7 @@ class ValidateIbanCommand extends Command
      * @param IbanValidator $ibanValidator IBAN validator instance
      */
     public function __construct(
-        private IbanValidator $ibanValidator
+        private readonly IbanValidator $ibanValidator
     ) {
         parent::__construct();
     }

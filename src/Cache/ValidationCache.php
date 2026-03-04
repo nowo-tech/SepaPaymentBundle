@@ -19,29 +19,21 @@ class ValidationCache implements ValidationCacheInterface
     public const SERVICE_NAME = 'nowo_sepa_payment.cache.validation_cache';
 
     /**
-     * Cache adapter (optional).
-     *
-     * @var object|null
-     */
-    private $cache;
-
-    /**
-     * Default cache TTL in seconds.
-     */
-    private int $defaultTtl;
-
-    /**
      * Constructor.
      *
      * @param object|null $cache Optional cache adapter (PSR-16 SimpleCache compatible)
      * @param int $defaultTtl Default TTL in seconds (default: 3600 = 1 hour)
      */
     public function __construct(
-        $cache = null,
-        int $defaultTtl = 3600
+        /**
+         * Cache adapter (optional).
+         */
+        private $cache = null,
+        /**
+         * Default cache TTL in seconds.
+         */
+        private readonly int $defaultTtl = 3600
     ) {
-        $this->cache      = $cache;
-        $this->defaultTtl = $defaultTtl;
     }
 
     /**
@@ -60,10 +52,9 @@ class ValidationCache implements ValidationCacheInterface
         $normalizedKey = $this->normalizeKey($key);
 
         // First check if key exists (for caches that support has() method)
-        if (method_exists($this->cache, 'has')) {
-            if (!$this->cache->has($normalizedKey)) {
-                return null; // Key doesn't exist
-            }
+        if (method_exists($this->cache, 'has') && !$this->cache->has($normalizedKey)) {
+            return null;
+            // Key doesn't exist
         }
 
         $result = $this->cache->get($normalizedKey);

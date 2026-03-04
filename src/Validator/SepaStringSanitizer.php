@@ -104,10 +104,10 @@ class SepaStringSanitizer
         $value = preg_replace('/[^a-zA-Z0-9\/\-\?\(\)\.\,\'\+ ]/u', ' ', $value);
 
         // Remove multiple consecutive spaces
-        $value = preg_replace('/\s+/', ' ', $value);
+        $value = preg_replace('/\s+/', ' ', (string) $value);
 
         // Trim whitespace
-        return trim($value);
+        return trim((string) $value);
     }
 
     /**

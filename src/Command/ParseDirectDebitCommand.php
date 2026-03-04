@@ -38,7 +38,7 @@ class ParseDirectDebitCommand extends Command
      * @param DirectDebitParser $parser Direct Debit parser instance
      */
     public function __construct(
-        private DirectDebitParser $parser
+        private readonly DirectDebitParser $parser
     ) {
         parent::__construct();
     }
@@ -104,7 +104,9 @@ class ParseDirectDebitCommand extends Command
         }
 
         if ($jsonOutput) {
-            $output->writeln(json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
+            $output->writeln($json !== false ? $json : '{}');
 
             return Command::SUCCESS;
         }

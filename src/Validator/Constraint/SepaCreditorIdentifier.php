@@ -23,11 +23,14 @@ class SepaCreditorIdentifier extends Constraint
 
     /**
      * {@inheritdoc}
+     * PHPStan: missingType.iterableValue — value type for $options.
+     *
+     * @param array<string, mixed> $options
      */
     public function __construct(
         ?string $message = null,
         ?array $groups = null,
-        $payload = null,
+        mixed $payload = null,
         array $options = []
     ) {
         parent::__construct($options, $groups, $payload);

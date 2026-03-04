@@ -21,7 +21,7 @@ class Transaction
     /**
      * Credit transfer transaction instance.
      */
-    private CreditTransferTransaction $creditTransferTransaction;
+    private readonly CreditTransferTransaction $creditTransferTransaction;
 
     /**
      * Constructor.

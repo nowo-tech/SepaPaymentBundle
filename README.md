@@ -152,17 +152,20 @@ Created by [Héctor Franco Aceituno](https://github.com/HecFranco) at [Nowo.tech
 
 ## Documentation
 
-- **[Installation](docs/INSTALLATION.md)** - Requirements and installation steps
-- **[Usage Guide](docs/USAGE.md)** - Complete usage examples and API documentation
-- **[Console Commands](docs/COMMANDS.md)** - Documentation for all console commands
-- **[Configuration](docs/CONFIGURATION.md)** - Configuration options and settings
-- **[Demo Projects](docs/DEMOS.md)** - Information about demo applications
-- **[Development Guide](docs/DEVELOPMENT.md)** - Development setup, testing, and code quality
-- **[Upgrade Guide](docs/UPGRADING.md)** - Instructions for upgrading between versions
-- **[Release process](docs/RELEASE.md)** - Versioning and release steps
-- **[Security policy](docs/SECURITY.md)** - How to report vulnerabilities
-- **[Changelog](docs/CHANGELOG.md)** - Complete list of changes and version history
-- **[Deprecated Fields](docs/DEPRECATED_FIELDS.md)** - Information about deprecated fields
-- **[Future Improvements](docs/FUTURE.md)** - Planned features and improvements checklist
-- **[Contributing](docs/CONTRIBUTING.md)** - Code of conduct and contribution guidelines
-- **[Branching Strategy](docs/BRANCHING.md)** - Branching strategy and workflow
+- [Installation](#installation)
+- [Configuration](docs/CONFIGURATION.md)
+- [Usage](docs/USAGE.md)
+- [Contributing](docs/CONTRIBUTING.md)
+- [Changelog](docs/CHANGELOG.md)
+- [Upgrading](docs/UPGRADE.md)
+- [Release](docs/RELEASE_CHECKLIST.md)
+- [Security](docs/CONTRIBUTING.md)
+
+### Additional documentation
+
+- [Commands](docs/COMMANDS.md)
+- [Demo projects](docs/DEMOS.md)
+- [Development](docs/DEVELOPMENT.md)
+- [Deprecated fields](docs/DEPRECATED_FIELDS.md)
+- [Future improvements](docs/FUTURE.md)
+- [Branching](docs/BRANCHING.md)

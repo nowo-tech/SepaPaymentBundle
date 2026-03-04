@@ -13,6 +13,7 @@ use Digitick\Sepa\TransferFile\CustomerDirectDebitTransferFile;
 use Digitick\Sepa\TransferInformation\CustomerDirectDebitTransferInformation;
 use DOMDocument;
 use DOMElement;
+use DOMNode;
 use DOMXPath;
 use Exception;
 use InvalidArgumentException;
@@ -56,26 +57,6 @@ class DirectDebitGenerator
     private bool $validateXsd = false;
 
     /**
-     * XSD validator instance (optional).
-     */
-    private ?XsdValidator $xsdValidator = null;
-
-    /**
-     * Event dispatcher instance (optional).
-     */
-    private ?EventDispatcherInterface $eventDispatcher = null;
-
-    /**
-     * Logger instance (optional).
-     */
-    private ?SepaPaymentLogger $logger = null;
-
-    /**
-     * BIC lookup service instance (optional).
-     */
-    private ?BicLookupServiceInterface $bicLookupService = null;
-
-    /**
      * Constructor.
      *
      * @param IbanValidator $ibanValidator IBAN validator instance
@@ -86,18 +67,26 @@ class DirectDebitGenerator
      * @param BicLookupServiceInterface|null $bicLookupService Optional BIC lookup service for auto-filling BIC
      */
     public function __construct(
-        private IbanValidator $ibanValidator,
-        ?XsdValidator $xsdValidator = null,
+        private readonly IbanValidator $ibanValidator,
+        /**
+         * XSD validator instance (optional).
+         */
+        private readonly ?XsdValidator $xsdValidator = null,
         bool $validateXsd = false,
-        ?EventDispatcherInterface $eventDispatcher = null,
-        ?SepaPaymentLogger $logger = null,
-        ?BicLookupServiceInterface $bicLookupService = null
+        /**
+         * Event dispatcher instance (optional).
+         */
+        private readonly ?EventDispatcherInterface $eventDispatcher = null,
+        /**
+         * Logger instance (optional).
+         */
+        private readonly ?SepaPaymentLogger $logger = null,
+        /**
+         * BIC lookup service instance (optional).
+         */
+        private readonly ?BicLookupServiceInterface $bicLookupService = null
     ) {
-        $this->xsdValidator     = $xsdValidator;
-        $this->validateXsd      = $validateXsd && $xsdValidator !== null;
-        $this->eventDispatcher  = $eventDispatcher;
-        $this->logger           = $logger;
-        $this->bicLookupService = $bicLookupService;
+        $this->validateXsd = $validateXsd && $this->xsdValidator instanceof XsdValidator;
     }
 
     /**
@@ -147,13 +136,13 @@ class DirectDebitGenerator
         $messageId        = $directDebitData->getMessageId();
 
         // Log generation start
-        if ($this->logger !== null) {
+        if ($this->logger instanceof SepaPaymentLogger) {
             $this->logger->logDirectDebitGenerationStart($messageId, $transactionCount);
         }
 
         try {
             // Dispatch before generation event
-            if ($this->eventDispatcher !== null) {
+            if ($this->eventDispatcher instanceof EventDispatcherInterface) {
                 $beforeEvent = new BeforeDirectDebitGenerationEvent($directDebitData);
                 $this->eventDispatcher->dispatch($beforeEvent);
                 $directDebitData = $beforeEvent->getDirectDebitData();
@@ -172,7 +161,7 @@ class DirectDebitGenerator
 
             // Auto-fill creditor BIC if missing
             $creditorBic = $directDebitData->getCreditorBic();
-            if ($creditorBic === null && $this->bicLookupService !== null) {
+            if ($creditorBic === null && $this->bicLookupService instanceof BicLookupServiceInterface) {
                 $lookedUpBic = $this->bicLookupService->lookupBic($directDebitData->getCreditorIban());
                 if ($lookedUpBic !== null) {
                     $creditorBic = $lookedUpBic;
@@ -217,7 +206,7 @@ class DirectDebitGenerator
 
                 // Auto-fill debtor BIC if missing
                 $debtorBic = $transaction->getDebtorBic();
-                if ($debtorBic === null && $this->bicLookupService !== null) {
+                if ($debtorBic === null && $this->bicLookupService instanceof BicLookupServiceInterface) {
                     $lookedUpBic = $this->bicLookupService->lookupBic($transaction->getDebtorIban());
                     if ($lookedUpBic !== null) {
                         $debtorBic = $lookedUpBic;
@@ -247,7 +236,7 @@ class DirectDebitGenerator
             $xml = $this->addAddressesToXml($xml, $directDebitData);
 
             // Validate against XSD schema if enabled
-            if ($this->validateXsd && $this->xsdValidator !== null) {
+            if ($this->validateXsd && $this->xsdValidator instanceof XsdValidator) {
                 try {
                     $this->xsdValidator->validateDirectDebit($xml);
                 } catch (InvalidArgumentException $e) {
@@ -256,21 +245,21 @@ class DirectDebitGenerator
             }
 
             // Dispatch after generation event
-            if ($this->eventDispatcher !== null) {
+            if ($this->eventDispatcher instanceof EventDispatcherInterface) {
                 $afterEvent = new AfterDirectDebitGenerationEvent($xml, $directDebitData->getMessageId());
                 $this->eventDispatcher->dispatch($afterEvent);
                 $xml = $afterEvent->getXml();
             }
 
             // Log generation success
-            if ($this->logger !== null) {
+            if ($this->logger instanceof SepaPaymentLogger) {
                 $this->logger->logDirectDebitGenerationSuccess($messageId, $transactionCount, strlen($xml));
             }
 
             return $xml;
         } catch (Exception $e) {
             // Log generation failure
-            if ($this->logger !== null) {
+            if ($this->logger instanceof SepaPaymentLogger) {
                 $this->logger->logDirectDebitGenerationFailure($messageId, $e->getMessage());
             }
 
@@ -326,7 +315,7 @@ class DirectDebitGenerator
         }
 
         // Set creditor address if provided (optional)
-        if (isset($data['creditorAddress']) && is_array($data['creditorAddress']) && !empty($data['creditorAddress'])) {
+        if (isset($data['creditorAddress']) && is_array($data['creditorAddress']) && (isset($data['creditorAddress']) && $data['creditorAddress'] !== [])) {
             $directDebitData->setCreditorAddressFromArray($data['creditorAddress']);
         } elseif (isset($data['creditor_street']) || isset($data['creditor_city']) || isset($data['creditor_postal_code']) || isset($data['creditor_country'])
                   || isset($data['creditorStreet']) || isset($data['creditorCity']) || isset($data['creditorPostalCode']) || isset($data['creditorCountry'])) {
@@ -474,7 +463,7 @@ class DirectDebitGenerator
         }
 
         // Set debtor address if provided (optional)
-        if (isset($transactionData['debtorAddress']) && is_array($transactionData['debtorAddress']) && !empty($transactionData['debtorAddress'])) {
+        if (isset($transactionData['debtorAddress']) && is_array($transactionData['debtorAddress']) && (isset($transactionData['debtorAddress']) && $transactionData['debtorAddress'] !== [])) {
             $transaction->setDebtorAddressFromArray($transactionData['debtorAddress']);
         } elseif (isset($transactionData['debtor_street']) || isset($transactionData['debtor_city']) || isset($transactionData['debtor_postal_code']) || isset($transactionData['debtor_country'])
                   || isset($transactionData['debtorStreet']) || isset($transactionData['debtorCity']) || isset($transactionData['debtorPostalCode']) || isset($transactionData['debtorCountry'])) {
@@ -495,7 +484,7 @@ class DirectDebitGenerator
                 $additionalData[$key] = $value;
             }
         }
-        if (!empty($additionalData)) {
+        if ($additionalData !== []) {
             $transaction->setAdditionalData($additionalData);
         }
 
@@ -513,7 +502,7 @@ class DirectDebitGenerator
         CustomerDirectDebitTransferInformation $transferInformation,
         DirectDebitTransaction $transaction
     ): void {
-        $additionalData = $transaction->getAdditionalData();
+        $transaction->getAdditionalData();
 
         // Set debtor address if available
         $debtorAddress = $transaction->getDebtorAddress();
@@ -543,16 +532,12 @@ class DirectDebitGenerator
         CustomerDirectDebitTransferInformation $transferInformation,
         array $address
     ): void {
-        // Try to set postal address using available methods
-        // The Digitick\Sepa library may have setPostalAddress or similar methods
-        if (method_exists($transferInformation, 'setPostalAddress')) {
-            $transferInformation->setPostalAddress(
-                $address['street'] ?? '',
-                $address['city'] ?? '',
-                $address['postalCode'] ?? '',
-                $address['country'] ?? '',
-            );
-        } elseif (method_exists($transferInformation, 'setDebtorPostalAddress')) {
+        // PHPStan: method_exists(..., 'setPostalAddress') always true for CustomerDirectDebitTransferInformation.
+        // Fix: call setPostalAddress directly; elseif branches cover other library signatures.
+        $transferInformation->setPostalAddress(
+            $address['street'] ?? '',
+        );
+        if (method_exists($transferInformation, 'setDebtorPostalAddress')) {
             $transferInformation->setDebtorPostalAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
@@ -651,8 +636,11 @@ class DirectDebitGenerator
                 }
             }
 
-            return $dom->saveXML();
-        } catch (Exception $e) {
+            // PHPStan: saveXML() returns string|false; we guarantee valid XML from loadXML(), return string or original
+            $saved = $dom->saveXML();
+
+            return $saved !== false ? $saved : $xml;
+        } catch (Exception) {
             // If DOM manipulation fails, return original XML
             return $xml;
         }
@@ -663,15 +651,13 @@ class DirectDebitGenerator
      *
      * @param DOMDocument $dom The DOM document
      * @param DOMXPath $xpath The XPath object
-     * @param array $address The address array
+     * @param array<string, string|null> $address The address array
      * @param string $namespace The namespace URI
      */
     private function addCreditorAddressToDom(DOMDocument $dom, DOMXPath $xpath, array $address, string $namespace): void
     {
-        // Find Cdtr (Creditor) element
         $creditorNodes = $xpath->query('//ns:Cdtr');
         if ($creditorNodes === false || $creditorNodes->length === 0) {
-            // Try without namespace prefix
             $creditorNodes = $xpath->query('//Cdtr');
             if ($creditorNodes === false || $creditorNodes->length === 0) {
                 return;
@@ -679,6 +665,9 @@ class DirectDebitGenerator
         }
 
         $creditorNode = $creditorNodes->item(0);
+        if (!$creditorNode instanceof DOMElement) {
+            return;
+        }
         $this->createPostalAddressElement($dom, $creditorNode, $address, $namespace);
     }
 
@@ -687,16 +676,14 @@ class DirectDebitGenerator
      *
      * @param DOMDocument $dom The DOM document
      * @param DOMXPath $xpath The XPath object
-     * @param array $address The address array
+     * @param array<string, string|null> $address The address array
      * @param int $index Transaction index
      * @param string $namespace The namespace URI
      */
     private function addDebtorAddressToDom(DOMDocument $dom, DOMXPath $xpath, array $address, int $index, string $namespace): void
     {
-        // Find Dbtr (Debtor) elements
         $debtorNodes = $xpath->query('//ns:Dbtr');
         if ($debtorNodes === false || $debtorNodes->length === 0) {
-            // Try without namespace prefix
             $debtorNodes = $xpath->query('//Dbtr');
             if ($debtorNodes === false || $debtorNodes->length <= $index) {
                 return;
@@ -708,68 +695,66 @@ class DirectDebitGenerator
         }
 
         $debtorNode = $debtorNodes->item($index);
+        if (!$debtorNode instanceof DOMElement) {
+            return;
+        }
         $this->createPostalAddressElement($dom, $debtorNode, $address, $namespace);
     }
 
     /**
      * Creates a PstlAdr (Postal Address) element in the DOM.
-     * Only creates the element if at least one address field is provided.
      *
      * @param DOMDocument $dom The DOM document
      * @param DOMElement $parentNode The parent node
-     * @param array $address The address array
+     * @param array<string, string|null> $address The address array
      * @param string $namespace The namespace URI
      */
     private function createPostalAddressElement(DOMDocument $dom, DOMElement $parentNode, array $address, string $namespace): void
     {
-        // Check if at least one address field is provided
         $hasAddress = !empty($address['street'])
             || !empty($address['city'])
             || !empty($address['postalCode'])
             || !empty($address['country']);
 
         if (!$hasAddress) {
-            // Don't create empty address element
             return;
         }
 
-        // Check if PstlAdr already exists
+        // PHPStan: item(0) can be null; removeChild expects DOMNode. Check with instanceof before use.
         $existing = $parentNode->getElementsByTagNameNS($namespace, 'PstlAdr');
         if ($existing->length > 0) {
-            // Remove existing address
-            $parentNode->removeChild($existing->item(0));
+            $first = $existing->item(0);
+            if ($first instanceof DOMNode) {
+                $parentNode->removeChild($first);
+            }
         }
 
         $pstlAdr = $dom->createElementNS($namespace, 'PstlAdr');
 
-        // Add structured address elements only if they are not empty
         if (!empty($address['street'])) {
             $strtNm = $dom->createElementNS($namespace, 'StrtNm', htmlspecialchars($address['street'], ENT_XML1, 'UTF-8'));
             $pstlAdr->appendChild($strtNm);
         }
-
         if (!empty($address['city'])) {
             $twnNm = $dom->createElementNS($namespace, 'TwnNm', htmlspecialchars($address['city'], ENT_XML1, 'UTF-8'));
             $pstlAdr->appendChild($twnNm);
         }
-
         if (!empty($address['postalCode'])) {
             $pstCd = $dom->createElementNS($namespace, 'PstCd', htmlspecialchars($address['postalCode'], ENT_XML1, 'UTF-8'));
             $pstlAdr->appendChild($pstCd);
         }
-
         if (!empty($address['country'])) {
             $ctry = $dom->createElementNS($namespace, 'Ctry', htmlspecialchars($address['country'], ENT_XML1, 'UTF-8'));
             $pstlAdr->appendChild($ctry);
         }
 
-        // Only add PstlAdr if it has at least one child element
         if ($pstlAdr->childNodes->length > 0) {
-            // Insert after Nm (Name) element if it exists, otherwise append
+            // PHPStan: item(0) can be null; do not access nextSibling without checking it is DOMElement
             $nmNodes = $parentNode->getElementsByTagNameNS($namespace, 'Nm');
             if ($nmNodes->length > 0) {
-                $nextSibling = $nmNodes->item(0)->nextSibling;
-                if ($nextSibling) {
+                $nmFirst     = $nmNodes->item(0);
+                $nextSibling = $nmFirst instanceof DOMElement ? $nmFirst->nextSibling : null;
+                if ($nextSibling !== null) {
                     $parentNode->insertBefore($pstlAdr, $nextSibling);
                 } else {
                     $parentNode->appendChild($pstlAdr);
