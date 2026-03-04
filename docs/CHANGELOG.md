@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.2.12] - 2025-03-04
+- No changes yet.
+
+## [1.2.12] - 2026-03-04
 
 ### Added
 - **Rector**: PHP refactoring tool integrated for code quality
