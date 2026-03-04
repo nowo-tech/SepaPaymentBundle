@@ -2,7 +2,7 @@
 
 ## Documentación revisada
 
-- **CHANGELOG.md**: [1.2.12] - 2025-03-04 con Added (Rector, PHPStan, release-check), Improved (static analysis, comments in English), Fixed (baseline).
+- **CHANGELOG.md**: [1.2.12] - 2026-03-04 con Added (Rector, PHPStan, release-check), Improved (static analysis, comments in English), Fixed (baseline).
 - **UPGRADE.md**: "Upgrading from 1.2.11 to 1.2.12" con Added, Improved y backward compatibility.
 
 ## Pasos para publicar la release
