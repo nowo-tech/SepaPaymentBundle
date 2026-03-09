@@ -2,6 +2,23 @@
 
 This document describes the configuration options available for the SEPA Payment Bundle.
 
+
+## Table of contents
+
+- [Overview](#overview)
+- [Configuration File](#configuration-file)
+  - [Location](#location)
+  - [Structure](#structure)
+- [Configuration Options](#configuration-options)
+  - [`default_currency`](#default-currency)
+- [How Configuration Works](#how-configuration-works)
+- [Accessing Configuration in Code](#accessing-configuration-in-code)
+- [Environment-Specific Configuration](#environment-specific-configuration)
+- [Validation](#validation)
+- [Examples](#examples)
+  - [Basic Configuration](#basic-configuration)
+  - [Multi-Currency Setup](#multi-currency-setup)
+
 ## Overview
 
 The bundle works out of the box with default settings. **No configuration file is required** - the bundle uses sensible defaults defined in `Configuration.php`.
