@@ -2,6 +2,34 @@
 
 This document serves as a checklist for future improvements and new features to be added to the SEPA Payment Bundle.
 
+
+## Table of contents
+
+- [Priority: High 🔴](#priority-high)
+  - [1. Direct Debit Parser ✅](#1-direct-debit-parser)
+  - [2. XML Schema Validation (XSD) ✅](#2-xml-schema-validation-xsd)
+  - [3. Automatic BIC Lookup by IBAN ✅](#3-automatic-bic-lookup-by-iban)
+  - [4. SEPA Limits and Business Rules Validation ✅](#4-sepa-limits-and-business-rules-validation)
+- [Priority: Medium 🟡](#priority-medium)
+  - [5. Symfony Events ✅](#5-symfony-events)
+  - [6. Structured Logging ✅](#6-structured-logging)
+  - [7. SEPA Character Validation and Sanitization ✅](#7-sepa-character-validation-and-sanitization)
+  - [8. Export to Other Formats ✅](#8-export-to-other-formats)
+  - [9. SEPA Country Validation ✅](#9-sepa-country-validation)
+- [Priority: Low 🟢](#priority-low)
+  - [10. REST API Controllers](#10-rest-api-controllers)
+  - [11. Validation Caching ✅](#11-validation-caching)
+  - [12. Metrics and Monitoring](#12-metrics-and-monitoring)
+  - [13. Support for Multiple PAIN Versions](#13-support-for-multiple-pain-versions)
+  - [14. Mandate Management and Validation ✅](#14-mandate-management-and-validation)
+  - [15. XML Compression and Encryption](#15-xml-compression-and-encryption)
+- [Additional Improvements](#additional-improvements)
+  - [Code Quality](#code-quality)
+  - [Documentation](#documentation)
+  - [Developer Experience](#developer-experience)
+  - [Infrastructure](#infrastructure)
+- [Notes](#notes)
+
 ## Priority: High 🔴
 
 ### 1. Direct Debit Parser ✅

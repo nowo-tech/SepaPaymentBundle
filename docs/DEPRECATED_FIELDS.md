@@ -2,6 +2,23 @@
 
 This document describes fields that were previously required or allowed in SEPA Direct Debit transactions (pain.008.001.02) but can **no longer be included** according to current SEPA standards.
 
+
+## Table of contents
+
+- [Important Information](#important-information)
+- [Fields that MUST NOT be included](#fields-that-must-not-be-included)
+  - [1. Contact Information (Phone, Email)](#1-contact-information-phone-email)
+  - [2. Tax Identification Information](#2-tax-identification-information)
+  - [3. Tax Identification Information](#3-tax-identification-information)
+- [Fields that ARE allowed](#fields-that-are-allowed)
+  - [Required Fields](#required-fields)
+  - [Optional Fields](#optional-fields)
+- [Complete Correct Example](#complete-correct-example)
+- [Address Support (as of v0.0.8)](#address-support-as-of-v008)
+- [References](#references)
+- [Compatibility Notes](#compatibility-notes)
+- [Support](#support)
+
 ## Important Information
 
 SEPA standards have evolved and some fields that were previously required or common have been **removed or deprecated** in the most recent versions of the pain.008.001.02 format. It is important not to attempt to include these fields, as they may cause validation errors or rejection by banks.

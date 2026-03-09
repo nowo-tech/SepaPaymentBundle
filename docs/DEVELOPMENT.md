@@ -2,6 +2,19 @@
 
 This document provides information about developing and contributing to the SEPA Payment Bundle.
 
+
+## Table of contents
+
+- [Development Setup](#development-setup)
+  - [Using Docker (Recommended)](#using-docker-recommended)
+  - [Without Docker](#without-docker)
+- [Testing](#testing)
+  - [Running Tests](#running-tests)
+- [Code Quality](#code-quality)
+- [CI/CD](#cicd)
+- [Contributing](#contributing)
+- [Branching Strategy](#branching-strategy)
+
 ## Development Setup
 
 ### Using Docker (Recommended)
