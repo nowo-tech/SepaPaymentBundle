@@ -263,6 +263,10 @@ verify-all:
 		echo "✅ All demos verified successfully!"; \
 	fi
 
+# release-check: test-coverage-all, then release-verify
+release-check: test-coverage-all release-verify
+	@echo "✅ All demos passed release-check."
+
 # Release verify: for each demo, up → sleep → healthcheck (HTTP 200) → down
 release-verify:
 	@for demo in $(DEMOS); do \

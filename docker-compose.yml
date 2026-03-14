@@ -1,3 +1,5 @@
+name: sepa-payment-bundle
+
 services:
   php:
     build:

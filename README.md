@@ -152,20 +152,22 @@ Created by [Héctor Franco Aceituno](https://github.com/HecFranco) at [Nowo.tech
 
 ## Documentation
 
-- [Installation](#installation)
+- [Installation](docs/INSTALLATION.md)
 - [Configuration](docs/CONFIGURATION.md)
 - [Usage](docs/USAGE.md)
 - [Contributing](docs/CONTRIBUTING.md)
 - [Changelog](docs/CHANGELOG.md)
 - [Upgrading](docs/UPGRADING.md)
-- [Release](docs/RELEASE_CHECKLIST.md)
-- [Security](docs/CONTRIBUTING.md)
+- [Release](docs/RELEASE.md)
+- [Security](docs/SECURITY.md)
 - [Engram](docs/ENGRAM.md)
 
 ### Additional documentation
 
 - [Commands](docs/COMMANDS.md)
+- [Release checklist (version-specific)](docs/RELEASE_CHECKLIST.md)
 - [Demo projects](docs/DEMOS.md)
+- [Demo with FrankenPHP (development and production)](docs/DEMO-FRANKENPHP.md)
 - [Development](docs/DEVELOPMENT.md)
 - [Deprecated fields](docs/DEPRECATED_FIELDS.md)
 - [Future improvements](docs/FUTURE.md)

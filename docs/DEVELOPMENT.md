@@ -47,7 +47,7 @@ composer qa
 
 ## Testing
 
-The bundle has comprehensive test coverage. All tests are located in the `tests/` directory and cover:
+The bundle has comprehensive test coverage. All tests are located in the `tests/` directory, split into **`tests/Unit/`** (isolated unit tests with mocks) and **`tests/Integration/`** (kernel boot, container services, and command/generator/parser integration). See BUNDLES_STANDARDS_PROMPT §7.1.1. Tests cover:
 
 - **Validators**: `IbanValidator`, `BicValidator`, `CreditCardValidator`, `SepaStringSanitizer`, `SepaCountryValidator`, `SepaBusinessRulesValidator`, `XsdValidator`
   - `SepaStringSanitizer`: 100% line coverage (10/10 methods)

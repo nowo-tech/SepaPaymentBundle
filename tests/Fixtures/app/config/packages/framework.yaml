@@ -1,0 +1,7 @@
+framework:
+    secret: 'integration_test_secret'
+    test: true
+    http_method_override: false
+    handle_all_throwables: true
+    php_errors:
+        log: true
