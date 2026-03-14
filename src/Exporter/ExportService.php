@@ -26,6 +26,11 @@ class ExportService
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.exporter.export_service';
 
+    public function __construct(
+        private readonly ?CsvStreamHandlerInterface $csvStreamHandler = null
+    ) {
+    }
+
     /**
      * Exports Credit Transfer data to JSON format.
      *
@@ -274,7 +279,8 @@ class ExportService
      */
     private function arrayToCsv(array $rows, string $delimiter, string $enclosure): string
     {
-        $output = fopen('php://temp', 'r+');
+        $handler = $this->csvStreamHandler ?? new PhpTempCsvStreamHandler();
+        $output  = $handler->open();
 
         if ($output === false) {
             throw new RuntimeException('Failed to open temporary stream for CSV generation');
@@ -285,7 +291,7 @@ class ExportService
         }
 
         rewind($output);
-        $csv = stream_get_contents($output);
+        $csv = $handler->getContents($output);
         fclose($output);
 
         if ($csv === false) {

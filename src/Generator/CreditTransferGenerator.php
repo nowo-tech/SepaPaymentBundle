@@ -514,11 +514,11 @@ class CreditTransferGenerator
      * Note: The Digitick\Sepa library may not support this directly, so addresses
      * are also added via DOM manipulation in addAddressesToXml() method.
      *
-     * @param PaymentInformation $paymentInformation The payment information object
+     * @param object $paymentInformation The payment information object (PaymentInformation or test double)
      * @param array<string, string|null> $address Address array with keys: street, city, postalCode, country
      */
     private function setCreditorPostalAddress(
-        PaymentInformation $paymentInformation,
+        object $paymentInformation,
         array $address
     ): void {
         // PHPStan: method_exists() always true for Digitick PaymentInformation (has setCreditorPostalAddress/setPostalAddress/setAddress).
@@ -531,23 +531,19 @@ class CreditTransferGenerator
                 $address['country'] ?? '',
             );
         } elseif (method_exists($paymentInformation, 'setPostalAddress')) {
-            // @codeCoverageIgnoreStart - alternative library API
             $paymentInformation->setPostalAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
                 $address['postalCode'] ?? '',
                 $address['country'] ?? '',
             );
-        // @codeCoverageIgnoreEnd
         } elseif (method_exists($paymentInformation, 'setAddress')) {
-            // @codeCoverageIgnoreStart - alternative library API
             $paymentInformation->setAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
                 $address['postalCode'] ?? '',
                 $address['country'] ?? '',
             );
-            // @codeCoverageIgnoreEnd
         }
         // Note: Addresses are always added to XML via DOM manipulation in addAddressesToXml()
         // even if the library methods don't exist, ensuring addresses are included in the final XML
@@ -572,9 +568,7 @@ class CreditTransferGenerator
 
             if (!@$dom->loadXML($xml)) {
                 // If XML is invalid, return original
-                // @codeCoverageIgnoreStart - defensive; library always produces valid XML
                 return $xml;
-                // @codeCoverageIgnoreEnd
             }
 
             $xpath = new DOMXPath($dom);
@@ -601,12 +595,10 @@ class CreditTransferGenerator
             // PHPStan: saveXML() returns string|false; we guarantee valid XML from loadXML() so we return string or fallback to original
             $saved = $dom->saveXML();
 
-            return $saved !== false ? $saved : $xml; // @codeCoverageIgnore - defensive
-        } catch (Exception) {
+            return $saved !== false ? $saved : $xml;
+        } catch (\Throwable) {
             // If DOM manipulation fails, return original XML
-            // @codeCoverageIgnoreStart - defensive
             return $xml;
-            // @codeCoverageIgnoreEnd
         }
     }
 
@@ -623,12 +615,10 @@ class CreditTransferGenerator
         // Find Cdtr (Creditor) element
         $creditorNodes = $xpath->query('//ns:Dbtr');
         if ($creditorNodes === false || $creditorNodes->length === 0) {
-            // @codeCoverageIgnoreStart - fallback when namespace prefix not in XML
             $creditorNodes = $xpath->query('//Dbtr');
             if ($creditorNodes === false || $creditorNodes->length === 0) {
                 return;
             }
-            // @codeCoverageIgnoreEnd
         }
 
         $creditorNode = $creditorNodes->item(0);
@@ -652,12 +642,10 @@ class CreditTransferGenerator
         // Find Dbtr (Debtor) elements
         $debtorNodes = $xpath->query('//ns:Cdtr');
         if ($debtorNodes === false || $debtorNodes->length === 0) {
-            // @codeCoverageIgnoreStart - fallback when namespace prefix not in XML
             $debtorNodes = $xpath->query('//Cdtr');
             if ($debtorNodes === false || $debtorNodes->length <= $index) {
                 return;
             }
-            // @codeCoverageIgnoreEnd
         }
 
         if ($debtorNodes->length <= $index) {

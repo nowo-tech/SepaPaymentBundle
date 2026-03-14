@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 // This file is auto-generated and is for apps only. Bundles SHOULD NOT rely on its content.
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
@@ -735,6 +733,14 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     intercept_redirects?: bool|Param, // Default: false
  *     excluded_ajax_paths?: scalar|Param|null, // Default: "^/((index|app(_[\\w]+)?)\\.php/)?_wdt"
  * }
+ * @psalm-type NowoTwigInspectorConfig = array{
+ *     enabled_extensions?: list<scalar|Param|null>,
+ *     excluded_templates?: list<scalar|Param|null>,
+ *     excluded_blocks?: list<scalar|Param|null>,
+ *     enable_metrics?: bool|Param, // Enable collection of template usage metrics in DataCollector // Default: true
+ *     optimize_output_buffering?: bool|Param, // Skip output buffering when inspector is disabled (performance optimization) // Default: true
+ *     cookie_name?: scalar|Param|null, // Name of the cookie used to enable/disable the inspector // Default: "twig_inspector_is_active"
+ * }
  * @psalm-type ConfigType = array{
  *     imports?: ImportsConfig,
  *     parameters?: ParametersConfig,
@@ -751,6 +757,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         nowo_sepa_payment?: NowoSepaPaymentConfig,
  *         debug?: DebugConfig,
  *         web_profiler?: WebProfilerConfig,
+ *         nowo_twig_inspector?: NowoTwigInspectorConfig,
  *     },
  *     "when@prod"?: array{
  *         imports?: ImportsConfig,
@@ -768,6 +775,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         twig?: TwigConfig,
  *         nowo_sepa_payment?: NowoSepaPaymentConfig,
  *         web_profiler?: WebProfilerConfig,
+ *         nowo_twig_inspector?: NowoTwigInspectorConfig,
  *     },
  *     ...<string, ExtensionType|array{ // extra keys must follow the when@%env% pattern or match an extension alias
  *         imports?: ImportsConfig,

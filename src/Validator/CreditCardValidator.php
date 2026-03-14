@@ -95,11 +95,21 @@ class CreditCardValidator
      */
     public function normalize(string $cardNumber): string
     {
-        // PHPStan: preg_replace can return null on error; declared return type is string.
-        // Fix: ensure string with coalescence to original value (digits only) or empty string.
-        $result = preg_replace('/[^0-9]/', '', trim($cardNumber));
+        $result = $this->stripNonDigits(trim($cardNumber));
 
         return $result ?? '';
+    }
+
+    /**
+     * Strips non-digit characters from a string. Extracted for testability of null coalescence.
+     *
+     * @param string $input The string to strip
+     *
+     * @return string|null The digits-only string, or null on preg_replace error
+     */
+    protected function stripNonDigits(string $input): ?string
+    {
+        return preg_replace('/[^0-9]/', '', $input);
     }
 
     /**

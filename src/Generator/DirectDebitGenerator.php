@@ -525,18 +525,18 @@ class DirectDebitGenerator
      * Sets postal address on transfer information (debtor address).
      * Uses available methods from the Digitick\Sepa library.
      *
-     * @param CustomerDirectDebitTransferInformation $transferInformation The transfer information object
+     * @param object $transferInformation The transfer information object (CustomerDirectDebitTransferInformation or test double)
      * @param array<string, string|null> $address Address array with keys: street, city, postalCode, country
      */
     private function setPostalAddress(
-        CustomerDirectDebitTransferInformation $transferInformation,
+        object $transferInformation,
         array $address
     ): void {
-        // PHPStan: method_exists(..., 'setPostalAddress') always true for CustomerDirectDebitTransferInformation.
-        // Fix: call setPostalAddress directly; elseif branches cover other library signatures.
-        $transferInformation->setPostalAddress(
-            $address['street'] ?? '',
-        );
+        if (method_exists($transferInformation, 'setPostalAddress')) {
+            $transferInformation->setPostalAddress(
+                $address['street'] ?? '',
+            );
+        }
         if (method_exists($transferInformation, 'setDebtorPostalAddress')) {
             $transferInformation->setDebtorPostalAddress(
                 $address['street'] ?? '',
@@ -545,14 +545,12 @@ class DirectDebitGenerator
                 $address['country'] ?? '',
             );
         } elseif (method_exists($transferInformation, 'setAddress')) {
-            // @codeCoverageIgnoreStart - alternative library API; current Digitick\Sepa uses setDebtorPostalAddress
             $transferInformation->setAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
                 $address['postalCode'] ?? '',
                 $address['country'] ?? '',
             );
-            // @codeCoverageIgnoreEnd
         }
         // Note: If the library doesn't support addresses in this format,
         // the address is still stored in additionalData for internal use
@@ -562,11 +560,11 @@ class DirectDebitGenerator
      * Sets creditor postal address on payment information.
      * Uses available methods from the Digitick\Sepa library.
      *
-     * @param PaymentInformation $paymentInformation The payment information object
+     * @param object $paymentInformation The payment information object (PaymentInformation or test double)
      * @param array<string, string|null> $address Address array with keys: street, city, postalCode, country
      */
     private function setCreditorPostalAddress(
-        PaymentInformation $paymentInformation,
+        object $paymentInformation,
         array $address
     ): void {
         // Try to set creditor postal address using available methods
@@ -578,23 +576,19 @@ class DirectDebitGenerator
                 $address['country'] ?? '',
             );
         } elseif (method_exists($paymentInformation, 'setPostalAddress')) {
-            // @codeCoverageIgnoreStart - alternative library API
             $paymentInformation->setPostalAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
                 $address['postalCode'] ?? '',
                 $address['country'] ?? '',
             );
-        // @codeCoverageIgnoreEnd
         } elseif (method_exists($paymentInformation, 'setAddress')) {
-            // @codeCoverageIgnoreStart - alternative library API
             $paymentInformation->setAddress(
                 $address['street'] ?? '',
                 $address['city'] ?? '',
                 $address['postalCode'] ?? '',
                 $address['country'] ?? '',
             );
-            // @codeCoverageIgnoreEnd
         }
         // Note: If the library doesn't support addresses in this format,
         // the address is still stored internally for internal use
@@ -618,9 +612,7 @@ class DirectDebitGenerator
 
             if (!@$dom->loadXML($xml)) {
                 // If XML is invalid, return original
-                // @codeCoverageIgnoreStart - defensive; library always produces valid XML
                 return $xml;
-                // @codeCoverageIgnoreEnd
             }
 
             $xpath = new DOMXPath($dom);
@@ -647,12 +639,10 @@ class DirectDebitGenerator
             // PHPStan: saveXML() returns string|false; we guarantee valid XML from loadXML(), return string or original
             $saved = $dom->saveXML();
 
-            return $saved !== false ? $saved : $xml; // @codeCoverageIgnore - defensive; saveXML() does not fail on valid DOM
-        } catch (Exception) {
+            return $saved !== false ? $saved : $xml;
+        } catch (\Throwable) {
             // If DOM manipulation fails, return original XML
-            // @codeCoverageIgnoreStart - defensive
             return $xml;
-            // @codeCoverageIgnoreEnd
         }
     }
 
@@ -668,12 +658,10 @@ class DirectDebitGenerator
     {
         $creditorNodes = $xpath->query('//ns:Cdtr');
         if ($creditorNodes === false || $creditorNodes->length === 0) {
-            // @codeCoverageIgnoreStart - fallback when namespace prefix not in XML
             $creditorNodes = $xpath->query('//Cdtr');
             if ($creditorNodes === false || $creditorNodes->length === 0) {
                 return;
             }
-            // @codeCoverageIgnoreEnd
         }
 
         $creditorNode = $creditorNodes->item(0);
@@ -696,12 +684,10 @@ class DirectDebitGenerator
     {
         $debtorNodes = $xpath->query('//ns:Dbtr');
         if ($debtorNodes === false || $debtorNodes->length === 0) {
-            // @codeCoverageIgnoreStart - fallback when namespace prefix not in XML
             $debtorNodes = $xpath->query('//Dbtr');
             if ($debtorNodes === false || $debtorNodes->length <= $index) {
                 return;
             }
-            // @codeCoverageIgnoreEnd
         }
 
         if ($debtorNodes->length <= $index) {
