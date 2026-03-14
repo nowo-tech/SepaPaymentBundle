@@ -20,6 +20,8 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 use function count;
 
+require_once __DIR__ . '/XPathCoverageHelpers.php';
+
 /**
  * Test cases for DirectDebitGenerator.
  *
@@ -2092,5 +2094,73 @@ class DirectDebitGeneratorTest extends TestCase
         ], 0, $ns);
         $this->assertStringContainsString('PstlAdr', $dom->saveXML());
         $this->assertStringContainsString('Avenida', $dom->saveXML());
+    }
+
+    /**
+     * Covers addCreditorAddressToDom defensive return when item(0) is not DOMElement (line 669).
+     */
+    public function testAddCreditorAddressToDomReturnsEarlyWhenNodeIsNotDomElement(): void
+    {
+        $dom   = new \DOMDocument();
+        $dom->loadXML('<?xml version="1.0"?><r>x</r>');
+        $xpath = new XPathReturningTextNodeList($dom);
+        $ref   = new ReflectionClass(DirectDebitGenerator::class);
+        $method = $ref->getMethod('addCreditorAddressToDom');
+        $method->setAccessible(true);
+        $method->invoke($this->generator, $dom, $xpath, [
+            'street' => 'Calle', 'city' => 'Madrid', 'postalCode' => '28001', 'country' => 'ES',
+        ], 'urn:test');
+        $this->assertStringNotContainsString('PstlAdr', $dom->saveXML());
+    }
+
+    /**
+     * Covers addCreditorAddressToDom defensive return when no Cdtr nodes (line 663).
+     */
+    public function testAddCreditorAddressToDomReturnsEarlyWhenNoNodes(): void
+    {
+        $dom   = new \DOMDocument();
+        $dom->loadXML('<?xml version="1.0"?><r/>');
+        $xpath = new XPathReturningEmptyNodeList($dom);
+        $ref   = new ReflectionClass(DirectDebitGenerator::class);
+        $method = $ref->getMethod('addCreditorAddressToDom');
+        $method->setAccessible(true);
+        $method->invoke($this->generator, $dom, $xpath, [
+            'street' => 'Calle', 'city' => 'Madrid', 'postalCode' => '28001', 'country' => 'ES',
+        ], 'urn:test');
+        $this->assertStringNotContainsString('PstlAdr', $dom->saveXML());
+    }
+
+    /**
+     * Covers addDebtorAddressToDom defensive return when item(index) is not DOMElement (line 699).
+     */
+    public function testAddDebtorAddressToDomReturnsEarlyWhenNodeIsNotDomElement(): void
+    {
+        $dom   = new \DOMDocument();
+        $dom->loadXML('<?xml version="1.0"?><r>x</r>');
+        $xpath = new XPathReturningTextNodeList($dom);
+        $ref   = new ReflectionClass(DirectDebitGenerator::class);
+        $method = $ref->getMethod('addDebtorAddressToDom');
+        $method->setAccessible(true);
+        $method->invoke($this->generator, $dom, $xpath, [
+            'street' => 'Calle', 'city' => 'Madrid', 'postalCode' => '28001', 'country' => 'ES',
+        ], 0, 'urn:test');
+        $this->assertStringNotContainsString('PstlAdr', $dom->saveXML());
+    }
+
+    /**
+     * Covers addDebtorAddressToDom defensive return when length <= index (line 689).
+     */
+    public function testAddDebtorAddressToDomReturnsEarlyWhenLengthLteIndex(): void
+    {
+        $dom   = new \DOMDocument();
+        $dom->loadXML('<?xml version="1.0"?><r/>');
+        $xpath = new XPathReturningEmptyNodeList($dom);
+        $ref   = new ReflectionClass(DirectDebitGenerator::class);
+        $method = $ref->getMethod('addDebtorAddressToDom');
+        $method->setAccessible(true);
+        $method->invoke($this->generator, $dom, $xpath, [
+            'street' => 'Calle', 'city' => 'Madrid', 'postalCode' => '28001', 'country' => 'ES',
+        ], 0, 'urn:test');
+        $this->assertStringNotContainsString('PstlAdr', $dom->saveXML());
     }
 }

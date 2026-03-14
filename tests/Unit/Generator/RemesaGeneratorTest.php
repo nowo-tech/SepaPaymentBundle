@@ -28,8 +28,16 @@ class RemesaGeneratorTest extends TestCase
 {
     private RemesaGenerator $generator;
 
+    /** @var callable|null */
+    private $previousErrorHandler;
+
     protected function setUp(): void
     {
+        $this->previousErrorHandler = set_error_handler(
+            function (int $severity): bool {
+                return $severity === E_USER_DEPRECATED; // swallow deprecations so no output → no risky test
+            },
+        );
         $translator = new class implements TranslatorInterface {
             /** @param array<string, mixed> $parameters */
             public function trans(string $id, array $parameters = [], ?string $domain = null, ?string $locale = null): string
@@ -43,6 +51,15 @@ class RemesaGeneratorTest extends TestCase
             }
         };
         $this->generator = new RemesaGenerator(new IbanValidator(), $translator);
+    }
+
+    protected function tearDown(): void
+    {
+        if ($this->previousErrorHandler !== null) {
+            set_error_handler($this->previousErrorHandler);
+            $this->previousErrorHandler = null;
+        }
+        parent::tearDown();
     }
 
     #[IgnoreDeprecations]

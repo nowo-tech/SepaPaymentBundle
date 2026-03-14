@@ -13,6 +13,7 @@ use Nowo\SepaPaymentBundle\Parser\DirectDebitParser;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionMethod;
+use stdClass;
 
 /**
  * Test cases for DirectDebitParser.
@@ -982,6 +983,44 @@ class DirectDebitParserTest extends TestCase
         $this->assertCount(1, $data['transactions']);
         $this->assertEquals('E2E-MIN-001', $data['transactions'][0]['endToEndId']);
         $this->assertEquals('MANDATE-MIN-001', $data['transactions'][0]['mandateId']);
+    }
+
+    /**
+     * Covers the defensive continue when a transaction node is not a DOMNode (getDirectDebitTransactionNodes is overridden to return non-DOMNode).
+     */
+    public function testParseSkipsNonDomNodeInTransactionNodes(): void
+    {
+        $parser = new class () extends DirectDebitParser {
+            public function getDirectDebitTransactionNodes(\DOMXPath $xpath): iterable
+            {
+                return [new stdClass()];
+            }
+        };
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.001.02">
+                <CstmrDrctDbtInitn>
+                    <GrpHdr>
+                        <MsgId>MSG-SKIP</MsgId>
+                        <CreDtTm>2024-01-15T10:00:00</CreDtTm>
+                        <InitgPty><Nm>Co</Nm></InitgPty>
+                    </GrpHdr>
+                    <PmtInf>
+                        <PmtInfId>PMT-SKIP</PmtInfId>
+                        <PmtMtd>DD</PmtMtd>
+                        <NbOfTxs>0</NbOfTxs>
+                        <CtrlSum>0</CtrlSum>
+                        <ReqdColltnDt>2024-01-20</ReqdColltnDt>
+                        <Cdtr><Nm>C</Nm></Cdtr>
+                        <CdtrAcct><Id><IBAN>ES9121000418450200051332</IBAN></Id></CdtrAcct>
+                        <CdtrSchmeId><Id><PrvtId><Othr><Id>ES1234567890123456789012</Id></Othr></PrvtId></Id></CdtrSchmeId>
+                    </PmtInf>
+                </CstmrDrctDbtInitn>
+            </Document>
+            XML;
+        $data = $parser->parseDirectDebit($xml);
+        $this->assertSame('MSG-SKIP', $data['messageId']);
+        $this->assertCount(0, $data['transactions']);
     }
 
     /**
