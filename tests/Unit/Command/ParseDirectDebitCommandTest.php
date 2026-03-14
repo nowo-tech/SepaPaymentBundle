@@ -265,7 +265,7 @@ class ParseDirectDebitCommandTest extends TestCase
     public function testParseWhenFileGetContentsReturnsFalse(): void
     {
         $wrapper = static function (): bool {
-            return stream_wrapper_register('readfail', \Nowo\SepaPaymentBundle\Tests\Unit\Command\ReadFailStreamWrapper::class);
+            return stream_wrapper_register('readfail', ReadFailStreamWrapper::class);
         };
         if (!@$wrapper()) {
             $this->markTestSkipped('Could not register stream wrapper');
@@ -274,9 +274,9 @@ class ParseDirectDebitCommandTest extends TestCase
             return str_contains($errstr, 'ReadFailStreamWrapper') || str_contains($errstr, 'file_get_contents');
         });
         try {
-            $parser         = new DirectDebitParser();
-            $command        = new ParseDirectDebitCommand($parser);
-            $commandTester  = new CommandTester($command);
+            $parser        = new DirectDebitParser();
+            $command       = new ParseDirectDebitCommand($parser);
+            $commandTester = new CommandTester($command);
 
             $commandTester->execute(['file' => 'readfail://any']);
             $this->assertEquals(1, $commandTester->getStatusCode());
@@ -385,7 +385,7 @@ class ParseDirectDebitCommandTest extends TestCase
         $parser->method('isValidDirectDebit')->willReturn(true);
         // Data containing invalid UTF-8 makes json_encode return false
         $parser->method('parseDirectDebit')->willReturn([
-            'messageId' => "invalid \x80 UTF-8",
+            'messageId'    => "invalid \x80 UTF-8",
             'transactions' => [],
         ]);
 

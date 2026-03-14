@@ -28,6 +28,7 @@ use Nowo\SepaPaymentBundle\Validator\XsdValidator;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 use function count;
 use function in_array;
@@ -640,7 +641,7 @@ class DirectDebitGenerator
             $saved = $dom->saveXML();
 
             return $saved !== false ? $saved : $xml;
-        } catch (\Throwable) {
+        } catch (Throwable) {
             // If DOM manipulation fails, return original XML
             return $xml;
         }

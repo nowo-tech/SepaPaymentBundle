@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Nowo\SepaPaymentBundle\Tests\Unit\Generator;
 
 use DateTime;
+use DOMDocument;
+use DOMXPath;
+use Exception;
 use InvalidArgumentException;
 use Nowo\SepaPaymentBundle\Event\AfterDirectDebitGenerationEvent;
 use Nowo\SepaPaymentBundle\Event\BeforeDirectDebitGenerationEvent;
@@ -1960,7 +1963,7 @@ class DirectDebitGeneratorTest extends TestCase
      */
     public function testAddAddressesToXmlInsertBeforeWhenNmHasNextSibling(): void
     {
-        $ns = 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.02';
+        $ns  = 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.02';
         $xml = '<?xml version="1.0"?>
 <Document xmlns="' . $ns . '">
   <CstmrDrctDbtInitn>
@@ -2013,8 +2016,8 @@ class DirectDebitGeneratorTest extends TestCase
                 'ES1234567890123456789012',
                 'CORE',
             ))->addTransaction(
-                new DirectDebitTransaction(10.00, 'ES9121000418450200051332', 'Debtor', 'M-001', new DateTime('2024-01-01'), 'E2E-1')
-            )
+                new DirectDebitTransaction(10.00, 'ES9121000418450200051332', 'Debtor', 'M-001', new DateTime('2024-01-01'), 'E2E-1'),
+            ),
         );
         $data = new DirectDebitData(
             'REF',
@@ -2028,13 +2031,13 @@ class DirectDebitGeneratorTest extends TestCase
             'CORE',
         );
         $refData = new ReflectionClass(DirectDebitData::class);
-        $prop   = $refData->getProperty('creditorAddress');
+        $prop    = $refData->getProperty('creditorAddress');
         $prop->setAccessible(true);
         $prop->setValue($data, [
-            'street'     => new class {
+            'street' => new class {
                 public function __toString(): string
                 {
-                    throw new \Exception('invalid');
+                    throw new Exception('invalid');
                 }
             },
             'city'       => null,
@@ -2055,9 +2058,9 @@ class DirectDebitGeneratorTest extends TestCase
     {
         $ns  = 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.02';
         $xml = '<?xml version="1.0"?><Document xmlns="' . $ns . '"><CstmrDrctDbtInitn><PmtInf><Cdtr><Nm>Creditor</Nm></Cdtr></PmtInf></CstmrDrctDbtInitn></Document>';
-        $dom = new \DOMDocument();
+        $dom = new DOMDocument();
         $dom->loadXML($xml);
-        $xpath = new \DOMXPath($dom);
+        $xpath = new DOMXPath($dom);
         $xpath->registerNamespace('ns', $ns);
         $ref    = new ReflectionClass(DirectDebitGenerator::class);
         $method = $ref->getMethod('addCreditorAddressToDom');
@@ -2079,9 +2082,9 @@ class DirectDebitGeneratorTest extends TestCase
     {
         $ns  = 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.02';
         $xml = '<?xml version="1.0"?><Document xmlns="' . $ns . '"><CstmrDrctDbtInitn><PmtInf><DrctDbtTxInf><Dbtr><Nm>Debtor</Nm></Dbtr></DrctDbtTxInf></PmtInf></CstmrDrctDbtInitn></Document>';
-        $dom = new \DOMDocument();
+        $dom = new DOMDocument();
         $dom->loadXML($xml);
-        $xpath = new \DOMXPath($dom);
+        $xpath = new DOMXPath($dom);
         $xpath->registerNamespace('ns', $ns);
         $ref    = new ReflectionClass(DirectDebitGenerator::class);
         $method = $ref->getMethod('addDebtorAddressToDom');
@@ -2101,10 +2104,10 @@ class DirectDebitGeneratorTest extends TestCase
      */
     public function testAddCreditorAddressToDomReturnsEarlyWhenNodeIsNotDomElement(): void
     {
-        $dom   = new \DOMDocument();
+        $dom = new DOMDocument();
         $dom->loadXML('<?xml version="1.0"?><r>x</r>');
-        $xpath = new XPathReturningTextNodeList($dom);
-        $ref   = new ReflectionClass(DirectDebitGenerator::class);
+        $xpath  = new XPathReturningTextNodeList($dom);
+        $ref    = new ReflectionClass(DirectDebitGenerator::class);
         $method = $ref->getMethod('addCreditorAddressToDom');
         $method->setAccessible(true);
         $method->invoke($this->generator, $dom, $xpath, [
@@ -2118,10 +2121,10 @@ class DirectDebitGeneratorTest extends TestCase
      */
     public function testAddCreditorAddressToDomReturnsEarlyWhenNoNodes(): void
     {
-        $dom   = new \DOMDocument();
+        $dom = new DOMDocument();
         $dom->loadXML('<?xml version="1.0"?><r/>');
-        $xpath = new XPathReturningEmptyNodeList($dom);
-        $ref   = new ReflectionClass(DirectDebitGenerator::class);
+        $xpath  = new XPathReturningEmptyNodeList($dom);
+        $ref    = new ReflectionClass(DirectDebitGenerator::class);
         $method = $ref->getMethod('addCreditorAddressToDom');
         $method->setAccessible(true);
         $method->invoke($this->generator, $dom, $xpath, [
@@ -2135,10 +2138,10 @@ class DirectDebitGeneratorTest extends TestCase
      */
     public function testAddDebtorAddressToDomReturnsEarlyWhenNodeIsNotDomElement(): void
     {
-        $dom   = new \DOMDocument();
+        $dom = new DOMDocument();
         $dom->loadXML('<?xml version="1.0"?><r>x</r>');
-        $xpath = new XPathReturningTextNodeList($dom);
-        $ref   = new ReflectionClass(DirectDebitGenerator::class);
+        $xpath  = new XPathReturningTextNodeList($dom);
+        $ref    = new ReflectionClass(DirectDebitGenerator::class);
         $method = $ref->getMethod('addDebtorAddressToDom');
         $method->setAccessible(true);
         $method->invoke($this->generator, $dom, $xpath, [
@@ -2152,10 +2155,10 @@ class DirectDebitGeneratorTest extends TestCase
      */
     public function testAddDebtorAddressToDomReturnsEarlyWhenLengthLteIndex(): void
     {
-        $dom   = new \DOMDocument();
+        $dom = new DOMDocument();
         $dom->loadXML('<?xml version="1.0"?><r/>');
-        $xpath = new XPathReturningEmptyNodeList($dom);
-        $ref   = new ReflectionClass(DirectDebitGenerator::class);
+        $xpath  = new XPathReturningEmptyNodeList($dom);
+        $ref    = new ReflectionClass(DirectDebitGenerator::class);
         $method = $ref->getMethod('addDebtorAddressToDom');
         $method->setAccessible(true);
         $method->invoke($this->generator, $dom, $xpath, [

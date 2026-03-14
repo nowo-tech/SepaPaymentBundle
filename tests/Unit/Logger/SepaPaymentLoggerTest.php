@@ -6,9 +6,7 @@ namespace Nowo\SepaPaymentBundle\Tests\Unit\Logger;
 
 use Nowo\SepaPaymentBundle\Logger\SepaPaymentLogger;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
-use Stringable;
 
 /**
  * Test cases for SepaPaymentLogger.
