@@ -130,82 +130,91 @@ class DirectDebitParser
             }
         }
 
-        $transactions      = [];
-        $drctDbtTxInfNodes = $xpath->query('//sepa:DrctDbtTxInf');
-        if ($drctDbtTxInfNodes instanceof DOMNodeList) {
-            foreach ($drctDbtTxInfNodes as $txInf) {
-                $ctx = $txInf instanceof DOMNode ? $txInf : null;
-                if (!$ctx instanceof DOMNode) {
-                    continue;
-                }
-                $transaction = [];
-
-                $endToEndId = $this->getFirstNode($xpath, './/sepa:EndToEndId', $ctx);
-                if ($endToEndId instanceof DOMNode) {
-                    $transaction['endToEndId'] = $endToEndId->nodeValue;
-                }
-
-                $instdAmt = $this->getFirstNode($xpath, './/sepa:InstdAmt', $ctx);
-                if ($instdAmt instanceof DOMNode) {
-                    $transaction['amount']   = (float) $instdAmt->nodeValue;
-                    $transaction['currency'] = $instdAmt instanceof DOMElement ? $instdAmt->getAttribute('Ccy') : '';
-                }
-
-                $mndtRltdInf = $this->getFirstNode($xpath, './/sepa:MndtRltdInf', $ctx);
-                if ($mndtRltdInf instanceof DOMNode) {
-                    $mndtId = $this->getFirstNode($xpath, './/sepa:MndtId', $mndtRltdInf);
-                    if ($mndtId instanceof DOMNode) {
-                        $transaction['mandateId'] = $mndtId->nodeValue;
-                    }
-                    $dtOfSgntr = $this->getFirstNode($xpath, './/sepa:DtOfSgntr', $mndtRltdInf);
-                    if ($dtOfSgntr instanceof DOMNode) {
-                        $transaction['mandateSignDate'] = $dtOfSgntr->nodeValue;
-                    }
-                }
-
-                $dbtr = $this->getFirstNode($xpath, './/sepa:Dbtr', $ctx);
-                if ($dbtr instanceof DOMNode) {
-                    $dbtrNm = $this->getFirstNode($xpath, './/sepa:Nm', $dbtr);
-                    if ($dbtrNm instanceof DOMNode) {
-                        $transaction['debtorName'] = $dbtrNm->nodeValue;
-                    }
-                    $debtorAddress = $this->extractAddress($xpath, $dbtr);
-                    if ($debtorAddress !== []) {
-                        $transaction['debtorAddress'] = $debtorAddress;
-                    }
-                }
-
-                $dbtrAcct = $this->getFirstNode($xpath, './/sepa:DbtrAcct', $ctx);
-                if ($dbtrAcct instanceof DOMNode) {
-                    $iban = $this->getFirstNode($xpath, './/sepa:IBAN', $dbtrAcct);
-                    if ($iban instanceof DOMNode) {
-                        $transaction['debtorIban'] = $iban->nodeValue;
-                    }
-                }
-
-                $dbtrAgt = $this->getFirstNode($xpath, './/sepa:DbtrAgt', $ctx);
-                if ($dbtrAgt instanceof DOMNode) {
-                    $finInstnId = $this->getFirstNode($xpath, './/sepa:FinInstnId', $dbtrAgt);
-                    if ($finInstnId instanceof DOMNode) {
-                        $bic = $this->getFirstNode($xpath, './/sepa:BIC', $finInstnId);
-                        if ($bic instanceof DOMNode) {
-                            $transaction['debtorBic'] = $bic->nodeValue;
-                        }
-                    }
-                }
-
-                $rmtInf = $this->getFirstNode($xpath, './/sepa:Ustrd', $ctx);
-                if ($rmtInf instanceof DOMNode) {
-                    $transaction['remittanceInformation'] = $rmtInf->nodeValue;
-                }
-
-                $transactions[] = $transaction;
+        $transactions = [];
+        foreach ($this->getDirectDebitTransactionNodes($xpath) as $txInf) {
+            $ctx = $txInf instanceof DOMNode ? $txInf : null;
+            if (!$ctx instanceof DOMNode) {
+                continue;
             }
+            $transaction = [];
+
+            $endToEndId = $this->getFirstNode($xpath, './/sepa:EndToEndId', $ctx);
+            if ($endToEndId instanceof DOMNode) {
+                $transaction['endToEndId'] = $endToEndId->nodeValue;
+            }
+
+            $instdAmt = $this->getFirstNode($xpath, './/sepa:InstdAmt', $ctx);
+            if ($instdAmt instanceof DOMNode) {
+                $transaction['amount']   = (float) $instdAmt->nodeValue;
+                $transaction['currency'] = $instdAmt instanceof DOMElement ? $instdAmt->getAttribute('Ccy') : '';
+            }
+
+            $mndtRltdInf = $this->getFirstNode($xpath, './/sepa:MndtRltdInf', $ctx);
+            if ($mndtRltdInf instanceof DOMNode) {
+                $mndtId = $this->getFirstNode($xpath, './/sepa:MndtId', $mndtRltdInf);
+                if ($mndtId instanceof DOMNode) {
+                    $transaction['mandateId'] = $mndtId->nodeValue;
+                }
+                $dtOfSgntr = $this->getFirstNode($xpath, './/sepa:DtOfSgntr', $mndtRltdInf);
+                if ($dtOfSgntr instanceof DOMNode) {
+                    $transaction['mandateSignDate'] = $dtOfSgntr->nodeValue;
+                }
+            }
+
+            $dbtr = $this->getFirstNode($xpath, './/sepa:Dbtr', $ctx);
+            if ($dbtr instanceof DOMNode) {
+                $dbtrNm = $this->getFirstNode($xpath, './/sepa:Nm', $dbtr);
+                if ($dbtrNm instanceof DOMNode) {
+                    $transaction['debtorName'] = $dbtrNm->nodeValue;
+                }
+                $debtorAddress = $this->extractAddress($xpath, $dbtr);
+                if ($debtorAddress !== []) {
+                    $transaction['debtorAddress'] = $debtorAddress;
+                }
+            }
+
+            $dbtrAcct = $this->getFirstNode($xpath, './/sepa:DbtrAcct', $ctx);
+            if ($dbtrAcct instanceof DOMNode) {
+                $iban = $this->getFirstNode($xpath, './/sepa:IBAN', $dbtrAcct);
+                if ($iban instanceof DOMNode) {
+                    $transaction['debtorIban'] = $iban->nodeValue;
+                }
+            }
+
+            $dbtrAgt = $this->getFirstNode($xpath, './/sepa:DbtrAgt', $ctx);
+            if ($dbtrAgt instanceof DOMNode) {
+                $finInstnId = $this->getFirstNode($xpath, './/sepa:FinInstnId', $dbtrAgt);
+                if ($finInstnId instanceof DOMNode) {
+                    $bic = $this->getFirstNode($xpath, './/sepa:BIC', $finInstnId);
+                    if ($bic instanceof DOMNode) {
+                        $transaction['debtorBic'] = $bic->nodeValue;
+                    }
+                }
+            }
+
+            $rmtInf = $this->getFirstNode($xpath, './/sepa:Ustrd', $ctx);
+            if ($rmtInf instanceof DOMNode) {
+                $transaction['remittanceInformation'] = $rmtInf->nodeValue;
+            }
+
+            $transactions[] = $transaction;
         }
 
         $data['transactions'] = $transactions;
 
         return $data;
+    }
+
+    /**
+     * Returns the list of direct debit transaction nodes for iteration (extracted for testability of defensive continue).
+     *
+     * @return iterable<int, DOMNode|mixed>
+     */
+    protected function getDirectDebitTransactionNodes(DOMXPath $xpath): iterable
+    {
+        $drctDbtTxInfNodes = $xpath->query('//sepa:DrctDbtTxInf');
+
+        return $drctDbtTxInfNodes instanceof DOMNodeList ? $drctDbtTxInfNodes : [];
     }
 
     /**

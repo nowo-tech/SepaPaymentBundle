@@ -79,47 +79,56 @@ class CreditTransferParser
 
         // Extract transactions (PHPStan: foreach over DOMNodeList|false; only iterate when it is DOMNodeList)
         $transactions = [];
-        $txInfNodes   = $xpath->query('//sepa:CdtTrfTxInf');
-        if ($txInfNodes instanceof DOMNodeList) {
-            foreach ($txInfNodes as $txInf) {
-                if (!$txInf instanceof DOMNode) {
-                    continue;
-                }
-                $transaction = [];
-
-                $endToEndId = $this->getFirstNode($xpath, './/sepa:EndToEndId', $txInf);
-                if ($endToEndId instanceof DOMNode) {
-                    $transaction['endToEndId'] = $endToEndId->nodeValue;
-                }
-
-                $instdAmt = $this->getFirstNode($xpath, './/sepa:InstdAmt', $txInf);
-                if ($instdAmt instanceof DOMNode) {
-                    $transaction['amount']   = (float) $instdAmt->nodeValue;
-                    $transaction['currency'] = $instdAmt instanceof DOMElement ? $instdAmt->getAttribute('Ccy') : '';
-                }
-
-                $iban = $this->getFirstNode($xpath, './/sepa:IBAN', $txInf);
-                if ($iban instanceof DOMNode) {
-                    $transaction['iban'] = $iban->nodeValue;
-                }
-
-                $name = $this->getFirstNode($xpath, './/sepa:Nm', $txInf);
-                if ($name instanceof DOMNode) {
-                    $transaction['name'] = $name->nodeValue;
-                }
-
-                $rmtInf = $this->getFirstNode($xpath, './/sepa:Ustrd', $txInf);
-                if ($rmtInf instanceof DOMNode) {
-                    $transaction['remittanceInformation'] = $rmtInf->nodeValue;
-                }
-
-                $transactions[] = $transaction;
+        foreach ($this->getTransactionNodes($xpath) as $txInf) {
+            if (!$txInf instanceof DOMNode) {
+                continue;
             }
+            $transaction = [];
+
+            $endToEndId = $this->getFirstNode($xpath, './/sepa:EndToEndId', $txInf);
+            if ($endToEndId instanceof DOMNode) {
+                $transaction['endToEndId'] = $endToEndId->nodeValue;
+            }
+
+            $instdAmt = $this->getFirstNode($xpath, './/sepa:InstdAmt', $txInf);
+            if ($instdAmt instanceof DOMNode) {
+                $transaction['amount']   = (float) $instdAmt->nodeValue;
+                $transaction['currency'] = $instdAmt instanceof DOMElement ? $instdAmt->getAttribute('Ccy') : '';
+            }
+
+            $iban = $this->getFirstNode($xpath, './/sepa:IBAN', $txInf);
+            if ($iban instanceof DOMNode) {
+                $transaction['iban'] = $iban->nodeValue;
+            }
+
+            $name = $this->getFirstNode($xpath, './/sepa:Nm', $txInf);
+            if ($name instanceof DOMNode) {
+                $transaction['name'] = $name->nodeValue;
+            }
+
+            $rmtInf = $this->getFirstNode($xpath, './/sepa:Ustrd', $txInf);
+            if ($rmtInf instanceof DOMNode) {
+                $transaction['remittanceInformation'] = $rmtInf->nodeValue;
+            }
+
+            $transactions[] = $transaction;
         }
 
         $data['transactions'] = $transactions;
 
         return $data;
+    }
+
+    /**
+     * Returns the list of transaction nodes for iteration (extracted for testability of defensive continue).
+     *
+     * @return iterable<int, DOMNode|mixed>
+     */
+    protected function getTransactionNodes(DOMXPath $xpath): iterable
+    {
+        $txInfNodes = $xpath->query('//sepa:CdtTrfTxInf');
+
+        return $txInfNodes instanceof DOMNodeList ? $txInfNodes : [];
     }
 
     /**

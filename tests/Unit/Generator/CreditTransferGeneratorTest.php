@@ -21,6 +21,8 @@ use ReflectionClass;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+require_once __DIR__ . '/XPathCoverageHelpers.php';
+
 /**
  * Test cases for CreditTransferGenerator.
  *
@@ -1918,5 +1920,56 @@ class CreditTransferGeneratorTest extends TestCase
         ], 0, $ns);
         $this->assertStringContainsString('PstlAdr', $dom->saveXML());
         $this->assertStringContainsString('Avenida', $dom->saveXML());
+    }
+
+    /**
+     * Covers addDebtorAddressToDom defensive return when item(0) is not DOMElement (line 626).
+     */
+    public function testAddDebtorAddressToDomReturnsEarlyWhenNodeIsNotDomElement(): void
+    {
+        $dom = new DOMDocument();
+        $dom->loadXML('<?xml version="1.0"?><r>x</r>');
+        $xpath = new XPathReturningTextNodeList($dom);
+        $ref   = new ReflectionClass(CreditTransferGenerator::class);
+        $method = $ref->getMethod('addDebtorAddressToDom');
+        $method->setAccessible(true);
+        $method->invoke($this->generator, $dom, $xpath, [
+            'street' => 'Calle', 'city' => 'Madrid', 'postalCode' => '28001', 'country' => 'ES',
+        ], 'urn:test');
+        $this->assertStringNotContainsString('PstlAdr', $dom->saveXML());
+    }
+
+    /**
+     * Covers addCreditorAddressToDom defensive return when item(index) is not DOMElement (line 657).
+     */
+    public function testAddCreditorAddressToDomReturnsEarlyWhenNodeIsNotDomElement(): void
+    {
+        $dom = new DOMDocument();
+        $dom->loadXML('<?xml version="1.0"?><r>x</r>');
+        $xpath = new XPathReturningTextNodeList($dom);
+        $ref   = new ReflectionClass(CreditTransferGenerator::class);
+        $method = $ref->getMethod('addCreditorAddressToDom');
+        $method->setAccessible(true);
+        $method->invoke($this->generator, $dom, $xpath, [
+            'street' => 'Calle', 'city' => 'Madrid', 'postalCode' => '28001', 'country' => 'ES',
+        ], 0, 'urn:test');
+        $this->assertStringNotContainsString('PstlAdr', $dom->saveXML());
+    }
+
+    /**
+     * Covers addCreditorAddressToDom defensive return when length <= index (line 647).
+     */
+    public function testAddCreditorAddressToDomReturnsEarlyWhenLengthLteIndex(): void
+    {
+        $dom = new DOMDocument();
+        $dom->loadXML('<?xml version="1.0"?><r/>');
+        $xpath = new XPathReturningEmptyNodeList($dom);
+        $ref   = new ReflectionClass(CreditTransferGenerator::class);
+        $method = $ref->getMethod('addCreditorAddressToDom');
+        $method->setAccessible(true);
+        $method->invoke($this->generator, $dom, $xpath, [
+            'street' => 'Calle', 'city' => 'Madrid', 'postalCode' => '28001', 'country' => 'ES',
+        ], 0, 'urn:test');
+        $this->assertStringNotContainsString('PstlAdr', $dom->saveXML());
     }
 }
