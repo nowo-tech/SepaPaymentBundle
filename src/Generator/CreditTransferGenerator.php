@@ -29,6 +29,7 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Throwable;
 
 use function count;
 use function is_array;
@@ -596,7 +597,7 @@ class CreditTransferGenerator
             $saved = $dom->saveXML();
 
             return $saved !== false ? $saved : $xml;
-        } catch (\Throwable) {
+        } catch (Throwable) {
             // If DOM manipulation fails, return original XML
             return $xml;
         }

@@ -7,11 +7,11 @@ namespace Nowo\SepaPaymentBundle\Tests\Unit\Service;
 use DateTime;
 use InvalidArgumentException;
 use Nowo\SepaPaymentBundle\Model\Mandate\Mandate;
-use RuntimeException;
 use Nowo\SepaPaymentBundle\Model\Mandate\MandateStatus;
 use Nowo\SepaPaymentBundle\Repository\MandateRepository;
 use Nowo\SepaPaymentBundle\Service\MandateService;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 /**
  * Tests for MandateService.

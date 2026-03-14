@@ -12,7 +12,6 @@ use InvalidArgumentException;
 use Nowo\SepaPaymentBundle\Parser\DirectDebitParser;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
-use ReflectionMethod;
 use stdClass;
 
 /**
@@ -990,8 +989,8 @@ class DirectDebitParserTest extends TestCase
      */
     public function testParseSkipsNonDomNodeInTransactionNodes(): void
     {
-        $parser = new class () extends DirectDebitParser {
-            public function getDirectDebitTransactionNodes(\DOMXPath $xpath): iterable
+        $parser = new class extends DirectDebitParser {
+            public function getDirectDebitTransactionNodes(DOMXPath $xpath): iterable
             {
                 return [new stdClass()];
             }
@@ -1120,8 +1119,8 @@ class DirectDebitParserTest extends TestCase
         $parent = $xpath->query('//sepa:Dbtr')->item(0);
         $this->assertInstanceOf(DOMNode::class, $parent);
 
-        $ref    = new ReflectionClass(DirectDebitParser::class);
-        $method = $ref->getMethod('extractAddress');
+        $ref     = new ReflectionClass(DirectDebitParser::class);
+        $method  = $ref->getMethod('extractAddress');
         $address = $method->invoke($this->parser, $xpath, $parent);
         $this->assertSame('Street', $address['street'] ?? null);
         $this->assertSame('City', $address['city'] ?? null);
@@ -1147,8 +1146,8 @@ class DirectDebitParserTest extends TestCase
         $parent = $xpath->query('//sepa:Dbtr')->item(0);
         $this->assertInstanceOf(DOMNode::class, $parent);
 
-        $ref    = new ReflectionClass(DirectDebitParser::class);
-        $method = $ref->getMethod('extractAddress');
+        $ref     = new ReflectionClass(DirectDebitParser::class);
+        $method  = $ref->getMethod('extractAddress');
         $address = $method->invoke($this->parser, $xpath, $parent);
         $this->assertSame([], $address);
     }

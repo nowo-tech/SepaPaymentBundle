@@ -7,6 +7,7 @@ namespace Nowo\SepaPaymentBundle\Tests\Unit\Generator;
 use DateTime;
 use DOMDocument;
 use DOMXPath;
+use Exception;
 use InvalidArgumentException;
 use Nowo\SepaPaymentBundle\Event\AfterCreditTransferGenerationEvent;
 use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
@@ -15,7 +16,6 @@ use Nowo\SepaPaymentBundle\Model\CreditTransfer\CreditTransferData;
 use Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction;
 use Nowo\SepaPaymentBundle\Tests\Unit\Logger\TestLogger;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
-use Exception;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -305,14 +305,14 @@ class CreditTransferGeneratorTest extends TestCase
             'debtorIban'             => 'ES9121000418450200051332',
             'transactions'           => [
                 [
-                    'amount'             => 100.50,
-                    'creditorIban'       => 'GB82WEST12345698765432',
-                    'creditorName'       => 'John Doe',
-                    'endToEndId'         => 'E2E-001',
-                    'creditor_street'    => 'Main St',
-                    'creditor_city'      => 'London',
+                    'amount'               => 100.50,
+                    'creditorIban'         => 'GB82WEST12345698765432',
+                    'creditorName'         => 'John Doe',
+                    'endToEndId'           => 'E2E-001',
+                    'creditor_street'      => 'Main St',
+                    'creditor_city'        => 'London',
                     'creditor_postal_code' => 'SW1A 1AA',
-                    'creditor_country'   => 'GB',
+                    'creditor_country'     => 'GB',
                 ],
             ],
         ];
@@ -334,14 +334,14 @@ class CreditTransferGeneratorTest extends TestCase
             'reference'              => 'MSG-002',
             'initiatingPartyName'    => 'My Company',
             'paymentInfoId'          => 'PMT-002',
-            'requestedExecutionDate'  => '2024-01-20',
+            'requestedExecutionDate' => '2024-01-20',
             'debtorName'             => 'My Company Name',
-            'debtorIban'              => 'ES9121000418450200051332',
-            'debtorStreet'            => 'Calle Mayor 1',
-            'debtorCity'              => 'Madrid',
-            'debtorPostalCode'        => '28001',
-            'debtorCountry'           => 'ES',
-            'transactions'            => [
+            'debtorIban'             => 'ES9121000418450200051332',
+            'debtorStreet'           => 'Calle Mayor 1',
+            'debtorCity'             => 'Madrid',
+            'debtorPostalCode'       => '28001',
+            'debtorCountry'          => 'ES',
+            'transactions'           => [
                 [
                     'amount'       => 50.00,
                     'creditorIban' => 'GB82WEST12345698765432',
@@ -1802,7 +1802,7 @@ class CreditTransferGeneratorTest extends TestCase
      */
     public function testAddAddressesToXmlWhenDomHasNoDbtrOrCdtrAddsNoAddress(): void
     {
-        $xml = '<?xml version="1.0"?><root xmlns="http://example.com/other"/>';
+        $xml                = '<?xml version="1.0"?><root xmlns="http://example.com/other"/>';
         $creditTransferData = new CreditTransferData(
             'REF',
             new DateTime('2024-01-15'),
@@ -1813,10 +1813,10 @@ class CreditTransferGeneratorTest extends TestCase
             new DateTime('2024-01-20'),
         );
         $creditTransferData->setCreditorAddressFromArray([
-            'street' => 'Calle',
-            'city' => 'Madrid',
+            'street'     => 'Calle',
+            'city'       => 'Madrid',
             'postalCode' => '28001',
-            'country' => 'ES',
+            'country'    => 'ES',
         ]);
         $ref    = new ReflectionClass(CreditTransferGenerator::class);
         $method = $ref->getMethod('addAddressesToXml');
@@ -1841,8 +1841,8 @@ class CreditTransferGeneratorTest extends TestCase
                 'Debtor',
                 new DateTime('2024-01-20'),
             ))->addTransaction(
-                new Transaction('E2E-1', 10.00, 'EUR', 'ES9121000418450200051332', 'Creditor')
-            )
+                new Transaction('E2E-1', 10.00, 'EUR', 'ES9121000418450200051332', 'Creditor'),
+            ),
         );
         $creditTransferData = new CreditTransferData(
             'REF',
@@ -1854,10 +1854,10 @@ class CreditTransferGeneratorTest extends TestCase
             new DateTime('2024-01-20'),
         );
         $refData = new ReflectionClass(CreditTransferData::class);
-        $prop   = $refData->getProperty('creditorAddress');
+        $prop    = $refData->getProperty('creditorAddress');
         $prop->setAccessible(true);
         $prop->setValue($creditTransferData, [
-            'street'     => new class {
+            'street' => new class {
                 public function __toString(): string
                 {
                     throw new Exception('invalid');
@@ -1929,8 +1929,8 @@ class CreditTransferGeneratorTest extends TestCase
     {
         $dom = new DOMDocument();
         $dom->loadXML('<?xml version="1.0"?><r>x</r>');
-        $xpath = new XPathReturningTextNodeList($dom);
-        $ref   = new ReflectionClass(CreditTransferGenerator::class);
+        $xpath  = new XPathReturningTextNodeList($dom);
+        $ref    = new ReflectionClass(CreditTransferGenerator::class);
         $method = $ref->getMethod('addDebtorAddressToDom');
         $method->setAccessible(true);
         $method->invoke($this->generator, $dom, $xpath, [
@@ -1946,8 +1946,8 @@ class CreditTransferGeneratorTest extends TestCase
     {
         $dom = new DOMDocument();
         $dom->loadXML('<?xml version="1.0"?><r>x</r>');
-        $xpath = new XPathReturningTextNodeList($dom);
-        $ref   = new ReflectionClass(CreditTransferGenerator::class);
+        $xpath  = new XPathReturningTextNodeList($dom);
+        $ref    = new ReflectionClass(CreditTransferGenerator::class);
         $method = $ref->getMethod('addCreditorAddressToDom');
         $method->setAccessible(true);
         $method->invoke($this->generator, $dom, $xpath, [
@@ -1963,8 +1963,8 @@ class CreditTransferGeneratorTest extends TestCase
     {
         $dom = new DOMDocument();
         $dom->loadXML('<?xml version="1.0"?><r/>');
-        $xpath = new XPathReturningEmptyNodeList($dom);
-        $ref   = new ReflectionClass(CreditTransferGenerator::class);
+        $xpath  = new XPathReturningEmptyNodeList($dom);
+        $ref    = new ReflectionClass(CreditTransferGenerator::class);
         $method = $ref->getMethod('addCreditorAddressToDom');
         $method->setAccessible(true);
         $method->invoke($this->generator, $dom, $xpath, [

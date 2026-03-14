@@ -413,8 +413,8 @@ class XsdValidatorTest extends TestCase
         $ref    = new ReflectionClass(XsdValidator::class);
         $method = $ref->getMethod('getDefaultSchemaPath');
 
-        $pathCt = $method->invoke($this->validator, 'credit_transfer');
-        $pathDd = $method->invoke($this->validator, 'direct_debit');
+        $pathCt      = $method->invoke($this->validator, 'credit_transfer');
+        $pathDd      = $method->invoke($this->validator, 'direct_debit');
         $pathUnknown = $method->invoke($this->validator, 'unknown_schema_type');
 
         $this->assertTrue($pathUnknown === null, 'Unknown schema type should return null');

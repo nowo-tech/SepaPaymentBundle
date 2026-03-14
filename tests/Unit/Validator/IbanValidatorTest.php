@@ -7,7 +7,8 @@ namespace Nowo\SepaPaymentBundle\Tests\Unit\Validator;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
-use ReflectionMethod;
+
+use function strlen;
 
 /**
  * Test cases for IbanValidator.

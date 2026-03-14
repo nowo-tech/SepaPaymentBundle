@@ -31,7 +31,7 @@ class CreditCardValidatorTest extends TestCase
     {
         $this->creditCardValidatorService = $this->createMock(CreditCardValidatorService::class);
         $this->validator                  = new ConstraintCreditCardValidator($this->creditCardValidatorService);
-        $this->context                   = $this->createMock(ExecutionContextInterface::class);
+        $this->context                    = $this->createMock(ExecutionContextInterface::class);
         $this->validator->initialize($this->context);
     }
 

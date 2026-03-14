@@ -8,7 +8,6 @@ use Nowo\SepaPaymentBundle\Lookup\BicLookupService;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
-use ReflectionMethod;
 
 /**
  * Test cases for BicLookupService.
@@ -302,7 +301,7 @@ class BicLookupServiceTest extends TestCase
     {
         $ref    = new ReflectionClass(BicLookupService::class);
         $method = $ref->getMethod('lookupBicByCountry');
-        $bic   = $method->invoke($this->lookupService, 'FR', '20041123456789012');
+        $bic    = $method->invoke($this->lookupService, 'FR', '20041123456789012');
         $this->assertSame('BNPAFRPP', $bic);
     }
 
@@ -313,7 +312,7 @@ class BicLookupServiceTest extends TestCase
     {
         $ref    = new ReflectionClass(BicLookupService::class);
         $method = $ref->getMethod('lookupBicByCountry');
-        $bic   = $method->invoke($this->lookupService, 'IT', '03002123456789012345');
+        $bic    = $method->invoke($this->lookupService, 'IT', '03002123456789012345');
         $this->assertSame('BCITITMM', $bic);
     }
 
@@ -324,7 +323,7 @@ class BicLookupServiceTest extends TestCase
     {
         $ref    = new ReflectionClass(BicLookupService::class);
         $method = $ref->getMethod('lookupBicByCountry');
-        $bic   = $method->invoke($this->lookupService, 'XX', '12345678901');
+        $bic    = $method->invoke($this->lookupService, 'XX', '12345678901');
         $this->assertNull($bic);
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nowo\SepaPaymentBundle\Tests\Unit\Generator;
 
 use DOMDocument;
+use DOMNode;
 use DOMNodeList;
 use DOMXPath;
 
@@ -20,11 +21,11 @@ final class XPathReturningTextNodeList extends DOMXPath
     public function __construct(DOMDocument $document)
     {
         parent::__construct($document);
-        $list = parent::query('//text()');
+        $list                   = parent::query('//text()');
         $this->listWithTextNode = $list instanceof DOMNodeList ? $list : parent::query('//__nonexistent__');
     }
 
-    public function query(string $expression, ?\DOMNode $contextNode = null, bool $registerNodeNS = true): DOMNodeList|false
+    public function query(string $expression, ?DOMNode $contextNode = null, bool $registerNodeNS = true): DOMNodeList|false
     {
         return $this->listWithTextNode;
     }
@@ -41,11 +42,11 @@ final class XPathReturningEmptyNodeList extends DOMXPath
     public function __construct(DOMDocument $document)
     {
         parent::__construct($document);
-        $list = parent::query('//__nonexistent__');
+        $list            = parent::query('//__nonexistent__');
         $this->emptyList = $list instanceof DOMNodeList ? $list : parent::query('//*');
     }
 
-    public function query(string $expression, ?\DOMNode $contextNode = null, bool $registerNodeNS = true): DOMNodeList|false
+    public function query(string $expression, ?DOMNode $contextNode = null, bool $registerNodeNS = true): DOMNodeList|false
     {
         return $this->emptyList;
     }

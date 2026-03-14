@@ -12,7 +12,7 @@ use InvalidArgumentException;
 use Nowo\SepaPaymentBundle\Parser\CreditTransferParser;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
-use ReflectionMethod;
+use stdClass;
 
 /**
  * Test cases for CreditTransferParser.
@@ -544,10 +544,10 @@ class CreditTransferParserTest extends TestCase
      */
     public function testParseSkipsNonDomNodeInTransactionNodes(): void
     {
-        $parser = new class () extends CreditTransferParser {
-            public function getTransactionNodes(\DOMXPath $xpath): iterable
+        $parser = new class extends CreditTransferParser {
+            public function getTransactionNodes(DOMXPath $xpath): iterable
             {
-                return [new \stdClass()];
+                return [new stdClass()];
             }
         };
         $xml = <<<'XML'
@@ -588,9 +588,9 @@ class CreditTransferParserTest extends TestCase
         $xpath = new DOMXPath($dom);
         $xpath->registerNamespace('sepa', 'urn:iso:std:iso:20022:tech:xsd:pain.001.001.03');
 
-        $ref   = new ReflectionClass(CreditTransferParser::class);
+        $ref    = new ReflectionClass(CreditTransferParser::class);
         $method = $ref->getMethod('getFirstNode');
-        $node  = $method->invoke($this->parser, $xpath, '//sepa:NonExistent');
+        $node   = $method->invoke($this->parser, $xpath, '//sepa:NonExistent');
         $this->assertNull($node);
     }
 }
