@@ -202,7 +202,7 @@ class DirectDebitTransactionTest extends TestCase
         $transaction->setDebtorAddress('123 Main St', 'London', 'SW1A 1AA', 'GB');
         $address = $transaction->getDebtorAddress();
 
-        $this->assertNotNull($address);
+        $this->assertIsArray($address);
         $this->assertEquals('123 Main St', $address['street']);
         $this->assertEquals('London', $address['city']);
         $this->assertEquals('SW1A 1AA', $address['postalCode']);
@@ -229,7 +229,7 @@ class DirectDebitTransactionTest extends TestCase
             'country'    => 'FR',
         ]);
         $address = $transaction->getDebtorAddress();
-        $this->assertNotNull($address);
+        $this->assertIsArray($address);
         $this->assertEquals('Array Ave', $address['street']);
         $this->assertEquals('Paris', $address['city']);
     }
@@ -256,7 +256,7 @@ class DirectDebitTransactionTest extends TestCase
         ]);
 
         $address = $transaction->getDebtorAddress();
-        $this->assertNotNull($address);
+        $this->assertIsArray($address);
         $this->assertEquals('456 Oak Avenue', $address['street']);
         $this->assertEquals('Madrid', $address['city']);
         $this->assertEquals('28001', $address['postalCode']);
@@ -285,7 +285,7 @@ class DirectDebitTransactionTest extends TestCase
         ]);
 
         $address = $transaction->getDebtorAddress();
-        $this->assertNotNull($address);
+        $this->assertIsArray($address);
         $this->assertEquals('789 Pine Street', $address['street']);
         $this->assertEquals('Barcelona', $address['city']);
         $this->assertEquals('08001', $address['postalCode']);

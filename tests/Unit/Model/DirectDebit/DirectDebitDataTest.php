@@ -147,7 +147,7 @@ class DirectDebitDataTest extends TestCase
         $directDebitData->setCreditorAddress('123 Business St', 'Madrid', '28001', 'ES');
         $address = $directDebitData->getCreditorAddress();
 
-        $this->assertNotNull($address);
+        $this->assertIsArray($address);
         $this->assertEquals('123 Business St', $address['street']);
         $this->assertEquals('Madrid', $address['city']);
         $this->assertEquals('28001', $address['postalCode']);
@@ -169,7 +169,7 @@ class DirectDebitDataTest extends TestCase
         ]);
 
         $address = $directDebitData->getCreditorAddress();
-        $this->assertNotNull($address);
+        $this->assertIsArray($address);
         $this->assertEquals('456 Corporate Avenue', $address['street']);
         $this->assertEquals('Barcelona', $address['city']);
         $this->assertEquals('08001', $address['postalCode']);
@@ -191,7 +191,7 @@ class DirectDebitDataTest extends TestCase
         ]);
 
         $address = $directDebitData->getCreditorAddress();
-        $this->assertNotNull($address);
+        $this->assertIsArray($address);
         $this->assertEquals('789 Office Plaza', $address['street']);
         $this->assertEquals('Valencia', $address['city']);
         $this->assertEquals('46001', $address['postalCode']);

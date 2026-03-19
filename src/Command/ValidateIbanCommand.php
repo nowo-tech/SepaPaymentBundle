@@ -18,10 +18,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
  */
-#[AsCommand(
-    name: 'nowo:sepa:validate-iban',
-    description: 'Validates an IBAN and shows detailed information',
-)]
+#[AsCommand(name: 'nowo:sepa:validate-iban', description: 'Validates an IBAN and shows detailed information')]
 class ValidateIbanCommand extends Command
 {
     /**

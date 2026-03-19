@@ -21,6 +21,8 @@ class Iban extends Constraint
 
     public string $message = 'iban.invalid';
 
+    public string $translationDomain = 'NowoSepaPaymentBundle';
+
     /**
      * {@inheritdoc}
      * PHPStan: missingType.iterableValue — value type for $options.

@@ -29,6 +29,7 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Throwable;
 
 use function count;
 use function is_array;
@@ -224,7 +225,7 @@ class CreditTransferGenerator
                 try {
                     $this->xsdValidator->validateCreditTransfer($xml);
                 } catch (InvalidArgumentException $e) {
-                    $message = $this->translator->trans('validation.generated_xml_failed_xsd', ['%error%' => $e->getMessage()], 'nowo_sepa_payment');
+                    $message = $this->translator->trans('validation.generated_xml_failed_xsd', ['%error%' => $e->getMessage()], 'NowoSepaPaymentBundle');
 
                     throw new InvalidArgumentException($message, 0, $e);
                 }
@@ -288,7 +289,7 @@ class CreditTransferGenerator
         $required = ['reference', 'initiatingPartyName', 'paymentInfoId', 'debtorIban', 'debtorName', 'requestedExecutionDate'];
         foreach ($required as $field) {
             if (!isset($data[$field])) {
-                $message = $this->translator->trans('validation.missing_required_field', ['%field%' => $field], 'nowo_sepa_payment');
+                $message = $this->translator->trans('validation.missing_required_field', ['%field%' => $field], 'NowoSepaPaymentBundle');
 
                 throw new InvalidArgumentException($message);
             }
@@ -299,7 +300,7 @@ class CreditTransferGenerator
         if (is_string($creationDate)) {
             $creationDate = new DateTime($creationDate);
         } elseif (!$creationDate instanceof DateTimeInterface) {
-            $message = $this->translator->trans('validation.invalid_creation_date', [], 'nowo_sepa_payment');
+            $message = $this->translator->trans('validation.invalid_creation_date', [], 'NowoSepaPaymentBundle');
 
             throw new InvalidArgumentException($message);
         }
@@ -308,7 +309,7 @@ class CreditTransferGenerator
         if (is_string($requestedExecutionDate)) {
             $requestedExecutionDate = new DateTime($requestedExecutionDate);
         } elseif (!$requestedExecutionDate instanceof DateTimeInterface) {
-            $message = $this->translator->trans('validation.invalid_execution_date', [], 'nowo_sepa_payment');
+            $message = $this->translator->trans('validation.invalid_execution_date', [], 'NowoSepaPaymentBundle');
 
             throw new InvalidArgumentException($message);
         }
@@ -437,7 +438,7 @@ class CreditTransferGenerator
         $required = ['amount', 'creditorIban', 'creditorName', 'endToEndId'];
         foreach ($required as $field) {
             if (!isset($transactionData[$field])) {
-                $message = $this->translator->trans('validation.missing_required_transaction_field', ['%field%' => $field], 'nowo_sepa_payment');
+                $message = $this->translator->trans('validation.missing_required_transaction_field', ['%field%' => $field], 'NowoSepaPaymentBundle');
 
                 throw new InvalidArgumentException($message);
             }
@@ -596,7 +597,7 @@ class CreditTransferGenerator
             $saved = $dom->saveXML();
 
             return $saved !== false ? $saved : $xml;
-        } catch (\Throwable) {
+        } catch (Throwable) {
             // If DOM manipulation fails, return original XML
             return $xml;
         }
@@ -741,14 +742,14 @@ class CreditTransferGenerator
     private function validateCreditTransferData(CreditTransferData $creditTransferData): void
     {
         if (!$this->ibanValidator->isValid($creditTransferData->getCreditorIban())) {
-            $message = $this->translator->trans('validation.invalid_creditor_iban', ['%iban%' => $creditTransferData->getCreditorIban()], 'nowo_sepa_payment');
+            $message = $this->translator->trans('validation.invalid_creditor_iban', ['%iban%' => $creditTransferData->getCreditorIban()], 'NowoSepaPaymentBundle');
 
             throw new InvalidArgumentException($message);
         }
 
         foreach ($creditTransferData->getTransactions() as $transaction) {
             if (!$this->ibanValidator->isValid($transaction->getCreditorIban())) {
-                $message = $this->translator->trans('validation.invalid_creditor_iban', ['%iban%' => $transaction->getCreditorIban()], 'nowo_sepa_payment');
+                $message = $this->translator->trans('validation.invalid_creditor_iban', ['%iban%' => $transaction->getCreditorIban()], 'NowoSepaPaymentBundle');
 
                 throw new InvalidArgumentException($message);
             }

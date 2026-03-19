@@ -21,6 +21,8 @@ class CreditCard extends Constraint
 
     public string $message = 'credit_card.invalid';
 
+    public string $translationDomain = 'NowoSepaPaymentBundle';
+
     /**
      * {@inheritdoc}
      * PHPStan: missingType.iterableValue — value type for $options.

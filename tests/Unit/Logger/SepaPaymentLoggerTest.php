@@ -6,9 +6,7 @@ namespace Nowo\SepaPaymentBundle\Tests\Unit\Logger;
 
 use Nowo\SepaPaymentBundle\Logger\SepaPaymentLogger;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
-use Stringable;
 
 /**
  * Test cases for SepaPaymentLogger.
@@ -180,10 +178,9 @@ class SepaPaymentLoggerTest extends TestCase
     public function testNullLogger(): void
     {
         $nullLogger = new SepaPaymentLogger();
-        // Should not throw any errors
         $nullLogger->logCreditTransferGenerationStart('MSG-001', 1);
         $nullLogger->logCreditTransferGenerationSuccess('MSG-001', 1, 100);
         $nullLogger->logCreditTransferGenerationFailure('MSG-001', 'Error');
-        $this->assertTrue(true); // If we get here, no errors occurred
+        $this->expectNotToPerformAssertions();
     }
 }

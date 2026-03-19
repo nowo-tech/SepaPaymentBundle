@@ -26,10 +26,7 @@ use const JSON_UNESCAPED_UNICODE;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
  */
-#[AsCommand(
-    name: 'nowo:sepa:parse-direct-debit',
-    description: 'Parses a SEPA Direct Debit XML file and displays the extracted information',
-)]
+#[AsCommand(name: 'nowo:sepa:parse-direct-debit', description: 'Parses a SEPA Direct Debit XML file and displays the extracted information')]
 class ParseDirectDebitCommand extends Command
 {
     /**

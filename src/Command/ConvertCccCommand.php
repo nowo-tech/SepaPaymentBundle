@@ -19,10 +19,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
  */
-#[AsCommand(
-    name: 'nowo:sepa:ccc-to-iban',
-    description: 'Converts a Spanish CCC (Client Account Code) to IBAN',
-)]
+#[AsCommand(name: 'nowo:sepa:ccc-to-iban', description: 'Converts a Spanish CCC (Client Account Code) to IBAN')]
 class ConvertCccCommand extends Command
 {
     /**

@@ -4,29 +4,29 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "effe619f45dc56988dd5d76ae52b3604",
+    "content-hash": "03657f4083881ce172599df4d8c636da",
     "packages": [
         {
             "name": "brick/math",
-            "version": "0.14.8",
+            "version": "0.13.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/brick/math.git",
-                "reference": "63422359a44b7f06cae63c3b429b59e8efcc0629"
+                "reference": "fc7ed316430118cc7836bf45faff18d5dfc8de04"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/brick/math/zipball/63422359a44b7f06cae63c3b429b59e8efcc0629",
-                "reference": "63422359a44b7f06cae63c3b429b59e8efcc0629",
+                "url": "https://api.github.com/repos/brick/math/zipball/fc7ed316430118cc7836bf45faff18d5dfc8de04",
+                "reference": "fc7ed316430118cc7836bf45faff18d5dfc8de04",
                 "shasum": ""
             },
             "require": {
-                "php": "^8.2"
+                "php": "^8.1"
             },
             "require-dev": {
                 "php-coveralls/php-coveralls": "^2.2",
-                "phpstan/phpstan": "2.1.22",
-                "phpunit/phpunit": "^11.5"
+                "phpunit/phpunit": "^10.1",
+                "vimeo/psalm": "6.8.8"
             },
             "type": "library",
             "autoload": {
@@ -56,7 +56,7 @@
             ],
             "support": {
                 "issues": "https://github.com/brick/math/issues",
-                "source": "https://github.com/brick/math/tree/0.14.8"
+                "source": "https://github.com/brick/math/tree/0.13.1"
             },
             "funding": [
                 {
@@ -64,7 +64,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-02-10T14:33:43+00:00"
+            "time": "2025-03-29T13:50:30+00:00"
         },
         {
             "name": "digitick/sepa-xml",
@@ -134,18 +134,13 @@
         {
             "name": "nowo-tech/sepa-payment-bundle",
             "version": "dev-main",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/nowo-tech/SepaPaymentBundle.git",
-                "reference": "76be08a8edfd0ec3cf3e6b9c32e0a3770863d327"
-            },
             "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/nowo-tech/SepaPaymentBundle/zipball/76be08a8edfd0ec3cf3e6b9c32e0a3770863d327",
-                "reference": "76be08a8edfd0ec3cf3e6b9c32e0a3770863d327",
-                "shasum": ""
+                "type": "path",
+                "url": "/var/sepa-payment-bundle",
+                "reference": "8b31b0e486332e3e6aed11ca6a47801396c5c60c"
             },
             "require": {
+                "brick/math": "^0.11 || ^0.12 || ^0.13",
                 "digitick/sepa-xml": "^3.0",
                 "php": ">=8.1 <8.6",
                 "symfony/config": "^6.0 || ^7.0 || ^8.0",
@@ -158,16 +153,70 @@
             },
             "require-dev": {
                 "friendsofphp/php-cs-fixer": "^3.0",
-                "phpunit/phpunit": "^10.0"
+                "phpstan/extension-installer": "^1.4",
+                "phpstan/phpstan": "^2.0",
+                "phpstan/phpstan-phpunit": "^2.0",
+                "phpstan/phpstan-symfony": "^2.0",
+                "phpunit/phpunit": "^10.0",
+                "rector/rector": "^2.0",
+                "symfony/framework-bundle": "^6.0 || ^7.0 || ^8.0"
             },
-            "default-branch": true,
             "type": "symfony-bundle",
             "autoload": {
                 "psr-4": {
                     "Nowo\\SepaPaymentBundle\\": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "autoload-dev": {
+                "psr-4": {
+                    "Nowo\\SepaPaymentBundle\\Tests\\": "tests/"
+                }
+            },
+            "archive": {
+                "exclude": [
+                    "/demo",
+                    "/.cursor"
+                ]
+            },
+            "scripts": {
+                "test": [
+                    "phpunit"
+                ],
+                "test-coverage": [
+                    "phpunit --coverage-html coverage --coverage-clover coverage.xml --coverage-text"
+                ],
+                "cs-check": [
+                    "php-cs-fixer fix --dry-run --diff"
+                ],
+                "cs-fix": [
+                    "php-cs-fixer fix"
+                ],
+                "phpstan": [
+                    "phpstan analyse --memory-limit=512M"
+                ],
+                "rector": [
+                    "rector process"
+                ],
+                "rector-dry": [
+                    "rector process --dry-run --no-progress-bar"
+                ],
+                "update": [
+                    "composer update --no-interaction"
+                ],
+                "validate": [
+                    "composer validate --strict"
+                ],
+                "qa": [
+                    "@cs-check",
+                    "@test"
+                ],
+                "release-check": [
+                    "@cs-check",
+                    "@rector-dry",
+                    "@phpstan",
+                    "@test"
+                ]
+            },
             "license": [
                 "MIT"
             ],
@@ -183,30 +232,46 @@
                     "homepage": "https://nowo.tech"
                 }
             ],
-            "description": "Symfony bundle for SEPA payment management: IBAN validation, mandates, credit transfer and direct debit generation",
+            "description": "Symfony bundle for SEPA payment management: Generate SEPA Credit Transfer (pain.001) and Direct Debit (pain.008) XML files, IBAN/BIC validation, mandate management, ISO 20022 compliance, and banking utilities",
             "homepage": "https://github.com/nowo-tech/sepa-payment-bundle",
             "keywords": [
-                "Banking",
-                "IBAN",
-                "bundle",
+                "bank-transfer",
+                "banking",
+                "bic",
+                "bic-validation",
+                "ccc-to-iban",
+                "credit-card-validation",
                 "credit-transfer",
+                "direct-debit",
+                "european-payments",
+                "iban",
+                "iban-validation",
+                "iso-20022",
+                "iso20022",
+                "mandate",
                 "mandatos",
+                "pain.001",
+                "pain.008",
                 "payment",
+                "remesa-cobro",
+                "remesa-pago",
                 "remesas",
                 "sepa",
-                "symfony"
+                "sepa-credit-transfer",
+                "sepa-direct-debit",
+                "sepa-payment",
+                "symfony",
+                "symfony-bundle",
+                "xml-generator",
+                "xsd-validation"
             ],
             "support": {
                 "issues": "https://github.com/nowo-tech/sepa-payment-bundle/issues",
                 "source": "https://github.com/nowo-tech/sepa-payment-bundle"
             },
-            "funding": [
-                {
-                    "url": "https://github.com/HecFranco",
-                    "type": "github"
-                }
-            ],
-            "time": "2026-01-12T14:16:34+00:00"
+            "transport-options": {
+                "relative": false
+            }
         },
         {
             "name": "psr/cache",
@@ -3665,16 +3730,16 @@
         },
         {
             "name": "twig/twig",
-            "version": "v3.23.0",
+            "version": "v3.24.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/twigphp/Twig.git",
-                "reference": "a64dc5d2cc7d6cafb9347f6cd802d0d06d0351c9"
+                "reference": "a6769aefb305efef849dc25c9fd1653358c148f0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/twigphp/Twig/zipball/a64dc5d2cc7d6cafb9347f6cd802d0d06d0351c9",
-                "reference": "a64dc5d2cc7d6cafb9347f6cd802d0d06d0351c9",
+                "url": "https://api.github.com/repos/twigphp/Twig/zipball/a6769aefb305efef849dc25c9fd1653358c148f0",
+                "reference": "a6769aefb305efef849dc25c9fd1653358c148f0",
                 "shasum": ""
             },
             "require": {
@@ -3684,7 +3749,8 @@
                 "symfony/polyfill-mbstring": "^1.3"
             },
             "require-dev": {
-                "phpstan/phpstan": "^2.0",
+                "php-cs-fixer/shim": "^3.0@stable",
+                "phpstan/phpstan": "^2.0@stable",
                 "psr/container": "^1.0|^2.0",
                 "symfony/phpunit-bridge": "^5.4.9|^6.4|^7.0"
             },
@@ -3728,7 +3794,7 @@
             ],
             "support": {
                 "issues": "https://github.com/twigphp/Twig/issues",
-                "source": "https://github.com/twigphp/Twig/tree/v3.23.0"
+                "source": "https://github.com/twigphp/Twig/tree/v3.24.0"
             },
             "funding": [
                 {
@@ -3740,7 +3806,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-01-23T21:00:41+00:00"
+            "time": "2026-03-17T21:31:11+00:00"
         }
     ],
     "packages-dev": [
@@ -3931,16 +3997,16 @@
         },
         {
             "name": "nowo-tech/twig-inspector-bundle",
-            "version": "v1.0.3",
+            "version": "v1.0.25",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nowo-tech/TwigInspectorBundle.git",
-                "reference": "cbd9e95d19418c50590daa41d74ea7e6d2c8e0b8"
+                "reference": "152d8a1727fbd57dec1b9d6abea7e3c165692c14"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nowo-tech/TwigInspectorBundle/zipball/cbd9e95d19418c50590daa41d74ea7e6d2c8e0b8",
-                "reference": "cbd9e95d19418c50590daa41d74ea7e6d2c8e0b8",
+                "url": "https://api.github.com/repos/nowo-tech/TwigInspectorBundle/zipball/152d8a1727fbd57dec1b9d6abea7e3c165692c14",
+                "reference": "152d8a1727fbd57dec1b9d6abea7e3c165692c14",
                 "shasum": ""
             },
             "require": {
@@ -3948,6 +4014,7 @@
                 "symfony/config": "^6.0 || ^7.0 || ^8.0",
                 "symfony/console": "^6.0 || ^7.0 || ^8.0",
                 "symfony/dependency-injection": "^6.0 || ^7.0 || ^8.0",
+                "symfony/error-handler": "^6.0 || ^7.0 || ^8.0",
                 "symfony/filesystem": "^6.0 || ^7.0 || ^8.0",
                 "symfony/http-foundation": "^6.0 || ^7.0 || ^8.0",
                 "symfony/http-kernel": "^6.0 || ^7.0 || ^8.0",
@@ -3957,8 +4024,17 @@
             },
             "require-dev": {
                 "friendsofphp/php-cs-fixer": "^3.0",
+                "phpstan/extension-installer": "^1.4",
+                "phpstan/phpstan": "^2.0",
+                "phpstan/phpstan-symfony": "^2.0",
                 "phpunit/phpunit": "^10.0",
+                "rector/rector": "^2.0",
+                "symfony/framework-bundle": "^6.0 || ^7.0 || ^8.0",
+                "symfony/twig-bundle": "^6.0 || ^7.0 || ^8.0",
                 "symfony/yaml": "^6.0 || ^7.0 || ^8.0"
+            },
+            "suggest": {
+                "symfony/flex": "For automatic recipe installation (config and routes)"
             },
             "type": "symfony-bundle",
             "autoload": {
@@ -3973,7 +4049,7 @@
             "authors": [
                 {
                     "name": "Héctor Franco Aceituno",
-                    "email": "hectorfranco@nowo.com",
+                    "email": "hectorfranco@nowo.tech",
                     "homepage": "https://github.com/HecFranco",
                     "role": "Developer"
                 },
@@ -3982,19 +4058,34 @@
                     "homepage": "https://nowo.tech"
                 }
             ],
-            "description": "Symfony bundle that adds the possibility to find Twig templates and blocks used for rendering HTML pages faster during development",
+            "description": "Debug Twig templates in the browser: visual overlay, click-to-open in IDE, Web Profiler. Symfony 6|7|8.",
             "homepage": "https://github.com/nowo-tech/twig-inspector-bundle",
             "keywords": [
+                "block-inspector",
                 "bundle",
                 "debug",
+                "debugging",
+                "dev-tool",
+                "development",
+                "ide-integration",
                 "inspect",
+                "inspector",
                 "symfony",
+                "symfony-flex",
+                "symfony-profiler",
                 "template",
+                "template-finder",
+                "template-inspector",
+                "templates",
                 "toolbar-extension",
                 "twig",
+                "twig-debug",
+                "twig-inspector",
                 "web-profiler"
             ],
             "support": {
+                "changelog": "https://github.com/nowo-tech/twig-inspector-bundle/blob/main/docs/CHANGELOG.md",
+                "docs": "https://github.com/nowo-tech/twig-inspector-bundle/tree/main/docs",
                 "issues": "https://github.com/nowo-tech/twig-inspector-bundle/issues",
                 "source": "https://github.com/nowo-tech/twig-inspector-bundle"
             },
@@ -4004,7 +4095,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-12-15T11:49:16+00:00"
+            "time": "2026-03-19T07:20:27+00:00"
         },
         {
             "name": "phar-io/manifest",
@@ -4473,16 +4564,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "11.5.53",
+            "version": "11.5.55",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "a997a653a82845f1240d73ee73a8a4e97e4b0607"
+                "reference": "adc7262fccc12de2b30f12a8aa0b33775d814f00"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/a997a653a82845f1240d73ee73a8a4e97e4b0607",
-                "reference": "a997a653a82845f1240d73ee73a8a4e97e4b0607",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/adc7262fccc12de2b30f12a8aa0b33775d814f00",
+                "reference": "adc7262fccc12de2b30f12a8aa0b33775d814f00",
                 "shasum": ""
             },
             "require": {
@@ -4555,7 +4646,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/phpunit/issues",
                 "security": "https://github.com/sebastianbergmann/phpunit/security/policy",
-                "source": "https://github.com/sebastianbergmann/phpunit/tree/11.5.53"
+                "source": "https://github.com/sebastianbergmann/phpunit/tree/11.5.55"
             },
             "funding": [
                 {
@@ -4579,7 +4670,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-02-10T12:28:25+00:00"
+            "time": "2026-02-18T12:37:06+00:00"
         },
         {
             "name": "sebastian/cli-parser",

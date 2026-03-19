@@ -21,6 +21,8 @@ class SepaCreditorIdentifier extends Constraint
 
     public string $message = 'sepa_creditor_identifier.invalid';
 
+    public string $translationDomain = 'NowoSepaPaymentBundle';
+
     /**
      * {@inheritdoc}
      * PHPStan: missingType.iterableValue — value type for $options.

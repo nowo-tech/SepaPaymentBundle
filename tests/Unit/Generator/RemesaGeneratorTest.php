@@ -15,6 +15,8 @@ use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use PHPUnit\Framework\TestCase;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+use const E_USER_DEPRECATED;
+
 /**
  * Tests for RemesaGenerator (deprecated API).
  *
@@ -34,7 +36,7 @@ class RemesaGeneratorTest extends TestCase
     protected function setUp(): void
     {
         $this->previousErrorHandler = set_error_handler(
-            function (int $severity): bool {
+            static function (int $severity): bool {
                 return $severity === E_USER_DEPRECATED; // swallow deprecations so no output → no risky test
             },
         );
