@@ -97,7 +97,6 @@ class RemesaDataTest extends TestCase
             new DateTime('2024-01-20'),
         );
         $creditTransferData = $remesaData->getCreditTransferData();
-        $this->assertNotNull($creditTransferData);
         $this->assertEquals('MSG-001', $creditTransferData->getMessageId());
     }
 }

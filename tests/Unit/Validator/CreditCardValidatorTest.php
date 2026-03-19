@@ -7,7 +7,8 @@ namespace Nowo\SepaPaymentBundle\Tests\Unit\Validator;
 use Nowo\SepaPaymentBundle\Validator\CreditCardValidator;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
-use ReflectionMethod;
+
+use function strlen;
 
 /**
  * Test cases for CreditCardValidator.
@@ -299,7 +300,7 @@ class CreditCardValidatorTest extends TestCase
      */
     public function testNormalizeWhenStripNonDigitsReturnsNull(): void
     {
-        $validator = new class () extends CreditCardValidator {
+        $validator = new class extends CreditCardValidator {
             protected function stripNonDigits(string $input): ?string
             {
                 return null;

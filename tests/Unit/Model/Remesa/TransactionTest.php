@@ -54,7 +54,6 @@ class TransactionTest extends TestCase
     {
         $transaction   = new Transaction('E2E-001', 50.0, 'EUR', 'ES9121000418450200051332', 'Creditor');
         $ctTransaction = $transaction->getCreditTransferTransaction();
-        $this->assertNotNull($ctTransaction);
         $this->assertEquals('E2E-001', $ctTransaction->getEndToEndId());
     }
 }

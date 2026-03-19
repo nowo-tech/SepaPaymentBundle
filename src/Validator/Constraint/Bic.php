@@ -21,6 +21,8 @@ class Bic extends Constraint
 
     public string $message = 'bic.invalid';
 
+    public string $translationDomain = 'NowoSepaPaymentBundle';
+
     /**
      * {@inheritdoc}
      * PHPStan: missingType.iterableValue — $options must have iterable value type.

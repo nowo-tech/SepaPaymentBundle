@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b0d3fa478147f1e39f8f66187c5fc6de",
+    "content-hash": "0ace55e131174df00c61eba63e0077bb",
     "packages": [
         {
             "name": "brick/math",
@@ -137,7 +137,7 @@
             "dist": {
                 "type": "path",
                 "url": "/var/sepa-payment-bundle",
-                "reference": "86aa13e4bfffa46ffbd9b585345293b4503ee6ec"
+                "reference": "8b31b0e486332e3e6aed11ca6a47801396c5c60c"
             },
             "require": {
                 "brick/math": "^0.11 || ^0.12 || ^0.13",
@@ -3853,16 +3853,16 @@
         },
         {
             "name": "twig/twig",
-            "version": "v3.23.0",
+            "version": "v3.24.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/twigphp/Twig.git",
-                "reference": "a64dc5d2cc7d6cafb9347f6cd802d0d06d0351c9"
+                "reference": "a6769aefb305efef849dc25c9fd1653358c148f0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/twigphp/Twig/zipball/a64dc5d2cc7d6cafb9347f6cd802d0d06d0351c9",
-                "reference": "a64dc5d2cc7d6cafb9347f6cd802d0d06d0351c9",
+                "url": "https://api.github.com/repos/twigphp/Twig/zipball/a6769aefb305efef849dc25c9fd1653358c148f0",
+                "reference": "a6769aefb305efef849dc25c9fd1653358c148f0",
                 "shasum": ""
             },
             "require": {
@@ -3872,7 +3872,8 @@
                 "symfony/polyfill-mbstring": "^1.3"
             },
             "require-dev": {
-                "phpstan/phpstan": "^2.0",
+                "php-cs-fixer/shim": "^3.0@stable",
+                "phpstan/phpstan": "^2.0@stable",
                 "psr/container": "^1.0|^2.0",
                 "symfony/phpunit-bridge": "^5.4.9|^6.4|^7.0"
             },
@@ -3916,7 +3917,7 @@
             ],
             "support": {
                 "issues": "https://github.com/twigphp/Twig/issues",
-                "source": "https://github.com/twigphp/Twig/tree/v3.23.0"
+                "source": "https://github.com/twigphp/Twig/tree/v3.24.0"
             },
             "funding": [
                 {
@@ -3928,7 +3929,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-01-23T21:00:41+00:00"
+            "time": "2026-03-17T21:31:11+00:00"
         }
     ],
     "packages-dev": [
@@ -4119,16 +4120,16 @@
         },
         {
             "name": "nowo-tech/twig-inspector-bundle",
-            "version": "v1.0.3",
+            "version": "v1.0.25",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nowo-tech/TwigInspectorBundle.git",
-                "reference": "cbd9e95d19418c50590daa41d74ea7e6d2c8e0b8"
+                "reference": "152d8a1727fbd57dec1b9d6abea7e3c165692c14"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nowo-tech/TwigInspectorBundle/zipball/cbd9e95d19418c50590daa41d74ea7e6d2c8e0b8",
-                "reference": "cbd9e95d19418c50590daa41d74ea7e6d2c8e0b8",
+                "url": "https://api.github.com/repos/nowo-tech/TwigInspectorBundle/zipball/152d8a1727fbd57dec1b9d6abea7e3c165692c14",
+                "reference": "152d8a1727fbd57dec1b9d6abea7e3c165692c14",
                 "shasum": ""
             },
             "require": {
@@ -4136,6 +4137,7 @@
                 "symfony/config": "^6.0 || ^7.0 || ^8.0",
                 "symfony/console": "^6.0 || ^7.0 || ^8.0",
                 "symfony/dependency-injection": "^6.0 || ^7.0 || ^8.0",
+                "symfony/error-handler": "^6.0 || ^7.0 || ^8.0",
                 "symfony/filesystem": "^6.0 || ^7.0 || ^8.0",
                 "symfony/http-foundation": "^6.0 || ^7.0 || ^8.0",
                 "symfony/http-kernel": "^6.0 || ^7.0 || ^8.0",
@@ -4145,8 +4147,17 @@
             },
             "require-dev": {
                 "friendsofphp/php-cs-fixer": "^3.0",
+                "phpstan/extension-installer": "^1.4",
+                "phpstan/phpstan": "^2.0",
+                "phpstan/phpstan-symfony": "^2.0",
                 "phpunit/phpunit": "^10.0",
+                "rector/rector": "^2.0",
+                "symfony/framework-bundle": "^6.0 || ^7.0 || ^8.0",
+                "symfony/twig-bundle": "^6.0 || ^7.0 || ^8.0",
                 "symfony/yaml": "^6.0 || ^7.0 || ^8.0"
+            },
+            "suggest": {
+                "symfony/flex": "For automatic recipe installation (config and routes)"
             },
             "type": "symfony-bundle",
             "autoload": {
@@ -4161,7 +4172,7 @@
             "authors": [
                 {
                     "name": "Héctor Franco Aceituno",
-                    "email": "hectorfranco@nowo.com",
+                    "email": "hectorfranco@nowo.tech",
                     "homepage": "https://github.com/HecFranco",
                     "role": "Developer"
                 },
@@ -4170,19 +4181,34 @@
                     "homepage": "https://nowo.tech"
                 }
             ],
-            "description": "Symfony bundle that adds the possibility to find Twig templates and blocks used for rendering HTML pages faster during development",
+            "description": "Debug Twig templates in the browser: visual overlay, click-to-open in IDE, Web Profiler. Symfony 6|7|8.",
             "homepage": "https://github.com/nowo-tech/twig-inspector-bundle",
             "keywords": [
+                "block-inspector",
                 "bundle",
                 "debug",
+                "debugging",
+                "dev-tool",
+                "development",
+                "ide-integration",
                 "inspect",
+                "inspector",
                 "symfony",
+                "symfony-flex",
+                "symfony-profiler",
                 "template",
+                "template-finder",
+                "template-inspector",
+                "templates",
                 "toolbar-extension",
                 "twig",
+                "twig-debug",
+                "twig-inspector",
                 "web-profiler"
             ],
             "support": {
+                "changelog": "https://github.com/nowo-tech/twig-inspector-bundle/blob/main/docs/CHANGELOG.md",
+                "docs": "https://github.com/nowo-tech/twig-inspector-bundle/tree/main/docs",
                 "issues": "https://github.com/nowo-tech/twig-inspector-bundle/issues",
                 "source": "https://github.com/nowo-tech/twig-inspector-bundle"
             },
@@ -4192,7 +4218,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-12-15T11:49:16+00:00"
+            "time": "2026-03-19T07:20:27+00:00"
         },
         {
             "name": "phar-io/manifest",

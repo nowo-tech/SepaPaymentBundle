@@ -8,7 +8,6 @@ use Nowo\SepaPaymentBundle\Lookup\BicLookupService;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
-use ReflectionMethod;
 
 /**
  * Test cases for BicLookupService.
@@ -90,13 +89,8 @@ class BicLookupServiceTest extends TestCase
 
     public function testAddCustomMapping(): void
     {
-        // Add custom mapping for a Spanish bank
         $this->lookupService->addMapping('ES', '9999', 'TESTESMM');
-
-        // Test that the mapping was added
-        // We can't easily test with a real IBAN because check digits need to be correct
-        // Instead, we verify the method doesn't throw errors
-        $this->assertTrue(true); // Mapping added successfully
+        $this->expectNotToPerformAssertions();
     }
 
     public function testLookupBicWithCache(): void
@@ -246,7 +240,7 @@ class BicLookupServiceTest extends TestCase
     {
         $this->lookupService->addMapping('XX', '0000', 'TESTXX1X');
         $this->lookupService->addMapping('XX', '0001', 'TESTXX2X');
-        $this->assertTrue(true);
+        $this->expectNotToPerformAssertions();
     }
 
     /**
@@ -302,7 +296,7 @@ class BicLookupServiceTest extends TestCase
     {
         $ref    = new ReflectionClass(BicLookupService::class);
         $method = $ref->getMethod('lookupBicByCountry');
-        $bic   = $method->invoke($this->lookupService, 'FR', '20041123456789012');
+        $bic    = $method->invoke($this->lookupService, 'FR', '20041123456789012');
         $this->assertSame('BNPAFRPP', $bic);
     }
 
@@ -313,7 +307,7 @@ class BicLookupServiceTest extends TestCase
     {
         $ref    = new ReflectionClass(BicLookupService::class);
         $method = $ref->getMethod('lookupBicByCountry');
-        $bic   = $method->invoke($this->lookupService, 'IT', '03002123456789012345');
+        $bic    = $method->invoke($this->lookupService, 'IT', '03002123456789012345');
         $this->assertSame('BCITITMM', $bic);
     }
 
@@ -324,7 +318,7 @@ class BicLookupServiceTest extends TestCase
     {
         $ref    = new ReflectionClass(BicLookupService::class);
         $method = $ref->getMethod('lookupBicByCountry');
-        $bic   = $method->invoke($this->lookupService, 'XX', '12345678901');
+        $bic    = $method->invoke($this->lookupService, 'XX', '12345678901');
         $this->assertNull($bic);
     }
 }

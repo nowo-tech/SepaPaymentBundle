@@ -529,13 +529,13 @@ class ExportServiceTest extends TestCase
 
     public function testExportCreditTransferToCsvThrowsWhenStreamOpenFails(): void
     {
-        $handler = new class () implements CsvStreamHandlerInterface {
-            public function open()
+        $handler = new class implements CsvStreamHandlerInterface {
+            public function open(): bool
             {
                 return false;
             }
 
-            public function getContents($stream): string|false
+            public function getContents(mixed $stream): string
             {
                 return '';
             }
@@ -554,15 +554,18 @@ class ExportServiceTest extends TestCase
 
     public function testExportCreditTransferToCsvThrowsWhenGetContentsFails(): void
     {
-        $handler = new class () implements CsvStreamHandlerInterface {
-            public function open()
+        $handler = new class implements CsvStreamHandlerInterface {
+            /**
+             * @return false|resource
+             */
+            public function open(): mixed
             {
                 $r = fopen('php://temp', 'r+');
 
                 return $r !== false ? $r : false;
             }
 
-            public function getContents($stream): string|false
+            public function getContents(mixed $stream): string|false
             {
                 return false;
             }

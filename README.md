@@ -109,6 +109,8 @@ $xml = $generator->generateFromArray([
 ]);
 ```
 
+For configuration options and translation overrides (domain `NowoSepaPaymentBundle`), see [docs/CONFIGURATION.md](docs/CONFIGURATION.md).
+
 See [docs/USAGE.md](docs/USAGE.md) for complete examples including:
 - IBAN, BIC, and Credit Card validation
 - CCC to IBAN conversion

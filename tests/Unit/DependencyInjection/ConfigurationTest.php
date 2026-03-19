@@ -21,7 +21,6 @@ class ConfigurationTest extends TestCase
         $configuration = new Configuration();
         $treeBuilder   = $configuration->getConfigTreeBuilder();
 
-        $this->assertNotNull($treeBuilder);
         $this->assertEquals(Configuration::ALIAS, $treeBuilder->buildTree()->getName());
     }
 

@@ -1,5 +1,5 @@
-# SEPA Payment Bundle - Portuguese Translations
-# Domain: nowo_sepa_payment
+# SEPA Payment Bundle - Portuguese (Portugal) Translations
+# Domain: NowoSepaPaymentBundle
 
 # Validation errors
 validation.missing_required_field: 'Campo obrigatório em falta: %field%'
@@ -32,3 +32,19 @@ validation.invalid_mandate_expiration: 'A data de expiração do mandato deve se
 
 # Converter errors
 validation.invalid_ccc_format: 'Formato CCC inválido. Esperados 20 dígitos.'
+
+# Constraint messages (Symfony validator)
+iban:
+    invalid: 'Este valor não é um IBAN válido.'
+
+bic:
+    invalid: 'Este valor não é um BIC válido.'
+
+sepa_creditor_identifier:
+    invalid: 'Este valor não é um Identificador do Credor SEPA válido.'
+
+credit_card:
+    invalid: 'Este valor não é um número de cartão de crédito válido.'
+
+sepa_country:
+    invalid: 'Este valor não é um código de país SEPA válido.'

@@ -1,5 +1,5 @@
 # SEPA Payment Bundle - Norwegian (Bokmål) Translations
-# Domain: nowo_sepa_payment
+# Domain: NowoSepaPaymentBundle
 
 # Validation errors
 validation.missing_required_field: 'Påkrevd felt mangler: %field%'
@@ -32,3 +32,19 @@ validation.invalid_mandate_expiration: 'Utløpsdatoen for fullmakten må være i
 
 # Converter errors
 validation.invalid_ccc_format: 'Ugyldig CCC-format. 20 siffer forventet.'
+
+# Constraint messages (Symfony validator)
+iban:
+    invalid: 'Denne verdien er ikke en gyldig IBAN.'
+
+bic:
+    invalid: 'Denne verdien er ikke en gyldig BIC.'
+
+sepa_creditor_identifier:
+    invalid: 'Denne verdien er ikke en gyldig SEPA Kreditor-ID.'
+
+credit_card:
+    invalid: 'Denne verdien er ikke et gyldig kredittkortnummer.'
+
+sepa_country:
+    invalid: 'Denne verdien er ikke en gyldig SEPA-landkode.'

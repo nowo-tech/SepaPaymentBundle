@@ -20,10 +20,7 @@ use function strlen;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
  */
-#[AsCommand(
-    name: 'sepa:validate-credit-card',
-    description: 'Validates a credit card number and displays its information',
-)]
+#[AsCommand(name: 'sepa:validate-credit-card', description: 'Validates a credit card number and displays its information')]
 class ValidateCreditCardCommand extends Command
 {
     /**
@@ -45,16 +42,16 @@ class ValidateCreditCardCommand extends Command
         $this
             ->addArgument('card-number', InputArgument::REQUIRED, 'The credit card number to validate')
             ->setHelp(
-                <<<'HELP'
-                    The <info>%command.name%</info> command validates a credit card number using the Luhn algorithm
-                    and displays information about the card.
+                <<<'TXT'
+The <info>%command.name%</info> command validates a credit card number using the Luhn algorithm
+and displays information about the card.
 
-                    <info>php %command.full_name% 4532015112830366</info>
-                    <info>php %command.full_name% "4532 0151 1283 0366"</info>
-                    <info>php %command.full_name% 4532-0151-1283-0366</info>
+<info>php %command.full_name% 4532015112830366</info>
+<info>php %command.full_name% "4532 0151 1283 0366"</info>
+<info>php %command.full_name% 4532-0151-1283-0366</info>
 
-                    The command accepts card numbers with or without spaces and dashes.
-                    HELP
+The command accepts card numbers with or without spaces and dashes.
+TXT
             );
     }
 

@@ -21,7 +21,7 @@ class NowoSepaPaymentBundleTest extends TestCase
     public function testBundleInstantiation(): void
     {
         $bundle = new NowoSepaPaymentBundle();
-        $this->assertInstanceOf(NowoSepaPaymentBundle::class, $bundle);
+        $this->assertEquals('nowo_sepa_payment', $bundle->getContainerExtension()?->getAlias());
     }
 
     /**

@@ -7,11 +7,11 @@ namespace Nowo\SepaPaymentBundle\Tests\Unit\Service;
 use DateTime;
 use InvalidArgumentException;
 use Nowo\SepaPaymentBundle\Model\Mandate\Mandate;
-use RuntimeException;
 use Nowo\SepaPaymentBundle\Model\Mandate\MandateStatus;
 use Nowo\SepaPaymentBundle\Repository\MandateRepository;
 use Nowo\SepaPaymentBundle\Service\MandateService;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 /**
  * Tests for MandateService.
@@ -41,7 +41,6 @@ class MandateServiceTest extends TestCase
             'FRST',
         );
 
-        $this->assertInstanceOf(Mandate::class, $mandate);
         $this->assertEquals('MANDATE-001', $mandate->getMandateId());
         $this->assertEquals('ES9121000418450200051332', $mandate->getDebtorIban());
         $this->assertEquals('John Doe', $mandate->getDebtorName());

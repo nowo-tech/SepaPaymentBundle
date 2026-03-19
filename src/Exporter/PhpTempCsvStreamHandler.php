@@ -14,9 +14,7 @@ class PhpTempCsvStreamHandler implements CsvStreamHandlerInterface
 {
     public function open()
     {
-        $resource = fopen('php://temp', 'r+');
-
-        return $resource !== false ? $resource : false;
+        return fopen('php://temp', 'r+');
     }
 
     /**

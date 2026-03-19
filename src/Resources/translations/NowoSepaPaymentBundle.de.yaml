@@ -1,5 +1,5 @@
 # SEPA Payment Bundle - German Translations
-# Domain: nowo_sepa_payment
+# Domain: NowoSepaPaymentBundle
 
 # Validation errors
 validation.missing_required_field: 'Pflichtfeld fehlt: %field%'
@@ -32,3 +32,19 @@ validation.invalid_mandate_expiration: 'Das Ablaufdatum des Mandats muss in der 
 
 # Converter errors
 validation.invalid_ccc_format: 'Ungültiges CCC-Format. 20 Ziffern erwartet.'
+
+# Constraint messages (Symfony validator)
+iban:
+    invalid: 'Dieser Wert ist keine gültige IBAN.'
+
+bic:
+    invalid: 'Dieser Wert ist kein gültiger BIC.'
+
+sepa_creditor_identifier:
+    invalid: 'Dieser Wert ist keine gültige SEPA-Gläubiger-Identifikationsnummer.'
+
+credit_card:
+    invalid: 'Dieser Wert ist keine gültige Kreditkartennummer.'
+
+sepa_country:
+    invalid: 'Dieser Wert ist kein gültiger SEPA-Ländercode.'

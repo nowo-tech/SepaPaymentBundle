@@ -13,9 +13,6 @@ parameters:
     excludePaths:
         - demo/*
         - vendor/*
+        - tests/Fixtures/app/var/*
     treatPhpDocTypesAsCertain: false
     # In tests, redundant asserts for PHPStan are acceptable (they document the expected type)
-    ignoreErrors:
-        -
-            message: '#Call to method PHPUnit\\Framework\\Assert::.* with .* will always evaluate to #'
-            path: tests/

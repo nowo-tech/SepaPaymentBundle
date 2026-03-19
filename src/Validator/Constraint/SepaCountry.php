@@ -21,6 +21,8 @@ class SepaCountry extends Constraint
 
     public string $message = 'sepa_country.invalid';
 
+    public string $translationDomain = 'NowoSepaPaymentBundle';
+
     /**
      * {@inheritdoc}
      * PHPStan: missingType.iterableValue — value type for $options.

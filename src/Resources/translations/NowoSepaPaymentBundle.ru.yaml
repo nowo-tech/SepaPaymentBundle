@@ -1,5 +1,5 @@
 # SEPA Payment Bundle - Russian Translations
-# Domain: nowo_sepa_payment
+# Domain: NowoSepaPaymentBundle
 
 # Validation errors
 validation.missing_required_field: 'Отсутствует обязательное поле: %field%'
@@ -32,3 +32,19 @@ validation.invalid_mandate_expiration: 'Дата истечения мандат
 
 # Converter errors
 validation.invalid_ccc_format: 'Недействительный формат CCC. Ожидается 20 цифр.'
+
+# Constraint messages (Symfony validator)
+iban:
+    invalid: 'Это значение не является действительным IBAN.'
+
+bic:
+    invalid: 'Это значение не является действительным BIC.'
+
+sepa_creditor_identifier:
+    invalid: 'Это значение не является действительным идентификатором кредитора SEPA.'
+
+credit_card:
+    invalid: 'Это значение не является действительным номером кредитной карты.'
+
+sepa_country:
+    invalid: 'Это значение не является действительным кодом страны SEPA.'

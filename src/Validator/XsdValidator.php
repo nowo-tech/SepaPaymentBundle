@@ -70,7 +70,7 @@ class XsdValidator
         if (!$loaded) {
             $errorMessages = array_map(static fn (LibXMLError $error): string => trim($error->message), $errors);
             $errorsString  = implode('; ', $errorMessages);
-            $message       = $this->translator->trans('validation.invalid_xml_format', ['%errors%' => $errorsString], 'nowo_sepa_payment');
+            $message       = $this->translator->trans('validation.invalid_xml_format', ['%errors%' => $errorsString], 'NowoSepaPaymentBundle');
 
             throw new InvalidArgumentException($message);
         }
@@ -91,7 +91,7 @@ class XsdValidator
             if (!$valid && $errors !== []) {
                 $errorMessages = array_map(static fn ($error): string => trim($error->message), $errors);
                 $errorsString  = implode('; ', $errorMessages);
-                $message       = $this->translator->trans('validation.xsd_validation_failed', ['%errors%' => $errorsString], 'nowo_sepa_payment');
+                $message       = $this->translator->trans('validation.xsd_validation_failed', ['%errors%' => $errorsString], 'NowoSepaPaymentBundle');
 
                 throw new InvalidArgumentException($message);
             }
@@ -179,7 +179,7 @@ class XsdValidator
         if (!$loaded) {
             $errorMessages = array_map(static fn (LibXMLError $error): string => trim($error->message), $errors);
             $errorsString  = implode('; ', $errorMessages);
-            $message       = $this->translator->trans('validation.invalid_xml_format', ['%errors%' => $errorsString], 'nowo_sepa_payment');
+            $message       = $this->translator->trans('validation.invalid_xml_format', ['%errors%' => $errorsString], 'NowoSepaPaymentBundle');
 
             throw new InvalidArgumentException($message);
         }
@@ -194,7 +194,7 @@ class XsdValidator
         if (!$valid && $errors !== []) {
             $errorMessages = array_map(static fn ($error): string => trim($error->message), $errors);
             $errorsString  = implode('; ', $errorMessages);
-            $message       = $this->translator->trans('validation.xsd_validation_failed', ['%errors%' => $errorsString], 'nowo_sepa_payment');
+            $message       = $this->translator->trans('validation.xsd_validation_failed', ['%errors%' => $errorsString], 'NowoSepaPaymentBundle');
 
             throw new InvalidArgumentException($message);
         }
