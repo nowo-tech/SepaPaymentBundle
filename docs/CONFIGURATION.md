@@ -15,6 +15,7 @@ This document describes the configuration options available for the SEPA Payment
 - [Accessing Configuration in Code](#accessing-configuration-in-code)
 - [Environment-Specific Configuration](#environment-specific-configuration)
 - [Validation](#validation)
+- [Translations](#translations)
 - [Examples](#examples)
   - [Basic Configuration](#basic-configuration)
   - [Multi-Currency Setup](#multi-currency-setup)
@@ -103,6 +104,33 @@ The bundle validates configuration values:
 
 - `default_currency` must be a valid ISO 4217 currency code (3 letters)
 - Invalid values will cause a configuration exception during container compilation
+
+## Translations
+
+The bundle uses the translation domain **`NowoSepaPaymentBundle`** (CamelCase with `Bundle` suffix). All validation messages and constraint messages (IBAN, BIC, SEPA Creditor Identifier, Credit Card, SEPA Country) are loaded from this domain.
+
+### Are bundle translations overridable?
+
+**Yes.** You can override any message by placing a file with the same domain and locale in your application. Symfony merges catalogues so that your keys take precedence.
+
+### Load order (priority, highest first)
+
+Symfony loads translation files in this order:
+
+1. **`translations/`** at the root of your project (configurable via `framework.translator.default_path`, usually `%kernel.project_dir%/translations`).
+2. **`src/Resources/<BundleName>/translations/`** in your application (if you mirror the bundle structure to override only that bundle).
+3. **`Resources/translations/`** inside each bundle (this bundle’s messages live here).
+
+So anything you define in your project’s `translations/` for the domain `NowoSepaPaymentBundle` overrides the same keys from the bundle. You only need to define the keys you want to change; the rest fall back to the bundle defaults.
+
+### How to override in your application
+
+Create YAML (or XLIFF) files in your project’s `translations/` directory with the same domain name and locale, for example:
+
+- `translations/NowoSepaPaymentBundle.es.yaml` — overrides Spanish messages
+- `translations/NowoSepaPaymentBundle.en_US.yaml` — overrides US English messages
+
+Keys match the bundle’s structure: `validation.*` for validation errors (e.g. `validation.invalid_iban`, `validation.missing_required_field`) and `iban.invalid`, `bic.invalid`, `sepa_creditor_identifier.invalid`, `credit_card.invalid`, `sepa_country.invalid` for constraint messages. Only define the keys you want to override; Symfony will fall back to the bundle’s defaults for the rest.
 
 ## Examples
 

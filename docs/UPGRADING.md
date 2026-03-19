@@ -5,6 +5,11 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
 ## Table of contents
 
+- [Upgrading from 1.2.15 to 1.2.16](#upgrading-from-1215-to-1216)
+  - [🐛 Fixed (1.2.16)](#fixed-1216)
+  - [📝 Changed (1.2.16)](#changed-1216)
+  - [📚 Documentation (1.2.16)](#documentation-1216)
+  - [Backward Compatibility](#backward-compatibility)
 - [Upgrading from 1.2.12 to 1.2.15](#upgrading-from-1212-to-1215)
   - [✨ Added (1.2.15)](#added-1215)
   - [🔧 Improved (1.2.15)](#improved-1215)
@@ -101,6 +106,26 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 - [General Upgrade Notes](#general-upgrade-notes)
   - [Demo Applications](#demo-applications)
 - [Getting Help](#getting-help)
+
+## Upgrading from 1.2.15 to 1.2.16
+
+### 🐛 Fixed (1.2.16)
+
+- **Console commands on Symfony 6.0 / 6.1**: The `#[AsCommand]` attribute does not support the `help` parameter before Symfony Console 6.2. The bundle’s console commands (`nowo:sepa:validate-iban`, `sepa:validate-credit-card`, `nowo:sepa:parse-direct-debit`, `nowo:sepa:ccc-to-iban`) now set their help text via `setHelp()` in `configure()`, so they work on Symfony 6.0 and 6.1 without the "Unknown named parameter $help" error (e.g. when running `cache:clear` after `composer install` in the demo).
+
+### 📝 Changed (1.2.16)
+
+- **Translation file names**: Bundle translation files are now named **`NowoSepaPaymentBundle.*.yaml`** (e.g. `NowoSepaPaymentBundle.es.yaml`, `NowoSepaPaymentBundle.de.yaml`) instead of `nowo_sepa_payment.*.yaml` and `validators.*.yaml`. The translation domain in code is already `NowoSepaPaymentBundle`. **If you override bundle messages** in your project’s `translations/` directory, rename your files to use the new domain (e.g. `translations/NowoSepaPaymentBundle.es.yaml`) and the same keys; no change to keys is required.
+
+### 📚 Documentation (1.2.16)
+
+- **CONFIGURATION.md**: New sections describe that bundle translations are overridable, the translation load order (priority: project `translations/`, then app bundle overrides, then bundle `Resources/translations/`), and how to override messages in your application.
+
+### Backward Compatibility
+
+- **No breaking API changes**: Command names, options, and validation behaviour are unchanged. If you do not override bundle translations, no migration is needed. If you have custom files for the old domains, rename them to the `NowoSepaPaymentBundle` domain.
+
+---
 
 ## Upgrading from 1.2.12 to 1.2.15
 

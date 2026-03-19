@@ -1,40 +1,46 @@
-# Release checklist (1.2.15)
+# Release checklist (1.2.16)
 
-## Documentación revisada
+## Documentation reviewed
 
-- **CHANGELOG.md**: [1.2.15] - 2026-03-04 con Added (tests), Improved (bundle/CI brick/math, demo brick/math, coverage), Backward compatibility.
-- **UPGRADING.md**: "Upgrading from 1.2.12 to 1.2.15" con Added, Improved (bundle + demo brick/math, coverage) y backward compatibility.
+- **CHANGELOG.md**: [1.2.16] - 2026-03-19 with Fixed (console commands Symfony 6.0/6.1), Changed (translation file names), Documentation (CONFIGURATION.md), Backward compatibility.
+- **UPGRADING.md**: "Upgrading from 1.2.15 to 1.2.16" with Fixed, Changed, Documentation and backward compatibility.
 
-## Pasos para publicar la release
+## Steps to publish the release
 
-1. **Commitear todos los cambios** de 1.2.15 (incl. docs y composer.json):
+1. **Run release checks** (from the bundle root):
+
+   ```bash
+   make release-check
+   ```
+
+2. **Commit all changes** for 1.2.16 (incl. docs, commands and translations):
 
    ```bash
    git status
    git add -A
-   git commit -m "Release 1.2.15: Tests, brick/math PHP 8.1 fix (bundle + demo), coverage and docs"
+   git commit -m "Release 1.2.16: Console commands Symfony 6.0/6.1 fix, translation domain NowoSepaPaymentBundle, docs"
    ```
 
-2. **Crear el tag anotado**:
+3. **Create the annotated tag**:
 
    ```bash
-   git tag -a v1.2.15 -m "Release 1.2.15"
+   git tag -a v1.2.16 -m "Release v1.2.16"
    ```
 
-3. **Subir rama y tag**:
+4. **Push branch and tag**:
 
    ```bash
    git push origin main
-   git push origin v1.2.15
+   git push origin v1.2.16
    ```
 
-4. **Comprobar en GitHub**: *Actions* → workflow "Create Release" en verde; *Releases* → **v1.2.15** con cuerpo desde `docs/CHANGELOG.md`.
+5. **Verify on GitHub**: *Actions* → "Create Release" workflow green; *Releases* → **v1.2.16** with body from `docs/CHANGELOG.md`.
 
-## Si el tag ya existe pero el release falló
+## If the tag already exists but the release failed
 
-- Re-ejecutar el job "Create GitHub Release" desde *Actions* (Re-run jobs), o borrar el tag en remoto y volver a crear y subir el tag `v1.2.15`.
+- Re-run the "Create GitHub Release" job from *Actions* (Re-run jobs), or delete the tag on the remote and recreate and push the tag `v1.2.16`.
 
-## Notas
+## Notes
 
-- `.github/workflows/release.yml` se ejecuta al hacer push de un tag `v*`.
-- El cuerpo del release se genera a partir de la sección `## [1.2.15]` de `docs/CHANGELOG.md`.
+- `.github/workflows/release.yml` runs when pushing a tag `v*`.
+- The release body is generated from the `## [1.2.16]` section of `docs/CHANGELOG.md`.

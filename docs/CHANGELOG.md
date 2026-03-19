@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.2.16] - 2026-03-19](#1216-2026-03-19)
+  - [Fixed](#fixed)
+  - [Changed](#changed)
+  - [Documentation](#documentation)
+  - [Backward Compatibility](#backward-compatibility)
 - [[1.2.15] - 2026-03-04](#1215-2026-03-04)
   - [Added](#added)
   - [Improved](#improved)
@@ -92,6 +97,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 - No changes yet.
+
+## [1.2.16] - 2026-03-19
+
+### Fixed
+- **Console commands (Symfony 6.0 / 6.1)**: Removed the `help` parameter from the `#[AsCommand]` attribute in `ValidateIbanCommand`, `ValidateCreditCardCommand`, `ParseDirectDebitCommand`, and `ConvertCccCommand`. The `help` parameter is only available from Symfony Console 6.2+. Help text is now set via `setHelp()` in `configure()`, so `cache:clear` and the commands work correctly on Symfony 6.0 and 6.1 without "Unknown named parameter $help".
+
+### Changed
+- **Translation file names**: Bundle translation files have been renamed from `nowo_sepa_payment.*.yaml` and `validators.*.yaml` to **`NowoSepaPaymentBundle.*.yaml`** (one domain per locale). The translation domain used in code remains `NowoSepaPaymentBundle`. If you override bundle messages in your application, rename your override files to use the new domain, e.g. `translations/NowoSepaPaymentBundle.es.yaml`.
+
+### Documentation
+- **CONFIGURATION.md**: Added sections explaining that bundle translations are overridable, the translation load order (project `translations/` first, then app bundle overrides, then bundle `Resources/translations/`), and how to override messages in the application.
+
+### Backward Compatibility
+- **No breaking API changes**: Commands and validation behaviour are unchanged. If you do not override bundle translations in your project, no migration is required. If you have custom translation files for the old domains (`nowo_sepa_payment` or `validators`), rename them to the `NowoSepaPaymentBundle` domain and the same keys.
 
 ## [1.2.15] - 2026-03-04
 

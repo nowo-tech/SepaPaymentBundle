@@ -60,6 +60,7 @@ This document provides detailed usage examples for all features of the SEPA Paym
   - [Using Object Format](#using-object-format)
 - [Using with Dependency Injection](#using-with-dependency-injection)
   - [Service Aliases](#service-aliases)
+- [Overriding bundle translations](#overriding-bundle-translations)
 
 ## IBAN Validation
 
@@ -1605,3 +1606,42 @@ class MyService
 - `nowo_sepa_payment.validator.sepa_business_rules_validator` - SEPA business rules validator
 
 All services are public and available for dependency injection via autowiring (type-hinting) or explicit alias retrieval.
+
+## Overriding bundle translations
+
+The bundle uses the translation domain **`NowoSepaPaymentBundle`** for validation messages and constraint messages (IBAN, BIC, SEPA Creditor Identifier, Credit Card, SEPA Country). You can override any of these messages in your application without modifying the bundle.
+
+**Steps:**
+
+1. Create a translation file in your project’s `translations/` directory (or the path configured in `framework.translator.default_path`).
+2. Use the same domain and locale as the bundle, e.g. `NowoSepaPaymentBundle.es.yaml`, `NowoSepaPaymentBundle.de.yaml`.
+3. Define only the keys you want to change; Symfony will use the bundle’s messages for the rest.
+
+**Example — override Spanish messages:**
+
+Create `translations/NowoSepaPaymentBundle.es.yaml` in your project:
+
+```yaml
+# Override only the keys you need
+validation.invalid_iban: 'El IBAN %iban% no es válido.'
+validation.missing_required_field: 'Falta el campo obligatorio: %field%'
+
+# Constraint messages (Symfony validator)
+iban:
+    invalid: 'Este valor no es un IBAN válido.'
+bic:
+    invalid: 'Este valor no es un BIC válido.'
+```
+
+**Example — override German constraint messages only:**
+
+Create `translations/NowoSepaPaymentBundle.de.yaml`:
+
+```yaml
+sepa_creditor_identifier:
+    invalid: 'Ungültige SEPA-Gläubiger-Identifikationsnummer.'
+credit_card:
+    invalid: 'Ungültige Kreditkartennummer.'
+```
+
+For the full list of keys, load order (priority), and configuration options, see [Configuration → Translations](CONFIGURATION.md#translations).
