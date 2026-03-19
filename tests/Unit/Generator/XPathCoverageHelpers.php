@@ -18,7 +18,7 @@ use RuntimeException;
  */
 final class XPathReturningTextNodeList extends DOMXPath
 {
-    /** @var DOMNodeList<DOMNode|DOMNameSpaceNode> */
+    /** @var DOMNodeList<DOMNameSpaceNode|DOMNode> */
     private DOMNodeList $listWithTextNode;
 
     public function __construct(DOMDocument $document)
@@ -45,7 +45,7 @@ final class XPathReturningTextNodeList extends DOMXPath
  */
 final class XPathReturningEmptyNodeList extends DOMXPath
 {
-    /** @var DOMNodeList<DOMNode|DOMNameSpaceNode> */
+    /** @var DOMNodeList<DOMNameSpaceNode|DOMNode> */
     private DOMNodeList $emptyList;
 
     public function __construct(DOMDocument $document)

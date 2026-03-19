@@ -162,7 +162,7 @@ final class BundleIntegrationTest extends KernelTestCase
         self::bootKernel();
         $generator = self::getContainer()->get('nowo_sepa_payment.generator.credit_transfer_generator');
         $this->assertInstanceOf(CreditTransferGenerator::class, $generator);
-        $data      = [
+        $data = [
             'reference'              => 'MSG-001',
             'initiatingPartyName'    => 'My Company',
             'paymentInfoId'          => 'PMT-001',
@@ -189,7 +189,7 @@ final class BundleIntegrationTest extends KernelTestCase
         self::bootKernel();
         $generator = self::getContainer()->get('nowo_sepa_payment.generator.direct_debit_generator');
         $this->assertInstanceOf(DirectDebitGenerator::class, $generator);
-        $data      = [
+        $data = [
             'reference'           => 'MSG-001',
             'bankAccountOwner'    => 'My Company',
             'paymentInfoId'       => 'PMT-001',
@@ -224,7 +224,7 @@ final class BundleIntegrationTest extends KernelTestCase
         $parser    = $container->get('nowo_sepa_payment.parser.credit_transfer_parser');
         $this->assertInstanceOf(CreditTransferGenerator::class, $generator);
         $this->assertInstanceOf(CreditTransferParser::class, $parser);
-        $data      = [
+        $data = [
             'reference'              => 'MSG-INT-001',
             'initiatingPartyName'    => 'Test',
             'paymentInfoId'          => 'PMT-001',
@@ -255,7 +255,7 @@ final class BundleIntegrationTest extends KernelTestCase
         $parser    = $container->get('nowo_sepa_payment.parser.direct_debit_parser');
         $this->assertInstanceOf(DirectDebitGenerator::class, $generator);
         $this->assertInstanceOf(DirectDebitParser::class, $parser);
-        $data      = [
+        $data = [
             'reference'           => 'MSG-INT-002',
             'bankAccountOwner'    => 'Test',
             'paymentInfoId'       => 'PMT-002',
@@ -297,7 +297,7 @@ final class BundleIntegrationTest extends KernelTestCase
         self::bootKernel();
         $converter = self::getContainer()->get('nowo_sepa_payment.converter.ccc_converter');
         $this->assertInstanceOf(CccConverter::class, $converter);
-        $iban      = $converter->cccToIban('21000418450200051332');
+        $iban = $converter->cccToIban('21000418450200051332');
         $this->assertStringStartsWith('ES', $iban);
         $this->assertTrue(strlen($iban) >= 20);
     }
@@ -307,7 +307,7 @@ final class BundleIntegrationTest extends KernelTestCase
         self::bootKernel();
         $generator = self::getContainer()->get('nowo_sepa_payment.generator.credit_transfer_generator');
         $this->assertInstanceOf(CreditTransferGenerator::class, $generator);
-        $data      = [
+        $data = [
             'reference'              => 'MSG-RESP',
             'initiatingPartyName'    => 'Co',
             'paymentInfoId'          => 'PMT-RESP',
@@ -334,7 +334,7 @@ final class BundleIntegrationTest extends KernelTestCase
         self::bootKernel();
         $generator = self::getContainer()->get('nowo_sepa_payment.generator.direct_debit_generator');
         $this->assertInstanceOf(DirectDebitGenerator::class, $generator);
-        $data      = [
+        $data = [
             'reference'           => 'MSG-RESP',
             'bankAccountOwner'    => 'Co',
             'paymentInfoId'       => 'PMT-RESP',
