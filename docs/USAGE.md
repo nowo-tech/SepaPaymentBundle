@@ -221,13 +221,16 @@ When you inject `BicLookupService` into generators, BIC codes are automatically 
 use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
 use Nowo\SepaPaymentBundle\Lookup\BicLookupService;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+use Symfony\Component\Translation\IdentityTranslator;
 
 $ibanValidator = new IbanValidator();
-$bicLookup = new BicLookupService($ibanValidator);
+$translator    = new IdentityTranslator();
+$bicLookup     = new BicLookupService($ibanValidator);
 
 // Inject BIC lookup service into generator
 $generator = new CreditTransferGenerator(
     $ibanValidator,
+    $translator,
     null, // XSD validator (optional)
     false, // validate XSD (optional)
     null, // event dispatcher (optional)
@@ -503,8 +506,6 @@ if ($parser->isValidDirectDebit($xml)) {
     echo "Valid SEPA Direct Debit XML";
 }
 ```
-<｜tool▁calls▁begin｜><｜tool▁call▁begin｜>
-read_file
 
 ## XSD Schema Validation
 
@@ -514,8 +515,9 @@ The bundle includes an `XsdValidator` service that can validate generated XML fi
 
 ```php
 use Nowo\SepaPaymentBundle\Validator\XsdValidator;
+use Symfony\Component\Translation\IdentityTranslator;
 
-$validator = new XsdValidator();
+$validator = new XsdValidator(new IdentityTranslator());
 
 // Validate Credit Transfer XML
 try {
@@ -543,7 +545,10 @@ try {
 If you have your own XSD schema files, you can specify the path:
 
 ```php
-$validator = new XsdValidator();
+use Nowo\SepaPaymentBundle\Validator\XsdValidator;
+use Symfony\Component\Translation\IdentityTranslator;
+
+$validator = new XsdValidator(new IdentityTranslator());
 
 // Validate against a specific XSD file
 $isValid = $validator->validate($xml, '/path/to/schema.xsd', 'credit_transfer');
@@ -554,6 +559,10 @@ $isValid = $validator->validate($xml, '/path/to/schema.xsd', 'credit_transfer');
 You can also validate against an XSD schema provided as a string:
 
 ```php
+use Nowo\SepaPaymentBundle\Validator\XsdValidator;
+use Symfony\Component\Translation\IdentityTranslator;
+
+$validator = new XsdValidator(new IdentityTranslator());
 $xsdContent = file_get_contents('/path/to/schema.xsd');
 $isValid = $validator->validateAgainstSchemaString($xml, $xsdContent);
 ```
@@ -566,12 +575,14 @@ You can enable automatic XSD validation when generating XML files:
 use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use Nowo\SepaPaymentBundle\Validator\XsdValidator;
+use Symfony\Component\Translation\IdentityTranslator;
 
 $ibanValidator = new IbanValidator();
-$xsdValidator = new XsdValidator();
+$translator    = new IdentityTranslator();
+$xsdValidator  = new XsdValidator($translator);
 
-// Enable XSD validation (third parameter)
-$generator = new CreditTransferGenerator($ibanValidator, $xsdValidator, true);
+// Enable XSD validation (fourth parameter: validateXsd)
+$generator = new CreditTransferGenerator($ibanValidator, $translator, $xsdValidator, true);
 
 // Now all generated XML will be validated against XSD schema
 $xml = $generator->generate($creditTransferData);
@@ -767,8 +778,9 @@ use Nowo\SepaPaymentBundle\Exporter\ExportService;
 use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
 use Nowo\SepaPaymentBundle\Parser\CreditTransferParser;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+use Symfony\Component\Translation\IdentityTranslator;
 
-$generator = new CreditTransferGenerator(new IbanValidator());
+$generator = new CreditTransferGenerator(new IbanValidator(), new IdentityTranslator());
 $parser = new CreditTransferParser();
 $exporter = new ExportService();
 
@@ -917,10 +929,12 @@ The generators automatically use the event dispatcher if it's available via depe
 use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Translation\IdentityTranslator;
 
-// The event dispatcher is automatically injected if available
+// The event dispatcher is the 5th constructor argument (after translator, XSD, validateXsd flag)
 $generator = new CreditTransferGenerator(
     new IbanValidator(),
+    new IdentityTranslator(),
     null, // XsdValidator (optional)
     false, // validateXsd
     $eventDispatcher // EventDispatcherInterface (optional)
@@ -954,12 +968,15 @@ When you inject `SepaPaymentLogger` into generators, operations are automaticall
 use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
 use Nowo\SepaPaymentBundle\Logger\SepaPaymentLogger;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+use Symfony\Component\Translation\IdentityTranslator;
 
 $ibanValidator = new IbanValidator();
-$logger = new SepaPaymentLogger($psrLogger); // Your PSR-3 logger
+$translator    = new IdentityTranslator();
+$logger        = new SepaPaymentLogger($psrLogger); // Your PSR-3 logger
 
 $generator = new CreditTransferGenerator(
     $ibanValidator,
+    $translator,
     null, // XSD validator (optional)
     false, // validate XSD (optional)
     null, // event dispatcher (optional)
@@ -1130,6 +1147,12 @@ $mandate->setActive(true);
 
 **Credit transfers (remesas de pago)** are used to send money from the debtor (payer) to the creditor (beneficiary).
 
+### `CreditTransferGenerator` and `TranslatorInterface`
+
+`CreditTransferGenerator` requires `Symfony\Contracts\Translation\TranslatorInterface` as the **second** constructor argument (for translated messages). In Symfony, inject `CreditTransferGenerator` (or pass the `translator` service). In the **standalone examples** below, `Symfony\Component\Translation\IdentityTranslator` is used so the snippets are copy-pasteable outside the container.
+
+`DirectDebitGenerator` does **not** take a translator (only `IbanValidator` and optional dependencies).
+
 ### Using Array Format (Recommended)
 
 The `generateFromArray()` method supports both **camelCase** and **snake_case** field names for maximum flexibility.
@@ -1139,8 +1162,9 @@ The `generateFromArray()` method supports both **camelCase** and **snake_case** 
 ```php
 use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+use Symfony\Component\Translation\IdentityTranslator;
 
-$generator = new CreditTransferGenerator(new IbanValidator());
+$generator = new CreditTransferGenerator(new IbanValidator(), new IdentityTranslator());
 
 $data = [
     'reference' => 'MSG-001',                    // Message ID (unique)
@@ -1252,6 +1276,7 @@ use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use Nowo\SepaPaymentBundle\Model\CreditTransfer\CreditTransferData;
 use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
 use Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction;
+use Symfony\Component\Translation\IdentityTranslator;
 
 // Create credit transfer data
 $creditTransferData = new CreditTransferData(
@@ -1309,7 +1334,7 @@ $creditTransferData->addTransaction($transaction2);
 
 // Generate XML
 $ibanValidator = new IbanValidator();
-$generator = new CreditTransferGenerator($ibanValidator);
+$generator     = new CreditTransferGenerator($ibanValidator, new IdentityTranslator());
 $xml = $generator->generate($creditTransferData);
 
 // Save to file

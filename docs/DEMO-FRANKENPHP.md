@@ -48,6 +48,7 @@ The demo applications are configured for **local development and debugging**:
 
 - **Symfony Web Profiler** and **Debug bundle** — enabled in `dev` and `test` environments.
 - **SEPA Payment Bundle** (`Nowo\SepaPaymentBundle\NowoSepaPaymentBundle`) — the bundle under test; enabled in the demos.
+- **Twig Inspector Bundle** (`nowo-tech/twig-inspector-bundle`) — optional dev tooling; registered for `dev` and `test` only.
 
 Example `config/bundles.php` (Symfony 8 demo):
 
@@ -58,14 +59,15 @@ declare(strict_types=1);
 
 return [
     Symfony\Bundle\FrameworkBundle\FrameworkBundle::class     => ['all' => true],
-    Symfony\Bundle\TwigBundle\TwigBundle::class                 => ['all' => true],
-    Nowo\SepaPaymentBundle\NowoSepaPaymentBundle::class        => ['all' => true],
-    Symfony\Bundle\DebugBundle\DebugBundle::class              => ['dev' => true],
+    Symfony\Bundle\TwigBundle\TwigBundle::class               => ['all' => true],
+    Nowo\SepaPaymentBundle\NowoSepaPaymentBundle::class       => ['all' => true],
+    Symfony\Bundle\DebugBundle\DebugBundle::class             => ['dev' => true],
     Symfony\Bundle\WebProfilerBundle\WebProfilerBundle::class => ['dev' => true, 'test' => true],
+    Nowo\TwigInspectorBundle\NowoTwigInspectorBundle::class   => ['dev' => true, 'test' => true],
 ];
 ```
 
-In **production** (`APP_ENV=prod`), only bundles registered for `all` or `prod` are loaded.
+In **production** (`APP_ENV=prod`), only bundles registered for `all` or `prod` are loaded, so Web Profiler, Debug, and Twig Inspector are not active.
 
 ---
 
@@ -75,7 +77,7 @@ Goal: every change to PHP, Twig or config is visible on the next browser refresh
 
 ### 1. Caddyfile (development)
 
-The development Caddyfile is **Caddyfile.dev** in each demo root (e.g. `demo/symfony8/Caddyfile.dev`). It uses plain `php_server` (no worker) and cache-busting headers. The entrypoint copies it over `/etc/frankenphp/Caddyfile` when `APP_ENV=dev`. Mount it in docker-compose so you can edit it without rebuilding.
+The development Caddyfile is **`docker/frankenphp/Caddyfile.dev`** in each demo (e.g. `demo/symfony8/docker/frankenphp/Caddyfile.dev`). It uses plain `php_server` (no worker) and cache-busting headers. The entrypoint copies it over `/etc/frankenphp/Caddyfile` when `APP_ENV=dev`. Mount it in docker-compose so you can edit it without rebuilding.
 
 ### 2. PHP configuration (development)
 

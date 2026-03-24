@@ -96,7 +96,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- No changes yet.
+### Documentation
+
+- **README / USAGE / UPGRADING**: Standalone examples for `CreditTransferGenerator` and `XsdValidator` now include the required `TranslatorInterface` (using `IdentityTranslator` where appropriate). Constructor argument order for BIC lookup, XSD validation, events, and logging matches the current `CreditTransferGenerator` signature.
+- **USAGE.md**: Removed stray text accidentally inserted before the XSD section; fixed `XsdValidator` snippets to pass a translator.
+- **DEMO-FRANKENPHP.md**: Caddyfile path corrected to `docker/frankenphp/Caddyfile.dev`; `bundles.php` example updated with Twig Inspector (as in demos); clarified production bundle loading.
+- **README**: Demo section clarifies FrankenPHP dev (no worker) vs production-style (worker).
 
 ## [1.2.16] - 2026-03-19
 
