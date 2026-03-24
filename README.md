@@ -60,8 +60,9 @@ For detailed usage examples and API documentation, see [docs/USAGE.md](docs/USAG
 ```php
 use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+use Symfony\Component\Translation\IdentityTranslator;
 
-$generator = new CreditTransferGenerator(new IbanValidator());
+$generator = new CreditTransferGenerator(new IbanValidator(), new IdentityTranslator());
 $xml = $generator->generateFromArray([
     'reference' => 'MSG-001',
     'initiatingPartyName' => 'My Company',
@@ -138,7 +139,7 @@ The bundle works out of the box with default settings. **No configuration file i
 
 ## Demo Projects
 
-Demos for Symfony 6, 7 and 8 run with **FrankenPHP** (worker mode). See [docs/DEMOS.md](docs/DEMOS.md) for information about demo projects and available endpoints.
+Demos for Symfony 6, 7 and 8 run with **FrankenPHP** (development uses `Caddyfile.dev` without workers; production-style uses worker mode — see [docs/DEMO-FRANKENPHP.md](docs/DEMO-FRANKENPHP.md)). See [docs/DEMOS.md](docs/DEMOS.md) for endpoints and quick start.
 
 ## Development
 
