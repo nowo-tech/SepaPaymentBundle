@@ -717,10 +717,12 @@ When you inject `BicLookupService` into generators, BIC codes are automatically 
 use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
 use Nowo\SepaPaymentBundle\Lookup\BicLookupService;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+use Symfony\Component\Translation\IdentityTranslator;
 
 $ibanValidator = new IbanValidator();
-$bicLookup = new BicLookupService($ibanValidator);
-$generator = new CreditTransferGenerator($ibanValidator, null, false, null, null, $bicLookup);
+$translator    = new IdentityTranslator();
+$bicLookup     = new BicLookupService($ibanValidator);
+$generator = new CreditTransferGenerator($ibanValidator, $translator, null, false, null, null, $bicLookup);
 
 // Create data without BIC
 $creditTransferData = new CreditTransferData(
@@ -878,12 +880,15 @@ When you inject `SepaPaymentLogger` into generators, operations are automaticall
 use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
 use Nowo\SepaPaymentBundle\Logger\SepaPaymentLogger;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+use Symfony\Component\Translation\IdentityTranslator;
 
 $ibanValidator = new IbanValidator();
-$logger = new SepaPaymentLogger($psrLogger); // Your PSR-3 logger
+$translator    = new IdentityTranslator();
+$logger        = new SepaPaymentLogger($psrLogger); // Your PSR-3 logger
 
 $generator = new CreditTransferGenerator(
     $ibanValidator,
+    $translator,
     null, // XSD validator (optional)
     false, // validate XSD (optional)
     null, // event dispatcher (optional)
@@ -986,8 +991,9 @@ $generator = new RemesaGenerator($ibanValidator);
 $parser = new RemesaParser();
 $data = new RemesaData(/* ... */);
 
-// After
-$generator = new CreditTransferGenerator($ibanValidator);
+// After (translator is required since 1.2.6)
+$translator = new \Symfony\Component\Translation\IdentityTranslator(); // or inject TranslatorInterface
+$generator = new CreditTransferGenerator($ibanValidator, $translator);
 $parser = new CreditTransferParser();
 $data = new CreditTransferData(/* ... */);
 ```
