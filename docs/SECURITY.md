@@ -20,3 +20,23 @@ We will acknowledge your report and work on a fix. We appreciate responsible dis
 - **No secrets in config:** The bundle does not store passwords or API keys. Configuration is for behaviour (validation, defaults); sensitive data (e.g. BIC lookup endpoints, if any) should be injected via environment variables or parameters.
 - **Input validation:** IBAN, BIC, and payment data are validated and sanitized according to SEPA rules. Do not bypass validation when building payment files.
 - **Dependencies:** Run `composer audit` in projects that use this bundle to check for known vulnerabilities in dependencies (including Digitick\Sepa and Symfony components).
+
+## Release security checklist (12.4.1)
+
+Before tagging a release, confirm:
+
+| Item | Notes |
+|------|--------|
+| **SECURITY.md** | This document is current and linked from the README where applicable. |
+| **`.gitignore` and `.env`** | `.env` and local env files are ignored; no committed secrets. |
+| **No secrets in repo** | No API keys, passwords, or tokens in tracked files. |
+| **Recipe / Flex** | Default recipe or installer templates do not ship production secrets. |
+| **Input / output** | Inputs validated; outputs escaped in Twig/templates where user-controlled. |
+| **Dependencies** | `composer audit` run; issues triaged. |
+| **Logging** | Logs do not print secrets, tokens, or session identifiers unnecessarily. |
+| **Cryptography** | If used: keys from secure config; never hardcoded. |
+| **Permissions / exposure** | Routes and admin features documented; roles configured for production. |
+| **Limits / DoS** | Timeouts, size limits, rate limits where applicable. |
+
+Record confirmation in the release PR or tag notes.
+

@@ -1,5 +1,13 @@
 # Installation
 
+## Table of contents
+
+- [Requirements](#requirements)
+- [Install via Composer](#install-via-composer)
+- [Enable the bundle](#enable-the-bundle)
+- [Optional configuration](#optional-configuration)
+- [Next steps](#next-steps)
+
 ## Requirements
 
 - PHP >= 8.1, < 8.6

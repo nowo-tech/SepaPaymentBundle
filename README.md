@@ -1,8 +1,8 @@
 # SEPA Payment Bundle
 
-[![CI](https://github.com/nowo-tech/SepaPaymentBundle/actions/workflows/ci.yml/badge.svg)](https://github.com/nowo-tech/SepaPaymentBundle/actions/workflows/ci.yml) [![Packagist Version](https://img.shields.io/packagist/v/nowo-tech/sepa-payment-bundle.svg?style=flat)](https://packagist.org/packages/nowo-tech/sepa-payment-bundle) [![Packagist Downloads](https://img.shields.io/packagist/dt/nowo-tech/sepa-payment-bundle.svg)](https://packagist.org/packages/nowo-tech/sepa-payment-bundle) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![PHP](https://img.shields.io/badge/PHP-8.1%2B-777BB4?logo=php)](https://php.net) [![Symfony](https://img.shields.io/badge/Symfony-6%20%7C%207%20%7C%208-000000?logo=symfony)](https://symfony.com) [![GitHub stars](https://img.shields.io/github/stars/nowo-tech/sepa-payment-bundle.svg?style=social&label=Star)](https://github.com/nowo-tech/SepaPaymentBundle)
+[![CI](https://github.com/nowo-tech/SepaPaymentBundle/actions/workflows/ci.yml/badge.svg)](https://github.com/nowo-tech/SepaPaymentBundle/actions/workflows/ci.yml) [![Packagist Version](https://img.shields.io/packagist/v/nowo-tech/sepa-payment-bundle.svg?style=flat)](https://packagist.org/packages/nowo-tech/sepa-payment-bundle) [![Packagist Downloads](https://img.shields.io/packagist/dt/nowo-tech/sepa-payment-bundle.svg)](https://packagist.org/packages/nowo-tech/sepa-payment-bundle) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![PHP](https://img.shields.io/badge/PHP-8.1%2B-777BB4?logo=php)](https://php.net) [![Symfony](https://img.shields.io/badge/Symfony-6%20%7C%207%20%7C%208-000000?logo=symfony)](https://symfony.com) [![GitHub stars](https://img.shields.io/github/stars/nowo-tech/sepa-payment-bundle.svg?style=social&label=Star)](https://github.com/nowo-tech/SepaPaymentBundle) [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen)](#tests-and-coverage)
 
-> ⭐ **Found this project useful?** Give it a star on GitHub! It helps us maintain and improve the project.
+> ⭐ **Found this useful?** Give it a star on GitHub! It helps us maintain and improve the project.
 
 **Symfony bundle for SEPA (Single Euro Payments Area) payment management** - Generate SEPA Credit Transfer (pain.001.001.03) and Direct Debit (pain.008.001.02) XML files compliant with ISO 20022 standards. Includes comprehensive IBAN/BIC validation, mandate management, XSD schema validation, and banking utilities for European payments.
 
@@ -45,8 +45,8 @@ Then, register the bundle in your `config/bundles.php`:
 <?php
 
 return [
-    // ...
-    Nowo\SepaPaymentBundle\NowoSepaPaymentBundle::class => ['all' => true],
+  // ...
+  Nowo\SepaPaymentBundle\NowoSepaPaymentBundle::class => ['all' => true],
 ];
 ```
 
@@ -64,20 +64,20 @@ use Symfony\Component\Translation\IdentityTranslator;
 
 $generator = new CreditTransferGenerator(new IbanValidator(), new IdentityTranslator());
 $xml = $generator->generateFromArray([
-    'reference' => 'MSG-001',
-    'initiatingPartyName' => 'My Company',
-    'paymentInfoId' => 'PMT-001',
-    'creditorIban' => 'ES9121000418450200051332',
-    'creditorName' => 'My Company Name',
-    'requestedExecutionDate' => '2024-01-20',
-    'transactions' => [
-        [
-            'amount' => 100.50,
-            'debtorIban' => 'GB82WEST12345698765432',
-            'debtorName' => 'John Doe',
-            'endToEndId' => 'E2E-001',
-        ],
+  'reference' => 'MSG-001',
+  'initiatingPartyName' => 'My Company',
+  'paymentInfoId' => 'PMT-001',
+  'creditorIban' => 'ES9121000418450200051332',
+  'creditorName' => 'My Company Name',
+  'requestedExecutionDate' => '2024-01-20',
+  'transactions' => [
+    [
+      'amount' => 100.50,
+      'debtorIban' => 'GB82WEST12345698765432',
+      'debtorName' => 'John Doe',
+      'endToEndId' => 'E2E-001',
     ],
+  ],
 ]);
 ```
 
@@ -88,25 +88,25 @@ use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 
 $generator = new DirectDebitGenerator(new IbanValidator());
 $xml = $generator->generateFromArray([
-    'reference' => 'MSG-001',
-    'bankAccountOwner' => 'My Company',
-    'paymentInfoId' => 'PMTINF-1',
-    'dueDate' => '2024-01-20',
-    'creditorName' => 'My Company Name',
-    'creditorIban' => 'ES9121000418450200051332',
-    'seqType' => 'RCUR',
-    'creditorId' => 'ES98ZZZ09999999999',
-    'localInstrumentCode' => 'CORE',
-    'transactions' => [
-        [
-            'amount' => 100.50,
-            'debtorIban' => 'GB82WEST12345698765432',
-            'debtorName' => 'John Doe',
-            'debtorMandate' => 'MANDATE-001',
-            'debtorMandateSignDate' => '2024-01-15',
-            'endToEndId' => 'E2E-001',
-        ],
+  'reference' => 'MSG-001',
+  'bankAccountOwner' => 'My Company',
+  'paymentInfoId' => 'PMTINF-1',
+  'dueDate' => '2024-01-20',
+  'creditorName' => 'My Company Name',
+  'creditorIban' => 'ES9121000418450200051332',
+  'seqType' => 'RCUR',
+  'creditorId' => 'ES98ZZZ09999999999',
+  'localInstrumentCode' => 'CORE',
+  'transactions' => [
+    [
+      'amount' => 100.50,
+      'debtorIban' => 'GB82WEST12345698765432',
+      'debtorName' => 'John Doe',
+      'debtorMandate' => 'MANDATE-001',
+      'debtorMandateSignDate' => '2024-01-15',
+      'endToEndId' => 'E2E-001',
     ],
+  ],
 ]);
 ```
 
@@ -144,6 +144,11 @@ Demos for Symfony 6, 7 and 8 run with **FrankenPHP** (development uses `Caddyfil
 ## Development
 
 See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for development setup, testing, code quality, and CI/CD information.
+
+## Tests and coverage
+
+- Tests: PHPUnit (PHP)
+- PHP: 100%
 
 ## License
 

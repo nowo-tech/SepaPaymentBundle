@@ -1,7 +1,7 @@
 # Makefile for SEPA Payment Bundle
 # Simplifies Docker commands for development
 
-.PHONY: help up down build shell install test test-coverage cs-check cs-fix qa clean assets ensure-up rector rector-dry phpstan release-check release-check-demos composer-sync update validate
+.PHONY: help up down build shell install test test-coverage coverage-php-percent cs-check cs-fix qa clean assets ensure-up rector rector-dry phpstan release-check release-check-demos composer-sync update validate validate-translations
 
 # Default target
 help:
@@ -73,7 +73,8 @@ test: ensure-up
 
 # Run tests with coverage (no -T so coverage is shown in console with colors)
 test-coverage: ensure-up
-	docker-compose exec php composer test-coverage
+	docker-compose exec php composer test-coverage | tee coverage-php.txt
+	./.scripts/php-coverage-percent.sh coverage-php.txt
 
 # Check code style
 cs-check: ensure-up
@@ -130,3 +131,7 @@ clean:
 	rm -f coverage.xml
 	rm -f .php-cs-fixer.cache
 
+
+# Validate bundle translation YAML files
+validate-translations: ensure-up
+	docker-compose exec -T php php -r 'require "vendor/autoload.php"; foreach (glob("src/Resources/translations/*.yaml") as $$f) { Symfony\Component\Yaml\Yaml::parseFile($$f); echo "OK: " . $$f . PHP_EOL; }'

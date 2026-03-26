@@ -216,7 +216,9 @@ test-coverage-all:
 		echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
 		echo "Testing $$demo with coverage..."; \
 		echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
+		$(MAKE) update-bundle-$$demo; \
 		if $(MAKE) test-coverage-$$demo; then \
+
 			echo "✅ $$demo coverage generated"; \
 		else \
 			echo "❌ $$demo coverage failed"; \
@@ -271,6 +273,7 @@ release-check: test-coverage-all release-verify
 release-verify:
 	@for demo in $(DEMOS); do \
 		port=$$(grep '^PORT=' $$demo/.env 2>/dev/null | cut -d= -f2 | tr -d '\r'); \
+		[ -z "$$port" ] && port=$$(grep '^PORT=' $$demo/.env.example 2>/dev/null | cut -d= -f2 | tr -d '\r'); \
 		[ -z "$$port" ] && port=8001; \
 		echo "🔍 Release verify: $$demo (port $$port)..."; \
 		$(MAKE) up-$$demo; \
