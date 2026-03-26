@@ -3,3 +3,13 @@ build:
   environment:
     php:
       version: 8.2
+    variables:
+      XDEBUG_MODE: coverage
+  nodes:
+    analysis:
+      project_setup:
+        override:
+          - command: composer install --no-interaction --prefer-dist
+      tests:
+        override:
+          - command: vendor/bin/phpunit --configuration phpunit.xml.dist
