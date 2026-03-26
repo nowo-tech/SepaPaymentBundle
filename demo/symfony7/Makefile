@@ -29,7 +29,10 @@ up:
 	@echo "Installing dependencies..."
 	@docker-compose exec -T -e COMPOSER_MEMORY_LIMIT=-1 php composer install --no-interaction
 	@$(MAKE) link-bundle
-	@echo "App ready (see .env for PORT)."
+	@URI=$$(grep "^DEFAULT_URI=" .env 2>/dev/null | cut -d= -f2- | tr -d '\r'); \
+	[ -z "$$URI" ] && URI=$$(grep "^DEFAULT_URI=" .env.example 2>/dev/null | cut -d= -f2- | tr -d '\r'); \
+	[ -z "$$URI" ] && URI="http://localhost:$$(grep "^PORT=" .env.example | cut -d= -f2 | tr -d '\r')"; \
+	echo "Demo started at: $$URI"
 
 down:
 	docker-compose down
@@ -79,6 +82,7 @@ test-coverage: ensure-up
 
 verify: ensure-up
 	@PORT=$$(grep '^PORT=' .env 2>/dev/null | cut -d= -f2 | tr -d '\r'); \
+	[ -z "$$PORT" ] && PORT=$$(grep "^PORT=" .env.example 2>/dev/null | cut -d= -f2 | tr -d '\r'); \
 	[ -z "$$PORT" ] && PORT=8001; \
 	code=$$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$$PORT 2>/dev/null || echo "000"); \
 	if [ "$$code" = "200" ]; then echo "✅ Demo responding (HTTP $$code)"; else echo "❌ Demo not responding (HTTP $$code)"; exit 1; fi

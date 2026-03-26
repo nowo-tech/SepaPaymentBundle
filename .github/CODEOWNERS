@@ -1,18 +1,21 @@
-# Code Owners for Composer Update Helper
-# These users will be automatically requested for review when someone opens a pull request
+# CODEOWNERS for SepaPaymentBundle
+# These users are automatically requested for review on pull requests.
 
-# Default owner for everything in the repo
+# Default owner for the whole repository
 * @HecFranco
 
-# GitHub Actions workflows
+# GitHub metadata and workflows
 /.github/ @HecFranco
 
-# Source code
+# Bundle source code
 /src/ @HecFranco
 
 # Tests
 /tests/ @HecFranco
 
-# Shell scripts
+# Tooling scripts
+/.scripts/ @HecFranco
 /bin/ @HecFranco
 
+# Demo projects
+/demo/ @HecFranco

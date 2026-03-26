@@ -1,9 +1,9 @@
-# Dependabot configuration for automated dependency updates
-# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
+# Dependabot configuration for SepaPaymentBundle
+# Docs: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
 
 version: 2
 updates:
-  # Maintain dependencies for Composer
+  # Root Composer dependencies (bundle)
   - package-ecosystem: "composer"
     directory: "/"
     schedule:
@@ -18,15 +18,67 @@ updates:
       - "dependencies"
       - "php"
     commit-message:
-      prefix: "chore(deps):"
+      prefix: "chore(deps)"
 
-  # Maintain dependencies for GitHub Actions
+  # Demo Composer dependencies
+  - package-ecosystem: "composer"
+    directory: "/demo/symfony6"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:15"
+      timezone: "Europe/Madrid"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "HecFranco"
+    labels:
+      - "dependencies"
+      - "demo"
+      - "symfony6"
+    commit-message:
+      prefix: "chore(deps-demo)"
+
+  - package-ecosystem: "composer"
+    directory: "/demo/symfony7"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:20"
+      timezone: "Europe/Madrid"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "HecFranco"
+    labels:
+      - "dependencies"
+      - "demo"
+      - "symfony7"
+    commit-message:
+      prefix: "chore(deps-demo)"
+
+  - package-ecosystem: "composer"
+    directory: "/demo/symfony8"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:25"
+      timezone: "Europe/Madrid"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "HecFranco"
+    labels:
+      - "dependencies"
+      - "demo"
+      - "symfony8"
+    commit-message:
+      prefix: "chore(deps-demo)"
+
+  # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
-      time: "09:00"
+      time: "09:30"
       timezone: "Europe/Madrid"
     open-pull-requests-limit: 3
     reviewers:
@@ -35,5 +87,4 @@ updates:
       - "dependencies"
       - "github-actions"
     commit-message:
-      prefix: "chore(ci):"
-
+      prefix: "chore(ci)"
