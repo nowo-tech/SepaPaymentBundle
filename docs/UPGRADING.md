@@ -5,6 +5,11 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
 ## Table of contents
 
+- [Upgrading from 1.2.16 to 1.2.17](#upgrading-from-1216-to-1217)
+  - [✨ Added (1.2.17)](#added-1217)
+  - [📝 Changed (1.2.17)](#changed-1217)
+  - [📚 Documentation (1.2.17)](#documentation-1217)
+  - [Backward Compatibility](#backward-compatibility-1217)
 - [Upgrading from 1.2.15 to 1.2.16](#upgrading-from-1215-to-1216)
   - [🐛 Fixed (1.2.16)](#fixed-1216)
   - [📝 Changed (1.2.16)](#changed-1216)
@@ -106,6 +111,29 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 - [General Upgrade Notes](#general-upgrade-notes)
   - [Demo Applications](#demo-applications)
 - [Getting Help](#getting-help)
+
+## Upgrading from 1.2.16 to 1.2.17
+
+### ✨ Added (1.2.17)
+
+- **Scrutinizer CI**: The repository includes `.scrutinizer.yml` (PHP 8.2 on `default-bionic`, `XDEBUG_MODE=coverage`, root PHPUnit). This only affects maintainers and Scrutinizer builds — **no change required** in your application when you `composer require` the bundle.
+
+### 📝 Changed (1.2.17)
+
+- **Demos** (in the bundle repo only): Default `PORT` / `DEFAULT_URI` differ per Symfony demo folder (8001, 8002, 8003) so you can run more than one demo locally without clashing.
+- **Development**: Root Docker Compose and Makefile targets (`validate-translations`, coverage volume) are for contributors; they do not change runtime behaviour of the installed package.
+- **Tooling**: Root `composer-sync` uses `composer install --dry-run` (it no longer rewrites `composer.lock` during `make release-check`). Rector skips moving console help into `#[AsCommand]` so Symfony Console **6.0 / 6.1** stay supported. **`demo/Makefile`**: `test-coverage-all` shell syntax fixed for `make -C demo release-check`.
+
+### 📚 Documentation (1.2.17)
+
+- **README / USAGE / UPGRADING**: Examples updated for `TranslatorInterface` and `CreditTransferGenerator` constructor order; **USAGE** XSD section and **DEMO-FRANKENPHP** paths/TOC; **INSTALLATION** table of contents.
+- See [CHANGELOG.md](CHANGELOG.md) for the full list.
+
+### Backward Compatibility (1.2.17)
+
+- **No breaking API changes**: Patch release. Upgrade with `composer update nowo-tech/sepa-payment-bundle` as usual.
+
+---
 
 ## Upgrading from 1.2.15 to 1.2.16
 

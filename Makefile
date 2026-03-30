@@ -96,10 +96,10 @@ rector-dry: ensure-up
 phpstan: ensure-up
 	docker-compose exec -T php composer phpstan
 
-# Validate composer.json and align composer.lock
+# Validate composer.json and verify composer.lock matches (does not rewrite the lock file)
 composer-sync: ensure-up
 	docker-compose exec -T php composer validate --strict
-	docker-compose exec -T php composer update --no-install
+	docker-compose exec -T php composer install --dry-run --no-interaction
 
 # Update composer.lock
 update: ensure-up

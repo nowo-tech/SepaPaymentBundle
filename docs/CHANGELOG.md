@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.2.17] - 2026-03-30](#1217-2026-03-30)
+  - [Added](#added-1217)
+  - [Changed](#changed-1217)
+  - [Documentation](#documentation-1217)
+  - [Backward Compatibility](#backward-compatibility-1217)
 - [[1.2.16] - 2026-03-19](#1216-2026-03-19)
   - [Fixed](#fixed)
   - [Changed](#changed)
@@ -96,12 +101,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Documentation
+## [1.2.17] - 2026-03-30
 
-- **README / USAGE / UPGRADING**: Standalone examples for `CreditTransferGenerator` and `XsdValidator` now include the required `TranslatorInterface` (using `IdentityTranslator` where appropriate). Constructor argument order for BIC lookup, XSD validation, events, and logging matches the current `CreditTransferGenerator` signature.
-- **USAGE.md**: Removed stray text accidentally inserted before the XSD section; fixed `XsdValidator` snippets to pass a translator.
-- **DEMO-FRANKENPHP.md**: Caddyfile path corrected to `docker/frankenphp/Caddyfile.dev`; `bundles.php` example updated with Twig Inspector (as in demos); clarified production bundle loading.
-- **README**: Demo section clarifies FrankenPHP dev (no worker) vs production-style (worker).
+### Added (1.2.17)
+
+- **Scrutinizer CI**: Added `.scrutinizer.yml` — build image `default-bionic`, PHP **8.2**, environment variable `XDEBUG_MODE=coverage`, `composer install --no-interaction --prefer-dist`, and PHPUnit using the root **`phpunit.xml.dist`** only. This avoids the PHP build failure when OpenSSL on the default image is too old for PHP 8.2+, and avoids running PHPUnit against demo apps without a committed `vendor/` tree.
+
+### Changed (1.2.17)
+
+- **Demos**: Distinct default **`PORT`** and **`DEFAULT_URI`** per demo (`symfony6`: 8001, `symfony7`: 8002, `symfony8`: 8003). Demo **`.gitignore`** files align with local env files and common archive patterns.
+- **demo/Makefile**: Fixed shell syntax in **`test-coverage-all`** (`if` / `then` / `fi`) so `make -C demo release-check` runs correctly.
+- **Development**: Root **`docker-compose`** uses a single **`php`** service with a **`coverage-data`** volume mounted at `/app/coverage`. Root **Makefile** includes a **`validate-translations`** target for bundle YAML under `src/Resources/translations/`.
+- **Makefile**: `composer-sync` runs `composer install --dry-run` instead of `composer update --no-install`, so **`composer.lock` is not rewritten** during `make release-check` (use `make update` when you intentionally refresh the lock).
+- **Rector**: `CommandHelpToAttributeRector` is skipped so console commands keep help in `configure()` / `setHelp()` and remain compatible with **Symfony Console 6.0 and 6.1** (the `help` parameter on `#[AsCommand]` exists only from 6.2+).
+
+### Documentation (1.2.17)
+
+- **README / USAGE / UPGRADING**: Standalone examples for `CreditTransferGenerator` and `XsdValidator` include the required `TranslatorInterface` (using `IdentityTranslator` where appropriate). Constructor argument order for BIC lookup, XSD validation, events, and logging matches the current `CreditTransferGenerator` signature.
+- **USAGE.md**: Removed stray text before the XSD section; `XsdValidator` snippets pass a translator.
+- **DEMO-FRANKENPHP.md**: Caddyfile path corrected to `docker/frankenphp/Caddyfile.dev`; `bundles.php` example updated with Twig Inspector (as in demos); clarified production bundle loading; **table of contents** lists `###` subsections under Development configuration.
+- **INSTALLATION.md**: Table of contents for the main sections.
+- **README**: Demo section clarifies FrankenPHP development (no worker) vs production-style (worker); highlighted line uses **Found this useful?** for consistency with project documentation standards.
+
+### Backward Compatibility (1.2.17)
+
+- **No breaking API changes**: Patch release. Applications using the bundle as a dependency do not need code changes. Scrutinizer and Makefile targets affect maintainers and CI only.
 
 ## [1.2.16] - 2026-03-19
 
