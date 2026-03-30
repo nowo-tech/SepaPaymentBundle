@@ -5,7 +5,7 @@ Maintainers: follow this process before creating a new tag.
 ## Pre-release checklist
 
 1. **Update documentation**
-   - Ensure [CHANGELOG.md](CHANGELOG.md) has an entry for the new version (e.g. `[1.2.16] - YYYY-MM-DD`) and that `[Unreleased]` is updated or empty.
+   - Ensure [CHANGELOG.md](CHANGELOG.md) has an entry for the new version (e.g. `[1.2.17] - YYYY-MM-DD`) and that `[Unreleased]` is updated or empty.
    - Update [UPGRADING.md](UPGRADING.md) if there are behaviour changes or breaking changes for that version.
 
 2. **Run quality checks**
@@ -31,8 +31,8 @@ Maintainers: follow this process before creating a new tag.
 4. **Create an annotated tag** (replace with the version you are releasing):
 
    ```bash
-   git tag -a v1.2.16 -m "Release v1.2.16"
-   git push origin v1.2.16
+   git tag -a v1.2.17 -m "Release v1.2.17"
+   git push origin v1.2.17
    ```
 
    If the bundle is released from a separate clone (e.g. `nowo-tech/sepa-payment-bundle`), run these commands in the clone that is pushed to the release remote.

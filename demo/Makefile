@@ -218,7 +218,6 @@ test-coverage-all:
 		echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
 		$(MAKE) update-bundle-$$demo; \
 		if $(MAKE) test-coverage-$$demo; then \
-
 			echo "✅ $$demo coverage generated"; \
 		else \
 			echo "❌ $$demo coverage failed"; \
