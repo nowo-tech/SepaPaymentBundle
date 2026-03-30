@@ -43,6 +43,38 @@ Maintainers: follow this process before creating a new tag.
 6. **Packagist**  
    If the package is on [Packagist](https://packagist.org/packages/nowo-tech/sepa-payment-bundle), the new tag is picked up automatically (or use “Update” there).
 
-## Version-specific checklist (optional)
+## Current release (v1.2.17)
 
-For detailed version-specific notes (e.g. “Documentation reviewed for 1.2.15”), see [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) when it exists for that release.
+> **Renew this block on each release:** update the version in the heading, the bullets under “Documentation reviewed”, and the example commands below.
+
+### Documentation reviewed for this release
+
+- **CHANGELOG.md**: `[1.2.17] - 2026-03-30` with Added (Scrutinizer `.scrutinizer.yml`), Changed (demos, dev tooling), Documentation (README/USAGE/UPGRADING/DEMO-FRANKENPHP/INSTALLATION), Backward compatibility.
+- **UPGRADING.md**: “Upgrading from 1.2.16 to 1.2.17” with Added, Changed, Documentation and backward compatibility.
+
+### Example commands for this version
+
+The steps are the same as in [Pre-release checklist](#pre-release-checklist) and [Tag and publish](#tag-and-publish). Copy-paste for **v1.2.17**:
+
+```bash
+make release-check
+git status
+git add -A
+git commit -m "Release 1.2.17: Scrutinizer CI, docs and demo tooling"
+git tag -a v1.2.17 -m "Release v1.2.17"
+git push origin main
+git push origin v1.2.17
+```
+
+### Verify on GitHub
+
+- *Actions* → “Create Release” workflow green; *Releases* → **v1.2.17** with body aligned to `docs/CHANGELOG.md` (`## [1.2.17]`).
+
+### If the tag already exists but the release failed
+
+- Re-run the “Create GitHub Release” job from *Actions* (Re-run jobs), or delete the tag on the remote and recreate and push `v1.2.17`.
+
+### Notes
+
+- `.github/workflows/release.yml` runs when pushing a tag `v*`.
+- The release body is generated from the `## [1.2.17]` section of `docs/CHANGELOG.md`.
