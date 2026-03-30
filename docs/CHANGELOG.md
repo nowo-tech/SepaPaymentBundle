@@ -101,6 +101,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+
+- **RELEASE.md**: Merged the version-specific checklist into **`RELEASE.md`** under **Current release (vX.Y.Z)** and removed **`RELEASE_CHECKLIST.md`**. The project README links only to `docs/RELEASE.md` for the maintainer release process.
+
 ## [1.2.17] - 2026-03-30
 
 ### Added (1.2.17)

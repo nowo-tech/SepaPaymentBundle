@@ -173,7 +173,6 @@ Created by [Héctor Franco Aceituno](https://github.com/HecFranco) at [Nowo.tech
 ### Additional documentation
 
 - [Commands](docs/COMMANDS.md)
-- [Release checklist (version-specific)](docs/RELEASE_CHECKLIST.md)
 - [Demo projects](docs/DEMOS.md)
 - [Demo with FrankenPHP (development and production)](docs/DEMO-FRANKENPHP.md)
 - [Development](docs/DEVELOPMENT.md)
