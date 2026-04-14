@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.2.18] - 2026-04-14](#1218-2026-04-14)
+  - [Added](#added-1218)
+  - [Changed](#changed-1218)
+  - [Documentation](#documentation-1218)
+  - [Backward Compatibility](#backward-compatibility-1218)
 - [[1.2.17] - 2026-03-30](#1217-2026-03-30)
   - [Added](#added-1217)
   - [Changed](#changed-1217)
@@ -101,9 +106,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Documentation
+## [1.2.18] - 2026-04-14
 
-- **RELEASE.md**: Merged the version-specific checklist into **`RELEASE.md`** under **Current release (vX.Y.Z)** and removed **`RELEASE_CHECKLIST.md`**. The project README links only to `docs/RELEASE.md` for the maintainer release process.
+### Added (1.2.18)
+
+- **Repository tooling (maintainers)**: `.cursor/rules/` (PHP/Symfony bundle, Twig/assets, frontend TS/Vite, tests/quality, docs/release, global), `.cursorignore`, and `.github/copilot-instructions.md`.
+- **GitHub**: Workflows **`pr-lint.yml`** (YAML/markdown checks on pull requests) and **`stale.yml`** (stale issues/PRs). **Dependabot**: grouped updates for **`symfony/*`** and **`phpstan/*`** on the root Composer ecosystem entry.
+
+### Changed (1.2.18)
+
+- **Scrutinizer** (`.scrutinizer.yml`): PHP code rating and duplication checks; path filters excluding `demo/`, `tests/`, `vendor/`, `node_modules/`; test run uses `composer test-coverage` with Clover **`coverage.xml`** and Xdebug/coverage ini (see file for full layout).
+- **Demos**: `docker-compose.yml` for **symfony6**, **symfony7**, and **symfony8** sets explicit **`dns`** (`8.8.8.8`, `8.8.4.4`) to reduce Docker/WSL failures resolving `repo.packagist.org`.
+- **Composer locks**: Root **`composer.lock`** and demo locks (**symfony7**, **symfony8**) refreshed (Symfony **8.0.x** and related polyfills in resolved trees where applicable).
+- **Rector**: Removed a dead `withSkip()` entry for `CommandHelpToAttributeRector` (not registered in the current Rector set; **no change** to console commands, which still use `setHelp()` for Symfony 6.0 / 6.1 compatibility).
+
+### Documentation (1.2.18)
+
+- **RELEASE.md**: Maintainer release checklist lives only in **`RELEASE.md`** under **Current release (vX.Y.Z)**; **`RELEASE_CHECKLIST.md`** removed. **README** links to `docs/RELEASE.md` only for the release process.
+
+### Backward Compatibility (1.2.18)
+
+- **No breaking API changes** to the bundle’s public PHP API. Cursor/GitHub workflow and Scrutinizer changes affect **repository maintenance** only. Demo DNS and lock updates apply when you run demos from this repo; applications consuming **`nowo-tech/sepa-payment-bundle`** via Composer are unchanged unless you pin transitive versions yourself.
 
 ## [1.2.17] - 2026-03-30
 
