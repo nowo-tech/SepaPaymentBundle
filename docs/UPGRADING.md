@@ -5,6 +5,11 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
 ## Table of contents
 
+- [Upgrading from 1.2.17 to 1.2.18](#upgrading-from-1217-to-1218)
+  - [✨ Added (1.2.18)](#added-1218)
+  - [📝 Changed (1.2.18)](#changed-1218)
+  - [📚 Documentation (1.2.18)](#documentation-1218)
+  - [Backward Compatibility](#backward-compatibility-1218)
 - [Upgrading from 1.2.16 to 1.2.17](#upgrading-from-1216-to-1217)
   - [✨ Added (1.2.17)](#added-1217)
   - [📝 Changed (1.2.17)](#changed-1217)
@@ -111,6 +116,29 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 - [General Upgrade Notes](#general-upgrade-notes)
   - [Demo Applications](#demo-applications)
 - [Getting Help](#getting-help)
+
+## Upgrading from 1.2.17 to 1.2.18
+
+### ✨ Added (1.2.18)
+
+- **Cursor / Copilot (repo only)**: `.cursor/rules/*.mdc`, `.cursorignore`, `.github/copilot-instructions.md` — no impact on your application when you install the package.
+- **GitHub**: `pr-lint.yml`, `stale.yml`, and Dependabot groups for Symfony / PHPStan on the root Composer config — maintenance only.
+
+### 📝 Changed (1.2.18)
+
+- **Scrutinizer**: Stronger checks and Clover coverage from `composer test-coverage` (see `.scrutinizer.yml`).
+- **Demos**: Docker Compose **`dns`** on Symfony 6/7/8 demos if Composer fails to resolve Packagist under Docker/WSL.
+- **Locks**: Refreshed **`composer.lock`** (root and some demos) — run `composer update` in your own project as needed; the bundle’s **`composer.json`** constraints are unchanged.
+
+### 📚 Documentation (1.2.18)
+
+- **RELEASE.md** is the single maintainer guide; **RELEASE_CHECKLIST.md** was removed (see [CHANGELOG.md](CHANGELOG.md)).
+
+### Backward Compatibility (1.2.18)
+
+- **No breaking API changes**: patch release. `composer update nowo-tech/sepa-payment-bundle` as usual.
+
+---
 
 ## Upgrading from 1.2.16 to 1.2.17
 
