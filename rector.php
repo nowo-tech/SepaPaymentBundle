@@ -14,6 +14,7 @@ declare(strict_types=1);
  * @see https://getrector.com/documentation
  */
 use Rector\Config\RectorConfig;
+use Rector\Symfony\Symfony73\Rector\Class_\CommandHelpToAttributeRector;
 use Rector\ValueObject\PhpVersion;
 
 return RectorConfig::configure()
@@ -31,4 +32,6 @@ return RectorConfig::configure()
         __DIR__ . '/demo',
         __DIR__ . '/vendor',
         __DIR__ . '/tests', // Skip tests: some Symfony rules (e.g. RequestStack constructor) don't match Symfony's actual API
+        // Keep setHelp() in configure(): #[AsCommand(help: …)] needs Symfony Console 6.2+.
+        CommandHelpToAttributeRector::class,
     ]);

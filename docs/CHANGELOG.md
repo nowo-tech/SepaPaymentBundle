@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.2.19] - 2026-05-12](#1219-2026-05-12)
+  - [Changed](#changed-1219)
+  - [Backward Compatibility](#backward-compatibility-1219)
 - [[1.2.18] - 2026-04-14](#1218-2026-04-14)
   - [Added](#added-1218)
   - [Changed](#changed-1218)
@@ -105,6 +108,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [1.2.19] - 2026-05-12
+
+### Changed (1.2.19)
+
+- **Composer locks**: Refreshed root **`composer.lock`**, **`demo/symfony7/composer.lock`**, and **`demo/symfony8/composer.lock`** for current Symfony **7.x / 8.x** and related packages (including **digitick/sepa-xml** 3.1.x, **symfony/cache** 8.0.x, **symfony/cache-contracts** 3.7.x, and aligned component URLs/references in generated metadata).
+- **Config reference (demo + tests)**: **`demo/symfony8/config/reference.php`** regenerated/aligned for Symfony config reference typing; **`tests/Fixtures/app/config/reference.php`** adjusted for the integration test fixture (**no change** to the bundle’s runtime configuration API).
+- **Rector**: Skip **`CommandHelpToAttributeRector`** (Symfony 7.3 rule set) so command help stays in **`configure()`** via **`setHelp()`**, preserving **Symfony Console 6.0 / 6.1** compatibility (**`#[AsCommand(help: …)]`** requires **6.2+**).
+
+### Backward Compatibility (1.2.19)
+
+- **No breaking API changes** to **`nowo-tech/sepa-payment-bundle`**. This patch updates **root and demo** lock files and **reference.php** files used by the demo and tests; applications consuming the bundle are unaffected unless you copy those files verbatim.
 
 ## [1.2.18] - 2026-04-14
 

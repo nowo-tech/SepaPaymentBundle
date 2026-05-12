@@ -5,6 +5,9 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
 ## Table of contents
 
+- [Upgrading from 1.2.18 to 1.2.19](#upgrading-from-1218-to-1219)
+  - [📝 Changed (1.2.19)](#changed-1219)
+  - [Backward Compatibility](#backward-compatibility-1219)
 - [Upgrading from 1.2.17 to 1.2.18](#upgrading-from-1217-to-1218)
   - [✨ Added (1.2.18)](#added-1218)
   - [📝 Changed (1.2.18)](#changed-1218)
@@ -116,6 +119,20 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 - [General Upgrade Notes](#general-upgrade-notes)
   - [Demo Applications](#demo-applications)
 - [Getting Help](#getting-help)
+
+## Upgrading from 1.2.18 to 1.2.19
+
+### 📝 Changed (1.2.19)
+
+- **Repository / demos**: Root **`composer.lock`** and **`demo/symfony7`** / **`demo/symfony8`** locks refreshed (Symfony and **digitick/sepa-xml** bumps in the resolved tree). Run `composer update` at the bundle root or inside each demo if you maintain a long-lived clone.
+- **Reference fixtures**: **`demo/symfony8/config/reference.php`** and **`tests/Fixtures/app/config/reference.php`** — maintenance only; no action needed in consuming applications.
+- **Rector (maintainers)**: **`rector.php`** skips **`CommandHelpToAttributeRector`** again so **`make release-check`** stays green while commands keep **`setHelp()`** for Console **6.0 / 6.1**.
+
+### Backward Compatibility (1.2.19)
+
+- **No breaking API changes**: patch release. `composer update nowo-tech/sepa-payment-bundle` as usual.
+
+---
 
 ## Upgrading from 1.2.17 to 1.2.18
 
