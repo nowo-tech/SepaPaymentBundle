@@ -43,38 +43,39 @@ Maintainers: follow this process before creating a new tag.
 6. **Packagist**  
    If the package is on [Packagist](https://packagist.org/packages/nowo-tech/sepa-payment-bundle), the new tag is picked up automatically (or use “Update” there).
 
-## Current release (v1.2.19)
+## Current release (v1.2.20)
 
 > **Renew this block on each release:** update the version in the heading, the bullets under “Documentation reviewed”, and the example commands below.
 
 ### Documentation reviewed for this release
 
-- **CHANGELOG.md**: `[1.2.19] - 2026-05-12` with Changed (root + demo locks, `reference.php` demo + test fixture, Rector skip), Backward compatibility.
-- **UPGRADING.md**: “Upgrading from 1.2.18 to 1.2.19” with Changed (locks, reference fixtures, Rector) and backward compatibility.
+- **CHANGELOG.md**: `[1.2.20] - 2026-06-30` with Added (CodeRabbit, SPEC-DRIVEN-DEVELOPMENT), Changed (CI matrix, REQ-MAKE-008 Makefiles, locks, composer.json URLs), Documentation, Backward compatibility.
+- **UPGRADING.md**: “Upgrading from 1.2.19 to 1.2.20” with Added, Changed, Documentation, and backward compatibility.
+- **SPEC-DRIVEN-DEVELOPMENT.md**: **`REQ-MAKE-008`** documented in the requirement table.
 
 ### Example commands for this version
 
-The steps are the same as in [Pre-release checklist](#pre-release-checklist) and [Tag and publish](#tag-and-publish). Copy-paste for **v1.2.19**:
+The steps are the same as in [Pre-release checklist](#pre-release-checklist) and [Tag and publish](#tag-and-publish). Copy-paste for **v1.2.20**:
 
 ```bash
 make release-check
 git status
 git add -A
-git commit -m "Release 1.2.19: demo locks and fixture reference"
-git tag -a v1.2.19 -m "Release v1.2.19"
+git commit -m "Release 1.2.20: CodeRabbit, update-deps Makefiles, CI matrix"
+git tag -a v1.2.20 -m "Release v1.2.20"
 git push origin main
-git push origin v1.2.19
+git push origin v1.2.20
 ```
 
 ### Verify on GitHub
 
-- *Actions* → “Create Release” workflow green; *Releases* → **v1.2.19** with body aligned to `docs/CHANGELOG.md` (`## [1.2.19]`).
+- *Actions* → “Create Release” workflow green; *Releases* → **v1.2.20** with body aligned to `docs/CHANGELOG.md` (`## [1.2.20]`).
 
 ### If the tag already exists but the release failed
 
-- Re-run the “Create GitHub Release” job from *Actions* (Re-run jobs), or delete the tag on the remote and recreate and push `v1.2.19` (e.g. `git push origin +v1.2.19` to force-update the tag).
+- Re-run the “Create GitHub Release” job from *Actions* (Re-run jobs), or delete the tag on the remote and recreate and push `v1.2.20` (e.g. `git push origin +v1.2.20` to force-update the tag).
 
 ### Notes
 
 - `.github/workflows/release.yml` runs when pushing a tag `v*`.
-- The release body is generated from the `## [1.2.19]` section of `docs/CHANGELOG.md`.
+- The release body is generated from the `## [1.2.20]` section of `docs/CHANGELOG.md`.

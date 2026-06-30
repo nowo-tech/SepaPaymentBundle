@@ -56,7 +56,7 @@ The sections below state **behavior**; this subsection states **intent** in back
 
 | ID | Where | What it marks |
 | --- | --- | --- |
-| *(none yet)* | `Makefile`, `demo/**/Makefile` | Add `REQ-*` comments next to targets when scripted behavior must stay traceable; document each ID here. |
+| **REQ-MAKE-008** | Root `Makefile`, `demo/symfony6/Makefile`, `demo/symfony7/Makefile`, `demo/symfony8/Makefile`, `demo/Makefile` | Standard **`update-deps`** / **`update-deps-all`** targets (shared `bundles/.scripts/` fragments). Requires **`COMPOSE`** and **`SERVICE_PHP`** before include. |
 
 When you change scripted behavior, **update the existing `REQ-*` comment** if the ID still matches the rule, or **add a new `REQ-*`** and document it here and in the PR description.
 
