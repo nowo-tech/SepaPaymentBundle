@@ -5,6 +5,11 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
 ## Table of contents
 
+- [Upgrading from 1.2.19 to 1.2.20](#upgrading-from-1219-to-1220)
+  - [✨ Added (1.2.20)](#added-1220)
+  - [📝 Changed (1.2.20)](#changed-1220)
+  - [📚 Documentation (1.2.20)](#documentation-1220)
+  - [Backward Compatibility](#backward-compatibility-1220)
 - [Upgrading from 1.2.18 to 1.2.19](#upgrading-from-1218-to-1219)
   - [📝 Changed (1.2.19)](#changed-1219)
   - [Backward Compatibility](#backward-compatibility-1219)
@@ -119,6 +124,30 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 - [General Upgrade Notes](#general-upgrade-notes)
   - [Demo Applications](#demo-applications)
 - [Getting Help](#getting-help)
+
+## Upgrading from 1.2.19 to 1.2.20
+
+### ✨ Added (1.2.20)
+
+- **CodeRabbit (repo only)**: Optional automated PR reviews via `.coderabbit.yaml` — no impact on applications that `composer require` the bundle.
+- **Spec-driven development**: New **`docs/SPEC-DRIVEN-DEVELOPMENT.md`** describes product scope, verification, and **`REQ-*`** anchors for maintainers.
+
+### 📝 Changed (1.2.20)
+
+- **CI**: Symfony **7.4** and **8.1** added to the GitHub Actions matrix (with PHP exclusions). Your app’s supported Symfony range in **`composer.json`** is unchanged.
+- **Maintainers**: **`make update-deps`** (bundle + demos) requires **`COMPOSE`** / **`SERVICE_PHP`** in Makefiles — already fixed in this release. Clone/pull and run `make update-deps` as usual.
+- **Composer locks**: Root and demo locks refreshed — run `composer update` in your project only when you intentionally bump dependencies.
+
+### 📚 Documentation (1.2.20)
+
+- **README** and **CONTRIBUTING** use canonical GitHub URLs (`nowo-tech/SepaPaymentBundle`).
+- See [CHANGELOG.md](CHANGELOG.md) for the full list.
+
+### Backward Compatibility (1.2.20)
+
+- **No breaking API changes**: patch release. `composer update nowo-tech/sepa-payment-bundle` as usual.
+
+---
 
 ## Upgrading from 1.2.18 to 1.2.19
 

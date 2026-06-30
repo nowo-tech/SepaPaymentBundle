@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.2.20] - 2026-06-30](#1220-2026-06-30)
+  - [Added](#added-1220)
+  - [Changed](#changed-1220)
+  - [Documentation](#documentation-1220)
+  - [Backward Compatibility](#backward-compatibility-1220)
 - [[1.2.19] - 2026-05-12](#1219-2026-05-12)
   - [Changed](#changed-1219)
   - [Backward Compatibility](#backward-compatibility-1219)
@@ -108,6 +113,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [1.2.20] - 2026-06-30
+
+### Added (1.2.20)
+
+- **CodeRabbit (maintainers)**: `.coderabbit.yaml` and `.github/workflows/coderabbit.yml` for automated pull-request reviews when the CodeRabbit GitHub App is installed.
+- **Documentation**: **`docs/SPEC-DRIVEN-DEVELOPMENT.md`** — product scope, verification workflow, and **`REQ-*`** traceability; linked from **README** and **`docs/ENGRAM.md`**.
+
+### Changed (1.2.20)
+
+- **CI**: GitHub Actions matrix adds Symfony **7.4** and **8.1** with PHP exclusion rules aligned to Symfony’s minimum PHP versions.
+- **Makefile (REQ-MAKE-008)**: Root **`Makefile`** and each demo **`Makefile`** (`symfony6`, `symfony7`, `symfony8`) define **`COMPOSE := docker-compose`** and **`SERVICE_PHP := php`** before including shared **`update-deps`** fragments — fixes **`make update-deps`** failing with `exec: -T: not found` / `run: not found`.
+- **Composer locks**: Refreshed root **`composer.lock`** and demo locks (**symfony6**, **symfony7**, **symfony8**); **symfony7** demo adds regenerated **`config/reference.php`** and package config (**`csrf.yaml`**, **`property_info.yaml`**).
+- **composer.json**: **`homepage`**, **`support.issues`**, and **`support.source`** URLs use the PascalCase repo slug **`nowo-tech/SepaPaymentBundle`**.
+
+### Documentation (1.2.20)
+
+- **README**: Symfony compatibility badge lists **6.0+ | 7.4+ | 8.0 | 8.1+**; **Documentation** section links to **Spec-driven development**.
+- **CONTRIBUTING.md**: Issue links point to **`https://github.com/nowo-tech/SepaPaymentBundle/issues`**.
+
+### Backward Compatibility (1.2.20)
+
+- **No breaking API changes** to **`nowo-tech/sepa-payment-bundle`**. CodeRabbit, CI matrix, Makefile, and lock updates affect **repository maintenance** and local demos only.
 
 ## [1.2.19] - 2026-05-12
 
