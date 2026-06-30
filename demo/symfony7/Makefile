@@ -83,3 +83,9 @@ verify: ensure-up
 	[ -z "$$PORT" ] && PORT=8001; \
 	code=$$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$$PORT 2>/dev/null || echo "000"); \
 	if [ "$$code" = "200" ]; then echo "✅ Demo responding (HTTP $$code)"; else echo "❌ Demo not responding (HTTP $$code)"; exit 1; fi
+
+# REQ-MAKE-008: update-deps (REQ-MAKE-008)
+COMPOSE := docker-compose
+SERVICE_PHP := php
+BUNDLE_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/../..)
+include $(BUNDLE_ROOT)/../.scripts/Makefile.demo-update-deps.mk

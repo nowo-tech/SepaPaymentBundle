@@ -135,3 +135,9 @@ clean:
 # Validate bundle translation YAML files
 validate-translations: ensure-up
 	docker-compose exec -T php php -r 'require "vendor/autoload.php"; foreach (glob("src/Resources/translations/*.yaml") as $$f) { Symfony\Component\Yaml\Yaml::parseFile($$f); echo "OK: " . $$f . PHP_EOL; }'
+
+# REQ-MAKE-008: update-deps (REQ-MAKE-008)
+COMPOSE := docker-compose
+SERVICE_PHP := php
+BUNDLE_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+include $(BUNDLE_ROOT)/../.scripts/Makefile.update-deps.mk

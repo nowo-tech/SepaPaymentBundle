@@ -34,10 +34,10 @@
         "xsd-validation",
         "european-payments"
     ],
-    "homepage": "https://github.com/nowo-tech/sepa-payment-bundle",
+    "homepage": "https://github.com/nowo-tech/SepaPaymentBundle",
     "support": {
-        "issues": "https://github.com/nowo-tech/sepa-payment-bundle/issues",
-        "source": "https://github.com/nowo-tech/sepa-payment-bundle"
+        "issues": "https://github.com/nowo-tech/SepaPaymentBundle/issues",
+        "source": "https://github.com/nowo-tech/SepaPaymentBundle"
     },
     "authors": [
         {
