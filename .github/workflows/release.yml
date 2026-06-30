@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0  # Required to get full history and tag message
 
@@ -140,7 +140,7 @@ jobs:
 
       - name: Check if release exists and determine latest status
         id: check-existing
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const tagName = '${{ steps.tag.outputs.TAG_NAME }}';
@@ -208,7 +208,7 @@ jobs:
 
       - name: Update existing release
         if: steps.check-existing.outputs.exists == 'true'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           TAG_NAME: ${{ steps.tag.outputs.TAG_NAME }}
           TAG_MESSAGE: ${{ steps.tag_message.outputs.MESSAGE }}
@@ -276,7 +276,7 @@ jobs:
 
       - name: Create Release
         if: steps.check-existing.outputs.exists != 'true'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           TAG_NAME: ${{ steps.tag.outputs.TAG_NAME }}
           TAG_MESSAGE: ${{ steps.tag_message.outputs.MESSAGE }}
