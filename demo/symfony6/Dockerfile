@@ -9,7 +9,7 @@ RUN apk add --no-cache \
     bash
 
 # Install PHP extensions
-RUN install-php-extensions zip
+RUN install-php-extensions intl zip
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
