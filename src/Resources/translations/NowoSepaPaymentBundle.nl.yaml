@@ -1,0 +1,50 @@
+# SEPA Payment Bundle - Dutch Translations
+# Domain: NowoSepaPaymentBundle
+
+# Validation errors
+validation.missing_required_field: 'Verplicht veld ontbreekt: %field%'
+validation.missing_required_transaction_field: 'Verplicht transactieveld ontbreekt: %field%'
+validation.invalid_creditor_iban: 'Ongeldige crediteur-IBAN: %iban%'
+validation.invalid_debtor_iban: 'Ongeldige debiteur-IBAN: %iban%'
+validation.invalid_iban: 'Ongeldige IBAN: %iban%'
+validation.invalid_bic: 'Ongeldige BIC: %bic%'
+validation.invalid_creditor_identifier: 'Ongeldige SEPA-crediteuridentificatie: %identifier%'
+validation.invalid_xml_format: 'Ongeldig XML-formaat: %errors%'
+validation.xsd_validation_failed: 'XSD-validatie mislukt: %errors%'
+validation.generated_xml_failed_xsd: 'Gegenereerde XML heeft XSD-validatie niet doorstaan: %error%'
+
+# Date validation errors
+validation.invalid_date_type: '%field% moet een string of DateTimeInterface zijn'
+validation.invalid_creation_date: 'creationDate moet een string of DateTimeInterface zijn'
+validation.invalid_execution_date: 'requestedExecutionDate moet een string of DateTimeInterface zijn'
+
+# Array key validation errors
+validation.invalid_keys_top_level: 'Ongeldige sleutel(s) op het hoogste niveau: %keys%. Op het hoogste niveau (betalingsinformatie) moet u "debtor*"-sleutels gebruiken (bijv. debtorIban, debtorName, debtorBic) om het betalende bedrijf te representeren. Voorgestelde sleutels: %suggestions%. Opmerking: "creditor*"-sleutels mogen alleen worden gebruikt binnen de "transactions"-array (voor begunstigden die betalingen ontvangen).'
+validation.invalid_keys_transaction: 'Ongeldige sleutel(s) in transactie: %keys%. Binnen de transacties-array moet u "creditor*"-sleutels gebruiken (bijv. creditorIban, creditorName, creditorBic) om de begunstigde te representeren die de betaling ontvangt. Voorgestelde sleutels: %suggestions%. Opmerking: "debtor*"-sleutels mogen alleen op het hoogste niveau worden gebruikt (voor het betalende bedrijf).'
+
+# Business rules validation
+validation.invalid_transaction_amount: 'Transactiebedrag %amount% overschrijdt het maximaal toegestane bedrag van %max_amount% EUR'
+validation.invalid_transaction_count: 'Aantal transacties %count% overschrijdt het maximaal toegestane aantal van %max_count%'
+validation.invalid_execution_date_future: 'Uitvoeringsdatum moet vandaag of in de toekomst zijn'
+validation.invalid_currency: 'Valuta %currency% is niet geldig voor SEPA. Alleen EUR is toegestaan.'
+validation.invalid_sequence_type: 'Ongeldig sequencetype: %type%. Moet een van de volgende zijn: %valid_types%'
+validation.invalid_mandate_expiration: 'Vervaldatum van het mandaat moet in de toekomst liggen'
+
+# Converter errors
+validation.invalid_ccc_format: 'Ongeldig CCC-formaat. 20 cijfers verwacht.'
+
+# Constraint messages (Symfony validator)
+iban:
+    invalid: 'Deze waarde is geen geldige IBAN.'
+
+bic:
+    invalid: 'Deze waarde is geen geldige BIC.'
+
+sepa_creditor_identifier:
+    invalid: 'Deze waarde is geen geldige SEPA-crediteuridentificatie.'
+
+credit_card:
+    invalid: 'Deze waarde is geen geldig creditcardnummer.'
+
+sepa_country:
+    invalid: 'Deze waarde is geen geldige SEPA-landcode.'

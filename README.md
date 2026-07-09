@@ -170,7 +170,7 @@ Created by [Héctor Franco Aceituno](https://github.com/HecFranco) at [Nowo.tech
 - [Security](docs/SECURITY.md)
 - [Engram](docs/ENGRAM.md)
 - [Spec-driven development](docs/SPEC-DRIVEN-DEVELOPMENT.md)
-
+- [GitHub Spec Kit](docs/SPEC-KIT.md)
 ### Additional documentation
 
 - [Commands](docs/COMMANDS.md)
