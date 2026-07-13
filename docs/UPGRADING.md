@@ -5,6 +5,11 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
 ## Table of contents
 
+- [Upgrading from 1.2.20 to 1.2.21](#upgrading-from-1220-to-1221)
+  - [✨ Added (1.2.21)](#added-1221)
+  - [📝 Changed (1.2.21)](#changed-1221)
+  - [📚 Documentation (1.2.21)](#documentation-1221)
+  - [Backward Compatibility](#backward-compatibility-1221)
 - [Upgrading from 1.2.19 to 1.2.20](#upgrading-from-1219-to-1220)
   - [✨ Added (1.2.20)](#added-1220)
   - [📝 Changed (1.2.20)](#changed-1220)
@@ -124,6 +129,28 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 - [General Upgrade Notes](#general-upgrade-notes)
   - [Demo Applications](#demo-applications)
 - [Getting Help](#getting-help)
+
+## Upgrading from 1.2.20 to 1.2.21
+
+### ✨ Added (1.2.21)
+
+- **French and Dutch translations**: The bundle ships **`NowoSepaPaymentBundle.fr.yaml`** and **`NowoSepaPaymentBundle.nl.yaml`**. Enable the locale in your Symfony app as usual; messages use the existing **`NowoSepaPaymentBundle`** domain. French returns after removal in 1.2.9 (files now use valid YAML).
+- **Spec Kit (repo only)**: **`.specify/`**, **`specs/001-baseline/`**, and **`docs/SPEC-KIT.md`** — no impact when you install the package via Composer unless you contribute to this repository.
+
+### 📝 Changed (1.2.21)
+
+- **CI / locks (maintainers)**: GitHub Actions action bumps and refreshed **`composer.lock`** files — run `composer update` in your own project only when you choose to bump dependencies.
+- **Demos**: Demo Docker images install **`intl`** — relevant only if you run demos from this repo.
+
+### 📚 Documentation (1.2.21)
+
+- **SPEC-DRIVEN-DEVELOPMENT.md** and **README** link **GitHub Spec Kit**; see [CHANGELOG.md](CHANGELOG.md) for the full list.
+
+### Backward Compatibility (1.2.21)
+
+- **No breaking API changes**: patch release. `composer update nowo-tech/sepa-payment-bundle` as usual. New locale files are optional for integrators.
+
+---
 
 ## Upgrading from 1.2.19 to 1.2.20
 
