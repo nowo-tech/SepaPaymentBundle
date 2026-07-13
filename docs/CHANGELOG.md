@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.2.21] - 2026-07-13](#1221-2026-07-13)
+  - [Added](#added-1221)
+  - [Changed](#changed-1221)
+  - [Documentation](#documentation-1221)
+  - [Backward Compatibility](#backward-compatibility-1221)
 - [[1.2.20] - 2026-06-30](#1220-2026-06-30)
   - [Added](#added-1220)
   - [Changed](#changed-1220)
@@ -113,6 +118,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [1.2.21] - 2026-07-13
+
+### Added (1.2.21)
+
+- **Translations**: **`NowoSepaPaymentBundle.fr.yaml`** (French) and **`NowoSepaPaymentBundle.nl.yaml`** (Dutch) under `src/Resources/translations/` — restores French after the 1.2.9 cleanup (valid YAML) and adds Dutch for the `NowoSepaPaymentBundle` domain.
+- **GitHub Spec Kit (maintainers)**: `.specify/` scaffolding, **Cursor Agent** skills (`.cursor/skills/speckit-*`), baseline feature **`specs/001-baseline/`** (`spec.md`, `code-inventory.md`), and operator guide **`docs/SPEC-KIT.md`**.
+
+### Changed (1.2.21)
+
+- **CI / GitHub Actions**: Bump **`actions/checkout`** to **v7**, **`actions/cache`** to **v6**, **`codecov/codecov-action`** to **v7**, and **`actions/github-script`** to **v9** in **`ci.yml`**, **`release.yml`**, and **`sync-releases.yml`**.
+- **Composer locks**: Refreshed root **`composer.lock`** and demo locks (**symfony6**, **symfony7**, **symfony8**), including **`friendsofphp/php-cs-fixer`** **3.95.12** and aligned PHPUnit patch releases in the resolved dev tree.
+- **Demos**: Demo **Dockerfiles** install the **`intl`** PHP extension (required for Symfony translation/locale in demo containers).
+- **Config reference fixtures**: **`demo/symfony7`**, **`demo/symfony8`**, and **`tests/Fixtures/app/config/reference.php`** regenerated/aligned (maintenance only).
+- **CodeRabbit workflow**: Minor alignment in **`.github/workflows/coderabbit.yml`**.
+
+### Documentation (1.2.21)
+
+- **SPEC-DRIVEN-DEVELOPMENT.md**: Three-layer model (Spec Kit baseline, product behavior, **`REQ-*`** anchors); SEPA-focused user stories; functional scope table; Spec Kit maintainer workflow.
+- **README**: **GitHub Spec Kit** link in **Documentation**.
+- **`.gitignore`**: Ignore **`.cursor/sandbox.json`** (local Cursor sandbox; **REQ-IDE-005**).
+
+### Backward Compatibility (1.2.21)
+
+- **No breaking API changes** to **`nowo-tech/sepa-payment-bundle`**. New translations are additive (fallback to English when a locale file is absent). Spec Kit, CI, and demo Docker changes affect **maintainers** and local demos only.
 
 ## [1.2.20] - 2026-06-30
 
