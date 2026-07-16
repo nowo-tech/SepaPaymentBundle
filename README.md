@@ -164,6 +164,7 @@ Created by [Héctor Franco Aceituno](https://github.com/HecFranco) at [Nowo.tech
 - [Configuration](docs/CONFIGURATION.md)
 - [Usage](docs/USAGE.md)
 - [Contributing](docs/CONTRIBUTING.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
 - [Changelog](docs/CHANGELOG.md)
 - [Upgrading](docs/UPGRADING.md)
 - [Release](docs/RELEASE.md)
@@ -171,6 +172,7 @@ Created by [Héctor Franco Aceituno](https://github.com/HecFranco) at [Nowo.tech
 - [Engram](docs/ENGRAM.md)
 - [Spec-driven development](docs/SPEC-DRIVEN-DEVELOPMENT.md)
 - [GitHub Spec Kit](docs/SPEC-KIT.md)
+- [GitHub Actions CI requirements](docs/GITHUB_CI.md)
 
 ### Additional documentation
 

@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.2.22] - 2026-07-16](#1222-2026-07-16)
+  - [Added](#added-1222)
+  - [Changed](#changed-1222)
+  - [Documentation](#documentation-1222)
+  - [Backward Compatibility](#backward-compatibility-1222)
 - [[1.2.21] - 2026-07-13](#1221-2026-07-13)
   - [Added](#added-1221)
   - [Changed](#changed-1221)
@@ -118,6 +123,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [1.2.22] - 2026-07-16
+
+### Added (1.2.22)
+
+- **REQ-GIT-001 (maintainers)**: Scripts **`.scripts/check-no-cursor-coauthor.sh`** and **`.scripts/strip-cursor-coauthor-from-history.sh`**, git hook **`.githooks/commit-msg`**, Cursor rule **`.cursor/rules/01-git-commits.mdc`**, and CI job **`git-hygiene`** in **`.github/workflows/ci.yml`** — reject Cursor agent `Co-authored-by` trailers in commit history.
+- **Makefile**: Targets **`check-no-cursor-coauthor`**, **`setup-hooks`**, and **`strip-cursor-coauthor-from-history`**; **`release-check`** now depends on **`check-no-cursor-coauthor`**.
+- **Code of Conduct**: Root **`CODE_OF_CONDUCT.md`** (Contributor Covenant).
+- **Documentation**: **`docs/GITHUB_CI.md`** — REQ-GIT-001 operator and CI reference.
+- **Translations**: **`NowoSepaPaymentBundle.en.yaml`** — English fallback for locale **`en`** (aligned with **`en_US`**).
+
+### Changed (1.2.22)
+
+- **Composer locks**: Merged Dependabot bump of **`friendsofphp/php-cs-fixer`** to **3.95.13** (and related lock refresh from CI).
+- **Git hooks**: **`.githooks/pre-commit`** marked executable for `core.hooksPath` setups.
+
+### Documentation (1.2.22)
+
+- **README**: Links to **Code of Conduct** and **GitHub Actions CI requirements**.
+- **CONTRIBUTING.md** / **RELEASE.md**: Document **`make setup-hooks`**, **`make check-no-cursor-coauthor`**, and re-check before push (REQ-GIT-001).
+
+### Backward Compatibility (1.2.22)
+
+- **No breaking API changes** to **`nowo-tech/sepa-payment-bundle`**. New English locale file is additive. REQ-GIT-001 tooling, Code of Conduct, and CI job affect **contributors and maintainers** only.
 
 ## [1.2.21] - 2026-07-13
 

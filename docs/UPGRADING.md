@@ -5,6 +5,11 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
 ## Table of contents
 
+- [Upgrading from 1.2.21 to 1.2.22](#upgrading-from-1221-to-1222)
+  - [✨ Added (1.2.22)](#added-1222)
+  - [📝 Changed (1.2.22)](#changed-1222)
+  - [📚 Documentation (1.2.22)](#documentation-1222)
+  - [Backward Compatibility](#backward-compatibility-1222)
 - [Upgrading from 1.2.20 to 1.2.21](#upgrading-from-1220-to-1221)
   - [✨ Added (1.2.21)](#added-1221)
   - [📝 Changed (1.2.21)](#changed-1221)
@@ -129,6 +134,29 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 - [General Upgrade Notes](#general-upgrade-notes)
   - [Demo Applications](#demo-applications)
 - [Getting Help](#getting-help)
+
+## Upgrading from 1.2.21 to 1.2.22
+
+### ✨ Added (1.2.22)
+
+- **English locale file**: **`NowoSepaPaymentBundle.en.yaml`** for apps that use locale **`en`** (same messages as **`en_US`**). No change required if you already use **`en_US`** / **`en_GB`**.
+- **Contributor Covenant**: Root **`CODE_OF_CONDUCT.md`** — community standards only.
+- **REQ-GIT-001 (repo only)**: Hooks, CI job, and scripts that reject Cursor co-author trailers — relevant when contributing to this repository. See [GITHUB_CI.md](GITHUB_CI.md).
+
+### 📝 Changed (1.2.22)
+
+- **Maintainers**: **`make release-check`** includes **`check-no-cursor-coauthor`**. Run **`make setup-hooks`** once after clone.
+- **Locks**: Dev dependency **`friendsofphp/php-cs-fixer`** bumped via Dependabot — no impact on the published bundle API.
+
+### 📚 Documentation (1.2.22)
+
+- **README**, **CONTRIBUTING**, **RELEASE**, and **GITHUB_CI.md** document Code of Conduct and git hygiene. See [CHANGELOG.md](CHANGELOG.md).
+
+### Backward Compatibility (1.2.22)
+
+- **No breaking API changes**: patch release. `composer update nowo-tech/sepa-payment-bundle` as usual.
+
+---
 
 ## Upgrading from 1.2.20 to 1.2.21
 
