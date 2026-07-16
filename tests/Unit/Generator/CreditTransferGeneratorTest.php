@@ -1725,7 +1725,6 @@ class CreditTransferGeneratorTest extends TestCase
         };
         $ref    = new ReflectionClass(CreditTransferGenerator::class);
         $method = $ref->getMethod('setCreditorPostalAddress');
-        $method->setAccessible(true);
         $method->invoke($this->generator, $mock, [
             'street'     => 'Calle',
             'city'       => 'Madrid',
@@ -1757,7 +1756,6 @@ class CreditTransferGeneratorTest extends TestCase
         };
         $ref    = new ReflectionClass(CreditTransferGenerator::class);
         $method = $ref->getMethod('setCreditorPostalAddress');
-        $method->setAccessible(true);
         $method->invoke($this->generator, $mock, [
             'street'     => 'Calle',
             'city'       => 'Madrid',
@@ -1789,7 +1787,6 @@ class CreditTransferGeneratorTest extends TestCase
         };
         $ref    = new ReflectionClass(CreditTransferGenerator::class);
         $method = $ref->getMethod('setCreditorPostalAddress');
-        $method->setAccessible(true);
         $method->invoke($this->generator, $mock, [
             'street'     => 'Calle',
             'city'       => 'Madrid',
@@ -1822,7 +1819,6 @@ class CreditTransferGeneratorTest extends TestCase
         ]);
         $ref    = new ReflectionClass(CreditTransferGenerator::class);
         $method = $ref->getMethod('addAddressesToXml');
-        $method->setAccessible(true);
         $result = $method->invoke($this->generator, $xml, $creditTransferData);
         $this->assertStringContainsString('http://example.com/other', $result);
         $this->assertStringNotContainsString('PstlAdr', $result);
@@ -1857,7 +1853,6 @@ class CreditTransferGeneratorTest extends TestCase
         );
         $refData = new ReflectionClass(CreditTransferData::class);
         $prop    = $refData->getProperty('creditorAddress');
-        $prop->setAccessible(true);
         $prop->setValue($creditTransferData, [
             'street' => new class {
                 public function __toString(): string
@@ -1871,7 +1866,6 @@ class CreditTransferGeneratorTest extends TestCase
         ]);
         $ref    = new ReflectionClass(CreditTransferGenerator::class);
         $method = $ref->getMethod('addAddressesToXml');
-        $method->setAccessible(true);
         $result = $method->invoke($this->generator, $validPainXml, $creditTransferData);
         $this->assertSame($validPainXml, $result);
     }
@@ -1889,7 +1883,6 @@ class CreditTransferGeneratorTest extends TestCase
         $xpath->registerNamespace('ns', $ns);
         $ref    = new ReflectionClass(CreditTransferGenerator::class);
         $method = $ref->getMethod('addDebtorAddressToDom');
-        $method->setAccessible(true);
         $method->invoke($this->generator, $dom, $xpath, [
             'street'     => 'Calle',
             'city'       => 'Madrid',
@@ -1915,7 +1908,6 @@ class CreditTransferGeneratorTest extends TestCase
         $xpath->registerNamespace('ns', $ns);
         $ref    = new ReflectionClass(CreditTransferGenerator::class);
         $method = $ref->getMethod('addCreditorAddressToDom');
-        $method->setAccessible(true);
         $method->invoke($this->generator, $dom, $xpath, [
             'street'     => 'Avenida',
             'city'       => 'Barcelona',
@@ -1938,7 +1930,6 @@ class CreditTransferGeneratorTest extends TestCase
         $xpath  = new XPathReturningTextNodeList($dom);
         $ref    = new ReflectionClass(CreditTransferGenerator::class);
         $method = $ref->getMethod('addDebtorAddressToDom');
-        $method->setAccessible(true);
         $method->invoke($this->generator, $dom, $xpath, [
             'street' => 'Calle', 'city' => 'Madrid', 'postalCode' => '28001', 'country' => 'ES',
         ], 'urn:test');
@@ -1957,7 +1948,6 @@ class CreditTransferGeneratorTest extends TestCase
         $xpath  = new XPathReturningTextNodeList($dom);
         $ref    = new ReflectionClass(CreditTransferGenerator::class);
         $method = $ref->getMethod('addCreditorAddressToDom');
-        $method->setAccessible(true);
         $method->invoke($this->generator, $dom, $xpath, [
             'street' => 'Calle', 'city' => 'Madrid', 'postalCode' => '28001', 'country' => 'ES',
         ], 0, 'urn:test');
@@ -1976,7 +1966,6 @@ class CreditTransferGeneratorTest extends TestCase
         $xpath  = new XPathReturningEmptyNodeList($dom);
         $ref    = new ReflectionClass(CreditTransferGenerator::class);
         $method = $ref->getMethod('addCreditorAddressToDom');
-        $method->setAccessible(true);
         $method->invoke($this->generator, $dom, $xpath, [
             'street' => 'Calle', 'city' => 'Madrid', 'postalCode' => '28001', 'country' => 'ES',
         ], 0, 'urn:test');

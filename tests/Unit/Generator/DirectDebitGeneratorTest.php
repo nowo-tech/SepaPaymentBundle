@@ -1815,7 +1815,6 @@ class DirectDebitGeneratorTest extends TestCase
         };
         $ref    = new ReflectionClass(DirectDebitGenerator::class);
         $method = $ref->getMethod('setCreditorPostalAddress');
-        $method->setAccessible(true);
         $method->invoke($this->generator, $mock, [
             'street'     => 'Calle',
             'city'       => 'Madrid',
@@ -1847,7 +1846,6 @@ class DirectDebitGeneratorTest extends TestCase
         };
         $ref    = new ReflectionClass(DirectDebitGenerator::class);
         $method = $ref->getMethod('setCreditorPostalAddress');
-        $method->setAccessible(true);
         $method->invoke($this->generator, $mock, [
             'street'     => 'Calle',
             'city'       => 'Madrid',
@@ -1879,7 +1877,6 @@ class DirectDebitGeneratorTest extends TestCase
         };
         $ref    = new ReflectionClass(DirectDebitGenerator::class);
         $method = $ref->getMethod('setCreditorPostalAddress');
-        $method->setAccessible(true);
         $method->invoke($this->generator, $mock, [
             'street'     => 'Calle',
             'city'       => 'Madrid',
@@ -1915,7 +1912,6 @@ class DirectDebitGeneratorTest extends TestCase
         };
         $ref    = new ReflectionClass(DirectDebitGenerator::class);
         $method = $ref->getMethod('setPostalAddress');
-        $method->setAccessible(true);
         $method->invoke($this->generator, $mock, [
             'street'     => 'Calle',
             'city'       => 'Madrid',
@@ -1952,7 +1948,6 @@ class DirectDebitGeneratorTest extends TestCase
         };
         $ref    = new ReflectionClass(DirectDebitGenerator::class);
         $method = $ref->getMethod('setPostalAddress');
-        $method->setAccessible(true);
         $method->invoke($this->generator, $mock, [
             'street'     => 'Calle',
             'city'       => 'Madrid',
@@ -1997,7 +1992,6 @@ class DirectDebitGeneratorTest extends TestCase
         ]);
         $ref    = new ReflectionClass(DirectDebitGenerator::class);
         $method = $ref->getMethod('addAddressesToXml');
-        $method->setAccessible(true);
         $result = $method->invoke($this->generator, $xml, $data);
         $this->assertStringContainsString('PstlAdr', $result);
         $this->assertStringContainsString('Calle', $result);
@@ -2036,7 +2030,6 @@ class DirectDebitGeneratorTest extends TestCase
         );
         $refData = new ReflectionClass(DirectDebitData::class);
         $prop    = $refData->getProperty('creditorAddress');
-        $prop->setAccessible(true);
         $prop->setValue($data, [
             'street' => new class {
                 public function __toString(): string
@@ -2050,7 +2043,6 @@ class DirectDebitGeneratorTest extends TestCase
         ]);
         $ref    = new ReflectionClass(DirectDebitGenerator::class);
         $method = $ref->getMethod('addAddressesToXml');
-        $method->setAccessible(true);
         $result = $method->invoke($this->generator, $validXml, $data);
         $this->assertSame($validXml, $result);
     }
@@ -2068,7 +2060,6 @@ class DirectDebitGeneratorTest extends TestCase
         $xpath->registerNamespace('ns', $ns);
         $ref    = new ReflectionClass(DirectDebitGenerator::class);
         $method = $ref->getMethod('addCreditorAddressToDom');
-        $method->setAccessible(true);
         $method->invoke($this->generator, $dom, $xpath, [
             'street'     => 'Calle',
             'city'       => 'Madrid',
@@ -2094,7 +2085,6 @@ class DirectDebitGeneratorTest extends TestCase
         $xpath->registerNamespace('ns', $ns);
         $ref    = new ReflectionClass(DirectDebitGenerator::class);
         $method = $ref->getMethod('addDebtorAddressToDom');
-        $method->setAccessible(true);
         $method->invoke($this->generator, $dom, $xpath, [
             'street'     => 'Avenida',
             'city'       => 'Barcelona',
@@ -2117,7 +2107,6 @@ class DirectDebitGeneratorTest extends TestCase
         $xpath  = new XPathReturningTextNodeList($dom);
         $ref    = new ReflectionClass(DirectDebitGenerator::class);
         $method = $ref->getMethod('addCreditorAddressToDom');
-        $method->setAccessible(true);
         $method->invoke($this->generator, $dom, $xpath, [
             'street' => 'Calle', 'city' => 'Madrid', 'postalCode' => '28001', 'country' => 'ES',
         ], 'urn:test');
@@ -2136,7 +2125,6 @@ class DirectDebitGeneratorTest extends TestCase
         $xpath  = new XPathReturningEmptyNodeList($dom);
         $ref    = new ReflectionClass(DirectDebitGenerator::class);
         $method = $ref->getMethod('addCreditorAddressToDom');
-        $method->setAccessible(true);
         $method->invoke($this->generator, $dom, $xpath, [
             'street' => 'Calle', 'city' => 'Madrid', 'postalCode' => '28001', 'country' => 'ES',
         ], 'urn:test');
@@ -2155,7 +2143,6 @@ class DirectDebitGeneratorTest extends TestCase
         $xpath  = new XPathReturningTextNodeList($dom);
         $ref    = new ReflectionClass(DirectDebitGenerator::class);
         $method = $ref->getMethod('addDebtorAddressToDom');
-        $method->setAccessible(true);
         $method->invoke($this->generator, $dom, $xpath, [
             'street' => 'Calle', 'city' => 'Madrid', 'postalCode' => '28001', 'country' => 'ES',
         ], 0, 'urn:test');
@@ -2174,7 +2161,6 @@ class DirectDebitGeneratorTest extends TestCase
         $xpath  = new XPathReturningEmptyNodeList($dom);
         $ref    = new ReflectionClass(DirectDebitGenerator::class);
         $method = $ref->getMethod('addDebtorAddressToDom');
-        $method->setAccessible(true);
         $method->invoke($this->generator, $dom, $xpath, [
             'street' => 'Calle', 'city' => 'Madrid', 'postalCode' => '28001', 'country' => 'ES',
         ], 0, 'urn:test');
