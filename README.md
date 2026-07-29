@@ -4,11 +4,11 @@
 
 > ⭐ **Found this useful?** Give it a star on GitHub! It helps us maintain and improve the project.
 
+**Symfony bundle for SEPA (Single Euro Payments Area) payment management** - Generate SEPA Credit Transfer (pain.001.001.03) and Direct Debit (pain.008.001.02) XML files compliant with ISO 20022 standards. Includes comprehensive IBAN/BIC validation, mandate management, XSD schema validation, and banking utilities for European payments.
+
 ![FrankenPHP Friendly Worker Mode](docs/images/frankenphp-friendly.png)
 
 This bundle is **FrankenPHP worker mode friendly**.
-
-**Symfony bundle for SEPA (Single Euro Payments Area) payment management** - Generate SEPA Credit Transfer (pain.001.001.03) and Direct Debit (pain.008.001.02) XML files compliant with ISO 20022 standards. Includes comprehensive IBAN/BIC validation, mandate management, XSD schema validation, and banking utilities for European payments.
 
 ## Features
 
@@ -53,6 +53,18 @@ return [
   Nowo\SepaPaymentBundle\NowoSepaPaymentBundle::class => ['all' => true],
 ];
 ```
+
+## Requirements
+
+- PHP >= 8.1, < 8.6
+- Symfony >= 6.0 || >= 7.0 || >= 8.0
+- digitick/sepa-xml ^3.0 (automatically installed as a dependency)
+
+## Configuration
+
+See [docs/CONFIGURATION.md](docs/CONFIGURATION.md) for configuration options.
+
+The bundle works out of the box with default settings. **No configuration file is required** - the bundle uses sensible defaults.
 
 ## Usage
 
@@ -129,18 +141,6 @@ See [docs/USAGE.md](docs/USAGE.md) for complete examples including:
 
 See [docs/COMMANDS.md](docs/COMMANDS.md) for detailed documentation of all console commands.
 
-## Configuration
-
-See [docs/CONFIGURATION.md](docs/CONFIGURATION.md) for configuration options.
-
-The bundle works out of the box with default settings. **No configuration file is required** - the bundle uses sensible defaults.
-
-## Requirements
-
-- PHP >= 8.1, < 8.6
-- Symfony >= 6.0 || >= 7.0 || >= 8.0
-- digitick/sepa-xml ^3.0 (automatically installed as a dependency)
-
 ## Demo Projects
 
 Demos for Symfony 6, 7 and 8 run with **FrankenPHP** (development uses `Caddyfile.dev` without workers; production-style uses worker mode — see [docs/DEMO-FRANKENPHP.md](docs/DEMO-FRANKENPHP.md)). See [docs/DEMOS.md](docs/DEMOS.md) for endpoints and quick start.
@@ -148,19 +148,6 @@ Demos for Symfony 6, 7 and 8 run with **FrankenPHP** (development uses `Caddyfil
 ## Development
 
 See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for development setup, testing, code quality, and CI/CD information.
-
-## Tests and coverage
-
-- Tests: PHPUnit (PHP)
-- PHP: 100%
-
-## License
-
-The MIT License (MIT). Please see [LICENSE](LICENSE) for more information.
-
-## Author
-
-Created by [Héctor Franco Aceituno](https://github.com/HecFranco) at [Nowo.tech](https://nowo.tech)
 
 ## Documentation
 
@@ -187,3 +174,16 @@ Created by [Héctor Franco Aceituno](https://github.com/HecFranco) at [Nowo.tech
 - [Deprecated fields](docs/DEPRECATED_FIELDS.md)
 - [Future improvements](docs/FUTURE.md)
 - [Branching](docs/BRANCHING.md)
+## Tests and coverage
+
+- Tests: PHPUnit (PHP)
+- PHP: 100%
+
+## License
+
+The MIT License (MIT). Please see [LICENSE](LICENSE) for more information.
+
+## Author
+
+Created by [Héctor Franco Aceituno](https://github.com/HecFranco) at [Nowo.tech](https://nowo.tech)
+
