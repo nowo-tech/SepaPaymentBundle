@@ -17,7 +17,7 @@ use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
  */
-class NowoSepaPaymentExtension extends Extension
+final class NowoSepaPaymentExtension extends Extension
 {
     /**
      * Loads the services configuration and processes the bundle configuration.

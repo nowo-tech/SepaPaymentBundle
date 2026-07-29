@@ -7,6 +7,7 @@ namespace Nowo\SepaPaymentBundle\Tests\Unit\Validator\Constraint;
 use Nowo\SepaPaymentBundle\Validator\Constraint\SepaCreditorIdentifier;
 use Nowo\SepaPaymentBundle\Validator\Constraint\SepaCreditorIdentifierValidator as ConstraintSepaCreditorIdentifierValidator;
 use Nowo\SepaPaymentBundle\Validator\SepaCreditorIdentifierValidator as SepaCreditorIdentifierValidatorService;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
@@ -24,9 +25,9 @@ class SepaCreditorIdentifierValidatorTest extends TestCase
     /**
      * SEPA Creditor Identifier validator service mock.
      *
-     * @var \PHPUnit\Framework\MockObject\MockObject|SepaCreditorIdentifierValidatorService
+     * @var MockObject|SepaCreditorIdentifierValidatorService
      */
-    private \PHPUnit\Framework\MockObject\MockObject $sepaCreditorIdentifierValidatorService;
+    private MockObject $sepaCreditorIdentifierValidatorService;
 
     /**
      * Constraint validator instance.
@@ -36,9 +37,9 @@ class SepaCreditorIdentifierValidatorTest extends TestCase
     /**
      * Execution context mock.
      *
-     * @var ExecutionContextInterface|\PHPUnit\Framework\MockObject\MockObject
+     * @var ExecutionContextInterface|MockObject
      */
-    private \PHPUnit\Framework\MockObject\MockObject $context;
+    private MockObject $context;
 
     /**
      * Sets up the test environment.

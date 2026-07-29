@@ -15,7 +15,7 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
  */
-class NowoSepaPaymentBundle extends Bundle
+final class NowoSepaPaymentBundle extends Bundle
 {
     /**
      * Overridden to allow for the custom extension alias.

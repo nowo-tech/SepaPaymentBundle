@@ -11,7 +11,7 @@ get-port = $(shell grep -E '^PORT=' $(1)/.env 2>/dev/null | cut -d '=' -f2 || ec
 # Helper function to get demo version name
 get-version = $(shell echo $(1) | sed 's/symfony/Symfony /' | sed 's/6/6.4/' | sed 's/7/7.0/' | sed 's/8/8.0/')
 
-.PHONY: help clean test-all test-coverage-all verify-all check-all
+.PHONY: help clean test-all test-coverage-all verify-all check-all demo-smoke
 .PHONY: $(foreach demo,$(DEMOS),up-$(demo) down-$(demo) restart-$(demo) build-$(demo) install-$(demo) update-$(demo) update-bundle-$(demo) shell-$(demo) logs-$(demo) test-$(demo) test-coverage-$(demo) verify-$(demo))
 .PHONY: up down restart build install update update-bundle test shell logs test-coverage verify release-verify
 
@@ -58,6 +58,7 @@ help:
 	@echo "Other commands:"
 	@echo "  clean              Remove vendor and cache from all demos"
 	@echo "  release-verify     Start each demo, healthcheck (HTTP 200), then stop (for release-check)"
+	@echo "  demo-smoke         REQ-TEST-011: boot primary demo (symfony8) + HTTP 200"
 	@echo ""
 
 # Delegate to each demo's Makefile
@@ -284,6 +285,21 @@ release-verify:
 	done
 	@echo "✅ All demos passed release-verify."
 
+# REQ-TEST-011: boot primary demo + one HTTP 200
+# Call demos via -C (explicit recipes); avoid up-symfony8 phony+pattern no-op.
+demo-smoke:
+	@PORT=$$(grep "^PORT=" symfony8/.env 2>/dev/null | cut -d= -f2 | tr -d '\r'); \
+	[ -z "$$PORT" ] && PORT=$$(grep "^PORT=" symfony8/.env.example 2>/dev/null | cut -d= -f2 | tr -d '\r'); \
+	[ -z "$$PORT" ] && PORT=8003; \
+	echo "Demo smoke: symfony8 (http://127.0.0.1:$$PORT)"; \
+	$(MAKE) -C symfony8 up || exit 1; \
+	sleep 12; \
+	code=$$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:$$PORT" || true); \
+	[ -z "$$code" ] && code=000; \
+	$(MAKE) -C symfony8 down 2>/dev/null || true; \
+	if [ "$$code" != "200" ]; then echo "symfony8 failed with HTTP $$code"; exit 1; fi; \
+	echo "symfony8 OK (HTTP $$code)"
+
 # Clean all demos
 clean:
 	@echo "🧹 Cleaning all demos..."
@@ -300,4 +316,5 @@ clean:
 
 # REQ-MAKE-008: update-deps-all (REQ-MAKE-008)
 BUNDLE_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
-include $(BUNDLE_ROOT)/../.scripts/Makefile.demo-aggregate-update-deps.mk
+# Optional: monorepo helper absent on standalone GitHub Actions checkout (REQ-MAKE-009).
+-include $(BUNDLE_ROOT)/../.scripts/Makefile.demo-aggregate-update-deps.mk

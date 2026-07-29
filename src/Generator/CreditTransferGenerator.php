@@ -721,7 +721,7 @@ class CreditTransferGenerator
             if ($nmNodes->length > 0) {
                 $nmFirst     = $nmNodes->item(0);
                 $nextSibling = $nmFirst instanceof DOMElement ? $nmFirst->nextSibling : null;
-                if ($nextSibling !== null) {
+                if ($nextSibling instanceof \DOMNode) {
                     $parentNode->insertBefore($pstlAdr, $nextSibling);
                 } else {
                     $parentNode->appendChild($pstlAdr);

@@ -17,7 +17,7 @@ class TranslationHelper
      *
      * @var array<string, string>
      */
-    private static array $translations = [
+    private const TRANSLATIONS = [
         'validation.missing_required_field'             => 'Missing required field: %field%',
         'validation.missing_required_transaction_field' => 'Missing required transaction field: %field%',
         'validation.invalid_creditor_iban'              => 'Invalid creditor IBAN: %iban%',
@@ -46,7 +46,7 @@ class TranslationHelper
      */
     public static function translate(string $id, array $parameters = [], ?string $domain = null): string
     {
-        $message = self::$translations[$id] ?? $id;
+        $message = self::TRANSLATIONS[$id] ?? $id;
 
         foreach ($parameters as $key => $value) {
             // Symfony Translator passes parameters with % around the key (e.g., '%field%' => 'value')

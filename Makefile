@@ -1,7 +1,7 @@
 # Makefile for SEPA Payment Bundle
 # Simplifies Docker commands for development
 
-.PHONY: help up down build shell install test test-coverage coverage-php-percent cs-check cs-fix qa clean assets ensure-up rector rector-dry phpstan release-check release-check-demos composer-sync update validate validate-translations setup-hooks check-no-cursor-coauthor strip-cursor-coauthor-from-history
+.PHONY: help up down down-dev build shell install test test-coverage coverage-php-percent cs-check cs-fix qa clean assets ensure-up rector rector-dry phpstan release-check release-check-demos demo-smoke composer-sync update validate validate-translations setup-hooks check-no-cursor-coauthor strip-cursor-coauthor-from-history
 
 # Default target
 help:
@@ -12,6 +12,7 @@ help:
 	@echo "Targets:"
 	@echo "  up              Start Docker container"
 	@echo "  down            Stop Docker container"
+	@echo "  down-dev        Stop root compose (dev) and remove orphans"
 	@echo "  build           Rebuild Docker image (no cache)"
 	@echo "  shell           Open shell in container"
 	@echo "  install         Install Composer dependencies"
@@ -25,6 +26,7 @@ help:
 	@echo "  phpstan         Run PHPStan static analysis"
 	@echo "  qa              Run all QA checks (cs-check + test)"
 	@echo "  release-check   Pre-release: composer-sync, cs-fix, cs-check, rector-dry, phpstan, test-coverage, demo healthchecks"
+	@echo "  demo-smoke      REQ-TEST-011: boot primary demo + HTTP 200"
 	@echo "  composer-sync   Validate composer.json and align composer.lock"
 	@echo "  clean           Remove vendor and cache"
 	@echo "  update          Update composer.lock (composer update)"
@@ -37,88 +39,94 @@ help:
 
 # Rebuild Docker image (no cache)
 build:
-	docker-compose build --no-cache
+	$(COMPOSE) build --no-cache
 
 # Build and start container
 up:
-	docker-compose build
-	docker-compose up -d
+	$(COMPOSE) build
+	$(COMPOSE) up -d
 	@echo "Installing dependencies..."
-	docker-compose exec php composer install --no-interaction
+	$(COMPOSE) exec php composer install --no-interaction
 	@echo "✅ Container ready!"
 
 # Stop container
 down:
-	docker-compose down
+	$(COMPOSE) down
+
+down-dev:
+	$(COMPOSE) down --remove-orphans
 
 # Ensure root container is running (start if not). Used by cs-fix, cs-check, qa, install, test, test-coverage.
 ensure-up:
-	@if ! docker-compose exec -T php true 2>/dev/null; then \
-		echo "Starting container (root docker-compose)..."; \
-		docker-compose up -d; \
+	@if ! $(COMPOSE) exec -T php true 2>/dev/null; then \
+		echo "Starting container (root $(COMPOSE))..."; \
+		$(COMPOSE) up -d; \
 		sleep 3; \
-		docker-compose exec -T php composer install --no-interaction; \
+		$(COMPOSE) exec -T php composer install --no-interaction; \
 	fi
 
 # Open shell in container
 shell:
-	docker-compose exec php sh
+	$(COMPOSE) exec php sh
 
 # Install dependencies
 install: ensure-up
-	docker-compose exec -T php composer install
+	$(COMPOSE) exec -T php composer install
 
 # Run tests (no -T so TTY is allocated and PHPUnit can show colors in console)
 test: ensure-up
-	docker-compose exec php composer test
+	$(COMPOSE) exec php composer test
 
 # Run tests with coverage (no -T so coverage is shown in console with colors)
 test-coverage: ensure-up
-	docker-compose exec php composer test-coverage | tee coverage-php.txt
+	$(COMPOSE) exec php composer test-coverage | tee coverage-php.txt
 	./.scripts/php-coverage-percent.sh coverage-php.txt
 
 # Check code style
 cs-check: ensure-up
-	docker-compose exec -T php composer cs-check
+	$(COMPOSE) exec -T php composer cs-check
 
 # Fix code style
 cs-fix: ensure-up
-	docker-compose exec -T php composer cs-fix
+	$(COMPOSE) exec -T php composer cs-fix
 
 # Run Rector (apply refactoring)
 rector: ensure-up
-	docker-compose exec -T php composer rector
+	$(COMPOSE) exec -T php composer rector
 
 # Run Rector in dry-run mode
 rector-dry: ensure-up
-	docker-compose exec -T php composer rector-dry
+	$(COMPOSE) exec -T php composer rector-dry
 
 # Run PHPStan static analysis
 phpstan: ensure-up
-	docker-compose exec -T php composer phpstan
+	$(COMPOSE) exec -T php composer phpstan
 
 # Validate composer.json and verify composer.lock matches (does not rewrite the lock file)
 composer-sync: ensure-up
-	docker-compose exec -T php composer validate --strict
-	docker-compose exec -T php composer install --dry-run --no-interaction
+	$(COMPOSE) exec -T php composer validate --strict
+	$(COMPOSE) exec -T php composer install --dry-run --no-interaction
 
 # Update composer.lock
 update: ensure-up
-	docker-compose exec -T php composer update --no-interaction
+	$(COMPOSE) exec -T php composer update --no-interaction
 
 # Validate composer.json
 validate: ensure-up
-	docker-compose exec -T php composer validate --strict
+	$(COMPOSE) exec -T php composer validate --strict
 
 # Run all QA
 qa: ensure-up
-	docker-compose exec -T php composer qa
+	$(COMPOSE) exec -T php composer qa
 
 # Pre-release: composer-sync, cs-fix, cs-check, rector-dry, phpstan, test-coverage, demo healthchecks
 release-check: check-no-cursor-coauthor ensure-up composer-sync cs-fix cs-check rector-dry phpstan test-coverage release-check-demos
 
 release-check-demos:
 	@$(MAKE) -C demo release-check
+
+demo-smoke:
+	@$(MAKE) -C demo demo-smoke
 
 # No frontend assets in this bundle
 assets:
@@ -135,7 +143,7 @@ clean:
 
 # Validate bundle translation YAML files
 validate-translations: ensure-up
-	docker-compose exec -T php php -r 'require "vendor/autoload.php"; foreach (glob("src/Resources/translations/*.yaml") as $$f) { Symfony\Component\Yaml\Yaml::parseFile($$f); echo "OK: " . $$f . PHP_EOL; }'
+	$(COMPOSE) exec -T php php -r 'require "vendor/autoload.php"; foreach (glob("src/Resources/translations/*.yaml") as $$f) { Symfony\Component\Yaml\Yaml::parseFile($$f); echo "OK: " . $$f . PHP_EOL; }'
 
 check-no-cursor-coauthor:
 	@chmod +x .scripts/check-no-cursor-coauthor.sh
@@ -148,10 +156,18 @@ setup-hooks:
 	@echo "✅ Git hooks installed (.githooks — includes commit-msg for REQ-GIT-001)."
 
 # REQ-MAKE-008: update-deps (REQ-MAKE-008)
+# Prefer Compose V2 plugin (GitHub Actions / modern Docker Desktop); fall back to docker-compose V1 (REQ-MAKE-010).
+# Absolute docker path avoids shadowing by a local docker/ directory when PATH contains ".".
+DOCKER_BIN := $(shell PATH="/usr/local/bin:/usr/bin:/bin:$$PATH" command -v docker 2>/dev/null)
+ifeq ($(DOCKER_BIN),)
 COMPOSE := docker-compose
+else
+COMPOSE := $(shell $(DOCKER_BIN) compose version >/dev/null 2>&1 && echo "$(DOCKER_BIN) compose" || echo "docker-compose")
+endif
 SERVICE_PHP := php
 BUNDLE_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
-include $(BUNDLE_ROOT)/../.scripts/Makefile.update-deps.mk
+# Optional: monorepo helper absent on standalone GitHub Actions checkout (REQ-MAKE-009).
+-include $(BUNDLE_ROOT)/../.scripts/Makefile.update-deps.mk
 
 strip-cursor-coauthor-from-history:
 	@chmod +x .scripts/strip-cursor-coauthor-from-history.sh

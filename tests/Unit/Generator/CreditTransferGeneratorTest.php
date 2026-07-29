@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nowo\SepaPaymentBundle\Tests\Unit\Generator;
 
 use DateTime;
+use Digitick\Sepa\Exception\InvalidTransferFileConfiguration;
 use DOMDocument;
 use DOMXPath;
 use Exception;
@@ -12,10 +13,13 @@ use InvalidArgumentException;
 use Nowo\SepaPaymentBundle\Event\AfterCreditTransferGenerationEvent;
 use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
 use Nowo\SepaPaymentBundle\Logger\SepaPaymentLogger;
+use Nowo\SepaPaymentBundle\Lookup\BicLookupServiceInterface;
 use Nowo\SepaPaymentBundle\Model\CreditTransfer\CreditTransferData;
 use Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction;
+use Nowo\SepaPaymentBundle\Tests\Unit\Helper\TranslationHelper;
 use Nowo\SepaPaymentBundle\Tests\Unit\Logger\TestLogger;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+use Nowo\SepaPaymentBundle\Validator\XsdValidator;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -44,7 +48,7 @@ class CreditTransferGeneratorTest extends TestCase
         $ibanValidator = new IbanValidator();
         $translator    = $this->createMock(TranslatorInterface::class);
         $translator->method('trans')->willReturnCallback(
-            \Nowo\SepaPaymentBundle\Tests\Unit\Helper\TranslationHelper::createTranslatorCallback(),
+            TranslationHelper::createTranslatorCallback(),
         );
         $this->generator = new CreditTransferGenerator($ibanValidator, $translator);
     }
@@ -1188,7 +1192,7 @@ class CreditTransferGeneratorTest extends TestCase
         $sepaLogger = new SepaPaymentLogger($testLogger);
         $translator = $this->createMock(TranslatorInterface::class);
         $translator->method('trans')->willReturnCallback(
-            \Nowo\SepaPaymentBundle\Tests\Unit\Helper\TranslationHelper::createTranslatorCallback(),
+            TranslationHelper::createTranslatorCallback(),
         );
         $generator = new CreditTransferGenerator(new IbanValidator(), $translator, null, false, null, $sepaLogger);
 
@@ -1218,7 +1222,7 @@ class CreditTransferGeneratorTest extends TestCase
      */
     public function testGenerateWithBicLookupService(): void
     {
-        $bicLookup = new class implements \Nowo\SepaPaymentBundle\Lookup\BicLookupServiceInterface {
+        $bicLookup = new class implements BicLookupServiceInterface {
             public function lookupBic(string $iban): ?string
             {
                 return str_starts_with($iban, 'ES') ? 'CAIXESBBXXX' : null;
@@ -1231,7 +1235,7 @@ class CreditTransferGeneratorTest extends TestCase
         };
         $translator = $this->createMock(TranslatorInterface::class);
         $translator->method('trans')->willReturnCallback(
-            \Nowo\SepaPaymentBundle\Tests\Unit\Helper\TranslationHelper::createTranslatorCallback(),
+            TranslationHelper::createTranslatorCallback(),
         );
         $generator = new CreditTransferGenerator(
             new IbanValidator(),
@@ -1269,7 +1273,7 @@ class CreditTransferGeneratorTest extends TestCase
      */
     public function testGenerateWithBicLookupServiceFillsTransactionCreditorBic(): void
     {
-        $bicLookup = new class implements \Nowo\SepaPaymentBundle\Lookup\BicLookupServiceInterface {
+        $bicLookup = new class implements BicLookupServiceInterface {
             public function lookupBic(string $iban): ?string
             {
                 return str_starts_with($iban, 'ES') ? 'CAIXESBBXXX' : (str_starts_with($iban, 'FR') ? 'BNPAFRPP' : null);
@@ -1282,7 +1286,7 @@ class CreditTransferGeneratorTest extends TestCase
         };
         $translator = $this->createMock(TranslatorInterface::class);
         $translator->method('trans')->willReturnCallback(
-            \Nowo\SepaPaymentBundle\Tests\Unit\Helper\TranslationHelper::createTranslatorCallback(),
+            TranslationHelper::createTranslatorCallback(),
         );
         $generator = new CreditTransferGenerator(
             new IbanValidator(),
@@ -1323,7 +1327,7 @@ class CreditTransferGeneratorTest extends TestCase
      */
     public function testGenerateWithEmptyTransactions(): void
     {
-        $this->expectException(\Digitick\Sepa\Exception\InvalidTransferFileConfiguration::class);
+        $this->expectException(InvalidTransferFileConfiguration::class);
         $this->expectExceptionMessage('PaymentInformation must at least contain one payment');
 
         $creditTransferData = new CreditTransferData(
@@ -1412,7 +1416,7 @@ class CreditTransferGeneratorTest extends TestCase
         $dispatcher = new EventDispatcher();
         $translator = $this->createMock(TranslatorInterface::class);
         $translator->method('trans')->willReturnCallback(
-            \Nowo\SepaPaymentBundle\Tests\Unit\Helper\TranslationHelper::createTranslatorCallback(),
+            TranslationHelper::createTranslatorCallback(),
         );
         $generator = new CreditTransferGenerator(new IbanValidator(), $translator, null, false, $dispatcher);
 
@@ -1443,7 +1447,7 @@ class CreditTransferGeneratorTest extends TestCase
      */
     public function testGenerateWithXsdValidationFailure(): void
     {
-        $xsdValidator = $this->createMock(\Nowo\SepaPaymentBundle\Validator\XsdValidator::class);
+        $xsdValidator = $this->createMock(XsdValidator::class);
         $xsdValidator->method('validateCreditTransfer')->willThrowException(new InvalidArgumentException('XSD error'));
         $translator = $this->createMock(TranslatorInterface::class);
         $translator->method('trans')->willReturn('Generated XML failed XSD validation');
@@ -1485,7 +1489,7 @@ class CreditTransferGeneratorTest extends TestCase
 
         $translator = $this->createMock(TranslatorInterface::class);
         $translator->method('trans')->willReturnCallback(
-            \Nowo\SepaPaymentBundle\Tests\Unit\Helper\TranslationHelper::createTranslatorCallback(),
+            TranslationHelper::createTranslatorCallback(),
         );
         $generator = new CreditTransferGenerator(new IbanValidator(), $translator, null, false, $dispatcher);
 

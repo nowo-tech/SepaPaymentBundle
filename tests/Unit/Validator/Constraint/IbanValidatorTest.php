@@ -7,6 +7,7 @@ namespace Nowo\SepaPaymentBundle\Tests\Unit\Validator\Constraint;
 use Nowo\SepaPaymentBundle\Validator\Constraint\Iban;
 use Nowo\SepaPaymentBundle\Validator\Constraint\IbanValidator as ConstraintIbanValidator;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator as IbanValidatorService;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
@@ -24,9 +25,9 @@ class IbanValidatorTest extends TestCase
     /**
      * IBAN validator service mock.
      *
-     * @var IbanValidatorService|\PHPUnit\Framework\MockObject\MockObject
+     * @var IbanValidatorService|MockObject
      */
-    private \PHPUnit\Framework\MockObject\MockObject $ibanValidatorService;
+    private MockObject $ibanValidatorService;
 
     /**
      * Constraint validator instance.
@@ -36,9 +37,9 @@ class IbanValidatorTest extends TestCase
     /**
      * Execution context mock.
      *
-     * @var ExecutionContextInterface|\PHPUnit\Framework\MockObject\MockObject
+     * @var ExecutionContextInterface|MockObject
      */
-    private \PHPUnit\Framework\MockObject\MockObject $context;
+    private MockObject $context;
 
     /**
      * Sets up the test environment.

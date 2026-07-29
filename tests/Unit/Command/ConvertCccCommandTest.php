@@ -6,6 +6,7 @@ namespace Nowo\SepaPaymentBundle\Tests\Unit\Command;
 
 use Nowo\SepaPaymentBundle\Command\ConvertCccCommand;
 use Nowo\SepaPaymentBundle\Converter\CccConverter;
+use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Tester\CommandTester;
 
@@ -27,7 +28,7 @@ class ConvertCccCommandTest extends TestCase
      */
     protected function setUp(): void
     {
-        $ibanValidator = new \Nowo\SepaPaymentBundle\Validator\IbanValidator();
+        $ibanValidator = new IbanValidator();
         $cccConverter  = new CccConverter($ibanValidator);
         $this->command = new ConvertCccCommand($cccConverter);
     }

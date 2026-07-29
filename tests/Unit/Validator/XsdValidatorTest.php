@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nowo\SepaPaymentBundle\Tests\Unit\Validator;
 
 use InvalidArgumentException;
+use Nowo\SepaPaymentBundle\Tests\Unit\Helper\TranslationHelper;
 use Nowo\SepaPaymentBundle\Validator\XsdValidator;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -30,7 +31,7 @@ class XsdValidatorTest extends TestCase
     {
         $translator = $this->createMock(TranslatorInterface::class);
         $translator->method('trans')->willReturnCallback(
-            \Nowo\SepaPaymentBundle\Tests\Unit\Helper\TranslationHelper::createTranslatorCallback(),
+            TranslationHelper::createTranslatorCallback(),
         );
         $this->validator = new XsdValidator($translator);
     }

@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.2.23] - 2026-07-29](#1223-2026-07-29)
+  - [Added](#added-1223)
+  - [Changed](#changed-1223)
+  - [Documentation](#documentation-1223)
+  - [Backward Compatibility](#backward-compatibility-1223)
 - [[1.2.22] - 2026-07-16](#1222-2026-07-16)
   - [Added](#added-1222)
   - [Changed](#changed-1222)
@@ -123,6 +128,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [1.2.23] - 2026-07-29
+
+### Added (1.2.23)
+
+- **`make demo-smoke`** + **`.github/workflows/demo-smoke.yml`**: boot `demo/symfony8` and assert HTTP 200 (REQ-TEST-011).
+- **`make down-dev`**: stop root compose with `--remove-orphans` (REQ-MAKE-007).
+- **REQ-SF-005**: `SYMFONY_DEPRECATIONS_HELPER=max[direct]=0` in `phpunit.xml.dist` and CI.
+- FrankenPHP Friendly Worker Mode banner in README (REQ-DOCS-017).
+- Demo Makefiles: absolute `DOCKER_BIN` so local `docker/` dirs do not shadow the CLI (REQ-MAKE-010).
+- **REQ-CS-005**: `nowo-tech/phpstan-frankenphp` in `require-dev` with classic + worker rulesets.
+
+### Changed (1.2.23)
+
+- PHPStan: `ignoreErrors: []`, analyse `src` only (REQ-CS-006).
+- `NowoSepaPaymentBundle` and `Configuration` are `final` (REQ-PHP-001).
+- `composer.json` keywords: add `php`, `frankenphp` (REQ-PKG-004).
+- Root Makefile uses Compose V2 with V1 fallback; demos use external `docker/entrypoint.sh`.
+
+### Documentation (1.2.23)
+
+- GitHub About: Packagist website + topics (REQ-DOCS-018).
+- [UPGRADING.md](UPGRADING.md) / [RELEASE.md](RELEASE.md) updated for 1.2.23.
+
+### Backward Compatibility (1.2.23)
+
+- **No breaking API changes**. Do **not** extend `NowoSepaPaymentBundle` or `Configuration` (now `final`). Patch release for consumers.
 
 ## [1.2.22] - 2026-07-16
 

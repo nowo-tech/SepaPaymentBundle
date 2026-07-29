@@ -5,6 +5,11 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
 ## Table of contents
 
+- [Upgrading from 1.2.22 to 1.2.23](#upgrading-from-1222-to-1223)
+  - [✨ Added (1.2.23)](#added-1223)
+  - [📝 Changed (1.2.23)](#changed-1223)
+  - [📚 Documentation (1.2.23)](#documentation-1223)
+  - [Backward Compatibility](#backward-compatibility-1223)
 - [Upgrading from 1.2.21 to 1.2.22](#upgrading-from-1221-to-1222)
   - [✨ Added (1.2.22)](#added-1222)
   - [📝 Changed (1.2.22)](#changed-1222)
@@ -134,6 +139,28 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 - [General Upgrade Notes](#general-upgrade-notes)
   - [Demo Applications](#demo-applications)
 - [Getting Help](#getting-help)
+
+## Upgrading from 1.2.22 to 1.2.23
+
+### ✨ Added (1.2.23)
+
+- FrankenPHP banner, `make down-dev` / `demo-smoke`, zero direct deprecations in PHPUnit/CI — **consumers**: no config change required.
+- Contributors: `phpstan-frankenphp` rulesets after `composer install`.
+
+### 📝 Changed (1.2.23)
+
+- `NowoSepaPaymentBundle` and DI `Configuration` are **`final`** — do not subclass them.
+- PHPStan analyses `src` only with empty `ignoreErrors`.
+
+### 📚 Documentation (1.2.23)
+
+- See [CHANGELOG.md](CHANGELOG.md) `[1.2.23]`.
+
+### Backward Compatibility (1.2.23)
+
+- **No breaking API changes** for typical integrators. `composer update nowo-tech/sepa-payment-bundle` as usual.
+
+---
 
 ## Upgrading from 1.2.21 to 1.2.22
 

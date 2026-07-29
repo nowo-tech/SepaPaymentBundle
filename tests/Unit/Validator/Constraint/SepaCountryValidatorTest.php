@@ -7,6 +7,7 @@ namespace Nowo\SepaPaymentBundle\Tests\Unit\Validator\Constraint;
 use Nowo\SepaPaymentBundle\Validator\Constraint\SepaCountry;
 use Nowo\SepaPaymentBundle\Validator\Constraint\SepaCountryValidator as ConstraintSepaCountryValidator;
 use Nowo\SepaPaymentBundle\Validator\SepaCountryValidator as SepaCountryValidatorService;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
@@ -21,11 +22,11 @@ use Symfony\Component\Validator\Violation\ConstraintViolationBuilderInterface;
  */
 class SepaCountryValidatorTest extends TestCase
 {
-    private \PHPUnit\Framework\MockObject\MockObject $sepaCountryValidatorService;
+    private MockObject $sepaCountryValidatorService;
 
     private ConstraintSepaCountryValidator $validator;
 
-    private \PHPUnit\Framework\MockObject\MockObject $context;
+    private MockObject $context;
 
     protected function setUp(): void
     {

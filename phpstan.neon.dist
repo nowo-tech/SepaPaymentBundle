@@ -4,15 +4,17 @@
 
 includes:
     - phpstan-baseline.neon
+    - vendor/nowo-tech/phpstan-frankenphp/ruleset-classic.neon
+    - vendor/nowo-tech/phpstan-frankenphp/ruleset-worker.neon
 
 parameters:
     level: 8
     paths:
         - src
-        - tests
     excludePaths:
         - demo/*
         - vendor/*
-        - tests/Fixtures/app/var/*
     treatPhpDocTypesAsCertain: false
-    # In tests, redundant asserts for PHPStan are acceptable (they document the expected type)
+    reportUnmatchedIgnoredErrors: false
+    # REQ-CS-006: never silence findings — fix the code instead
+    ignoreErrors: []

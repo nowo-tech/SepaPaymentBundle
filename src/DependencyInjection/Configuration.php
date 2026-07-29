@@ -14,7 +14,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
  */
-class Configuration implements ConfigurationInterface
+final class Configuration implements ConfigurationInterface
 {
     public const ALIAS = 'nowo_sepa_payment';
 

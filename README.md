@@ -4,6 +4,10 @@
 
 > ⭐ **Found this useful?** Give it a star on GitHub! It helps us maintain and improve the project.
 
+![FrankenPHP Friendly Worker Mode](docs/images/frankenphp-friendly.png)
+
+This bundle is **FrankenPHP worker mode friendly**.
+
 **Symfony bundle for SEPA (Single Euro Payments Area) payment management** - Generate SEPA Credit Transfer (pain.001.001.03) and Direct Debit (pain.008.001.02) XML files compliant with ISO 20022 standards. Includes comprehensive IBAN/BIC validation, mandate management, XSD schema validation, and banking utilities for European payments.
 
 ## Features

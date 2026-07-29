@@ -6,6 +6,7 @@ namespace Nowo\SepaPaymentBundle\Generator;
 
 use Deprecated;
 use Nowo\SepaPaymentBundle\Model\CreditTransfer\CreditTransferData;
+use Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction;
 use Nowo\SepaPaymentBundle\Model\Remesa\RemesaData;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use Nowo\SepaPaymentBundle\Validator\XsdValidator;
@@ -136,7 +137,7 @@ class RemesaGenerator
 
         foreach ($remesaData->getTransactions() as $transaction) {
             // Remesa\Transaction uses debtor* fields (deprecated API), but CreditTransfer\Transaction now uses creditor* fields
-            $creditTransferTransaction = new \Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction(
+            $creditTransferTransaction = new Transaction(
                 $transaction->getEndToEndId(),
                 $transaction->getAmount(),
                 $transaction->getCurrency(),

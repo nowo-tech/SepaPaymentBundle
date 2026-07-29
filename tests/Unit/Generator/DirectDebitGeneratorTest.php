@@ -13,10 +13,12 @@ use Nowo\SepaPaymentBundle\Event\AfterDirectDebitGenerationEvent;
 use Nowo\SepaPaymentBundle\Event\BeforeDirectDebitGenerationEvent;
 use Nowo\SepaPaymentBundle\Generator\DirectDebitGenerator;
 use Nowo\SepaPaymentBundle\Logger\SepaPaymentLogger;
+use Nowo\SepaPaymentBundle\Lookup\BicLookupServiceInterface;
 use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitData;
 use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitTransaction;
 use Nowo\SepaPaymentBundle\Tests\Unit\Logger\TestLogger;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+use Nowo\SepaPaymentBundle\Validator\XsdValidator;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -1423,7 +1425,7 @@ class DirectDebitGeneratorTest extends TestCase
      */
     public function testGenerateWithBicLookupService(): void
     {
-        $bicLookup = new class implements \Nowo\SepaPaymentBundle\Lookup\BicLookupServiceInterface {
+        $bicLookup = new class implements BicLookupServiceInterface {
             public function lookupBic(string $iban): ?string
             {
                 return str_starts_with($iban, 'ES') ? 'CAIXESBBXXX' : null;
@@ -1465,7 +1467,7 @@ class DirectDebitGeneratorTest extends TestCase
      */
     public function testGenerateWithBicLookupForTransactionDebtor(): void
     {
-        $bicLookup = new class implements \Nowo\SepaPaymentBundle\Lookup\BicLookupServiceInterface {
+        $bicLookup = new class implements BicLookupServiceInterface {
             public function lookupBic(string $iban): ?string
             {
                 return str_starts_with($iban, 'ES') ? 'CAIXESBBXXX' : (str_starts_with($iban, 'GB') ? 'WESTGB22' : null);
@@ -1545,7 +1547,7 @@ class DirectDebitGeneratorTest extends TestCase
      */
     public function testGenerateWithXsdValidationFailure(): void
     {
-        $xsdValidator = $this->createMock(\Nowo\SepaPaymentBundle\Validator\XsdValidator::class);
+        $xsdValidator = $this->createMock(XsdValidator::class);
         $xsdValidator->method('validateDirectDebit')->willThrowException(new InvalidArgumentException('XSD error'));
         $generator = new DirectDebitGenerator(new IbanValidator(), $xsdValidator, true);
 
@@ -1581,7 +1583,7 @@ class DirectDebitGeneratorTest extends TestCase
     {
         $testLogger   = new TestLogger();
         $sepaLogger   = new SepaPaymentLogger($testLogger);
-        $xsdValidator = $this->createMock(\Nowo\SepaPaymentBundle\Validator\XsdValidator::class);
+        $xsdValidator = $this->createMock(XsdValidator::class);
         $xsdValidator->method('validateDirectDebit')->willThrowException(new InvalidArgumentException('XSD validation failed'));
         $generator = new DirectDebitGenerator(new IbanValidator(), $xsdValidator, true, null, $sepaLogger);
 
