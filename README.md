@@ -35,7 +35,7 @@ This bundle is **FrankenPHP worker mode friendly**.
 - ✅ **Multiple Transactions**: Support for batch payments in a single file
 - ✅ **Full Validation**: Automatic validation of IBANs before XML generation
 - ✅ **Type Safety**: Full type hints and strict types throughout
-- ✅ **Console Commands**: CLI tools for IBAN validation, CCC conversion, and credit card validation
+- ✅ **Console Commands**: `nowo:sepa:validate-iban`, `nowo:sepa:ccc-to-iban`, `sepa:validate-credit-card`, `nowo:sepa:parse-direct-debit`
 
 ## Installation
 
