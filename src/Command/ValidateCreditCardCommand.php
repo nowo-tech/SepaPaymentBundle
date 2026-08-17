@@ -80,13 +80,13 @@ TXT
         $io->section('Card Information');
         $io->definitionList(
             ['Card Number (normalized)' => $normalized],
-            ['Card Number (formatted)'          => $this->creditCardValidator->format($cardNumber)],
-            ['Card Number (masked)'             => $masked],
-            ['Valid'                            => $isValid ? '<fg=green>✓ Yes</>' : '<fg=red>✗ No</>'],
-            ['Card Type'                        => $this->formatCardType($cardType)],
+            ['Card Number (formatted)' => $this->creditCardValidator->format($cardNumber)],
+            ['Card Number (masked)' => $masked],
+            ['Valid' => $isValid ? '<fg=green>✓ Yes</>' : '<fg=red>✗ No</>'],
+            ['Card Type' => $this->formatCardType($cardType)],
             ['BIN (Bank Identification Number)' => $bin],
-            ['Last 4 Digits'                    => $lastFour],
-            ['Length'                           => strlen($normalized) . ' digits'],
+            ['Last 4 Digits' => $lastFour],
+            ['Length' => strlen($normalized) . ' digits'],
         );
 
         if (!$isValid) {
