@@ -1,4 +1,5 @@
 {
+	order mercure after encode
 	skip_install_trust
 }
 
@@ -6,7 +7,12 @@
 	root * /app/public
 	encode zstd br gzip
 	# No worker: one PHP process per request (reliable for demos/CI; Symfony index.php works as-is)
+	mercure {
+		anonymous
+	}
+
 	php_server {
+		hot_reload
 		try_files {path} /index.php
 	}
 }
