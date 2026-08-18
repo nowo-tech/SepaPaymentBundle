@@ -2,7 +2,7 @@
 # Each demo has its own docker-compose.yml and can be run independently
 
 # Define available demos
-DEMOS := symfony6 symfony7 symfony8
+DEMOS := symfony8
 DEMO_DIRS := $(DEMOS)
 
 # Helper function to get port from .env file (defaults to 8001)
@@ -44,14 +44,14 @@ help:
 	@echo "  verify-all         Verify all demos are running correctly (HTTP 200)"
 	@echo ""
 	@echo "Generic commands (use with DEMO=<name>):"
-	@echo "  up <demo>         Start a specific demo (e.g., make up DEMO=symfony6)"
-	@echo "  down <demo>        Stop a specific demo (e.g., make down DEMO=symfony6)"
+	@echo "  up <demo>         Start a specific demo (e.g., make up DEMO=symfony8)"
+	@echo "  down <demo>        Stop a specific demo (e.g., make down DEMO=symfony8)"
 	@echo "  restart <demo>     Restart a specific demo"
 	@echo "  build <demo>       Rebuild image for a specific demo"
-	@echo "  install <demo>     Install dependencies (e.g., make install DEMO=symfony6)"
+	@echo "  install <demo>     Install dependencies (e.g., make install DEMO=symfony8)"
 	@echo "  update <demo>      Run composer update in a specific demo"
 	@echo "  update-bundle <demo>  Update bundle from path in a specific demo"
-	@echo "  test <demo>        Run tests (e.g., make test DEMO=symfony6)"
+	@echo "  test <demo>        Run tests (e.g., make test DEMO=symfony8)"
 	@echo "  shell <demo>       Open shell in a specific demo container"
 	@echo "  logs <demo>        Show logs of a specific demo"
 	@echo ""
@@ -101,84 +101,84 @@ verify-%:
 # Generic commands that work with DEMO variable
 up:
 	@if [ -z "$(DEMO)" ]; then \
-		echo "❌ Error: DEMO variable is required. Usage: make up DEMO=symfony6"; \
+		echo "❌ Error: DEMO variable is required. Usage: make up DEMO=symfony8"; \
 		exit 1; \
 	fi
 	@$(MAKE) up-$(DEMO)
 
 down:
 	@if [ -z "$(DEMO)" ]; then \
-		echo "❌ Error: DEMO variable is required. Usage: make down DEMO=symfony6"; \
+		echo "❌ Error: DEMO variable is required. Usage: make down DEMO=symfony8"; \
 		exit 1; \
 	fi
 	@$(MAKE) down-$(DEMO)
 
 restart:
 	@if [ -z "$(DEMO)" ]; then \
-		echo "❌ Error: DEMO variable is required. Usage: make restart DEMO=symfony6"; \
+		echo "❌ Error: DEMO variable is required. Usage: make restart DEMO=symfony8"; \
 		exit 1; \
 	fi
 	@$(MAKE) restart-$(DEMO)
 
 build:
 	@if [ -z "$(DEMO)" ]; then \
-		echo "❌ Error: DEMO variable is required. Usage: make build DEMO=symfony6"; \
+		echo "❌ Error: DEMO variable is required. Usage: make build DEMO=symfony8"; \
 		exit 1; \
 	fi
 	@$(MAKE) build-$(DEMO)
 
 install:
 	@if [ -z "$(DEMO)" ]; then \
-		echo "❌ Error: DEMO variable is required. Usage: make install DEMO=symfony6"; \
+		echo "❌ Error: DEMO variable is required. Usage: make install DEMO=symfony8"; \
 		exit 1; \
 	fi
 	@$(MAKE) install-$(DEMO)
 
 update:
 	@if [ -z "$(DEMO)" ]; then \
-		echo "❌ Error: DEMO variable is required. Usage: make update DEMO=symfony6"; \
+		echo "❌ Error: DEMO variable is required. Usage: make update DEMO=symfony8"; \
 		exit 1; \
 	fi
 	@$(MAKE) update-$(DEMO)
 
 update-bundle:
 	@if [ -z "$(DEMO)" ]; then \
-		echo "❌ Error: DEMO variable is required. Usage: make update-bundle DEMO=symfony6"; \
+		echo "❌ Error: DEMO variable is required. Usage: make update-bundle DEMO=symfony8"; \
 		exit 1; \
 	fi
 	@$(MAKE) update-bundle-$(DEMO)
 
 test:
 	@if [ -z "$(DEMO)" ]; then \
-		echo "❌ Error: DEMO variable is required. Usage: make test DEMO=symfony6"; \
+		echo "❌ Error: DEMO variable is required. Usage: make test DEMO=symfony8"; \
 		exit 1; \
 	fi
 	@$(MAKE) test-$(DEMO)
 
 test-coverage:
 	@if [ -z "$(DEMO)" ]; then \
-		echo "❌ Error: DEMO variable is required. Usage: make test-coverage DEMO=symfony6"; \
+		echo "❌ Error: DEMO variable is required. Usage: make test-coverage DEMO=symfony8"; \
 		exit 1; \
 	fi
 	@$(MAKE) test-coverage-$(DEMO)
 
 shell:
 	@if [ -z "$(DEMO)" ]; then \
-		echo "❌ Error: DEMO variable is required. Usage: make shell DEMO=symfony6"; \
+		echo "❌ Error: DEMO variable is required. Usage: make shell DEMO=symfony8"; \
 		exit 1; \
 	fi
 	@$(MAKE) shell-$(DEMO)
 
 logs:
 	@if [ -z "$(DEMO)" ]; then \
-		echo "❌ Error: DEMO variable is required. Usage: make logs DEMO=symfony6"; \
+		echo "❌ Error: DEMO variable is required. Usage: make logs DEMO=symfony8"; \
 		exit 1; \
 	fi
 	@$(MAKE) logs-$(DEMO)
 
 verify:
 	@if [ -z "$(DEMO)" ]; then \
-		echo "❌ Error: DEMO variable is required. Usage: make verify DEMO=symfony6"; \
+		echo "❌ Error: DEMO variable is required. Usage: make verify DEMO=symfony8"; \
 		exit 1; \
 	fi
 	@$(MAKE) verify-$(DEMO)
@@ -312,7 +312,6 @@ clean:
 		rm -f $$demo/coverage.xml; \
 	done
 	@echo "✅ Clean completed"
-
 
 # REQ-MAKE-008: update-deps-all (REQ-MAKE-008)
 BUNDLE_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)

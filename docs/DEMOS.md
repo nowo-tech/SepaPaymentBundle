@@ -6,8 +6,6 @@ The bundle includes demo projects for different Symfony versions. Each demo has 
 
 ## Available Demos
 
-- **Symfony 6.4 Demo**: `demo/symfony6/` (Port 8001 by default)
-- **Symfony 7.0 Demo**: `demo/symfony7/` (Port 8001 by default)
 - **Symfony 8.0 Demo**: `demo/symfony8/` (Port 8001 by default)
 
 ## Demo Endpoints
@@ -67,8 +65,8 @@ Each demo application includes the following endpoints to showcase bundle functi
 
 ```bash
 cd demo
-make up-symfony6
-make install-symfony6
+make up-symfony8
+make install-symfony8
 # Access at: http://localhost:8001
 ```
 

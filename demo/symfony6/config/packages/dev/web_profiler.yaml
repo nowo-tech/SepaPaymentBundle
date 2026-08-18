@@ -1,8 +1,0 @@
-# Debug toolbar and profiler (dev only)
-web_profiler:
-    toolbar: true
-    intercept_redirects: false
-
-framework:
-    profiler:
-        only_exceptions: false

@@ -29,40 +29,6 @@ updates:
 
   # Demo Composer dependencies
   - package-ecosystem: "composer"
-    directory: "/demo/symfony6"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:15"
-      timezone: "Europe/Madrid"
-    open-pull-requests-limit: 3
-    reviewers:
-      - "HecFranco"
-    labels:
-      - "dependencies"
-      - "demo"
-      - "symfony6"
-    commit-message:
-      prefix: "chore(deps-demo)"
-
-  - package-ecosystem: "composer"
-    directory: "/demo/symfony7"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:20"
-      timezone: "Europe/Madrid"
-    open-pull-requests-limit: 3
-    reviewers:
-      - "HecFranco"
-    labels:
-      - "dependencies"
-      - "demo"
-      - "symfony7"
-    commit-message:
-      prefix: "chore(deps-demo)"
-
-  - package-ecosystem: "composer"
     directory: "/demo/symfony8"
     schedule:
       interval: "weekly"

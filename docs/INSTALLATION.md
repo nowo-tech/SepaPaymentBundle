@@ -22,6 +22,8 @@ The bundle pulls in `digitick/sepa-xml` and `brick/math` as dependencies.
 composer require nowo-tech/sepa-payment-bundle
 ```
 
+The Flex recipe lives under `.symfony/recipe/` (copy those files if Flex does not apply them).
+
 ## Enable the bundle
 
 Register the bundle in `config/bundles.php`:
