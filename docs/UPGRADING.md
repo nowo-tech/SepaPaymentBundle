@@ -5,6 +5,9 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
 ## Table of contents
 
+- [Upgrading from 1.2.23 to 1.2.24](#upgrading-from-1223-to-1224)
+  - [📝 Changed (1.2.24)](#changed-1224)
+  - [Backward Compatibility](#backward-compatibility-1224)
 - [Upgrading from 1.2.22 to 1.2.23](#upgrading-from-1222-to-1223)
   - [✨ Added (1.2.23)](#added-1223)
   - [📝 Changed (1.2.23)](#changed-1223)
@@ -139,6 +142,18 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 - [General Upgrade Notes](#general-upgrade-notes)
   - [Demo Applications](#demo-applications)
 - [Getting Help](#getting-help)
+
+## Upgrading from 1.2.23 to 1.2.24
+
+### 📝 Changed (1.2.24)
+
+- **Demos only:** pin Hot Reload Bundle to `^1.4` (FrankenPHP Mercure/`hot_reload`, `dev`/`test`). Symfony 8 is the only shipped demo (Symfony 6/7 demo apps removed).
+
+### Backward Compatibility (1.2.24)
+
+- **No breaking API changes.** `composer update nowo-tech/sepa-payment-bundle` as usual.
+
+---
 
 ## Upgrading from 1.2.22 to 1.2.23
 
