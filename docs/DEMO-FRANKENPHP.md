@@ -31,7 +31,7 @@ The demos use:
 - **Two Caddyfiles**: `Caddyfile` (production, with worker) and `Caddyfile.dev` (development, no worker).
 - An **entrypoint** that selects classic vs worker Caddyfile from **`FRANKENPHP_MODE`** (`classic` \| `worker`, default **`worker`** in `.env.example`)
 
-There are demos for **Symfony 6**, **7** and **8** (e.g. **demo/symfony6**, **demo/symfony7**, **demo/symfony8**). Each has its own Dockerfile, docker-compose.yml and Makefile. From the bundle root you run e.g. `make -C demo/symfony8 up` (see the demo’s README for the URL and port).
+There are demos for **Symfony 6**, **7** and **8** (e.g. **demo/symfony8**, **demo/symfony8**, **demo/symfony8**). Each has its own Dockerfile, docker-compose.yml and Makefile. From the bundle root you run e.g. `make -C demo/symfony8 up` (see the demo’s README for the URL and port).
 
 The main difference between development and production is:
 
@@ -53,6 +53,7 @@ The main difference between development and production is:
 The demo applications are configured for **local development and debugging**:
 
 - **Symfony Web Profiler** and **Debug bundle** — enabled in `dev` and `test` environments.
+- **Nowo Twig Inspector** (`nowo-tech/twig-inspector-bundle`) and **Nowo Hot Reload** (`nowo-tech/hot-reload-bundle`) — required together on FrankenPHP demos (dev/test only; Caddyfile Mercure + `hot_reload`, plus `worker { watch }` in worker mode). Do not enable Hot Reload in production.
 - **SEPA Payment Bundle** (`Nowo\SepaPaymentBundle\NowoSepaPaymentBundle`) — the bundle under test; enabled in the demos.
 - **Twig Inspector Bundle** (`nowo-tech/twig-inspector-bundle`) — optional dev tooling; registered for `dev` and `test` only.
 
@@ -99,7 +100,7 @@ Each demo’s **docker-compose.yml** sets `APP_ENV=dev` and `APP_DEBUG=1`, and m
 
 ### 5. Start the demo (development)
 
-From the bundle root: `make -C demo/symfony8 up` (or `make -C demo/symfony7 up`, `make -C demo/symfony6 up`). Or from the demo directory: `make up`.
+From the bundle root: `make -C demo/symfony8 up` (or `make -C demo/symfony8 up`, `make -C demo/symfony8 up`). Or from the demo directory: `make up`.
 
 ---
 
