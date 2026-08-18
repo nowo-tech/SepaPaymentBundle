@@ -143,7 +143,7 @@ See [docs/COMMANDS.md](docs/COMMANDS.md) for detailed documentation of all conso
 
 ## Demo Projects
 
-Demos for Symfony 6, 7 and 8 run with **FrankenPHP** (development uses `Caddyfile.dev` without workers; production-style uses worker mode — see [docs/DEMO-FRANKENPHP.md](docs/DEMO-FRANKENPHP.md)). See [docs/DEMOS.md](docs/DEMOS.md) for endpoints and quick start.
+Demos for Symfony 8 run with **FrankenPHP** (development uses `Caddyfile.dev` without workers; production-style uses worker mode — see [docs/DEMO-FRANKENPHP.md](docs/DEMO-FRANKENPHP.md)). See [docs/DEMOS.md](docs/DEMOS.md) for endpoints and quick start.
 
 ## Development
 

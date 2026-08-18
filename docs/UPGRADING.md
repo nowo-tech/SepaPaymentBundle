@@ -235,7 +235,7 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
 ### 📝 Changed (1.2.19)
 
-- **Repository / demos**: Root **`composer.lock`** and **`demo/symfony7`** / **`demo/symfony8`** locks refreshed (Symfony and **digitick/sepa-xml** bumps in the resolved tree). Run `composer update` at the bundle root or inside each demo if you maintain a long-lived clone.
+- **Repository / demos**: Root **`composer.lock`** and **`demo/symfony8`** / **`demo/symfony8`** locks refreshed (Symfony and **digitick/sepa-xml** bumps in the resolved tree). Run `composer update` at the bundle root or inside each demo if you maintain a long-lived clone.
 - **Reference fixtures**: **`demo/symfony8/config/reference.php`** and **`tests/Fixtures/app/config/reference.php`** — maintenance only; no action needed in consuming applications.
 - **Rector (maintainers)**: **`rector.php`** skips **`CommandHelpToAttributeRector`** again so **`make release-check`** stays green while commands keep **`setHelp()`** for Console **6.0 / 6.1**.
 

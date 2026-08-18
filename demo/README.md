@@ -23,7 +23,7 @@ Each demo has its own `docker-compose.yml` and can be run independently. You can
 **Important**: Run `docker compose` from the demo directory (e.g. `demo/symfony8`). The compose file mounts the demo at `/app` and the bundle root at `/var/sepa-payment-bundle` so the demo uses the bundle source. Use `make install-symfony8` (or the demo’s install target) so the bundle symlink is correct inside the container. Before starting, copy `.env.example` to `.env`:
 
 ```bash
-cd demo/symfony6
+cd demo/symfony8
 cp .env.example .env
 # Optionally generate a new APP_SECRET: openssl rand -hex 32
 # The .env.example includes: APP_ENV=dev, APP_SECRET (placeholder), APP_DEBUG=1, PORT=8001
@@ -33,7 +33,7 @@ cp .env.example .env
 
 ```bash
 # Navigate to the demo directory
-cd demo/symfony6
+cd demo/symfony8
 
 # Copy .env.example to .env if not already done
 cp .env.example .env
@@ -51,19 +51,19 @@ Or using the Makefile from the `demo/` directory:
 
 ```bash
 cd demo
-make up-symfony6
-make install-symfony6
+make up-symfony8
+make install-symfony8
 
 # Or verify that the demo is running correctly
-make verify DEMO=symfony6
+make verify DEMO=symfony8
 ```
 
 ### Symfony 7.0 Demo
 
 ```bash
 cd demo
-make up-symfony7
-make install-symfony7
+make up-symfony8
+make install-symfony8
 ```
 
 ### Symfony 8.0 Demo
@@ -84,8 +84,8 @@ Each demo includes its own test suite to verify that the SEPA Payment Bundle wor
 cd demo
 
 # Run tests for a specific demo
-make test-symfony6
-make test-symfony7
+make test-symfony8
+make test-symfony8
 make test-symfony8
 
 # Run all tests
@@ -98,8 +98,8 @@ make test-all
 cd demo
 
 # Run tests with coverage for a specific demo
-make test-coverage-symfony6
-make test-coverage-symfony7
+make test-coverage-symfony8
+make test-coverage-symfony8
 make test-coverage-symfony8
 
 # Run all demos with coverage
@@ -117,7 +117,7 @@ cd demo
 make verify-all
 
 # Or verify a specific demo
-make verify DEMO=symfony6
+make verify DEMO=symfony8
 ```
 
 ## What's Included
