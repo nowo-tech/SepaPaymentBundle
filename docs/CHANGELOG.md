@@ -130,6 +130,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.25] - 2026-08-19
+
+### Security
+
+- **CI:** run `composer audit --locked` after dependency install (REQ-SEC / P3).
+
+### Fixed
+
+- **CI:** restore `if/fi` block around dependency install before `composer audit --locked`.
+
 ## [1.2.24] - 2026-08-18
 
 ### Changed

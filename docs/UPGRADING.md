@@ -5,6 +5,7 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
 ## Table of contents
 
+- [Upgrading from 1.2.24 to 1.2.25](#upgrading-from-1224-to-1225)
 - [Upgrading from 1.2.23 to 1.2.24](#upgrading-from-1223-to-1224)
   - [📝 Changed (1.2.24)](#changed-1224)
   - [Backward Compatibility](#backward-compatibility-1224)
@@ -142,6 +143,22 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 - [General Upgrade Notes](#general-upgrade-notes)
   - [Demo Applications](#demo-applications)
 - [Getting Help](#getting-help)
+
+## Upgrading from 1.2.24 to 1.2.25
+
+### Security (1.2.25)
+
+- **CI only:** `composer audit --locked` after dependency install. No application upgrade steps.
+
+### Fixed (1.2.25)
+
+- **CI:** dependency-install `if/fi` block restored before audit step.
+
+### Backward Compatibility (1.2.25)
+
+- **No breaking API changes.** `composer update nowo-tech/sepa-payment-bundle` as usual.
+
+---
 
 ## Upgrading from 1.2.23 to 1.2.24
 
