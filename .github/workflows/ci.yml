@@ -85,12 +85,12 @@ jobs:
           composer require symfony/config:^${{ matrix.symfony }} symfony/dependency-injection:^${{ matrix.symfony }} symfony/http-kernel:^${{ matrix.symfony }} symfony/console:^${{ matrix.symfony }} --no-interaction --no-update
           if [ ! -f composer.lock ]; then
             composer update --no-interaction --prefer-dist --no-progress
-      - name: Composer audit (Critical/High)
-        run: composer audit --locked
-
           else
             composer update symfony/* --with-all-dependencies --no-interaction --prefer-dist --no-progress
           fi
+
+      - name: Composer audit (Critical/High)
+        run: composer audit --locked
 
       - name: Run tests
         env:
