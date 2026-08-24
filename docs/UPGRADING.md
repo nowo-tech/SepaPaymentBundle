@@ -5,6 +5,8 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
 ## Table of contents
 
+
+- [From 1.2.25 to 1.2.26](#from-1225-to-1226)
 - [Upgrading from 1.2.24 to 1.2.25](#upgrading-from-1224-to-1225)
 - [Upgrading from 1.2.23 to 1.2.24](#upgrading-from-1223-to-1224)
   - [📝 Changed (1.2.24)](#changed-1224)
