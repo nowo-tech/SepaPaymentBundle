@@ -61,32 +61,34 @@ See user stories US-01…US-05 in [`docs/SPEC-DRIVEN-DEVELOPMENT.md`](../../docs
 
 - **FR-VAL-001…010**: Service validators and cached decorators as mapped in inventory.
 - **FR-CONSTRAINT-001…005**: Symfony constraint attributes MUST delegate to service validators with translation keys under `NowoSepaPaymentBundle` domain.
-- **FR-VAL-008**: XSD validation MUST support pain.001 and pain.008 when schema files are available.
+- **FR-VAL-008**: XSD validation MUST support pain.001 and pain.008 when schema files are available and MUST restore the previous `libxml_use_internal_errors()` mode after each call.
 
 ### Mandates
 
 - **FR-MANDATE-001**: Service MUST support create, revoke, suspend, reactivate, sequence transitions, and transaction eligibility checks.
-- **FR-MANDATE-002**: Default in-memory repository is for dev/demo; interface documents production contract.
+- **FR-MANDATE-002**: Default in-memory repository is for dev/demo and is **request-scoped** (`ResetInterface` + `WorkerStateResetSubscriber`); production apps MUST bind a persistent implementation.
 
 ### Events, export, utilities
 
 - **FR-EVENT-001…003**: Before/after hooks for validation and generation MUST allow mutation or short-circuit where documented.
 - **FR-EXPORT-001 / FR-EXPORT-002**: Export/import JSON and CSV via injectable stream handler.
-- **FR-LOOKUP-001**: BIC lookup from IBAN using bundled reference data where country supported.
+- **FR-LOOKUP-001**: BIC lookup from IBAN using bundled reference data where country supported; runtime `addMapping()` is request-scoped; permanent mappings via `$customMappings`.
+- **FR-WORKER-001**: Bundle MUST clear tagged request-scoped services at the start of every main HTTP request so FrankenPHP worker mode without kernel reset matches classic PHP-FPM isolation for in-memory state.
 - **FR-CACHE-001**: Optional PSR-16 cache for boolean validation results (TTL default 3600s).
 - **FR-CONV-001**: CCC↔IBAN for Spanish accounts.
 - **FR-LOG-001**: Structured logging for generation, validation, parse, and error paths.
 - **FR-CLI-001**: Four console commands as listed in inventory.
-- **FR-I18N-001**: Eleven locale files for validator messages.
+- **FR-I18N-001**: Locale YAML files for validator messages under `NowoSepaPaymentBundle` domain.
 
 ---
 
 ## Success Criteria
 
-- **SC-001**: **74/74** files mapped in [`code-inventory.md`](code-inventory.md).
+- **SC-001**: All production files under `src/` mapped in [`code-inventory.md`](code-inventory.md).
 - **SC-002**: Generated XML samples in tests pass XSD when schemas enabled.
 - **SC-003**: PHPUnit + PHPStan pass in CI (`composer qa`).
 - **SC-004**: Deprecated APIs documented in CHANGELOG/UPGRADING with 2.0.0 removal target.
+- **SC-005**: Worker-mode integration test proves no mandate / runtime BIC leak across consecutive main requests on one kernel.
 
 ---
 

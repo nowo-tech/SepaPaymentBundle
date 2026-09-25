@@ -61,11 +61,14 @@ class XsdValidator
         $dom = new DOMDocument();
 
         // Load XML with error handling
-        libxml_use_internal_errors(true);
-        $loaded = @$dom->loadXML($xml);
-        $errors = libxml_get_errors();
-        libxml_clear_errors();
-        libxml_use_internal_errors(false);
+        $previousUseErrors = libxml_use_internal_errors(true);
+        try {
+            $loaded = @$dom->loadXML($xml);
+            $errors = libxml_get_errors();
+            libxml_clear_errors();
+        } finally {
+            libxml_use_internal_errors($previousUseErrors);
+        }
 
         if (!$loaded) {
             $errorMessages = array_map(static fn (LibXMLError $error): string => trim($error->message), $errors);
@@ -82,11 +85,14 @@ class XsdValidator
 
         // Validate against XSD schema
         if ($xsdPath !== null && file_exists($xsdPath)) {
-            libxml_use_internal_errors(true);
-            $valid  = @$dom->schemaValidate($xsdPath);
-            $errors = libxml_get_errors();
-            libxml_clear_errors();
-            libxml_use_internal_errors(false);
+            $previousUseErrors = libxml_use_internal_errors(true);
+            try {
+                $valid  = @$dom->schemaValidate($xsdPath);
+                $errors = libxml_get_errors();
+                libxml_clear_errors();
+            } finally {
+                libxml_use_internal_errors($previousUseErrors);
+            }
 
             if (!$valid && $errors !== []) {
                 $errorMessages = array_map(static fn ($error): string => trim($error->message), $errors);
@@ -170,11 +176,14 @@ class XsdValidator
         $dom = new DOMDocument();
 
         // Load XML with error handling
-        libxml_use_internal_errors(true);
-        $loaded = @$dom->loadXML($xml);
-        $errors = libxml_get_errors();
-        libxml_clear_errors();
-        libxml_use_internal_errors(false);
+        $previousUseErrors = libxml_use_internal_errors(true);
+        try {
+            $loaded = @$dom->loadXML($xml);
+            $errors = libxml_get_errors();
+            libxml_clear_errors();
+        } finally {
+            libxml_use_internal_errors($previousUseErrors);
+        }
 
         if (!$loaded) {
             $errorMessages = array_map(static fn (LibXMLError $error): string => trim($error->message), $errors);
@@ -185,11 +194,14 @@ class XsdValidator
         }
 
         // Validate against XSD schema string
-        libxml_use_internal_errors(true);
-        $valid  = @$dom->schemaValidateSource($xsdContent);
-        $errors = libxml_get_errors();
-        libxml_clear_errors();
-        libxml_use_internal_errors(false);
+        $previousUseErrors = libxml_use_internal_errors(true);
+        try {
+            $valid  = @$dom->schemaValidateSource($xsdContent);
+            $errors = libxml_get_errors();
+            libxml_clear_errors();
+        } finally {
+            libxml_use_internal_errors($previousUseErrors);
+        }
 
         if (!$valid && $errors !== []) {
             $errorMessages = array_map(static fn ($error): string => trim($error->message), $errors);

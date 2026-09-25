@@ -6,6 +6,13 @@ All notable changes to this project will be documented in this file.
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.2.27] - 2026-09-25](#1227-2026-09-25)
+  - [Fixed](#fixed-1227)
+  - [Added](#added-1227)
+  - [Documentation](#documentation-1227)
+  - [Backward Compatibility](#backward-compatibility-1227)
+- [[1.2.26] - 2026-08-24](#1226-2026-08-24)
+- [[1.2.25] - 2026-08-19](#1225-2026-08-19)
 - [[1.2.24] - 2026-08-18](#1224-2026-08-18)
 - [[1.2.23] - 2026-07-29](#1223-2026-07-29)
   - [Added](#added-1223)
@@ -130,6 +137,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.27] - 2026-09-25
+
+### Fixed (1.2.27)
+
+- **FrankenPHP worker mode (no kernel reset between requests):** the bundle's in-memory state is now request-scoped. New `EventSubscriber\WorkerStateResetSubscriber` resets services tagged `nowo_sepa_payment.request_scoped` at the start of every main request (priority 4096, sub-requests ignored). See [`FRANKENPHP-WORKER-AUDIT.md`](FRANKENPHP-WORKER-AUDIT.md).
+  - `Repository\MandateRepository` implements `ResetInterface`: mandates and history no longer leak across requests or users (W-01).
+  - `Lookup\BicLookupService` implements `ResetInterface`: mappings added with `addMapping()` are dropped at the next main request; new optional constructor argument `$customMappings` for permanent mappings (W-02).
+  - `Validator\XsdValidator` restores the previous `libxml_use_internal_errors()` value in `finally` instead of forcing it to `false` (W-03).
+
+### Added (1.2.27)
+
+- **Tests**: `tests/Integration/WorkerModeIntegrationTest.php` and `tests/Unit/EventSubscriber/WorkerStateResetSubscriberTest.php` cover scenario B (shared container, no `services_resetter`).
+
+### Documentation (1.2.27)
+
+- **`docs/FRANKENPHP-WORKER-AUDIT.md`**: full audit (scenario A/B), findings W-01–W-04, and worker usage recommendations.
+- **USAGE / UPGRADING / SPEC-DRIVEN-DEVELOPMENT**: request-scoped mandate store and BIC mappings documented for integrators.
+
+### Backward Compatibility (1.2.27)
+
+- **No breaking API changes**. New `$customMappings` on `BicLookupService` is optional. Default in-memory `MandateRepository` still works in classic PHP-FPM (empty per request as before); in workers it is emptied per main request — bind a persistent repository for real mandate storage (as already recommended).
 
 ## [1.2.26] - 2026-08-24
 

@@ -193,6 +193,17 @@ $bic = $bicLookup->lookupBic($iban);
 // Returns: 'CUSTOMBIC'
 ```
 
+Mappings added with `addMapping()` are **request-scoped**: they are dropped at the start of the next main request (and on `kernel.reset`), so a tenant-specific mapping never leaks to other requests in FrankenPHP worker mode. For mappings that must always apply, use the `$customMappings` constructor argument:
+
+```yaml
+# config/services.yaml
+services:
+    Nowo\SepaPaymentBundle\Lookup\BicLookupService:
+        arguments:
+            $customMappings:
+                ES: { '9999': 'CUSTOMBIC' }
+```
+
 ### Cache Support (Optional)
 
 You can use a PSR-16 compatible cache to cache lookup results and improve performance:
@@ -1142,6 +1153,8 @@ $mandate->setDebtorBic('CAIXESBBXXX');
 $mandate->setSequenceType('RCUR'); // For recurring payments
 $mandate->setActive(true);
 ```
+
+`MandateService` stores mandates through `MandateRepositoryInterface`. The default implementation (`MandateRepository`) is an **in-memory, request-scoped** store: it is emptied at the start of every main request (also in FrankenPHP worker mode without `services_resetter`). Bind `MandateRepositoryInterface` to a persistent implementation (Doctrine or similar) to keep mandates between requests.
 
 ## Generating SEPA Credit Transfer (Remesa de Pago)
 

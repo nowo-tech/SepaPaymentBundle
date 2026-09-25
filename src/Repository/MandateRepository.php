@@ -9,17 +9,22 @@ use DateTimeInterface;
 use Nowo\SepaPaymentBundle\Model\Mandate\Mandate;
 use Nowo\SepaPaymentBundle\Model\Mandate\MandateHistory;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+use Symfony\Contracts\Service\ResetInterface;
 
 /**
  * In-memory mandate repository implementation.
  * This is a simple implementation that stores mandates in memory.
  * For production use, implement a database-backed repository.
  *
+ * The store is request-scoped: it is emptied at the start of every main request
+ * (see WorkerStateResetSubscriber) and on kernel.reset, so data never leaks between
+ * requests or users in long-running workers (FrankenPHP worker mode, RoadRunner).
+ *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
-class MandateRepository implements MandateRepositoryInterface
+class MandateRepository implements MandateRepositoryInterface, ResetInterface
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.repository.mandate_repository';
 
@@ -190,5 +195,13 @@ class MandateRepository implements MandateRepositoryInterface
     {
         $this->mandates = [];
         $this->history  = [];
+    }
+
+    /**
+     * Empties the in-memory store (called on kernel.reset and at the start of each main request).
+     */
+    public function reset(): void
+    {
+        $this->clear();
     }
 }

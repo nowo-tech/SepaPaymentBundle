@@ -6,6 +6,9 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 ## Table of contents
 
 
+- [Upgrading from 1.2.26 to 1.2.27](#upgrading-from-1226-to-1227)
+  - [🐛 Fixed (1.2.27)](#fixed-1227)
+  - [Backward Compatibility](#backward-compatibility-1227)
 - [From 1.2.25 to 1.2.26](#from-1225-to-1226)
 - [Upgrading from 1.2.24 to 1.2.25](#upgrading-from-1224-to-1225)
 - [Upgrading from 1.2.23 to 1.2.24](#upgrading-from-1223-to-1224)
@@ -145,6 +148,45 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 - [General Upgrade Notes](#general-upgrade-notes)
   - [Demo Applications](#demo-applications)
 - [Getting Help](#getting-help)
+
+## Upgrading from 1.2.26 to 1.2.27
+
+### 🐛 Fixed (1.2.27)
+
+- **FrankenPHP / long-running workers (kernel not reset between requests):** in-memory bundle state is request-scoped.
+  - **`MandateRepository`** (default) is emptied at the start of every main request and on `kernel.reset`. In classic PHP-FPM nothing changes (the store was already empty on each request). In workers, mandates no longer survive to the next request. If you need persistence, bind `Nowo\SepaPaymentBundle\Repository\MandateRepositoryInterface` to your own (e.g. Doctrine) implementation, as before.
+  - **`BicLookupService::addMapping()`** is request-scoped. Mappings added at runtime are dropped at the next main request. For permanent mappings, pass them to the new optional constructor argument `$customMappings`:
+
+```yaml
+# config/services.yaml
+services:
+    Nowo\SepaPaymentBundle\Lookup\BicLookupService:
+        arguments:
+            $customMappings:
+                ES: { '9999': 'CUSTOMBIC' }
+```
+
+  - **`XsdValidator`** restores the previous `libxml_use_internal_errors()` value instead of forcing it to `false`.
+
+See [`FRANKENPHP-WORKER-AUDIT.md`](FRANKENPHP-WORKER-AUDIT.md) for the full audit (scenario A/B).
+
+### Backward Compatibility (1.2.27)
+
+- No public signature removed; the new constructor argument is optional. Services implementing `ResetInterface` inside the bundle are tagged `nowo_sepa_payment.request_scoped`.
+
+---
+
+## From 1.2.25 to 1.2.26
+
+### Changed (1.2.26)
+
+- Minimum PHP raised to **8.2** (REQ-SF-001). Applications still on PHP 8.1 must stay on `^1.2.25` or upgrade PHP.
+
+### Backward Compatibility (1.2.26)
+
+- **No API changes** beyond the PHP floor. `composer update nowo-tech/sepa-payment-bundle` on PHP ≥ 8.2.
+
+---
 
 ## Upgrading from 1.2.24 to 1.2.25
 

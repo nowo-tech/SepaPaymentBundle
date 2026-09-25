@@ -428,4 +428,54 @@ class XsdValidatorTest extends TestCase
             $this->assertStringEndsWith('.xsd', $pathDd);
         }
     }
+
+    /**
+     * The process-wide libxml error mode must be restored after each call (worker mode keeps PHP globals between requests).
+     */
+    public function testLibxmlInternalErrorsModeIsRestored(): void
+    {
+        foreach ([true, false] as $previous) {
+            $this->assertLibxmlModeRestored($previous);
+        }
+    }
+
+    private function assertLibxmlModeRestored(bool $previous): void
+    {
+        $original = libxml_use_internal_errors($previous);
+        $xsd      = <<<'XSD'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                <xs:element name="root" type="xs:string"/>
+            </xs:schema>
+            XSD;
+        $tempXsd = sys_get_temp_dir() . '/sepa_mode_' . uniqid() . '.xsd';
+        file_put_contents($tempXsd, $xsd);
+
+        try {
+            $this->validator->validateAgainstSchemaString('<root>ok</root>', $xsd);
+            $this->assertSame($previous, libxml_use_internal_errors($previous));
+
+            $this->validator->validate('<root>ok</root>', $tempXsd);
+            $this->assertSame($previous, libxml_use_internal_errors($previous));
+
+            try {
+                $this->validator->validate('<root><unclosed></root>');
+                $this->fail('Malformed XML must throw');
+            } catch (InvalidArgumentException) {
+                $this->assertSame($previous, libxml_use_internal_errors($previous));
+            }
+
+            try {
+                $this->validator->validateAgainstSchemaString('<other/>', $xsd);
+                $this->fail('Schema violation must throw');
+            } catch (InvalidArgumentException) {
+                $this->assertSame($previous, libxml_use_internal_errors($previous));
+            }
+        } finally {
+            libxml_use_internal_errors($original);
+            if (file_exists($tempXsd)) {
+                unlink($tempXsd);
+            }
+        }
+    }
 }

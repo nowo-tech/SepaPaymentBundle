@@ -321,4 +321,31 @@ class BicLookupServiceTest extends TestCase
         $bic    = $method->invoke($this->lookupService, 'XX', '12345678901');
         $this->assertNull($bic);
     }
+
+    /**
+     * Runtime addMapping() is request-scoped; constructor mappings survive reset().
+     */
+    public function testResetDropsRuntimeMappingsAndKeepsConstructorMappings(): void
+    {
+        $service = new BicLookupService($this->ibanValidator, null, 86400, [
+            'ES' => ['9999' => 'CONFIGBIC'],
+            'AT' => ['12345' => 'ATCFGBIC'],
+        ]);
+        $this->assertTrue($service->isAvailable('AT611904300234573201'));
+
+        $ref = new ReflectionClass(BicLookupService::class);
+        $db  = $ref->getProperty('bicDatabase');
+        $this->assertSame('CONFIGBIC', $db->getValue($service)['ES']['9999']);
+
+        $service->addMapping('ES', '8888', 'RUNTIMEBIC');
+        $service->addMapping('ES', '2100', 'OVERRIDEBIC');
+        $this->assertSame('OVERRIDEBIC', $service->lookupBic('ES9121000418450200051332'));
+
+        $service->reset();
+
+        $this->assertSame('CAIXESBB', $service->lookupBic('ES9121000418450200051332'));
+        $this->assertArrayNotHasKey('8888', $db->getValue($service)['ES']);
+        $this->assertSame('CONFIGBIC', $db->getValue($service)['ES']['9999']);
+        $this->assertTrue($service->isAvailable('AT611904300234573201'));
+    }
 }

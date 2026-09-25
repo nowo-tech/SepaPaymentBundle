@@ -10,6 +10,8 @@
 
 This bundle is **FrankenPHP worker mode friendly**.
 
+It is safe when the kernel is **not** reset between requests: request-scoped in-memory state (`MandateRepository`, runtime `BicLookupService::addMapping()`) is cleared at each main request, and `XsdValidator` restores the process-wide libxml error mode. Full audit: [docs/FRANKENPHP-WORKER-AUDIT.md](docs/FRANKENPHP-WORKER-AUDIT.md).
+
 ## Features
 
 - ✅ **IBAN Validation**: Complete IBAN validation according to ISO 13616 standard
@@ -171,6 +173,7 @@ See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for development setup, testing, c
 - [Commands](docs/COMMANDS.md)
 - [Demo projects](docs/DEMOS.md)
 - [Demo with FrankenPHP (development and production)](docs/DEMO-FRANKENPHP.md)
+- [FrankenPHP worker mode audit](docs/FRANKENPHP-WORKER-AUDIT.md)
 - [Development](docs/DEVELOPMENT.md)
 - [Deprecated fields](docs/DEPRECATED_FIELDS.md)
 - [Future improvements](docs/FUTURE.md)

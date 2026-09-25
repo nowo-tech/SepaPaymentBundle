@@ -39,10 +39,11 @@ The sections below state **behavior**; this subsection states **intent** in back
 | Generators | `CreditTransferGenerator`, `DirectDebitGenerator`, `IdentifierGenerator`; deprecated `RemesaGenerator`. |
 | Parsers | pain.001 / pain.008 DOM parsers; deprecated `RemesaParser`. |
 | Validators | IBAN, BIC, credit card, SEPA country/creditor ID, business rules, XSD, sanitization; Symfony `#[Iban]` … constraints. |
-| Mandates | `MandateService` + `MandateRepositoryInterface` (default in-memory for dev). |
+| Mandates | `MandateService` + `MandateRepositoryInterface` (default in-memory, request-scoped, for dev). |
 | Events | Before/after validation and XML generation hooks. |
 | Export | JSON/CSV via `ExportService`. |
-| Utilities | Spanish `CccConverter`, BIC lookup, validation cache, console commands, structured logger. |
+| Utilities | Spanish `CccConverter`, BIC lookup (runtime mappings request-scoped), validation cache, console commands, structured logger. |
+| Worker safety | `WorkerStateResetSubscriber` resets `nowo_sepa_payment.request_scoped` services on each main request (FrankenPHP without kernel reset). |
 
 - Documented integration (see root `README.md` and `docs/`).
 - Configuration and runtime behavior described in [`CONFIGURATION.md`](CONFIGURATION.md) and [`USAGE.md`](USAGE.md).
@@ -69,7 +70,8 @@ The sections below state **behavior**; this subsection states **intent** in back
 
 | ID | Where | What it marks |
 | --- | --- | --- |
-| **REQ-MAKE-008** | Root `Makefile`, `demo/symfony8/Makefile`, `demo/symfony8/Makefile`, `demo/symfony8/Makefile`, `demo/Makefile` | Standard **`update-deps`** / **`update-deps-all`** targets (shared `bundles/.scripts/` fragments). Requires **`COMPOSE`** and **`SERVICE_PHP`** before include. |
+| **REQ-MAKE-008** | Root `Makefile`, `demo/symfony8/Makefile`, `demo/Makefile` | Standard **`update-deps`** / **`update-deps-all`** targets (shared `bundles/.scripts/` fragments). Requires **`COMPOSE`** and **`SERVICE_PHP`** before include. |
+| **REQ-WORKER-001** | `WorkerStateResetSubscriber`, `MandateRepository`, `BicLookupService`, `XsdValidator` | FrankenPHP worker mode without kernel reset: in-memory state request-scoped; libxml flag restored. See [`FRANKENPHP-WORKER-AUDIT.md`](FRANKENPHP-WORKER-AUDIT.md). |
 
 When you change scripted behavior, **update the existing `REQ-*` comment** if the ID still matches the rule, or **add a new `REQ-*`** and document it here and in the PR description.
 

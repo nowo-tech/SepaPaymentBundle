@@ -6,16 +6,21 @@ namespace Nowo\SepaPaymentBundle\Lookup;
 
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+use Symfony\Contracts\Service\ResetInterface;
 
 /**
  * Service for looking up BIC codes from IBANs.
  * Uses a local database of common IBAN to BIC mappings.
  *
+ * Mappings passed to the constructor ($customMappings) are permanent. Mappings added with
+ * addMapping() are request-scoped: they are dropped at the start of every main request
+ * (see WorkerStateResetSubscriber) and on kernel.reset, as they would be in classic PHP-FPM mode.
+ *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
-class BicLookupService implements BicLookupServiceInterface
+class BicLookupService implements BicLookupServiceInterface, ResetInterface
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.lookup.bic_lookup_service';
 
@@ -34,6 +39,7 @@ class BicLookupService implements BicLookupServiceInterface
      * @param IbanValidator $ibanValidator IBAN validator instance
      * @param object|null $cache Optional cache interface for caching lookups (must implement get/set methods)
      * @param int $cacheTtl Cache TTL in seconds (default: 86400)
+     * @param array<string, array<string, string>> $customMappings Extra mappings (countryCode => [ bankCode => bic ]) kept for the service lifetime
      */
     public function __construct(
         /**
@@ -47,9 +53,40 @@ class BicLookupService implements BicLookupServiceInterface
         /**
          * Cache TTL in seconds (default: 86400 = 24 hours).
          */
-        private readonly int $cacheTtl = 86400
+        private readonly int $cacheTtl = 86400,
+        /**
+         * Extra mappings merged over the default database; survive reset().
+         *
+         * @var array<string, array<string, string>>
+         */
+        private readonly array $customMappings = []
     ) {
-        $this->bicDatabase = $this->getDefaultBicDatabase();
+        $this->bicDatabase = $this->getBaseBicDatabase();
+    }
+
+    /**
+     * Drops mappings added at runtime with addMapping() and restores the default + constructor mappings.
+     */
+    public function reset(): void
+    {
+        $this->bicDatabase = $this->getBaseBicDatabase();
+    }
+
+    /**
+     * Default database merged with the constructor-provided custom mappings.
+     *
+     * @return array<string, array<string, string>>
+     */
+    private function getBaseBicDatabase(): array
+    {
+        $db = $this->getDefaultBicDatabase();
+        foreach ($this->customMappings as $countryCode => $mappings) {
+            foreach ($mappings as $bankCode => $bic) {
+                $db[$countryCode][$bankCode] = $bic;
+            }
+        }
+
+        return $db;
     }
 
     /**
@@ -237,6 +274,7 @@ class BicLookupService implements BicLookupServiceInterface
     /**
      * Adds a custom IBAN to BIC mapping.
      * Useful for adding bank-specific mappings not in the default database.
+     * The mapping is request-scoped (dropped by reset()); use the $customMappings constructor argument for permanent ones.
      *
      * @param string $countryCode Country code (2 letters)
      * @param string $bankCode Bank code (country-specific format)

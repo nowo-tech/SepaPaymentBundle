@@ -109,7 +109,7 @@ This file proves that **every production source artifact** under `src/` is refer
 | Source file | Spec section | Requirement IDs |
 | --- | --- | --- |
 | `Lookup/BicLookupServiceInterface.php` | BIC lookup contract | FR-LOOKUP-001 |
-| `Lookup/BicLookupService.php` | IBAN→BIC local lookup | FR-LOOKUP-001 |
+| `Lookup/BicLookupService.php` | IBAN→BIC local lookup (request-scoped runtime mappings) | FR-LOOKUP-001 |
 | `Cache/ValidationCacheInterface.php` | Validation cache contract | FR-CACHE-001 |
 | `Cache/ValidationCache.php` | PSR-16 validation cache | FR-CACHE-001 |
 
@@ -119,7 +119,13 @@ This file proves that **every production source artifact** under `src/` is refer
 | --- | --- | --- |
 | `Service/MandateService.php` | Mandate lifecycle | FR-MANDATE-001 |
 | `Repository/MandateRepositoryInterface.php` | Persistence contract | FR-MANDATE-002 |
-| `Repository/MandateRepository.php` | In-memory repository | FR-MANDATE-002 |
+| `Repository/MandateRepository.php` | In-memory request-scoped repository | FR-MANDATE-002 |
+
+## Worker / request lifecycle (`src/EventSubscriber/`)
+
+| Source file | Spec section | Requirement IDs |
+| --- | --- | --- |
+| `EventSubscriber/WorkerStateResetSubscriber.php` | Reset request-scoped services on main request | FR-WORKER-001 |
 
 ## Converter & logger (`src/Converter/`, `src/Logger/`)
 
@@ -134,6 +140,7 @@ This file proves that **every production source artifact** under `src/` is refer
 | --- | --- | --- |
 | `Resources/schemas/.gitkeep` | XSD placeholder directory | FR-VAL-008 |
 | `Resources/translations/NowoSepaPaymentBundle.de.yaml` | Constraint messages DE | FR-I18N-001 |
+| `Resources/translations/NowoSepaPaymentBundle.en.yaml` | Constraint messages en | FR-I18N-001 |
 | `Resources/translations/NowoSepaPaymentBundle.en_GB.yaml` | Constraint messages en_GB | FR-I18N-001 |
 | `Resources/translations/NowoSepaPaymentBundle.en_US.yaml` | Constraint messages en_US | FR-I18N-001 |
 | `Resources/translations/NowoSepaPaymentBundle.es.yaml` | Constraint messages ES | FR-I18N-001 |
@@ -160,7 +167,8 @@ This file proves that **every production source artifact** under `src/` is refer
 | Export | 3 | 3 |
 | Lookup & cache | 4 | 4 |
 | Mandate | 3 | 3 |
+| Worker subscriber | 1 | 1 |
 | Converter & logger | 2 | 2 |
 | Schemas placeholder | 1 | 1 |
-| Translations | 11 | 11 |
-| **Total `src/` artifacts** | **74** | **74** |
+| Translations | 12 | 12 |
+| **Total `src/` artifacts** | **76** | **76** |

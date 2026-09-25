@@ -4,6 +4,11 @@ services:
         autoconfigure: true
         public: true
 
+    # In-memory state of bundle services is reset at the start of every main request
+    # (FrankenPHP worker mode without services_resetter); see WorkerStateResetSubscriber.
+    _instanceof:
+        Symfony\Contracts\Service\ResetInterface:
+            tags: ['nowo_sepa_payment.request_scoped']
 
     Nowo\SepaPaymentBundle\Converter\:
         resource: '../../Converter/*'
@@ -48,6 +53,11 @@ services:
 
     Nowo\SepaPaymentBundle\Service\:
         resource: '../../Service/*'
+
+    Nowo\SepaPaymentBundle\EventSubscriber\WorkerStateResetSubscriber:
+        public: false
+        arguments:
+            $resettables: !tagged_iterator nowo_sepa_payment.request_scoped
 
     # Services are automatically registered via #[AsAlias] attributes
     # All services are public and can be autowired or retrieved by their aliases

@@ -43,15 +43,16 @@ Maintainers: follow this process before creating a new tag.
 6. **Packagist**  
    If the package is on [Packagist](https://packagist.org/packages/nowo-tech/sepa-payment-bundle), the new tag is picked up automatically (or use “Update” there).
 
-## Current release (v1.2.23)
+## Current release (v1.2.27)
 
 > **Renew this block on each release:** update the version in the heading, the bullets under “Documentation reviewed”, and the example commands below.
 
 ### Documentation reviewed for this release
 
-- **CHANGELOG.md**: `[1.2.23] - 2026-07-29` with demo-smoke, down-dev, FrankenPHP banner, `final` classes, PHPStan/phpstan-frankenphp, Packagist keywords.
-- **UPGRADING.md**: “Upgrading from 1.2.22 to 1.2.23”.
-- **README**: FrankenPHP Friendly banner.
+- **CHANGELOG.md**: `[1.2.27] - 2026-09-25` with FrankenPHP worker-mode fixes (W-01/W-02/W-03), `WorkerStateResetSubscriber`, audit doc.
+- **UPGRADING.md**: “Upgrading from 1.2.26 to 1.2.27”.
+- **FRANKENPHP-WORKER-AUDIT.md**: scenario A/B audit; verdict viable under no kernel reset.
+- **USAGE / SPEC-DRIVEN-DEVELOPMENT / specs**: request-scoped mandate store and BIC mappings.
 
 ### Example commands for this version
 
@@ -59,24 +60,24 @@ Maintainers: follow this process before creating a new tag.
 make release-check
 git status
 git add -A
-git commit -m "chore(release): prepare 1.2.23"
-git tag -a v1.2.23 -m "Release v1.2.23 - FrankenPHP banner, demo-smoke, final bundle class"
+git commit -m "Release 1.2.27: FrankenPHP worker mode (reset kernel false)"
+git tag -a v1.2.27 -m "Release v1.2.27"
 make check-no-cursor-coauthor
 git push origin main
-git push origin v1.2.23
+git push origin v1.2.27
 ```
 
 ### Verify on GitHub
 
-- *Actions* → “Create Release” workflow green; *Releases* → **v1.2.23** with body aligned to `docs/CHANGELOG.md` (`## [1.2.23]`).
+- *Actions* → “Create Release” workflow green; *Releases* → **v1.2.27** with body aligned to `docs/CHANGELOG.md` (`## [1.2.27]`).
 
 ### If the tag already exists but the release failed
 
-- Re-run the “Create GitHub Release” job from *Actions* (Re-run jobs), or delete the tag on the remote and recreate and push `v1.2.23` (e.g. `git push origin +v1.2.23` to force-update the tag).
+- Re-run the “Create GitHub Release” job from *Actions* (Re-run jobs), or delete the tag on the remote and recreate and push `v1.2.27`.
 
 ### Notes
 
 - `.github/workflows/release.yml` runs when pushing a tag `v*`.
-- The release body is generated from the `## [1.2.23]` section of `docs/CHANGELOG.md`.
+- The release body is generated from the `## [1.2.27]` section of `docs/CHANGELOG.md`.
 
 After creating the release commit and tag, run `make check-no-cursor-coauthor` again **before** `git push` (REQ-GIT-001). The release commit itself is not covered by an earlier `release-check` run.

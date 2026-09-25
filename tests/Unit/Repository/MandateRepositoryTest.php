@@ -10,6 +10,7 @@ use Nowo\SepaPaymentBundle\Model\Mandate\MandateHistory;
 use Nowo\SepaPaymentBundle\Model\Mandate\MandateStatus;
 use Nowo\SepaPaymentBundle\Repository\MandateRepository;
 use PHPUnit\Framework\TestCase;
+use Symfony\Contracts\Service\ResetInterface;
 
 /**
  * Tests for MandateRepository.
@@ -124,5 +125,19 @@ class MandateRepositoryTest extends TestCase
         $this->repository->clear();
         $this->assertNull($this->repository->findById('M-CLR'));
         $this->assertEmpty($this->repository->getHistory('M-CLR'));
+    }
+
+    public function testResetEmptiesStore(): void
+    {
+        $this->assertInstanceOf(ResetInterface::class, $this->repository);
+
+        $this->repository->save(new Mandate('M-RST', new DateTime('2024-01-01'), 'ES9121000418450200051332', 'John', 'CORE', 'FRST'));
+        $this->repository->addHistory(new MandateHistory('M-RST', new DateTime(), 'created', '', MandateStatus::ACTIVE->value));
+
+        $this->repository->reset();
+
+        $this->assertNull($this->repository->findById('M-RST'));
+        $this->assertSame([], $this->repository->getHistory('M-RST'));
+        $this->assertSame([], $this->repository->findActive());
     }
 }
