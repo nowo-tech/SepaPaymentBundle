@@ -115,6 +115,7 @@ class RemesaData
      */
     public function setCreditorBic(?string $creditorBic): self
     {
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
         $this->creditTransferData->setCreditorBic($creditorBic);
 
         return $this;
@@ -157,6 +158,7 @@ class RemesaData
      */
     public function setBatchBooking(bool $batchBooking): self
     {
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
         $this->creditTransferData->setBatchBooking($batchBooking);
 
         return $this;
@@ -201,6 +203,7 @@ class RemesaData
             $creditTransferTransaction->setCreditorAddressFromArray($transaction->getDebtorAddress());
         }
 
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
         $this->creditTransferData->addTransaction($creditTransferTransaction);
 
         return $this;
@@ -262,6 +265,7 @@ class RemesaData
      */
     public function setCreditorAddress(array|string|null $street = null, ?string $city = null, ?string $postalCode = null, ?string $country = null): self
     {
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
         $this->creditTransferData->setCreditorAddress($street, $city, $postalCode, $country);
 
         return $this;
@@ -274,6 +278,7 @@ class RemesaData
      */
     public function setCreditorAddressFromArray(array $address): self
     {
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
         $this->creditTransferData->setCreditorAddressFromArray($address);
 
         return $this;

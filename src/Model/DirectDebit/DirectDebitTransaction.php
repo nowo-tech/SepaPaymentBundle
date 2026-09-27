@@ -121,6 +121,7 @@ class DirectDebitTransaction
      */
     public function setRemittanceInformation(?string $remittanceInformation): self
     {
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
         $this->remittanceInformation = $remittanceInformation;
 
         return $this;
@@ -143,6 +144,7 @@ class DirectDebitTransaction
      */
     public function setDebtorBic(?string $debtorBic): self
     {
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
         $this->debtorBic = $debtorBic;
 
         return $this;
@@ -165,6 +167,7 @@ class DirectDebitTransaction
      */
     public function setAdditionalData(array $additionalData): self
     {
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
         $this->additionalData = $additionalData;
 
         return $this;
@@ -188,6 +191,7 @@ class DirectDebitTransaction
      */
     public function setAdditionalField(string $key, mixed $value): self
     {
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
         $this->additionalData[$key] = $value;
 
         return $this;
@@ -221,6 +225,7 @@ class DirectDebitTransaction
             return $this->setDebtorAddressFromArray($street);
         }
 
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
         $this->additionalData['debtorAddress'] = [
             'street'     => $street,
             'city'       => $city,
@@ -238,6 +243,7 @@ class DirectDebitTransaction
      */
     public function setDebtorAddressFromArray(array $address): self
     {
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
         $this->additionalData['debtorAddress'] = [
             'street'     => $address['street'] ?? $address['address'] ?? null,
             'city'       => $address['city'] ?? null,

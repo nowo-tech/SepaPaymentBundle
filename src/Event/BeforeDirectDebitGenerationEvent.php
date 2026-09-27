@@ -46,6 +46,7 @@ class BeforeDirectDebitGenerationEvent extends Event
      */
     public function setDirectDebitData(DirectDebitData $directDebitData): void
     {
+        // @igor-ignore - Request-scoped Event DTO; not a shared worker service.
         $this->directDebitData = $directDebitData;
     }
 }

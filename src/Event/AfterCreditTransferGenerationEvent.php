@@ -50,6 +50,7 @@ class AfterCreditTransferGenerationEvent extends Event
      */
     public function setXml(string $xml): void
     {
+        // @igor-ignore - Request-scoped Event DTO; not a shared worker service.
         $this->xml = $xml;
     }
 

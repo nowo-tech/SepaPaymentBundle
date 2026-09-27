@@ -56,6 +56,7 @@ class CachedBicValidator
 
         // Cache result
         if ($this->cache instanceof ValidationCacheInterface) {
+            // @igor-ignore - Validator delegates to ValidationCache / external rules; no unsafe singleton state.
             $this->cache->set($cacheKey, $result);
         }
 

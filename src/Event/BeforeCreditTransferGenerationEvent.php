@@ -46,6 +46,7 @@ class BeforeCreditTransferGenerationEvent extends Event
      */
     public function setCreditTransferData(CreditTransferData $creditTransferData): void
     {
+        // @igor-ignore - Request-scoped Event DTO; not a shared worker service.
         $this->creditTransferData = $creditTransferData;
     }
 }

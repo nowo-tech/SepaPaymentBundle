@@ -43,7 +43,7 @@
     },
     "authors": [
         {
-            "name": "Héctor Franco Aceituno",
+            "name": "H\u00e9ctor Franco Aceituno",
             "email": "hectorfranco@nowo.tech",
             "homepage": "https://github.com/HecFranco",
             "role": "Developer"
@@ -67,6 +67,7 @@
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.0",
+        "igor-php/igor-php": "^0.9.7",
         "nowo-tech/phpstan-frankenphp": "^1.0",
         "phpstan/extension-installer": "^1.4",
         "phpstan/phpstan": "^2.0",
@@ -96,7 +97,10 @@
     "minimum-stability": "stable",
     "prefer-stable": true,
     "archive": {
-        "exclude": ["/demo", "/.cursor"]
+        "exclude": [
+            "/demo",
+            "/.cursor"
+        ]
     },
     "scripts": {
         "test": "phpunit",
@@ -117,7 +121,8 @@
             "@rector-dry",
             "@phpstan",
             "@test"
-        ]
+        ],
+        "igor": "igor-php --no-agent ."
     },
     "scripts-descriptions": {
         "test": "Run PHPUnit tests",
@@ -130,6 +135,7 @@
         "update": "Update composer.lock (composer update)",
         "validate": "Validate composer.json (composer validate --strict)",
         "qa": "Run all quality assurance checks",
-        "release-check": "Run all release checks (cs-check, rector-dry, phpstan, test)"
+        "release-check": "Run all release checks (cs-check, rector-dry, phpstan, test)",
+        "igor": "Run Igor FrankenPHP worker-state audit (REQ-CS-008)"
     }
 }

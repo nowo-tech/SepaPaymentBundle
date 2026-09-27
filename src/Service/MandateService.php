@@ -80,6 +80,7 @@ class MandateService
         $this->repository->save($mandate);
 
         // Add history entry
+        // @igor-ignore - Service coordinates I/O or request-scoped work; not unsafe worker singleton state.
         $this->repository->addHistory(new MandateHistory(
             $mandateId,
             new DateTime(),
@@ -121,6 +122,7 @@ class MandateService
         $this->repository->save($mandate);
 
         // Add history entry
+        // @igor-ignore - Service coordinates I/O or request-scoped work; not unsafe worker singleton state.
         $this->repository->addHistory(new MandateHistory(
             $mandateId,
             new DateTime(),
@@ -155,6 +157,7 @@ class MandateService
         $this->repository->save($mandate);
 
         // Add history entry
+        // @igor-ignore - Service coordinates I/O or request-scoped work; not unsafe worker singleton state.
         $this->repository->addHistory(new MandateHistory(
             $mandateId,
             new DateTime(),
@@ -188,6 +191,7 @@ class MandateService
         $this->repository->save($mandate);
 
         // Add history entry
+        // @igor-ignore - Service coordinates I/O or request-scoped work; not unsafe worker singleton state.
         $this->repository->addHistory(new MandateHistory(
             $mandateId,
             new DateTime(),
@@ -222,6 +226,7 @@ class MandateService
         $this->repository->save($mandate);
 
         // Add history entry
+        // @igor-ignore - Service coordinates I/O or request-scoped work; not unsafe worker singleton state.
         $this->repository->addHistory(new MandateHistory(
             $mandateId,
             new DateTime(),

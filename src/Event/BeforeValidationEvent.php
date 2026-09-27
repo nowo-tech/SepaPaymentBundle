@@ -75,6 +75,7 @@ class BeforeValidationEvent extends Event
      */
     public function setResult(bool $result): void
     {
+        // @igor-ignore - Request-scoped Event DTO; not a shared worker service.
         $this->result = $result;
     }
 

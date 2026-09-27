@@ -104,6 +104,7 @@ class Mandate
      */
     public function setDebtorBic(?string $debtorBic): self
     {
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
         $this->debtorBic = $debtorBic;
 
         return $this;
@@ -146,6 +147,7 @@ class Mandate
      */
     public function setSequenceType(string $sequenceType): self
     {
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
         $this->sequenceType = $sequenceType;
 
         return $this;
@@ -168,6 +170,7 @@ class Mandate
      */
     public function setActive(bool $active): self
     {
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
         $this->active = $active;
 
         return $this;
@@ -200,7 +203,9 @@ class Mandate
      */
     public function setStatus(MandateStatus $status): self
     {
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
         $this->status = $status;
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
         $this->active = ($status === MandateStatus::ACTIVE);
 
         return $this;
@@ -232,6 +237,7 @@ class Mandate
      */
     public function setExpirationDate(?DateTimeInterface $expirationDate): self
     {
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
         $this->expirationDate = $expirationDate;
 
         return $this;
@@ -283,9 +289,13 @@ class Mandate
      */
     public function revoke(?string $reason = null): self
     {
-        $this->status           = MandateStatus::REVOKED;
-        $this->active           = false;
-        $this->revocationDate   = new DateTime();
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
+        $this->status = MandateStatus::REVOKED;
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
+        $this->active = false;
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
+        $this->revocationDate = new DateTime();
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
         $this->revocationReason = $reason;
 
         return $this;
@@ -296,7 +306,9 @@ class Mandate
      */
     public function suspend(): self
     {
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
         $this->status = MandateStatus::SUSPENDED;
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
         $this->active = false;
 
         return $this;
@@ -311,9 +323,13 @@ class Mandate
             throw new RuntimeException('Cannot reactivate an expired mandate');
         }
 
-        $this->status           = MandateStatus::ACTIVE;
-        $this->active           = true;
-        $this->revocationDate   = null;
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
+        $this->status = MandateStatus::ACTIVE;
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
+        $this->active = true;
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
+        $this->revocationDate = null;
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
         $this->revocationReason = null;
 
         return $this;

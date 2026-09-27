@@ -89,6 +89,7 @@ class ValidationCache implements ValidationCacheInterface
         }
 
         $ttl ??= $this->defaultTtl;
+        // @igor-ignore - Validation results stored in injected PSR-16 cache, not in-process arrays.
         $this->cache->set($this->normalizeKey($key), $value, $ttl);
     }
 
@@ -131,6 +132,7 @@ class ValidationCache implements ValidationCacheInterface
             return;
         }
 
+        // @igor-ignore - Validation results stored in injected PSR-16 cache, not in-process arrays.
         $this->cache->clear();
     }
 

@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.2.28] - 2026-09-27](#1228-2026-09-27)
 - [[1.2.27] - 2026-09-25](#1227-2026-09-25)
   - [Fixed](#fixed-1227)
   - [Added](#added-1227)
@@ -136,6 +137,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [1.2.28] - 2026-09-27
+
+### Added
+
+- **REQ-CS-008:** `igor-php/igor-php` (require-dev only), root `igor.json`, Composer/`Makefile` `igor` target, and `release-check` wiring for FrankenPHP worker-state audit.
+
+### Changed
+
+- **Worker safety (Igor):** justified `// @igor-ignore` annotations and/or `ResetInterface` / request-scoped fixes so `make igor` passes on package `src/`.
+
+[1.2.28]: https://github.com/nowo-tech/SepaPaymentBundle/releases/tag/v1.2.28
 
 ## [1.2.27] - 2026-09-25
 

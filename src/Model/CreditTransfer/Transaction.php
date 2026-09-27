@@ -97,6 +97,7 @@ class Transaction
      */
     public function setCreditorBic(?string $creditorBic): self
     {
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
         $this->creditorBic = $creditorBic;
 
         return $this;
@@ -129,6 +130,7 @@ class Transaction
      */
     public function setRemittanceInformation(?string $remittanceInformation): self
     {
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
         $this->remittanceInformation = $remittanceInformation;
 
         return $this;
@@ -159,6 +161,7 @@ class Transaction
             return $this->setCreditorAddressFromArray($street);
         }
 
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
         $this->creditorAddress = [
             'street'     => $street,
             'city'       => $city,
@@ -176,6 +179,7 @@ class Transaction
      */
     public function setCreditorAddressFromArray(array $address): self
     {
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
         $this->creditorAddress = [
             'street'     => $address['street'] ?? $address['address'] ?? null,
             'city'       => $address['city'] ?? null,
