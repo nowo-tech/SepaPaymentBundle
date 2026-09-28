@@ -150,7 +150,7 @@ class SepaPaymentLogger
         $level = $isValid ? 'info' : 'warning';
         $this->logger->log($level, 'IBAN validation', array_merge([
             'operation' => 'iban_validation',
-            'iban'      => $iban,
+            'iban'      => $this->maskSensitive($iban, 4),
             'is_valid'  => $isValid,
         ], $context));
     }
@@ -167,7 +167,7 @@ class SepaPaymentLogger
         $level = $isValid ? 'info' : 'warning';
         $this->logger->log($level, 'BIC validation', array_merge([
             'operation' => 'bic_validation',
-            'bic'       => $bic,
+            'bic'       => $this->maskSensitive($bic, 3),
             'is_valid'  => $isValid,
         ], $context));
     }
@@ -251,5 +251,19 @@ class SepaPaymentLogger
             'type'      => $type,
             'is_valid'  => $isValid,
         ], $context));
+    }
+
+    /**
+     * Mask sensitive payment identifiers for logs (keep last $visible chars).
+     */
+    private function maskSensitive(string $value, int $visible): string
+    {
+        $normalized = preg_replace('/\s+/', '', $value) ?? $value;
+        $length     = strlen($normalized);
+        if ($length <= $visible) {
+            return str_repeat('*', $length);
+        }
+
+        return str_repeat('*', $length - $visible) . substr($normalized, -$visible);
     }
 }

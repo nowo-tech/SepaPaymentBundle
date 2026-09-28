@@ -111,6 +111,8 @@ class SepaPaymentLoggerTest extends TestCase
         $this->assertEquals(LogLevel::WARNING, $this->testLogger->logs[1]['level']);
         $this->assertTrue($this->testLogger->logs[0]['context']['is_valid']);
         $this->assertFalse($this->testLogger->logs[1]['context']['is_valid']);
+        $this->assertSame('********************1332', $this->testLogger->logs[0]['context']['iban']);
+        $this->assertSame('***ALID', $this->testLogger->logs[1]['context']['iban']);
     }
 
     public function testLogBicValidation(): void
@@ -121,6 +123,8 @@ class SepaPaymentLoggerTest extends TestCase
         $this->assertCount(2, $this->testLogger->logs);
         $this->assertEquals(LogLevel::INFO, $this->testLogger->logs[0]['level']);
         $this->assertEquals(LogLevel::WARNING, $this->testLogger->logs[1]['level']);
+        $this->assertSame('********XXX', $this->testLogger->logs[0]['context']['bic']);
+        $this->assertSame('****LID', $this->testLogger->logs[1]['context']['bic']);
     }
 
     public function testLogBusinessRulesValidation(): void

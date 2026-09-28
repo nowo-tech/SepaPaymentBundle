@@ -40,3 +40,7 @@ Before tagging a release, confirm:
 
 Record confirmation in the release PR or tag notes.
 
+
+## Logging of payment identifiers
+
+`SepaPaymentLogger` masks IBAN/BIC in structured logs (only the last few characters remain visible). Do not add custom loggers that write full account identifiers.

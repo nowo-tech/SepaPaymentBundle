@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.2.29] - 2026-09-28](#1229-2026-09-28)
 - [[1.2.28] - 2026-09-27](#1228-2026-09-27)
 - [[1.2.27] - 2026-09-25](#1227-2026-09-25)
   - [Fixed](#fixed-1227)
@@ -138,6 +139,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.29] - 2026-09-28
+
+### Security
+
+- `SepaPaymentLogger` masks IBAN/BIC in structured logs (only the last few characters remain visible).
+
 ## [1.2.28] - 2026-09-27
 
 ### Added
@@ -148,6 +155,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Worker safety (Igor):** justified `// @igor-ignore` annotations and/or `ResetInterface` / request-scoped fixes so `make igor` passes on package `src/`.
 
+[1.2.29]: https://github.com/nowo-tech/SepaPaymentBundle/releases/tag/v1.2.29
 [1.2.28]: https://github.com/nowo-tech/SepaPaymentBundle/releases/tag/v1.2.28
 
 ## [1.2.27] - 2026-09-25

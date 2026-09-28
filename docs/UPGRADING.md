@@ -3,6 +3,17 @@
 
 ## Unreleased
 
+## To 1.2.29
+
+From **1.2.28** — IBAN/BIC log masking.
+
+```bash
+composer update nowo-tech/sepa-payment-bundle
+php bin/console cache:clear
+```
+
+- No integrator action required. Structured logs from `SepaPaymentLogger` now mask IBAN/BIC.
+
 ## To 1.2.28
 
 From **1.2.27** — REQ-CS-008 Igor FrankenPHP worker audit (igor-php require-dev, igor.json, make igor).
