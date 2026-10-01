@@ -3,6 +3,14 @@
 
 ## Unreleased
 
+## To 1.2.30
+
+From **1.2.29** — Igor IncompleteReset / WorkerSafe fixes for mandate store and BIC lookup cache. **No application upgrade steps.**
+
+```bash
+composer update nowo-tech/sepa-payment-bundle
+```
+
 ## To 1.2.29
 
 From **1.2.28** — IBAN/BIC log masking.

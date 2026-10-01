@@ -55,7 +55,7 @@ class CreditTransferGenerator
     /**
      * Whether to validate generated XML against XSD schema.
      */
-    private bool $validateXsd = false;
+    private bool $validateXsd;
 
     /**
      * Constructor.

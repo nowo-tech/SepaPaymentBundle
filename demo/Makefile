@@ -270,16 +270,17 @@ release-check: test-coverage-all release-verify
 	@echo "✅ All demos passed release-check."
 
 # Release verify: for each demo, up → sleep → healthcheck (HTTP 200) → down
+# Use -C (not up-$(demo)): PHONY pattern up-% is a no-op for up-symfony8 (see demo-smoke).
 release-verify:
 	@for demo in $(DEMOS); do \
 		port=$$(grep '^PORT=' $$demo/.env 2>/dev/null | cut -d= -f2 | tr -d '\r'); \
 		[ -z "$$port" ] && port=$$(grep '^PORT=' $$demo/.env.example 2>/dev/null | cut -d= -f2 | tr -d '\r'); \
-		[ -z "$$port" ] && port=8001; \
+		[ -z "$$port" ] && port=8003; \
 		echo "🔍 Release verify: $$demo (port $$port)..."; \
-		$(MAKE) up-$$demo; \
-		echo "⏳ Waiting for $$demo to be ready..."; sleep 10; \
+		$(MAKE) -C $$demo up; \
+		echo "⏳ Waiting for $$demo to be ready..."; sleep 12; \
 		code=$$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:$$port 2>/dev/null || echo "000"); \
-		$(MAKE) down-$$demo 2>/dev/null || true; \
+		$(MAKE) -C $$demo down 2>/dev/null || true; \
 		if [ "$$code" != "200" ]; then echo "❌ $$demo healthcheck failed (HTTP $$code)"; exit 1; fi; \
 		echo "✅ $$demo OK (HTTP $$code)"; \
 	done
