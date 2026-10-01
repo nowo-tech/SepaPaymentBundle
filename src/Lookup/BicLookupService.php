@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Lookup;
 
+use IgorPhp\IgorBundle\Attribute\WorkerSafe;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Contracts\Service\ResetInterface;
@@ -49,6 +50,10 @@ class BicLookupService implements BicLookupServiceInterface, ResetInterface
         /**
          * Cache interface (optional).
          */
+        #[WorkerSafe(
+            scope: 'external-cache',
+            reason: 'BIC lookups stored in injected cache adapter, not in-process service state',
+        )]
         private $cache = null,
         /**
          * Cache TTL in seconds (default: 86400 = 24 hours).

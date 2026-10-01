@@ -193,15 +193,18 @@ class MandateRepository implements MandateRepositoryInterface, ResetInterface
      */
     public function clear(): void
     {
-        $this->mandates = [];
-        $this->history  = [];
+        $this->reset();
     }
 
     /**
      * Empties the in-memory store (called on kernel.reset and at the start of each main request).
+     *
+     * Assignments must be visible in this method body for Igor IncompleteReset analysis
+     * (does not follow helper clears).
      */
     public function reset(): void
     {
-        $this->clear();
+        $this->mandates = [];
+        $this->history  = [];
     }
 }
