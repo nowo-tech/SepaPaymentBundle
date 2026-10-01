@@ -8,6 +8,8 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
+use function strlen;
+
 /**
  * Structured logger for SEPA Payment Bundle operations.
  * Provides contextual logging for generation, validation, and parsing operations.

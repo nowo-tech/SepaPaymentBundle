@@ -43,16 +43,16 @@ Maintainers: follow this process before creating a new tag.
 6. **Packagist**  
    If the package is on [Packagist](https://packagist.org/packages/nowo-tech/sepa-payment-bundle), the new tag is picked up automatically (or use “Update” there).
 
-## Current release (v1.2.27)
+## Current release (v1.2.30)
 
 > **Renew this block on each release:** update the version in the heading, the bullets under “Documentation reviewed”, and the example commands below.
 
 ### Documentation reviewed for this release
 
-- **CHANGELOG.md**: `[1.2.27] - 2026-09-25` with FrankenPHP worker-mode fixes (W-01/W-02/W-03), `WorkerStateResetSubscriber`, audit doc.
-- **UPGRADING.md**: “Upgrading from 1.2.26 to 1.2.27”.
-- **FRANKENPHP-WORKER-AUDIT.md**: scenario A/B audit; verdict viable under no kernel reset.
-- **USAGE / SPEC-DRIVEN-DEVELOPMENT / specs**: request-scoped mandate store and BIC mappings.
+- **CHANGELOG.md**: `[1.2.30] - 2026-10-01` with Igor IncompleteReset / `#[WorkerSafe]` fixes for `MandateRepository` and `BicLookupService`.
+- **UPGRADING.md**: “To 1.2.30”.
+- **FRANKENPHP-WORKER-AUDIT.md**: inline `reset()` clears and WorkerSafe on injected BIC cache.
+- **USAGE / SPEC-DRIVEN-DEVELOPMENT / specs**: unchanged request-scoped mandate store and BIC mappings.
 
 ### Example commands for this version
 
@@ -60,20 +60,20 @@ Maintainers: follow this process before creating a new tag.
 make release-check
 git status
 git add -A
-git commit -m "Release 1.2.27: FrankenPHP worker mode (reset kernel false)"
-git tag -a v1.2.27 -m "Release v1.2.27"
+git commit -m "Release v1.2.30: Igor IncompleteReset / WorkerSafe for mandate and BIC lookup"
+git tag -a v1.2.30 -m "Release v1.2.30"
 make check-no-cursor-coauthor
 git push origin main
-git push origin v1.2.27
+git push origin v1.2.30
 ```
 
 ### Verify on GitHub
 
-- *Actions* → “Create Release” workflow green; *Releases* → **v1.2.27** with body aligned to `docs/CHANGELOG.md` (`## [1.2.27]`).
+- *Actions* → “Create Release” workflow green; *Releases* → **v1.2.30** with body aligned to `docs/CHANGELOG.md` (`## [1.2.30]`).
 
 ### If the tag already exists but the release failed
 
-- Re-run the “Create GitHub Release” job from *Actions* (Re-run jobs), or delete the tag on the remote and recreate and push `v1.2.27`.
+- Re-run the “Create GitHub Release” job from *Actions* (Re-run jobs), or delete the tag on the remote and recreate and push `v1.2.30`.
 
 ### Notes
 

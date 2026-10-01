@@ -1,7 +1,7 @@
 # Makefile for SEPA Payment Bundle
 # Simplifies Docker commands for development
 
-.PHONY: help up down down-dev build shell install test test-coverage coverage-php-percent cs-check cs-fix qa clean assets ensure-up rector rector-dry phpstan igor release-check release-check-demos demo-smoke composer-sync update validate validate-translations setup-hooks check-no-cursor-coauthor strip-cursor-coauthor-from-history
+.PHONY: help up down down-dev build shell install test test-coverage coverage-php-percent cs-check cs-fix qa clean assets ensure-up rector rector-dry phpstan igor release-check release-check-demos demo-smoke composer-sync update validate validate-translations setup-hooks check-no-cursor-coauthor check-open-prs strip-cursor-coauthor-from-history
 
 # Default target
 help:
@@ -124,14 +124,18 @@ validate: ensure-up
 qa: ensure-up
 	$(COMPOSE) exec -T php composer qa
 
-# Pre-release: composer-sync, cs-fix, cs-check, rector-dry, phpstan, test-coverage, demo healthchecks
-release-check: check-no-cursor-coauthor ensure-up composer-sync cs-fix cs-check rector-dry phpstan igor test-coverage release-check-demos
+# Pre-release: composer-sync, cs-fix, cs-check, rector-dry, phpstan, igor, test-coverage, demo healthchecks
+release-check: check-no-cursor-coauthor check-open-prs ensure-up composer-sync cs-fix cs-check rector-dry phpstan igor test-coverage release-check-demos
 
 release-check-demos:
 	@$(MAKE) -C demo release-check
 
 demo-smoke:
 	@$(MAKE) -C demo demo-smoke
+
+check-open-prs:
+	@chmod +x .scripts/check-open-prs.sh
+	@bash .scripts/check-open-prs.sh
 
 # No frontend assets in this bundle
 assets:
