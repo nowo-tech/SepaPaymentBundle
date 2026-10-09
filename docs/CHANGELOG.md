@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.2.31] - 2026-10-09](#1231-2026-10-09)
 - [[1.2.30] - 2026-10-01](#1230-2026-10-01)
 - [[1.2.29] - 2026-09-28](#1229-2026-09-28)
 - [[1.2.28] - 2026-09-27](#1228-2026-09-27)
@@ -139,6 +140,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [1.2.31] - 2026-10-09
+
+### Dependencies
+
+- Dev tooling (Dependabot + lockfile refresh): `igor-php/igor-php` `^0.10.0`, `phpstan/phpstan` 2.3.1, `phpstan/phpstan-phpunit` 2.1.1, `nowo-tech/phpstan-frankenphp` 1.2.3, `rector/rector` 2.7.0. The bundle lockfile stays resolved for the PHP 8.2 floor (Symfony 7.4).
+- Demo (`demo/symfony8`): `digitick/sepa-xml` 3.2.0, `brick/math` 1.0.0, Symfony 8.1.8, `twig/twig` 3.30.0; regenerated `config/reference.php`.
+
+[1.2.31]: https://github.com/nowo-tech/SepaPaymentBundle/releases/tag/v1.2.31
 
 ## [1.2.30] - 2026-10-01
 

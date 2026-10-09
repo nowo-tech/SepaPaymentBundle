@@ -3,6 +3,14 @@
 
 ## Unreleased
 
+## To 1.2.31
+
+From **1.2.30** — dependency updates only. **No application upgrade steps.**
+
+```bash
+composer update nowo-tech/sepa-payment-bundle
+```
+
 ## To 1.2.30
 
 From **1.2.29** — Igor IncompleteReset / WorkerSafe fixes for mandate store and BIC lookup cache. **No application upgrade steps.**
@@ -38,7 +46,7 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
 ## Table of contents
 
-
+- [To 1.2.31](#to-1231)
 - [Upgrading from 1.2.26 to 1.2.27](#upgrading-from-1226-to-1227)
   - [🐛 Fixed (1.2.27)](#fixed-1227)
   - [Backward Compatibility](#backward-compatibility-1227)
