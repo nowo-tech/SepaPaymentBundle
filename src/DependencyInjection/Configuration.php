@@ -7,6 +7,8 @@ namespace Nowo\SepaPaymentBundle\DependencyInjection;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
+use function is_string;
+
 /**
  * Configuration class for the SepaPayment bundle.
  * Defines the configuration structure and default values.
@@ -33,7 +35,11 @@ final class Configuration implements ConfigurationInterface
             ->children()
                 ->scalarNode('default_currency')
                     ->defaultValue('EUR')
-                    ->info('Default currency code for payment (ISO 4217)')
+                    ->info('Default currency code (ISO 4217, 3 uppercase letters) for generated transactions without an explicit currency. SEPA schemes only support EUR; generators reject any other currency.')
+                    ->validate()
+                        ->ifTrue(static fn (mixed $value): bool => !is_string($value) || preg_match('/^[A-Z]{3}$/', $value) !== 1)
+                        ->thenInvalid('Invalid default_currency %s: expected a 3-letter uppercase ISO 4217 code (SEPA: "EUR").')
+                    ->end()
                 ->end()
             ->end();
 

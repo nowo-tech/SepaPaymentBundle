@@ -79,4 +79,34 @@ class SepaCountryValidatorTest extends TestCase
         $this->assertEquals('Germany', $this->validator->getCountryName('DE'));
         $this->assertEquals('XX', $this->validator->getCountryName('XX')); // Unknown country returns code
     }
+
+    /**
+     * Regression: countries/territories from EPC409-09 v8.0 that were missing from the list.
+     */
+    public function testEpcNonEeaCountriesAndTerritoriesAreSepa(): void
+    {
+        foreach (['AD', 'VA', 'AL', 'MD', 'ME', 'MK', 'RS', 'GI', 'GG', 'JE', 'IM', 'AX', 'GF', 'GP', 'MQ', 'RE', 'YT', 'PM', 'BL', 'MF'] as $code) {
+            $this->assertTrue($this->validator->isSepaCountry($code), $code . ' should be a SEPA country/territory');
+            $this->assertNotSame($code, $this->validator->getCountryName($code), $code . ' should have a name');
+        }
+
+        $this->assertTrue($this->validator->isSepaCountryFromIban('AD1200012030200359100100'));
+        $this->assertTrue($this->validator->isSepaCountryFromIban('VA59001123000012345678'));
+        $this->assertFalse($this->validator->isSepaCountry('TR'));
+        $this->assertFalse($this->validator->isSepaCountry('UA'));
+    }
+
+    /**
+     * Every listed code has a name and the list contains no duplicates.
+     */
+    public function testSepaCountryListIsConsistent(): void
+    {
+        $countries = $this->validator->getSepaCountries();
+
+        $this->assertSame($countries, array_values(array_unique($countries)));
+        $this->assertCount(54, $countries);
+        foreach ($countries as $code) {
+            $this->assertNotSame($code, $this->validator->getCountryName($code));
+        }
+    }
 }

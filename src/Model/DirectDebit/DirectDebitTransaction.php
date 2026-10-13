@@ -27,6 +27,11 @@ class DirectDebitTransaction
     private ?string $debtorBic = null;
 
     /**
+     * Currency code (ISO 4217, optional). Null means the generator's default currency (EUR).
+     */
+    private ?string $currency = null;
+
+    /**
      * Additional data (optional).
      * Can be used to store extra fields that may be needed for specific use cases.
      *
@@ -135,6 +140,29 @@ class DirectDebitTransaction
     public function getRemittanceInformation(): ?string
     {
         return $this->remittanceInformation;
+    }
+
+    /**
+     * Sets the currency code (ISO 4217). SEPA direct debits only support EUR.
+     *
+     * @param string|null $currency The currency code, or null to use the generator's default currency
+     */
+    public function setCurrency(?string $currency): self
+    {
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
+        $this->currency = $currency;
+
+        return $this;
+    }
+
+    /**
+     * Gets the currency code.
+     *
+     * @return string|null The currency code, or null when the generator's default currency applies
+     */
+    public function getCurrency(): ?string
+    {
+        return $this->currency;
     }
 
     /**

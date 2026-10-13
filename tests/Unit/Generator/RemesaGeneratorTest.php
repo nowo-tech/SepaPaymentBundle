@@ -155,7 +155,7 @@ class RemesaGeneratorTest extends TestCase
 
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertStringContainsString('application/xml', (string) $response->headers->get('Content-Type'));
-        $this->assertStringContainsString('attachment; filename="test-remesa.xml"', (string) $response->headers->get('Content-Disposition'));
+        $this->assertStringContainsString('attachment; filename=test-remesa.xml', (string) $response->headers->get('Content-Disposition'));
         $this->assertEquals($xml, $response->getContent());
     }
 

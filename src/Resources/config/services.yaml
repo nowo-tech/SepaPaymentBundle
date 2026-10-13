@@ -19,6 +19,15 @@ services:
     Nowo\SepaPaymentBundle\Generator\:
         resource: '../../Generator/*'
 
+    # Generators: transactions without a currency use the configured default_currency (SEPA: EUR only)
+    Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator:
+        arguments:
+            $defaultCurrency: '%nowo_sepa_payment.default_currency%'
+
+    Nowo\SepaPaymentBundle\Generator\DirectDebitGenerator:
+        arguments:
+            $defaultCurrency: '%nowo_sepa_payment.default_currency%'
+
     # RemesaGenerator (deprecated) requires explicit args so TranslatorInterface is always second
     Nowo\SepaPaymentBundle\Generator\RemesaGenerator:
         arguments:

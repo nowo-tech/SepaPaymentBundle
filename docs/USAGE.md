@@ -21,6 +21,7 @@ This document provides detailed usage examples for all features of the SEPA Paym
 - [SEPA XML Parser](#sepa-xml-parser)
   - [Parsing SEPA Credit Transfer](#parsing-sepa-credit-transfer)
   - [Parsing SEPA Direct Debit](#parsing-sepa-direct-debit)
+- [Amounts and Currency in Array Input](#amounts-and-currency-in-array-input)
 - [XSD Schema Validation](#xsd-schema-validation)
   - [Basic Usage](#basic-usage)
   - [Using Custom XSD Schema Files](#using-custom-xsd-schema-files)
@@ -69,10 +70,11 @@ use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 
 $validator = new IbanValidator();
 
-// Validate IBAN
+// Validate IBAN (format, ISO 13616 country length and mod-97 check digits)
 if ($validator->isValid('ES9121000418450200051332')) {
     echo "Valid IBAN";
 }
+// Unknown country codes and lengths that do not match the country (e.g. a 23-character ES IBAN) are invalid
 
 // Normalize IBAN (remove spaces, uppercase)
 $normalized = $validator->normalize('es91 2100 0418 4502 0005 1332');
@@ -103,6 +105,7 @@ $converter = new CccConverter(new IbanValidator());
 // Convert CCC to IBAN
 $iban = $converter->cccToIban('21000418450200051332');
 // Returns: ES9121000418450200051332
+// Throws InvalidArgumentException if the CCC is not 20 digits or its control digits (DD) are wrong
 
 // Validate CCC format
 if ($converter->isValidCcc('21000418450200051332')) {
@@ -518,6 +521,17 @@ if ($parser->isValidDirectDebit($xml)) {
 }
 ```
 
+## Amounts and Currency in Array Input
+
+`CreditTransferGenerator::generateFromArray()` and `DirectDebitGenerator::generateFromArray()` read each transaction amount from exactly one of:
+
+- `amount` — decimal amount **in euros** (`15000`, `15000.00` or `"15000.00"` all mean EUR 15,000.00). Large values are never reinterpreted as cents.
+- `amountCents` (or `amount_cents`) — integer amount **in cents** (`1500000` means EUR 15,000.00).
+
+Passing both, neither, a non-numeric `amount` or a non-integer `amountCents` throws an `InvalidArgumentException`.
+
+`currency` is optional per transaction. When omitted, the bundle's `default_currency` (default `EUR`) is used. Currency codes must be 3 uppercase letters, and since the SEPA credit transfer and direct debit schemes only support euro, any currency other than `EUR` (per transaction or as `default_currency`) is rejected with an `InvalidArgumentException` when generating.
+
 ## XSD Schema Validation
 
 The bundle includes an `XsdValidator` service that can validate generated XML files against official SEPA XSD schemas (ISO 20022). This ensures that your XML files are fully compliant with SEPA standards.
@@ -602,15 +616,20 @@ $xml = $generator->generate($creditTransferData);
 
 ### XSD Schema Files
 
-The validator looks for XSD schema files in `src/Resources/schemas/`:
-- `pain.001.001.03.xsd` - Credit Transfer schema
-- `pain.008.001.02.xsd` - Direct Debit schema
+The bundle ships the official ISO 20022 schemas in `src/Resources/schemas/`:
 
-You can download these schemas from:
-- ISO 20022 official repository: https://www.iso20022.org/
-- SEPA official documentation
+| File | Message |
+|------|---------|
+| `pain.001.001.03.xsd` | Credit Transfer (2009) — default for `validateCreditTransfer()` |
+| `pain.008.001.02.xsd` | Direct Debit (2009) — default for `validateDirectDebit()` |
+| `pain.001.001.09.xsd` | Credit Transfer (2019) — namespace written by the bundled generator (`digitick/sepa-xml` 3.x) |
+| `pain.008.001.09.xsd` | Direct Debit (2019 series) — namespace written by the bundled generator (`digitick/sepa-xml` 3.x) |
 
-**Note**: If XSD schema files are not found, validation will be skipped (returns `true`). This allows the validator to work even without schema files, but for full validation, you should download and place the XSD files in the schemas directory.
+When no `$xsdPath` is given, the validator picks the bundled schema that matches the document's root namespace (same message family only), and falls back to the defaults above otherwise.
+
+**A missing schema is an error.** If the schema file cannot be found (custom `$xsdPath` that does not exist, unknown schema type, or a pain version that is not bundled), `validate()` throws an `InvalidArgumentException` (`validation.xsd_schema_not_found`). It no longer returns `true` without validating. Generators built with `validateXsd: true` therefore always validate.
+
+The schemas are published by the ISO 20022 Registration Authority and may be used and reproduced freely under the ISO 20022 Intellectual Property Right Policy. The bundled copies are not the official source; the up-to-date versions are at https://www.iso20022.org/.
 
 ## SEPA String Sanitization
 
@@ -689,12 +708,12 @@ $countryName = $validator->getCountryName('ES');
 
 ### SEPA Member Countries
 
-The validator includes all current SEPA member countries (34 countries as of 2025), including:
-- All EU member states
-- EEA countries (Iceland, Liechtenstein, Norway)
-- Switzerland
-- United Kingdom (still a SEPA member despite Brexit)
-- Monaco and San Marino
+The list follows the EPC list of countries in the SEPA schemes' geographical scope (EPC409-09 v8.0, 24 December 2025):
+- All EU member states and the EEA countries (Iceland, Liechtenstein, Norway)
+- Non-EEA countries: Albania, Andorra, Moldova, Monaco, Montenegro, North Macedonia, San Marino, Serbia, Switzerland, United Kingdom, Vatican City State
+- Territories with their own ISO 3166 code: Åland Islands (AX), Gibraltar (GI), Guernsey (GG), Jersey (JE), Isle of Man (IM), French Guiana (GF), Guadeloupe (GP), Martinique (MQ), Réunion (RE), Mayotte (YT), Saint Pierre and Miquelon (PM), Saint Barthélemy (BL), Saint Martin (MF)
+
+Note that several territories use another country's IBAN prefix (French territories use `FR`, Guernsey/Jersey/Isle of Man use `GB`, Åland uses `FI`).
 
 ## SEPA Business Rules Validation
 
@@ -1191,8 +1210,8 @@ $data = [
     'creationDate' => '2024-01-15 10:00:00',      // Creation date (optional, defaults to now)
     'transactions' => [
         [
-            'amount' => 100.50,                   // Amount
-            'currency' => 'EUR',                  // Currency (optional, defaults to EUR)
+            'amount' => 100.50,                   // Amount in euros (decimal); or 'amountCents' => 10050 (integer cents)
+            'currency' => 'EUR',                  // Currency (optional, defaults to default_currency; SEPA: EUR only)
             'debtorIban' => 'GB82WEST12345698765432', // Debtor IBAN
             'debtorName' => 'John Doe',           // Debtor name
             'endToEndId' => 'E2E-001',            // End-to-end ID (unique per transaction)
@@ -1388,7 +1407,7 @@ $data = [
     'localInstrumentCode' => 'CORE',             // CORE or B2B
     'transactions' => [
         [
-            'amount' => 100.50,                           // Amount (in currency units)
+            'amount' => 100.50,                           // Amount in euros (decimal); or 'amountCents' => 10050 (integer cents)
             'debtorIban' => 'GB82WEST12345698765432',    // Debtor IBAN
             'debtorName' => 'John Doe',                   // Debtor name
             'debtorMandate' => 'MANDATE-001',            // Mandate identifier

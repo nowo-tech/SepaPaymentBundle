@@ -49,8 +49,8 @@ nowo_sepa_payment:
 
 - **Type**: `string`
 - **Default**: `EUR`
-- **Description**: Default currency code for remesas (ISO 4217 format)
-- **Example**: `EUR`, `USD`, `GBP`
+- **Description**: Currency (ISO 4217, 3 uppercase letters) used by `CreditTransferGenerator` and `DirectDebitGenerator` for transactions that do not set their own `currency`.
+- **SEPA constraint**: the SEPA credit transfer and direct debit schemes only support euro. The configuration accepts any well-formed code, but the generators throw an `InvalidArgumentException` when the effective currency (per transaction or this default) is not `EUR`. Keep the default unless you have a specific reason.
 
 ```yaml
 nowo_sepa_payment:
@@ -102,8 +102,9 @@ nowo_sepa_payment:
 
 The bundle validates configuration values:
 
-- `default_currency` must be a valid ISO 4217 currency code (3 letters)
-- Invalid values will cause a configuration exception during container compilation
+- `default_currency` must be 3 uppercase letters (ISO 4217 format, e.g. `EUR`)
+- Invalid values (e.g. `eur`, `EURO`) cause a configuration exception during container compilation
+- Non-EUR values pass configuration but are rejected by the generators at generation time (SEPA is EUR-only)
 
 ## Translations
 
@@ -144,13 +145,13 @@ nowo_sepa_payment:
 
 ### Multi-Currency Setup
 
-If you need to support multiple currencies, you can still use the default currency for convenience, but you can always specify the currency per transaction:
+SEPA schemes are EUR-only, so the generators reject any non-EUR currency. A per-transaction currency can still be set explicitly (it must be `EUR`):
 
 ```php
 $transaction = new Transaction(
     'E2E-001',
     100.50,
-    'USD',  // Currency specified per transaction
+    'EUR',  // Currency specified per transaction (SEPA: EUR only; other codes throw when generating)
     'ES9121000418450200051332',
     'John Doe'
 );

@@ -199,4 +199,51 @@ class IbanValidatorTest extends TestCase
         $this->assertSame(24, strlen($validLengthWrongFormat));
         $this->assertFalse($this->validator->isValid($validLengthWrongFormat));
     }
+
+    /**
+     * IBAN registry examples for SEPA countries that are not covered by the generic tests.
+     */
+    public function testValidIbansFromRegistryForAllSepaLengths(): void
+    {
+        $ibans = [
+            'AD1200012030200359100100',
+            'VA59001123000012345678',
+            'AL47212110090000000235698741',
+            'MD24AG000225100013104168',
+            'ME25505000012345678951',
+            'MK07250120000058984',
+            'RS35260005601001611379',
+            'GI75NWBK000000007099453',
+            'NO9386011117947',
+            'MT84MALT011000012345MTLCAST001S',
+        ];
+
+        foreach ($ibans as $iban) {
+            $this->assertTrue($this->validator->isValid($iban), "IBAN should be valid: {$iban}");
+        }
+    }
+
+    /**
+     * Regression: an IBAN with correct mod-97 check digits but the wrong length for its country is rejected.
+     */
+    public function testIbanWithValidChecksumButWrongCountryLengthIsInvalid(): void
+    {
+        // Spanish IBANs are 24 characters long; build 23- and 25-character ones with correct check digits
+        foreach (['ES002100041845020005133', 'ES00210004184502000513321'] as $placeholder) {
+            $iban = 'ES' . $this->validator->calculateCheckDigits($placeholder) . substr($placeholder, 4);
+            $this->assertFalse($this->validator->isValid($iban), "Wrong length IBAN should be invalid: {$iban}");
+        }
+    }
+
+    /**
+     * Regression: an IBAN with correct mod-97 check digits but a country not in the IBAN registry is rejected.
+     */
+    public function testIbanWithValidChecksumButUnknownCountryIsInvalid(): void
+    {
+        $placeholder = 'XX0021000418450200051332';
+        $iban        = 'XX' . $this->validator->calculateCheckDigits($placeholder) . substr($placeholder, 4);
+
+        $this->assertFalse($this->validator->isValid($iban));
+        $this->assertFalse($this->validator->isValid('US64SVBKUS6S3300958879'));
+    }
 }

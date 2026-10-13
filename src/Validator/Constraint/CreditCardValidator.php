@@ -53,6 +53,7 @@ class CreditCardValidator extends ConstraintValidator
 
         if (!$this->creditCardValidator->isValid($value)) {
             $this->context->buildViolation($constraint->message)
+                ->setTranslationDomain($constraint->translationDomain)
                 ->setParameter('{{ value }}', $this->formatValue($value))
                 ->setCode(CreditCard::INVALID_CREDIT_CARD_ERROR)
                 ->addViolation();

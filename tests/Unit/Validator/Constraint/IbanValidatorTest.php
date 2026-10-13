@@ -89,6 +89,10 @@ class IbanValidatorTest extends TestCase
 
         $violationBuilder = $this->createMock(ConstraintViolationBuilderInterface::class);
         $violationBuilder->expects($this->once())
+            ->method('setTranslationDomain')
+            ->with('NowoSepaPaymentBundle')
+            ->willReturnSelf();
+        $violationBuilder->expects($this->once())
             ->method('setParameter')
             ->with('{{ value }}', $this->anything())
             ->willReturnSelf();
@@ -160,6 +164,10 @@ class IbanValidatorTest extends TestCase
             ->willReturn(false);
 
         $violationBuilder = $this->createMock(ConstraintViolationBuilderInterface::class);
+        $violationBuilder->expects($this->once())
+            ->method('setTranslationDomain')
+            ->with('NowoSepaPaymentBundle')
+            ->willReturnSelf();
         $violationBuilder->expects($this->once())
             ->method('setParameter')
             ->with('{{ value }}', $this->anything())

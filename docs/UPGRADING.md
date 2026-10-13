@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+Behaviour changes in array input, validation and XSD handling (minor release). Review these before upgrading:
+
+- **`amount` is always in euros.** `generateFromArray()` used to divide any `amount` greater than 10000 by 100. If you passed cents in `amount` (e.g. `'amount' => 15000` meaning EUR 150.00), switch to `'amountCents' => 15000`; otherwise you will now generate EUR 15,000.00. Decimal euro amounts (`100.50`, `15000.00`) are unchanged. `amount` and `amountCents` cannot be combined.
+- **Non-EUR currencies are rejected.** A transaction `currency` other than `EUR` (or a non-EUR `default_currency`) now throws `InvalidArgumentException` when generating; it used to be silently replaced by EUR. `default_currency` must be 3 uppercase letters or the container fails to compile.
+- **XSD validation really validates.** With `validateXsd: true`, or when calling `XsdValidator::validate*()`, invalid XML now throws, and a missing schema (custom path that does not exist, unknown type, unbundled pain version) throws `validation.xsd_schema_not_found` instead of returning `true`.
+- **Stricter IBAN / CCC checks.** IBANs with an unknown country code or the wrong length for their country are invalid; `CccConverter::cccToIban()` throws on wrong CCC control digits. Clean stored data that relied on the old leniency.
+- **Translated constraint messages.** If you translated `iban.invalid`, `bic.invalid`, etc. in the default `validators` domain as a workaround, move those overrides to the `NowoSepaPaymentBundle` domain.
+- New translation keys: `validation.xsd_schema_not_found`, `validation.invalid_amount`, `validation.invalid_currency_code`.
+
+```bash
+composer update nowo-tech/sepa-payment-bundle
+php bin/console cache:clear
+```
+
 ## To 1.2.32
 
 From **1.2.31** — dependency refresh and repository maintenance.

@@ -12,6 +12,9 @@ validation.invalid_creditor_identifier: 'Identificador de Acreedor SEPA inválid
 validation.invalid_xml_format: 'Formato XML inválido: %errors%'
 validation.xsd_validation_failed: 'Validación XSD fallida: %errors%'
 validation.generated_xml_failed_xsd: 'El XML generado falló la validación XSD: %error%'
+validation.xsd_schema_not_found: "Esquema XSD no encontrado: %path%"
+validation.invalid_amount: "Importe de transacción no válido: use \"amount\" (decimal, en euros) o \"amountCents\" (entero, en céntimos), no ambos."
+validation.invalid_currency_code: "Moneda no válida \"%currency%\": se esperaba un código ISO 4217 de 3 letras mayúsculas."
 
 # Date validation errors
 validation.invalid_date_type: '%field% debe ser una cadena o DateTimeInterface'

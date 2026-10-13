@@ -71,6 +71,18 @@ class CccConverterTest extends TestCase
     }
 
     /**
+     * Regression: a 20-digit CCC with wrong control digits must not be converted to an IBAN.
+     */
+    public function testCccToIbanRejectsInvalidControlDigits(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid CCC: control digits do not match.');
+
+        // Valid CCC is 2100 0418 45 0200051332; control digits changed from 45 to 46
+        $this->converter->cccToIban('21000418460200051332');
+    }
+
+    /**
      * Tests CCC validation with valid CCC.
      */
     public function testIsValidCcc(): void
@@ -168,7 +180,7 @@ class CccConverterTest extends TestCase
         // CCC with valid check digits: 0049 0001 20 1234567890
         // Bank: 0049, Branch: 0001, Check: 20, Account: 1234567890
         // This is a known valid CCC format
-        $validCcc = '00490001201234567890';
+        $validCcc = '00490001561234567890';
 
         // Note: The actual validation depends on check digit calculation
         // We test that the method works correctly
@@ -181,12 +193,12 @@ class CccConverterTest extends TestCase
      */
     public function testCccToIbanWithLeadingZeros(): void
     {
-        $ccc  = '00490001201234567890';
+        $ccc  = '00490001561234567890';
         $iban = $this->converter->cccToIban($ccc);
 
         $this->assertStringStartsWith('ES', $iban);
         $this->assertEquals(24, strlen($iban));
-        $this->assertEquals('00490001201234567890', substr($iban, 4));
+        $this->assertEquals('00490001561234567890', substr($iban, 4));
     }
 
     /**

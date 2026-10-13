@@ -53,6 +53,7 @@ class BicValidator extends ConstraintValidator
 
         if (!$this->bicValidator->isValid($value)) {
             $this->context->buildViolation($constraint->message)
+                ->setTranslationDomain($constraint->translationDomain)
                 ->setParameter('{{ value }}', $this->formatValue($value))
                 ->setCode(Bic::INVALID_BIC_ERROR)
                 ->addViolation();

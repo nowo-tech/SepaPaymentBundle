@@ -22,44 +22,65 @@ class SepaCountryValidator
     public const SERVICE_NAME = 'nowo_sepa_payment.validator.sepa_country_validator';
 
     /**
-     * List of SEPA member countries (ISO 3166-1 alpha-2 codes).
-     * Updated as of 2025.
+     * Countries and territories in the SEPA schemes' geographical scope (ISO 3166-1 alpha-2 codes).
+     * Source: EPC409-09 "EPC list of countries in the SEPA schemes' geographical scope", v8.0 (24 December 2025).
+     * Territories whose IBANs use another country's prefix (e.g. GP → FR, JE → GB) are listed for address/BIC use.
      */
     private const SEPA_COUNTRIES = [
+        'AD', // Andorra
+        'AL', // Albania
         'AT', // Austria
+        'AX', // Åland Islands (BIC/IBAN use FI)
         'BE', // Belgium
         'BG', // Bulgaria
-        'HR', // Croatia
+        'BL', // Saint Barthélemy (IBAN uses FR)
+        'CH', // Switzerland
         'CY', // Cyprus
         'CZ', // Czech Republic
+        'DE', // Germany
         'DK', // Denmark
         'EE', // Estonia
+        'ES', // Spain (incl. Canary Islands)
         'FI', // Finland
         'FR', // France
-        'DE', // Germany
+        'GB', // United Kingdom
+        'GF', // French Guiana (IBAN uses FR)
+        'GG', // Guernsey (IBAN uses GB)
+        'GI', // Gibraltar
+        'GP', // Guadeloupe (IBAN uses FR)
         'GR', // Greece
+        'HR', // Croatia
         'HU', // Hungary
-        'IS', // Iceland
         'IE', // Ireland
+        'IM', // Isle of Man (IBAN uses GB)
+        'IS', // Iceland
         'IT', // Italy
-        'LV', // Latvia
+        'JE', // Jersey (IBAN uses GB)
         'LI', // Liechtenstein
         'LT', // Lithuania
         'LU', // Luxembourg
-        'MT', // Malta
+        'LV', // Latvia
         'MC', // Monaco
+        'MD', // Moldova
+        'ME', // Montenegro
+        'MF', // Saint Martin, French part (IBAN uses FR)
+        'MK', // North Macedonia
+        'MQ', // Martinique (IBAN uses FR)
+        'MT', // Malta
         'NL', // Netherlands
         'NO', // Norway
         'PL', // Poland
-        'PT', // Portugal
+        'PM', // Saint Pierre and Miquelon (IBAN uses FR)
+        'PT', // Portugal (incl. Azores and Madeira)
+        'RE', // Réunion (IBAN uses FR)
         'RO', // Romania
-        'SM', // San Marino
-        'SK', // Slovakia
-        'SI', // Slovenia
-        'ES', // Spain
+        'RS', // Serbia
         'SE', // Sweden
-        'CH', // Switzerland
-        'GB', // United Kingdom (still SEPA member despite Brexit)
+        'SI', // Slovenia
+        'SK', // Slovakia
+        'SM', // San Marino
+        'VA', // Vatican City State
+        'YT', // Mayotte (IBAN uses FR)
     ];
 
     /**
@@ -118,40 +139,60 @@ class SepaCountryValidator
         $countryCode = strtoupper(trim($countryCode));
 
         $countryNames = [
+            'AD' => 'Andorra',
+            'AL' => 'Albania',
             'AT' => 'Austria',
+            'AX' => 'Åland Islands',
             'BE' => 'Belgium',
             'BG' => 'Bulgaria',
-            'HR' => 'Croatia',
+            'BL' => 'Saint Barthélemy',
+            'CH' => 'Switzerland',
             'CY' => 'Cyprus',
             'CZ' => 'Czech Republic',
+            'DE' => 'Germany',
             'DK' => 'Denmark',
             'EE' => 'Estonia',
+            'ES' => 'Spain',
             'FI' => 'Finland',
             'FR' => 'France',
-            'DE' => 'Germany',
+            'GB' => 'United Kingdom',
+            'GF' => 'French Guiana',
+            'GG' => 'Guernsey',
+            'GI' => 'Gibraltar',
+            'GP' => 'Guadeloupe',
             'GR' => 'Greece',
+            'HR' => 'Croatia',
             'HU' => 'Hungary',
-            'IS' => 'Iceland',
             'IE' => 'Ireland',
+            'IM' => 'Isle of Man',
+            'IS' => 'Iceland',
             'IT' => 'Italy',
-            'LV' => 'Latvia',
+            'JE' => 'Jersey',
             'LI' => 'Liechtenstein',
             'LT' => 'Lithuania',
             'LU' => 'Luxembourg',
-            'MT' => 'Malta',
+            'LV' => 'Latvia',
             'MC' => 'Monaco',
+            'MD' => 'Moldova',
+            'ME' => 'Montenegro',
+            'MF' => 'Saint Martin, French part',
+            'MK' => 'North Macedonia',
+            'MQ' => 'Martinique',
+            'MT' => 'Malta',
             'NL' => 'Netherlands',
             'NO' => 'Norway',
             'PL' => 'Poland',
+            'PM' => 'Saint Pierre and Miquelon',
             'PT' => 'Portugal',
+            'RE' => 'Réunion',
             'RO' => 'Romania',
-            'SM' => 'San Marino',
-            'SK' => 'Slovakia',
-            'SI' => 'Slovenia',
-            'ES' => 'Spain',
+            'RS' => 'Serbia',
             'SE' => 'Sweden',
-            'CH' => 'Switzerland',
-            'GB' => 'United Kingdom',
+            'SI' => 'Slovenia',
+            'SK' => 'Slovakia',
+            'SM' => 'San Marino',
+            'VA' => 'Vatican City State',
+            'YT' => 'Mayotte',
         ];
 
         return $countryNames[$countryCode] ?? $countryCode;

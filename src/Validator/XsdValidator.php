@@ -10,6 +10,10 @@ use LibXMLError;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+use function dirname;
+use function is_file;
+use function str_starts_with;
+
 /**
  * XSD Schema validator for SEPA XML files.
  * Validates XML content against official SEPA XSD schemas (ISO 20022).
@@ -49,10 +53,10 @@ class XsdValidator
      * Validates XML content against an XSD schema.
      *
      * @param string $xml The XML content to validate
-     * @param string|null $xsdPath Path to the XSD schema file (optional, will use default if null)
+     * @param string|null $xsdPath Path to the XSD schema file (optional, uses the bundled schema if null)
      * @param string $schemaType Type of schema: 'credit_transfer' or 'direct_debit'
      *
-     * @throws InvalidArgumentException If the XML is invalid or schema file is not found
+     * @throws InvalidArgumentException If the XML is malformed or invalid, or if the schema file is not found
      *
      * @return bool True if the XML is valid against the schema
      */
@@ -78,35 +82,36 @@ class XsdValidator
             throw new InvalidArgumentException($message);
         }
 
-        // If no XSD path provided, try to use default schema
+        // If no XSD path provided, use the bundled schema matching the document namespace (or the type default)
         if ($xsdPath === null) {
-            $xsdPath = $this->getDefaultSchemaPath($schemaType);
+            $xsdPath = $this->getDefaultSchemaPath($schemaType, $dom->documentElement?->namespaceURI);
+        }
+
+        // Validation was requested: a missing schema must never be reported as "valid"
+        if ($xsdPath === null || !is_file($xsdPath)) {
+            $message = $this->translator->trans('validation.xsd_schema_not_found', ['%path%' => $xsdPath ?? $schemaType], 'NowoSepaPaymentBundle');
+
+            throw new InvalidArgumentException($message);
         }
 
         // Validate against XSD schema
-        if ($xsdPath !== null && file_exists($xsdPath)) {
-            $previousUseErrors = libxml_use_internal_errors(true);
-            try {
-                $valid  = @$dom->schemaValidate($xsdPath);
-                $errors = libxml_get_errors();
-                libxml_clear_errors();
-            } finally {
-                libxml_use_internal_errors($previousUseErrors);
-            }
-
-            if (!$valid && $errors !== []) {
-                $errorMessages = array_map(static fn ($error): string => trim($error->message), $errors);
-                $errorsString  = implode('; ', $errorMessages);
-                $message       = $this->translator->trans('validation.xsd_validation_failed', ['%errors%' => $errorsString], 'NowoSepaPaymentBundle');
-
-                throw new InvalidArgumentException($message);
-            }
-
-            return $valid;
+        $previousUseErrors = libxml_use_internal_errors(true);
+        try {
+            $valid  = @$dom->schemaValidate($xsdPath);
+            $errors = libxml_get_errors();
+            libxml_clear_errors();
+        } finally {
+            libxml_use_internal_errors($previousUseErrors);
         }
 
-        // If schema file doesn't exist, return true (validation skipped)
-        // This allows the validator to work even if XSD files are not available
+        if (!$valid) {
+            $errorMessages = array_map(static fn (LibXMLError $error): string => trim($error->message), $errors);
+            $errorsString  = implode('; ', $errorMessages);
+            $message       = $this->translator->trans('validation.xsd_validation_failed', ['%errors%' => $errorsString], 'NowoSepaPaymentBundle');
+
+            throw new InvalidArgumentException($message);
+        }
+
         return true;
     }
 
@@ -141,24 +146,45 @@ class XsdValidator
     }
 
     /**
-     * Gets the default XSD schema path for a given schema type.
+     * Gets the bundled XSD schema path for a given schema type.
+     * When the document namespace names a bundled schema of the same message family
+     * (e.g. urn:iso:std:iso:20022:tech:xsd:pain.001.001.09 for credit transfers), that schema is used;
+     * otherwise the type default (pain.001.001.03 / pain.008.001.02) is used.
      *
      * @param string $schemaType Type of schema: 'credit_transfer' or 'direct_debit'
+     * @param string|null $namespace Namespace URI of the document root element
      *
-     * @return string|null Path to the schema file, or null if not found
+     * @return string|null Path to the bundled schema file, or null if the schema type is unknown
      */
-    private function getDefaultSchemaPath(string $schemaType): ?string
+    private function getDefaultSchemaPath(string $schemaType, ?string $namespace = null): ?string
     {
-        $basePath = __DIR__ . '/../../Resources/schemas/';
-
-        $schemas = [
-            'credit_transfer' => $basePath . 'pain.001.001.03.xsd',
-            'direct_debit'    => $basePath . 'pain.008.001.02.xsd',
+        $defaults = [
+            'credit_transfer' => self::XSD_CREDIT_TRANSFER,
+            'direct_debit'    => self::XSD_DIRECT_DEBIT,
         ];
 
-        $path = $schemas[$schemaType] ?? null;
+        if (!isset($defaults[$schemaType])) {
+            return null;
+        }
 
-        return ($path && file_exists($path)) ? $path : null;
+        $schemaId = $defaults[$schemaType];
+        $family   = substr($schemaId, 0, 9); // "pain.001." or "pain.008."
+        if ($namespace !== null && preg_match('/^urn:iso:std:iso:20022:tech:xsd:(pain\.\d{3}\.\d{3}\.\d{2})$/', $namespace, $matches) === 1
+            && str_starts_with($matches[1], $family)) {
+            $schemaId = $matches[1];
+        }
+
+        return self::getSchemaDirectory() . '/' . $schemaId . '.xsd';
+    }
+
+    /**
+     * Gets the directory that holds the bundled ISO 20022 XSD schemas (src/Resources/schemas).
+     *
+     * @return string Absolute path to the schemas directory
+     */
+    public static function getSchemaDirectory(): string
+    {
+        return dirname(__DIR__) . '/Resources/schemas';
     }
 
     /**

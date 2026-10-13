@@ -20,6 +20,7 @@ use Nowo\SepaPaymentBundle\Tests\Unit\Helper\TranslationHelper;
 use Nowo\SepaPaymentBundle\Tests\Unit\Logger\TestLogger;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use Nowo\SepaPaymentBundle\Validator\XsdValidator;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -823,11 +824,15 @@ class CreditTransferGeneratorTest extends TestCase
     }
 
     /**
-     * Tests generateFromArray with amount in cents (> 10000).
+     * Builds credit transfer array data with the given transaction overrides.
+     *
+     * @param array<string, mixed> $transaction Transaction fields merged over a default transaction
+     *
+     * @return array<string, mixed>
      */
-    public function testGenerateFromArrayWithAmountInCents(): void
+    private function creditTransferArray(array $transaction): array
     {
-        $data = [
+        return [
             'reference'              => 'MSG-001',
             'initiatingPartyName'    => 'My Company',
             'paymentInfoId'          => 'PMT-001',
@@ -835,19 +840,65 @@ class CreditTransferGeneratorTest extends TestCase
             'debtorName'             => 'My Company Name',
             'debtorIban'             => 'ES9121000418450200051332',
             'transactions'           => [
-                [
-                    'amount'       => 15000, // 150.00 in cents
+                array_merge([
                     'creditorIban' => 'GB82WEST12345698765432',
                     'creditorName' => 'John Doe',
                     'endToEndId'   => 'E2E-001',
-                ],
+                ], $transaction),
             ],
         ];
+    }
 
-        $xml = $this->generator->generateFromArray($data);
+    /**
+     * Regression: "amount" is always in euros; 15000 must stay EUR 15,000.00 (it used to become 150.00).
+     */
+    public function testGenerateFromArrayLargeAmountIsNotTreatedAsCents(): void
+    {
+        $xml = $this->generator->generateFromArray($this->creditTransferArray(['amount' => 15000]));
 
-        $this->assertStringContainsString('<?xml', $xml);
-        $this->assertStringContainsString('150.00', $xml);
+        $this->assertStringContainsString('<InstdAmt Ccy="EUR">15000.00</InstdAmt>', $xml);
+        $this->assertStringNotContainsString('>150.00<', $xml);
+
+        $xml = $this->generator->generateFromArray($this->creditTransferArray(['amount' => '15000.00']));
+        $this->assertStringContainsString('<InstdAmt Ccy="EUR">15000.00</InstdAmt>', $xml);
+    }
+
+    /**
+     * "amountCents" (integer, or digit string) is the explicit way to pass cents; snake_case "amount_cents" is accepted too.
+     */
+    public function testGenerateFromArrayWithAmountCents(): void
+    {
+        $xml = $this->generator->generateFromArray($this->creditTransferArray(['amountCents' => 1500000]));
+        $this->assertStringContainsString('<InstdAmt Ccy="EUR">15000.00</InstdAmt>', $xml);
+
+        $xml = $this->generator->generateFromArray($this->creditTransferArray(['amount_cents' => '1999']));
+        $this->assertStringContainsString('<InstdAmt Ccy="EUR">19.99</InstdAmt>', $xml);
+    }
+
+    /**
+     * Invalid or ambiguous amounts are rejected.
+     *
+     * @param array<string, mixed> $transaction
+     */
+    #[DataProvider('invalidAmountProvider')]
+    public function testGenerateFromArrayRejectsInvalidAmount(array $transaction, string $expectedMessage): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage($expectedMessage);
+
+        $this->generator->generateFromArray($this->creditTransferArray($transaction));
+    }
+
+    /**
+     * @return iterable<string, array{array<string, mixed>, string}>
+     */
+    public static function invalidAmountProvider(): iterable
+    {
+        yield 'missing' => [[], 'Missing required transaction field: amount'];
+        yield 'both' => [['amount' => 10.5, 'amountCents' => 1050], 'Invalid transaction amount'];
+        yield 'non-numeric amount' => [['amount' => 'ten'], 'Invalid transaction amount'];
+        yield 'float cents' => [['amountCents' => 10.5], 'Invalid transaction amount'];
+        yield 'negative cents string' => [['amountCents' => '-100'], 'Invalid transaction amount'];
     }
 
     /**
@@ -969,35 +1020,52 @@ class CreditTransferGeneratorTest extends TestCase
     }
 
     /**
-     * Tests generateFromArray with currency.
-     * Note: SEPA always uses EUR, but currency can be specified in Transaction.
+     * An explicit EUR currency is accepted and written on InstdAmt.
      */
-    public function testGenerateFromArrayWithCurrency(): void
+    public function testGenerateFromArrayWithEurCurrency(): void
     {
-        $data = [
-            'reference'              => 'MSG-001',
-            'initiatingPartyName'    => 'My Company',
-            'paymentInfoId'          => 'PMT-001',
-            'requestedExecutionDate' => '2024-01-20',
-            'debtorName'             => 'My Company Name',
-            'debtorIban'             => 'ES9121000418450200051332',
-            'transactions'           => [
-                [
-                    'amount'       => 100.50,
-                    'currency'     => 'USD',
-                    'creditorIban' => 'GB82WEST12345698765432',
-                    'creditorName' => 'John Doe',
-                    'endToEndId'   => 'E2E-001',
-                ],
-            ],
-        ];
+        $xml = $this->generator->generateFromArray($this->creditTransferArray(['amount' => 100.50, 'currency' => 'EUR']));
 
-        $xml = $this->generator->generateFromArray($data);
+        $this->assertStringContainsString('<InstdAmt Ccy="EUR">100.50</InstdAmt>', $xml);
+    }
 
-        $this->assertStringContainsString('<?xml', $xml);
-        $this->assertStringContainsString('CstmrCdtTrfInitn', $xml);
-        // SEPA always uses EUR in XML, even if currency is specified in Transaction
-        $this->assertStringContainsString('EUR', $xml);
+    /**
+     * Regression: a non-EUR currency used to be silently replaced by EUR; SEPA only supports EUR, so it is rejected.
+     */
+    public function testGenerateFromArrayRejectsNonEurCurrency(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Currency USD is not valid for SEPA. Only EUR is allowed.');
+
+        $this->generator->generateFromArray($this->creditTransferArray(['amount' => 100.50, 'currency' => 'USD']));
+    }
+
+    /**
+     * A malformed currency code is rejected.
+     */
+    public function testGenerateFromArrayRejectsMalformedCurrency(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid currency "eur": expected a 3-letter uppercase ISO 4217 code.');
+
+        $this->generator->generateFromArray($this->creditTransferArray(['amount' => 100.50, 'currency' => 'eur']));
+    }
+
+    /**
+     * The configured default currency applies to transactions without a currency and is validated too.
+     */
+    public function testDefaultCurrencyIsUsedAndValidated(): void
+    {
+        $translator = $this->createMock(TranslatorInterface::class);
+        $translator->method('trans')->willReturnCallback(TranslationHelper::createTranslatorCallback());
+
+        $eur = new CreditTransferGenerator(new IbanValidator(), $translator, null, false, null, null, null, 'EUR');
+        $this->assertStringContainsString('Ccy="EUR"', $eur->generateFromArray($this->creditTransferArray(['amount' => 1])));
+
+        $usd = new CreditTransferGenerator(new IbanValidator(), $translator, null, false, null, null, null, 'USD');
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Currency USD is not valid for SEPA. Only EUR is allowed.');
+        $usd->generateFromArray($this->creditTransferArray(['amount' => 1]));
     }
 
     /**
@@ -1141,7 +1209,20 @@ class CreditTransferGeneratorTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertEquals($xml, $response->getContent());
         $this->assertEquals('application/xml', $response->headers->get('Content-Type'));
-        $this->assertEquals('attachment; filename="test-credit-transfer.xml"', $response->headers->get('Content-Disposition'));
+        $this->assertEquals('attachment; filename=test-credit-transfer.xml', $response->headers->get('Content-Disposition'));
+    }
+
+    /**
+     * Regression: the filename is encoded with HeaderUtils (quotes, path separators and non-ASCII names are safe).
+     */
+    public function testCreateResponseEncodesUnsafeFilename(): void
+    {
+        $response = $this->generator->createResponse('<x/>', 'a"b/../remesa ñ.xml');
+
+        $this->assertSame(
+            'attachment; filename="a_b_.._remesa __.xml"; filename*=utf-8\'\'a%22b_.._remesa%20%C3%B1.xml',
+            $response->headers->get('Content-Disposition'),
+        );
     }
 
     /**

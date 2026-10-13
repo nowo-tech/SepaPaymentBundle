@@ -141,6 +141,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Amounts (breaking for callers passing cents)**: `generateFromArray()` no longer treats any `amount` above 10000 as cents (EUR 15,000.00 used to be written as EUR 150.00). `amount` is always a decimal amount in euros; use the new optional `amountCents` (integer) key to pass cents. Passing both, neither or a non-numeric amount throws.
+- **XSD validation**: `XsdValidator` looked for schemas in a non-existent directory and returned `true` without validating, so `validateXsd: true` did nothing. The bundle now ships the official ISO 20022 schemas (`pain.001.001.03`, `pain.008.001.02`, plus `pain.001.001.09` / `pain.008.001.09` written by the generators), picks the schema matching the document namespace, and throws when no schema is found.
+- **Postal addresses**: `PstlAdr` children are written in the ISO 20022 order (`StrtNm`, `PstCd`, `TwnNm`, `Ctry`); `TwnNm` before `PstCd` made addressed files schema-invalid.
+- **Currency**: the `default_currency` option was never used and the currency was hard-coded. Generators now use the per-transaction `currency` with fallback to `default_currency`, require a 3-letter uppercase code and reject non-EUR currencies (SEPA is EUR-only) instead of silently writing EUR. `DirectDebitTransaction` gains `setCurrency()` / `getCurrency()`.
+- **IBAN validation**: `IbanValidator::isValid()` checks the ISO 13616 registry length per country and rejects unknown country codes (a checksum-valid IBAN of the wrong length used to pass).
+- **CCC conversion**: `CccConverter::cccToIban()` rejects a CCC whose control digits are wrong instead of producing an IBAN for a mistyped account.
+- **Constraint messages**: `Iban`, `Bic`, `SepaCreditorIdentifier`, `CreditCard` and `SepaCountry` violations now use the constraint's translation domain (`NowoSepaPaymentBundle`), so users see translated messages instead of raw keys such as `iban.invalid`.
+- **SEPA countries**: `SepaCountryValidator` follows EPC409-09 v8.0 and now includes Andorra, Vatican City, Albania, Moldova, Montenegro, North Macedonia, Serbia, Gibraltar, Guernsey, Jersey, Isle of Man, Åland and the French overseas territories (GF, GP, MQ, RE, YT, PM, BL, MF).
+
+### Changed
+
+- `createResponse()` builds `Content-Disposition` with `HeaderUtils::makeDisposition()` (quotes and non-ASCII filenames are encoded, path separators replaced). Simple filenames are now sent unquoted (`attachment; filename=remesa.xml`), which is equivalent per RFC 6266.
+
 ## [1.2.32] - 2026-10-13
 
 ### Changed

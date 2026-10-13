@@ -12,6 +12,9 @@ validation.invalid_creditor_identifier: 'Ongeldige SEPA-crediteuridentificatie: 
 validation.invalid_xml_format: 'Ongeldig XML-formaat: %errors%'
 validation.xsd_validation_failed: 'XSD-validatie mislukt: %errors%'
 validation.generated_xml_failed_xsd: 'Gegenereerde XML heeft XSD-validatie niet doorstaan: %error%'
+validation.xsd_schema_not_found: "XSD-schema niet gevonden: %path%"
+validation.invalid_amount: "Ongeldig transactiebedrag: gebruik \"amount\" (decimaal, in euro) of \"amountCents\" (geheel getal, in centen), niet beide."
+validation.invalid_currency_code: "Ongeldige valuta \"%currency%\": verwacht een ISO 4217-code van 3 hoofdletters."
 
 # Date validation errors
 validation.invalid_date_type: '%field% moet een string of DateTimeInterface zijn'

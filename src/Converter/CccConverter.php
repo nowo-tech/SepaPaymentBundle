@@ -39,7 +39,7 @@ class CccConverter
      *
      * @param string $ccc The CCC to convert (with or without spaces)
      *
-     * @throws InvalidArgumentException If the CCC format is invalid
+     * @throws InvalidArgumentException If the CCC format is invalid or its control digits do not match
      *
      * @return string The IBAN (ES + check digits + CCC)
      */
@@ -51,6 +51,11 @@ class CccConverter
         // Validate CCC format (20 digits)
         if (!preg_match('/^\d{20}$/', $ccc)) {
             throw new InvalidArgumentException('Invalid CCC format. Expected 20 digits.');
+        }
+
+        // Validate CCC control digits (DD) so a mistyped account is never turned into a "valid" IBAN
+        if (!$this->isValidCcc($ccc)) {
+            throw new InvalidArgumentException('Invalid CCC: control digits do not match.');
         }
 
         // Calculate IBAN check digits

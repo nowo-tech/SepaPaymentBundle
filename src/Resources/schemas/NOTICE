@@ -1,0 +1,14 @@
+ISO 20022 XML schemas
+
+pain.001.001.03.xsd  CustomerCreditTransferInitiationV03 (2009)
+pain.008.001.02.xsd  CustomerDirectDebitInitiationV02 (2009)
+pain.001.001.09.xsd  CustomerCreditTransferInitiationV09 (2019)
+pain.008.001.09.xsd  CustomerDirectDebitInitiationV09
+
+These files are the unmodified message schemas published by the ISO 20022
+Registration Authority, which may be used and reproduced freely under the
+ISO 20022 Intellectual Property Right Policy. They are not the official source:
+the sole source of up-to-date ISO 20022 message standards is
+https://www.iso20022.org/.
+
+Used by Nowo\SepaPaymentBundle\Validator\XsdValidator (see docs/USAGE.md).

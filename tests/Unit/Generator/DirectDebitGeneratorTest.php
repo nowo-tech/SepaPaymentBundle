@@ -19,6 +19,7 @@ use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitTransaction;
 use Nowo\SepaPaymentBundle\Tests\Unit\Logger\TestLogger;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use Nowo\SepaPaymentBundle\Validator\XsdValidator;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -263,11 +264,15 @@ class DirectDebitGeneratorTest extends TestCase
     }
 
     /**
-     * Tests XML generation from array with amount in cents (> 10000).
+     * Builds direct debit array data with the given transaction overrides.
+     *
+     * @param array<string, mixed> $transaction Transaction fields merged over a default transaction
+     *
+     * @return array<string, mixed>
      */
-    public function testGenerateFromArrayWithAmountInCents(): void
+    private function directDebitArray(array $transaction): array
     {
-        $data = [
+        return [
             'reference'           => 'MSG-001',
             'bankAccountOwner'    => 'My Company',
             'paymentInfoId'       => 'PMT-001',
@@ -278,20 +283,127 @@ class DirectDebitGeneratorTest extends TestCase
             'creditorId'          => 'ES1234567890123456789012',
             'localInstrumentCode' => 'CORE',
             'transactions'        => [
-                [
-                    'amount'        => 15000, // 150.00 in cents
+                array_merge([
                     'debtorIban'    => 'GB82WEST12345698765432',
                     'debtorName'    => 'John Doe',
                     'debtorMandate' => 'MANDATE-001',
                     'endToEndId'    => 'E2E-001',
-                ],
+                ], $transaction),
             ],
         ];
+    }
 
-        $xml = $this->generator->generateFromArray($data);
+    /**
+     * Regression: "amount" is always in euros; 15000 must stay EUR 15,000.00 (it used to become 150.00).
+     */
+    public function testGenerateFromArrayLargeAmountIsNotTreatedAsCents(): void
+    {
+        $xml = $this->generator->generateFromArray($this->directDebitArray(['amount' => 15000]));
 
-        $this->assertStringContainsString('<?xml', $xml);
-        $this->assertStringContainsString('150.00', $xml);
+        $this->assertStringContainsString('<InstdAmt Ccy="EUR">15000.00</InstdAmt>', $xml);
+        $this->assertStringNotContainsString('>150.00<', $xml);
+
+        $xml = $this->generator->generateFromArray($this->directDebitArray(['amount' => '15000.00']));
+        $this->assertStringContainsString('<InstdAmt Ccy="EUR">15000.00</InstdAmt>', $xml);
+    }
+
+    /**
+     * "amountCents" (integer, or digit string) is the explicit way to pass cents; snake_case "amount_cents" is accepted too.
+     */
+    public function testGenerateFromArrayWithAmountCents(): void
+    {
+        $xml = $this->generator->generateFromArray($this->directDebitArray(['amountCents' => 1500000]));
+        $this->assertStringContainsString('<InstdAmt Ccy="EUR">15000.00</InstdAmt>', $xml);
+
+        $xml = $this->generator->generateFromArray($this->directDebitArray(['amount_cents' => '1999']));
+        $this->assertStringContainsString('<InstdAmt Ccy="EUR">19.99</InstdAmt>', $xml);
+    }
+
+    /**
+     * Invalid or ambiguous amounts are rejected.
+     *
+     * @param array<string, mixed> $transaction
+     */
+    #[DataProvider('invalidAmountProvider')]
+    public function testGenerateFromArrayRejectsInvalidAmount(array $transaction, string $expectedMessage): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage($expectedMessage);
+
+        $this->generator->generateFromArray($this->directDebitArray($transaction));
+    }
+
+    /**
+     * @return iterable<string, array{array<string, mixed>, string}>
+     */
+    public static function invalidAmountProvider(): iterable
+    {
+        yield 'missing' => [[], 'Missing required transaction field: amount'];
+        yield 'both' => [['amount' => 10.5, 'amountCents' => 1050], 'Invalid transaction amount'];
+        yield 'non-numeric amount' => [['amount' => 'ten'], 'Invalid transaction amount'];
+        yield 'float cents' => [['amountCents' => 10.5], 'Invalid transaction amount'];
+        yield 'negative cents string' => [['amountCents' => '-100'], 'Invalid transaction amount'];
+    }
+
+    /**
+     * Regression: the euro amount passed in is the amount written to the XML (no cents heuristic).
+     */
+    public function testGeneratedXmlWritesEuroAmount(): void
+    {
+        $xml = $this->generator->generateFromArray($this->directDebitArray(['amount' => 15000.00]));
+        $dom = new DOMDocument();
+        $dom->loadXML($xml);
+        $xpath = new DOMXPath($dom);
+        $xpath->registerNamespace('ns', (string) $dom->documentElement?->namespaceURI);
+
+        $this->assertSame('15000.00', $xpath->evaluate('string(//ns:DrctDbtTxInf/ns:InstdAmt)'));
+    }
+
+    /**
+     * A per-transaction EUR currency is accepted, stored on the transaction and not leaked into additional data.
+     */
+    public function testGenerateFromArrayWithEurCurrency(): void
+    {
+        $xml = $this->generator->generateFromArray($this->directDebitArray(['amount' => 10, 'currency' => 'EUR']));
+
+        $this->assertStringContainsString('<InstdAmt Ccy="EUR">10.00</InstdAmt>', $xml);
+    }
+
+    /**
+     * SEPA direct debits are EUR-only: a non-EUR transaction currency is rejected.
+     */
+    public function testGenerateFromArrayRejectsNonEurCurrency(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Currency "USD" is not allowed: SEPA direct debits only support EUR.');
+
+        $this->generator->generateFromArray($this->directDebitArray(['amount' => 10, 'currency' => 'USD']));
+    }
+
+    /**
+     * A malformed currency code is rejected.
+     */
+    public function testGenerateFromArrayRejectsMalformedCurrency(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid currency "Euro": expected a 3-letter uppercase ISO 4217 code.');
+
+        $this->generator->generateFromArray($this->directDebitArray(['amount' => 10, 'currency' => 'Euro']));
+    }
+
+    /**
+     * The configured default currency applies to transactions without a currency and is validated too.
+     */
+    public function testDefaultCurrencyIsUsedAndValidated(): void
+    {
+        $transaction = new DirectDebitTransaction(10.0, 'GB82WEST12345698765432', 'John Doe', 'MANDATE-001', new DateTime('2024-01-01'), 'E2E-001');
+        $this->assertNull($transaction->getCurrency());
+        $this->assertSame('EUR', $transaction->setCurrency('EUR')->getCurrency());
+
+        $usd = new DirectDebitGenerator(new IbanValidator(), null, false, null, null, null, 'USD');
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Currency "USD" is not allowed');
+        $usd->generateFromArray($this->directDebitArray(['amount' => 10]));
     }
 
     /**
@@ -1296,7 +1408,20 @@ class DirectDebitGeneratorTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertEquals($xml, $response->getContent());
         $this->assertEquals('application/xml', $response->headers->get('Content-Type'));
-        $this->assertEquals('attachment; filename="test-direct-debit.xml"', $response->headers->get('Content-Disposition'));
+        $this->assertEquals('attachment; filename=test-direct-debit.xml', $response->headers->get('Content-Disposition'));
+    }
+
+    /**
+     * Regression: the filename is encoded with HeaderUtils (quotes, path separators and non-ASCII names are safe).
+     */
+    public function testCreateResponseEncodesUnsafeFilename(): void
+    {
+        $response = $this->generator->createResponse('<x/>', 'a"b/../adeudo ñ.xml');
+
+        $this->assertSame(
+            'attachment; filename="a_b_.._adeudo __.xml"; filename*=utf-8\'\'a%22b_.._adeudo%20%C3%B1.xml',
+            $response->headers->get('Content-Disposition'),
+        );
     }
 
     /**

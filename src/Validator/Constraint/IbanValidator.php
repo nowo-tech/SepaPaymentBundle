@@ -53,6 +53,7 @@ class IbanValidator extends ConstraintValidator
 
         if (!$this->ibanValidator->isValid($value)) {
             $this->context->buildViolation($constraint->message)
+                ->setTranslationDomain($constraint->translationDomain)
                 ->setParameter('{{ value }}', $this->formatValue($value))
                 ->setCode(Iban::INVALID_IBAN_ERROR)
                 ->addViolation();

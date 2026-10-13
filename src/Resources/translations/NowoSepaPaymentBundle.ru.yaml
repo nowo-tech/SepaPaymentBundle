@@ -12,6 +12,9 @@ validation.invalid_creditor_identifier: 'Недействительный иде
 validation.invalid_xml_format: 'Недействительный формат XML: %errors%'
 validation.xsd_validation_failed: 'Проверка XSD не выполнена: %errors%'
 validation.generated_xml_failed_xsd: 'Сгенерированный XML не прошел проверку XSD: %error%'
+validation.xsd_schema_not_found: "XSD-схема не найдена: %path%"
+validation.invalid_amount: "Неверная сумма транзакции: используйте либо \"amount\" (десятичное число в евро), либо \"amountCents\" (целое число в центах), но не оба."
+validation.invalid_currency_code: "Неверная валюта \"%currency%\": ожидается код ISO 4217 из 3 заглавных букв."
 
 # Date validation errors
 validation.invalid_date_type: '%field% должно быть строкой или DateTimeInterface'

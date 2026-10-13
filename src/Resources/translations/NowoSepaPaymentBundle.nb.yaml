@@ -12,6 +12,9 @@ validation.invalid_creditor_identifier: 'Ugyldig SEPA Kreditor-ID: %identifier%'
 validation.invalid_xml_format: 'Ugyldig XML-format: %errors%'
 validation.xsd_validation_failed: 'XSD-validering mislyktes: %errors%'
 validation.generated_xml_failed_xsd: 'Den genererte XML-en bestod ikke XSD-valideringen: %error%'
+validation.xsd_schema_not_found: "Fant ikke XSD-skjema: %path%"
+validation.invalid_amount: "Ugyldig transaksjonsbeløp: bruk enten \"amount\" (desimal, i euro) eller \"amountCents\" (heltall, i cent), ikke begge."
+validation.invalid_currency_code: "Ugyldig valuta \"%currency%\": forventet en ISO 4217-kode med 3 store bokstaver."
 
 # Date validation errors
 validation.invalid_date_type: '%field% må være en streng eller DateTimeInterface'

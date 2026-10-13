@@ -53,6 +53,7 @@ class SepaCreditorIdentifierValidator extends ConstraintValidator
 
         if (!$this->sepaCreditorIdentifierValidator->isValid($value)) {
             $this->context->buildViolation($constraint->message)
+                ->setTranslationDomain($constraint->translationDomain)
                 ->setParameter('{{ value }}', $this->formatValue($value))
                 ->setCode(SepaCreditorIdentifier::INVALID_SEPA_CREDITOR_IDENTIFIER_ERROR)
                 ->addViolation();

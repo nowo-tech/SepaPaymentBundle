@@ -24,17 +24,20 @@ use Nowo\SepaPaymentBundle\Lookup\BicLookupServiceInterface;
 use Nowo\SepaPaymentBundle\Model\CreditTransfer\CreditTransferData;
 use Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+use Nowo\SepaPaymentBundle\Validator\SepaBusinessRulesValidator;
 use Nowo\SepaPaymentBundle\Validator\XsdValidator;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 
 use function count;
 use function is_array;
+use function is_float;
+use function is_int;
 use function is_string;
-use function sprintf;
 use function strlen;
 
 use const ENT_XML1;
@@ -67,6 +70,7 @@ class CreditTransferGenerator
      * @param EventDispatcherInterface|null $eventDispatcher Optional event dispatcher for Symfony events
      * @param SepaPaymentLogger|null $logger Optional logger for structured logging
      * @param BicLookupServiceInterface|null $bicLookupService Optional BIC lookup service for auto-filling BIC
+     * @param string $defaultCurrency Currency used when a transaction has none (bundle config `default_currency`; SEPA requires EUR)
      */
     public function __construct(
         private readonly IbanValidator $ibanValidator,
@@ -90,7 +94,11 @@ class CreditTransferGenerator
         /**
          * BIC lookup service instance (optional).
          */
-        private readonly ?BicLookupServiceInterface $bicLookupService = null
+        private readonly ?BicLookupServiceInterface $bicLookupService = null,
+        /**
+         * Default currency (ISO 4217) for transactions without an explicit currency.
+         */
+        private readonly string $defaultCurrency = SepaBusinessRulesValidator::SEPA_CURRENCY
     ) {
         $this->validateXsd = $validateXsd && $this->xsdValidator instanceof XsdValidator;
     }
@@ -164,7 +172,7 @@ class CreditTransferGenerator
                 $this->ibanValidator->normalize($creditTransferData->getCreditorIban()),
                 $creditorBic ?? '',
                 $creditTransferData->getCreditorName(),
-                'EUR',
+                $this->defaultCurrency,
             );
             // Payment method is automatically set based on the transfer file type (CustomerCreditTransferFile)
             $paymentInformation->setBatchBooking($creditTransferData->isBatchBooking());
@@ -184,6 +192,7 @@ class CreditTransferGenerator
                     $transaction->getCreditorName(),
                     $transaction->getEndToEndId(),
                 );
+                $transferInformation->setCurrency($transaction->getCurrency());
 
                 // Auto-fill creditor BIC if missing
                 $creditorBic = $transaction->getCreditorBic();
@@ -266,7 +275,7 @@ class CreditTransferGenerator
     {
         return new Response($xmlData, Response::HTTP_OK, [
             'Content-Type'        => 'application/xml',
-            'Content-Disposition' => sprintf('attachment; filename="%s"', $filename),
+            'Content-Disposition' => self::makeAttachmentDisposition($filename),
         ]);
     }
 
@@ -412,6 +421,7 @@ class CreditTransferGenerator
             'information'            => 'remittanceInformation',
             'remittance_information' => 'remittanceInformation',
             'creditor_address'       => 'creditorAddress',
+            'amount_cents'           => 'amountCents',
         ];
 
         $normalized = [];
@@ -435,7 +445,7 @@ class CreditTransferGenerator
      */
     private function createTransactionFromArray(array $transactionData): Transaction
     {
-        $required = ['amount', 'creditorIban', 'creditorName', 'endToEndId'];
+        $required = ['creditorIban', 'creditorName', 'endToEndId'];
         foreach ($required as $field) {
             if (!isset($transactionData[$field])) {
                 $message = $this->translator->trans('validation.missing_required_transaction_field', ['%field%' => $field], 'NowoSepaPaymentBundle');
@@ -444,15 +454,11 @@ class CreditTransferGenerator
             }
         }
 
-        // Parse amount (convert from cents if needed, but assume it's already in currency units)
-        $amount = (float) $transactionData['amount'];
-        // If amount seems to be in cents (very large number), convert to currency units
-        if ($amount > 10000) {
-            $amount /= 100;
-        }
+        // "amount" is always in euros (decimal); "amountCents" is the explicit integer alternative
+        $amount = $this->parseAmount($transactionData);
 
-        // Currency defaults to EUR if not provided
-        $currency = $transactionData['currency'] ?? 'EUR';
+        // Currency defaults to the configured default currency (validated before generation)
+        $currency = (string) ($transactionData['currency'] ?? $this->defaultCurrency);
 
         $transaction = new Transaction(
             $transactionData['endToEndId'],
@@ -485,6 +491,91 @@ class CreditTransferGenerator
         }
 
         return $transaction;
+    }
+
+    /**
+     * Parses a transaction amount from array data.
+     * "amount" is always a decimal amount in euros (e.g. 15000.00 is fifteen thousand euros);
+     * "amountCents" is an integer amount in cents (e.g. 1500000). Exactly one of them must be given.
+     *
+     * @param array<string, mixed> $transactionData The transaction data
+     *
+     * @throws InvalidArgumentException If no amount, both amounts or a non-numeric amount is given
+     *
+     * @return float The amount in euros
+     */
+    private function parseAmount(array $transactionData): float
+    {
+        $hasAmount = isset($transactionData['amount']);
+        $hasCents  = isset($transactionData['amountCents']);
+
+        if (!$hasAmount && !$hasCents) {
+            $message = $this->translator->trans('validation.missing_required_transaction_field', ['%field%' => 'amount'], 'NowoSepaPaymentBundle');
+
+            throw new InvalidArgumentException($message);
+        }
+
+        $invalidMessage = $this->translator->trans('validation.invalid_amount', [], 'NowoSepaPaymentBundle');
+        if ($hasAmount && $hasCents) {
+            throw new InvalidArgumentException($invalidMessage);
+        }
+
+        if ($hasCents) {
+            $cents = $transactionData['amountCents'];
+            if (is_string($cents) && ctype_digit($cents)) {
+                $cents = (int) $cents;
+            }
+            if (!is_int($cents)) {
+                throw new InvalidArgumentException($invalidMessage);
+            }
+
+            return $cents / 100;
+        }
+
+        $amount = $transactionData['amount'];
+        if (!is_int($amount) && !is_float($amount) && !(is_string($amount) && is_numeric($amount))) {
+            throw new InvalidArgumentException($invalidMessage);
+        }
+
+        return (float) $amount;
+    }
+
+    /**
+     * Validates a currency code: 3 uppercase letters (ISO 4217) and EUR, the only SEPA currency.
+     *
+     * @param string $currency The currency code
+     *
+     * @throws InvalidArgumentException If the code is malformed or not EUR
+     */
+    private function assertSepaCurrency(string $currency): void
+    {
+        if (preg_match('/^[A-Z]{3}$/', $currency) !== 1) {
+            $message = $this->translator->trans('validation.invalid_currency_code', ['%currency%' => $currency], 'NowoSepaPaymentBundle');
+
+            throw new InvalidArgumentException($message);
+        }
+
+        if ($currency !== SepaBusinessRulesValidator::SEPA_CURRENCY) {
+            $message = $this->translator->trans('validation.invalid_currency', ['%currency%' => $currency], 'NowoSepaPaymentBundle');
+
+            throw new InvalidArgumentException($message);
+        }
+    }
+
+    /**
+     * Builds a safe Content-Disposition attachment header value (RFC 6266) for the given filename.
+     * Path separators are replaced and a plain-ASCII fallback is added for non-ASCII names.
+     *
+     * @param string $filename The requested download filename
+     *
+     * @return string The header value
+     */
+    private static function makeAttachmentDisposition(string $filename): string
+    {
+        $filename = str_replace(['/', '\\'], '_', $filename);
+        $fallback = (string) preg_replace('/[^\x20-\x7e]|[%"]/', '_', $filename);
+
+        return HeaderUtils::makeDisposition(HeaderUtils::DISPOSITION_ATTACHMENT, $filename, $fallback);
     }
 
     /**
@@ -699,14 +790,15 @@ class CreditTransferGenerator
             $pstlAdr->appendChild($strtNm);
         }
 
-        if (!empty($address['city'])) {
-            $twnNm = $dom->createElementNS($namespace, 'TwnNm', htmlspecialchars($address['city'], ENT_XML1, 'UTF-8'));
-            $pstlAdr->appendChild($twnNm);
-        }
-
+        // ISO 20022 PostalAddress6 sequence: StrtNm, BldgNb, PstCd, TwnNm, CtrySubDvsn, Ctry, AdrLine
         if (!empty($address['postalCode'])) {
             $pstCd = $dom->createElementNS($namespace, 'PstCd', htmlspecialchars($address['postalCode'], ENT_XML1, 'UTF-8'));
             $pstlAdr->appendChild($pstCd);
+        }
+
+        if (!empty($address['city'])) {
+            $twnNm = $dom->createElementNS($namespace, 'TwnNm', htmlspecialchars($address['city'], ENT_XML1, 'UTF-8'));
+            $pstlAdr->appendChild($twnNm);
         }
 
         if (!empty($address['country'])) {
@@ -741,6 +833,11 @@ class CreditTransferGenerator
      */
     private function validateCreditTransferData(CreditTransferData $creditTransferData): void
     {
+        $this->assertSepaCurrency($this->defaultCurrency);
+        foreach ($creditTransferData->getTransactions() as $transaction) {
+            $this->assertSepaCurrency($transaction->getCurrency());
+        }
+
         if (!$this->ibanValidator->isValid($creditTransferData->getCreditorIban())) {
             $message = $this->translator->trans('validation.invalid_creditor_iban', ['%iban%' => $creditTransferData->getCreditorIban()], 'NowoSepaPaymentBundle');
 
