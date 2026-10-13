@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **Symfony 6.4 minimum.** The Symfony floor moves from `^6.0` to `^6.4` (6.0–6.3 were never tested in CI and are end of life). `brick/math` is no longer required; `symfony/event-dispatcher`, `symfony/http-foundation` and `psr/simple-cache` are now explicit dependencies.
+- **`debtorMandateSignDate` is required** in `DirectDebitGenerator::generateFromArray()` transactions. It used to default silently to the due date, producing a wrong `DtOfSgntr`; a missing or empty value now throws `InvalidArgumentException`.
+- **SEPA field lengths are enforced.** Generators throw `InvalidArgumentException` when `MsgId`, `PmtInfId`, `EndToEndId`, `MndtId` or the creditor scheme id exceed 35 characters, a name (`Nm`) exceeds 70, or `Ustrd` exceeds 140. `IdentifierGenerator` rejects prefixes longer than 11 characters (`IdentifierGenerator::MAX_PREFIX_LENGTH`). Such files used to be generated and then rejected by the bank.
+- **Mandate expiry follows the EPC rule.** `Mandate::getExpirationDate()` (and `MandateRepository::findExpired()`) now return 36 months after the last collection recorded with `recordCollection()` / `setLastCollectionDate()`, falling back to signature + 36 months. Record collections, or mandates in regular use will be reported as expired 36 months after signature, as before. `findExpired()` now also honours an explicit `setExpirationDate()`.
+- **Credit transfer creation date.** `GrpHdr/CreDtTm` now uses the `creationDate` you pass (array key or `CreditTransferData`), instead of always "now".
+- **`ValidationCache` takes a PSR-16 cache.** The constructor's first argument is typed `?Psr\SimpleCache\CacheInterface` (duck-typed objects are no longer accepted) and the service is wired from the new `validation_cache.service` / `validation_cache.ttl` options (disabled by default, as before).
+- **`Bic::INVALID_BIC_ERROR`** changed to a valid UUID (`4e3f8a2c-9b1d-4c7e-8f5a-2d6b0c1e9a73`). Update code that compares the old literal.
+- **`SepaStringSanitizer`** accepts and keeps `:` (part of the SEPA character set, as documented).
+
 ## To 1.3.0
 
 From **1.2.32** — correct amounts, real XSD validation, valid PstlAdr order, stricter IBAN/CCC/country validation, parsers read the generated pain .09 files.

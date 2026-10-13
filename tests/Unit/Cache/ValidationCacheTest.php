@@ -113,90 +113,30 @@ class ValidationCacheTest extends TestCase
     }
 
     /**
-     * Test get when cache adapter has no has() method and get returns null.
-     * Covers the branch where we return null when result is null and !method_exists($this->cache, 'has').
-     */
-    public function testGetWithAdapterWithoutHasMethodReturnsNull(): void
-    {
-        $cacheWithoutHas = new class {
-            /** @var array<string, mixed> */
-            private array $storage = [];
-
-            public function get(string $key): mixed
-            {
-                return $this->storage[$key] ?? null;
-            }
-
-            public function set(string $key, mixed $value, ?int $ttl = null): bool
-            {
-                $this->storage[$key] = $value;
-
-                return true;
-            }
-
-            public function delete(string $key): bool
-            {
-                unset($this->storage[$key]);
-
-                return true;
-            }
-
-            public function clear(): bool
-            {
-                $this->storage = [];
-
-                return true;
-            }
-        };
-        $validationCache = new ValidationCache($cacheWithoutHas);
-        $this->assertNull($validationCache->get('missing_key'));
-
-        // When adapter has no has() but get() returns a value, we should return it (covers return (bool) $result)
-        $validationCache->set('stored_key', true);
-        $this->assertTrue($validationCache->get('stored_key'));
-        $validationCache->set('false_key', false);
-        $this->assertFalse($validationCache->get('false_key'));
-    }
-
-    /**
-     * Test get when key exists but get() returns null (edge case: key exists, value null).
-     * Covers the branch where result is null after has() returned true.
+     * A stored null value is reported as "not cached".
      */
     public function testGetWhenStoredValueIsNull(): void
     {
-        $normalizedKey = 'sepa_validation_' . md5('null_key');
-        $cache         = new class($normalizedKey) {
-            public function __construct(private readonly string $key)
-            {
-            }
-
-            public function get(string $key): mixed
-            {
-                return $key === $this->key ? null : false;
-            }
-
-            public function set(string $key, mixed $value, ?int $ttl = null): bool
-            {
-                return true;
-            }
-
-            public function has(string $key): bool
-            {
-                return $key === $this->key;
-            }
-
-            public function delete(string $key): bool
-            {
-                return true;
-            }
-
-            public function clear(): bool
-            {
-                return true;
-            }
-        };
+        $cache = new ArrayCache();
+        $cache->set('sepa_validation_' . md5('null_key'), null);
         $validationCache = new ValidationCache($cache);
+
         $this->assertTrue($validationCache->has('null_key'));
         $this->assertNull($validationCache->get('null_key'));
+    }
+
+    /**
+     * The default TTL is passed to the PSR-16 cache unless an explicit TTL is given.
+     */
+    public function testTtlIsPassedToCache(): void
+    {
+        $cache           = new ArrayCache();
+        $validationCache = new ValidationCache($cache, 120);
+
+        $validationCache->set('a', true);
+        $this->assertSame(120, $cache->lastTtl);
+
+        $validationCache->set('b', true, 30);
+        $this->assertSame(30, $cache->lastTtl);
     }
 }

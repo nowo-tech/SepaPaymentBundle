@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Validator;
 
+use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+
+use function sprintf;
 
 /**
  * SEPA string sanitizer and validator.
@@ -17,6 +20,11 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 class SepaStringSanitizer
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.validator.sepa_string_sanitizer';
+
+    /**
+     * Maximum length for SEPA identifiers (MsgId, PmtInfId, EndToEndId, MndtId, creditor scheme id: Max35Text).
+     */
+    public const MAX_IDENTIFIER_LENGTH = 35;
 
     /**
      * Maximum length for name fields in SEPA (70 characters).
@@ -45,9 +53,9 @@ class SepaStringSanitizer
 
     /**
      * Allowed characters in SEPA names (letters, digits, spaces, and common punctuation).
-     * Based on SEPA character set: a-z, A-Z, 0-9, / - ? : ( ) . , ' + Space.
+     * Based on the EPC SEPA basic Latin character set: a-z, A-Z, 0-9, / - ? : ( ) . , ' + Space.
      */
-    private const ALLOWED_CHARS_PATTERN = '/^[a-zA-Z0-9\/\-\?\(\)\.\,\'\+ ]+$/u';
+    private const ALLOWED_CHARS_PATTERN = '/^[a-zA-Z0-9\/\-\?\:\(\)\.\,\'\+ ]+$/u';
 
     /**
      * Characters that should be replaced with their ASCII equivalents.
@@ -101,7 +109,7 @@ class SepaStringSanitizer
         $value = strtr($value, self::CHAR_REPLACEMENTS);
 
         // Remove any remaining characters that are not allowed
-        $value = preg_replace('/[^a-zA-Z0-9\/\-\?\(\)\.\,\'\+ ]/u', ' ', $value);
+        $value = preg_replace('/[^a-zA-Z0-9\/\-\?\:\(\)\.\,\'\+ ]/u', ' ', $value);
 
         // Remove multiple consecutive spaces
         $value = preg_replace('/\s+/', ' ', (string) $value);
@@ -212,5 +220,22 @@ class SepaStringSanitizer
         }
 
         return mb_substr($remittanceInfo, 0, self::MAX_REMITTANCE_INFO_LENGTH);
+    }
+
+    /**
+     * Asserts that a SEPA field does not exceed its maximum length (in characters).
+     *
+     * @param string $field Field name used in the exception message (e.g. "MsgId")
+     * @param string $value The field value
+     * @param int $maxLength Maximum allowed length
+     *
+     * @throws InvalidArgumentException If the value is longer than allowed
+     */
+    public function assertMaxLength(string $field, string $value, int $maxLength): void
+    {
+        $length = mb_strlen($value);
+        if ($length > $maxLength) {
+            throw new InvalidArgumentException(sprintf('SEPA field %s must be at most %d characters, %d given: "%s".', $field, $maxLength, $length, $value));
+        }
     }
 }

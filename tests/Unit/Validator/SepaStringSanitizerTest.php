@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Tests\Unit\Validator;
 
+use InvalidArgumentException;
 use Nowo\SepaPaymentBundle\Validator\SepaStringSanitizer;
 use PHPUnit\Framework\TestCase;
 
@@ -176,5 +177,30 @@ class SepaStringSanitizerTest extends TestCase
         $result    = $this->sanitizer->truncateRemittanceInfo($shortInfo);
 
         $this->assertEquals($shortInfo, $result);
+    }
+
+    /**
+     * Regression: ":" belongs to the SEPA character set, as documented, and is kept by sanitize().
+     */
+    public function testColonIsAllowedAndKept(): void
+    {
+        $sanitizer = new SepaStringSanitizer();
+
+        $this->assertTrue($sanitizer->isValid('Ref: 123'));
+        $this->assertSame('Ref: 123', $sanitizer->sanitize('Ref: 123'));
+    }
+
+    /**
+     * assertMaxLength() accepts values at the limit and rejects longer ones.
+     */
+    public function testAssertMaxLength(): void
+    {
+        $sanitizer = new SepaStringSanitizer();
+        $sanitizer->assertMaxLength('MsgId', str_repeat('a', 35), SepaStringSanitizer::MAX_IDENTIFIER_LENGTH);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('SEPA field MsgId must be at most 35 characters, 36 given');
+
+        $sanitizer->assertMaxLength('MsgId', str_repeat('a', 36), SepaStringSanitizer::MAX_IDENTIFIER_LENGTH);
     }
 }

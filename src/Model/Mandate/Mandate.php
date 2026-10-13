@@ -33,9 +33,21 @@ class Mandate
     private MandateStatus $status = MandateStatus::ACTIVE;
 
     /**
-     * Expiration date (optional, defaults to 36 months after signature date).
+     * Number of months without a collection after which a SEPA mandate lapses
+     * (EPC SDD Core/B2B rulebooks: 36 months after the last collection presented).
+     */
+    public const INACTIVITY_EXPIRY_MONTHS = 36;
+
+    /**
+     * Explicit expiration date (optional). When null, the expiry is derived from the
+     * last collection date (or the signature date if no collection was ever presented).
      */
     private ?DateTimeInterface $expirationDate = null;
+
+    /**
+     * Date of the last collection presented under this mandate (even if rejected, returned or refunded).
+     */
+    private ?DateTimeInterface $lastCollectionDate = null;
 
     /**
      * Revocation date (if revoked).
@@ -214,20 +226,77 @@ class Mandate
     /**
      * Gets the expiration date.
      *
-     * @return DateTimeInterface|null The expiration date or null if not set
+     * Resolution order:
+     *  1. the explicit expiration date set via {@see setExpirationDate()};
+     *  2. last collection date + 36 months (EPC SDD rulebook: a mandate lapses when no
+     *     collection has been presented for 36 months);
+     *  3. signature date + 36 months when no collection has ever been presented.
+     *
+     * @return DateTimeInterface|null The expiration date
      */
     public function getExpirationDate(): ?DateTimeInterface
     {
-        if (!$this->expirationDate instanceof DateTimeInterface) {
-            // PHPStan: DateTimeInterface has no modify(); only DateTime/DateTimeImmutable do.
-            // Fix: create DateTime instance from interface to call modify().
-            $expirationDate = DateTime::createFromInterface($this->signatureDate);
-            $expirationDate->modify('+36 months');
-
-            return $expirationDate;
+        if ($this->expirationDate instanceof DateTimeInterface) {
+            return $this->expirationDate;
         }
 
-        return $this->expirationDate;
+        return $this->getInactivityExpirationDate();
+    }
+
+    /**
+     * Gets the date on which the mandate lapses for inactivity (36 months after the last
+     * collection, or after the signature date when no collection was ever presented).
+     * Ignores any explicit expiration date.
+     *
+     * @return DateTimeInterface The inactivity expiration date
+     */
+    public function getInactivityExpirationDate(): DateTimeInterface
+    {
+        // DateTimeInterface has no modify(); create a mutable copy to avoid touching the source.
+        $expirationDate = DateTime::createFromInterface($this->lastCollectionDate ?? $this->signatureDate);
+        $expirationDate->modify('+' . self::INACTIVITY_EXPIRY_MONTHS . ' months');
+
+        return $expirationDate;
+    }
+
+    /**
+     * Gets the date of the last collection presented under this mandate.
+     *
+     * @return DateTimeInterface|null The last collection date or null if none was presented
+     */
+    public function getLastCollectionDate(): ?DateTimeInterface
+    {
+        return $this->lastCollectionDate;
+    }
+
+    /**
+     * Sets the date of the last collection presented under this mandate
+     * (even if it was later rejected, returned or refunded).
+     *
+     * @param DateTimeInterface|null $lastCollectionDate The last collection date
+     */
+    public function setLastCollectionDate(?DateTimeInterface $lastCollectionDate): self
+    {
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
+        $this->lastCollectionDate = $lastCollectionDate;
+
+        return $this;
+    }
+
+    /**
+     * Records a collection presented under this mandate. Only moves the last collection
+     * date forward (an older collection date never shortens the mandate validity).
+     *
+     * @param DateTimeInterface $collectionDate The collection (due) date
+     */
+    public function recordCollection(DateTimeInterface $collectionDate): self
+    {
+        if (!$this->lastCollectionDate instanceof DateTimeInterface || $collectionDate > $this->lastCollectionDate) {
+            // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
+            $this->lastCollectionDate = $collectionDate;
+        }
+
+        return $this;
     }
 
     /**

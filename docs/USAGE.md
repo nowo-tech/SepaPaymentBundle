@@ -409,7 +409,7 @@ $endToEndId = $generator->generateEndToEndId();
 $mandateId = $generator->generateMandateId();
 // Returns: MANDATE-20240115143022-a1b2c3d4
 
-// Generate custom identifier with prefix
+// Generate custom identifier with prefix (at most 11 characters, so the ID fits the SEPA 35-character limit)
 $customId = $generator->generateCustomId('CUSTOM');
 // Returns: CUSTOM-20240115143022-a1b2c3d4
 
@@ -1171,6 +1171,12 @@ $mandate = new Mandate(
 $mandate->setDebtorBic('CAIXESBBXXX');
 $mandate->setSequenceType('RCUR'); // For recurring payments
 $mandate->setActive(true);
+
+// Expiry (EPC SDD rulebook): a mandate lapses when no collection has been presented for 36 months.
+$mandate->recordCollection(new \DateTime('2025-03-01')); // call after each collection presented
+$mandate->getExpirationDate(); // 2028-03-01 (36 months after the last collection)
+// Without collections the expiry is 36 months after the signature date;
+// setExpirationDate() sets an explicit expiry that takes precedence.
 ```
 
 `MandateService` stores mandates through `MandateRepositoryInterface`. The default implementation (`MandateRepository`) is an **in-memory, request-scoped** store: it is emptied at the start of every main request (also in FrankenPHP worker mode without `services_resetter`). Bind `MandateRepositoryInterface` to a persistent implementation (Doctrine or similar) to keep mandates between requests.
@@ -1411,7 +1417,7 @@ $data = [
             'debtorIban' => 'GB82WEST12345698765432',    // Debtor IBAN
             'debtorName' => 'John Doe',                   // Debtor name
             'debtorMandate' => 'MANDATE-001',            // Mandate identifier
-            'debtorMandateSignDate' => new \DateTime('2024-01-15'), // Mandate sign date
+            'debtorMandateSignDate' => new \DateTime('2024-01-15'), // Mandate sign date (required)
             'endToEndId' => 'E2E-001',                    // End-to-end ID
             'remittanceInformation' => 'Invoice 12345',  // Remittance info (optional)
             'debtorBic' => 'WESTGB22',                    // Debtor BIC (optional)

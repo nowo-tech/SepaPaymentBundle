@@ -123,7 +123,7 @@ class GeneratedXmlXsdValidationTest extends TestCase
             'creditorId'          => 'ES59ZZZX1234567',
             'localInstrumentCode' => 'CORE',
             'transactions'        => [
-                ['amount' => 10, 'debtorIban' => 'GB82WEST12345698765432', 'debtorBic' => 'NWBKGB2LXXX', 'debtorName' => 'John Doe', 'debtorMandate' => 'M-1', 'endToEndId' => 'E2E-1'],
+                ['amount' => 10, 'debtorIban' => 'GB82WEST12345698765432', 'debtorBic' => 'NWBKGB2LXXX', 'debtorName' => 'John Doe', 'debtorMandate' => 'M-1', 'debtorMandateSignDate' => '2023-12-01', 'endToEndId' => 'E2E-1'],
             ],
         ]);
         $this->assertTrue($this->xsdValidator->validateDirectDebit($xml));

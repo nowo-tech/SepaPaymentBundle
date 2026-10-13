@@ -171,21 +171,16 @@ class MandateRepository implements MandateRepositoryInterface, ResetInterface
     }
 
     /**
-     * Gets the expiration date for a mandate.
-     * SEPA mandates typically expire 36 months after signature date.
+     * Gets the expiration date for a mandate (delegates to the mandate: explicit expiry,
+     * else 36 months after the last collection, else 36 months after signature).
      *
      * @param Mandate $mandate The mandate
      *
-     * @return DateTimeInterface The expiration date or null if not applicable
+     * @return DateTimeInterface The expiration date
      */
     private function getExpirationDate(Mandate $mandate): DateTimeInterface
     {
-        // SEPA mandates expire 36 months after signature date
-        $signatureDate  = $mandate->getSignatureDate();
-        $expirationDate = new DateTime($signatureDate->format('Y-m-d H:i:s'));
-        $expirationDate->modify('+36 months');
-
-        return $expirationDate;
+        return $mandate->getExpirationDate() ?? $mandate->getInactivityExpirationDate();
     }
 
     /**

@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Cache;
 
+use Psr\SimpleCache\CacheInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 /**
- * Service for caching validation results.
- * Improves performance for repeated validations.
+ * Service for caching validation results in a PSR-16 cache.
+ * Improves performance for repeated validations. Without a cache (the default) it is a no-op;
+ * configure `nowo_sepa_payment.validation_cache.service` to enable it.
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
@@ -21,14 +23,14 @@ class ValidationCache implements ValidationCacheInterface
     /**
      * Constructor.
      *
-     * @param object|null $cache Optional cache adapter (PSR-16 SimpleCache compatible)
+     * @param CacheInterface|null $cache Optional PSR-16 cache (null disables caching)
      * @param int $defaultTtl Default TTL in seconds (default: 3600 = 1 hour)
      */
     public function __construct(
         /**
-         * Cache adapter (optional).
+         * PSR-16 cache (optional).
          */
-        private $cache = null,
+        private readonly ?CacheInterface $cache = null,
         /**
          * Default cache TTL in seconds.
          */
@@ -45,34 +47,14 @@ class ValidationCache implements ValidationCacheInterface
      */
     public function get(string $key): ?bool
     {
-        if ($this->cache === null || !method_exists($this->cache, 'get')) {
+        if (!$this->cache instanceof CacheInterface) {
             return null;
         }
 
-        $normalizedKey = $this->normalizeKey($key);
+        // false is a valid cached value; null means "not cached"
+        $result = $this->cache->get($this->normalizeKey($key));
 
-        // First check if key exists (for caches that support has() method)
-        if (method_exists($this->cache, 'has') && !$this->cache->has($normalizedKey)) {
-            return null;
-            // Key doesn't exist
-        }
-
-        $result = $this->cache->get($normalizedKey);
-
-        // If result is null and we couldn't check existence, assume it doesn't exist
-        if ($result === null && !method_exists($this->cache, 'has')) {
-            return null;
-        }
-
-        // If we have a result (even if it's false), return it as bool
-        // Note: false is a valid cached value, null means not cached
-        // Since we already checked has(), if result is null here, it means the key exists but value is null
-        // This shouldn't happen for bool values, but we'll return null anyway
-        if ($result === null) {
-            return null;
-        }
-
-        return (bool) $result;
+        return $result === null ? null : (bool) $result;
     }
 
     /**
@@ -84,13 +66,12 @@ class ValidationCache implements ValidationCacheInterface
      */
     public function set(string $key, bool $value, ?int $ttl = null): void
     {
-        if ($this->cache === null || !method_exists($this->cache, 'set')) {
+        if (!$this->cache instanceof CacheInterface) {
             return;
         }
 
-        $ttl ??= $this->defaultTtl;
         // @igor-ignore - Validation results stored in injected PSR-16 cache, not in-process arrays.
-        $this->cache->set($this->normalizeKey($key), $value, $ttl);
+        $this->cache->set($this->normalizeKey($key), $value, $ttl ?? $this->defaultTtl);
     }
 
     /**
@@ -102,7 +83,7 @@ class ValidationCache implements ValidationCacheInterface
      */
     public function has(string $key): bool
     {
-        if ($this->cache === null || !method_exists($this->cache, 'has')) {
+        if (!$this->cache instanceof CacheInterface) {
             return false;
         }
 
@@ -116,24 +97,19 @@ class ValidationCache implements ValidationCacheInterface
      */
     public function delete(string $key): void
     {
-        if ($this->cache === null || !method_exists($this->cache, 'delete')) {
-            return;
-        }
-
-        $this->cache->delete($this->normalizeKey($key));
+        $this->cache?->delete($this->normalizeKey($key));
     }
 
     /**
      * Clears all cached validation results.
+     *
+     * Note: PSR-16 has no namespaced clear, so this clears the whole configured pool;
+     * use a dedicated pool for validation results.
      */
     public function clear(): void
     {
-        if ($this->cache === null || !method_exists($this->cache, 'clear')) {
-            return;
-        }
-
         // @igor-ignore - Validation results stored in injected PSR-16 cache, not in-process arrays.
-        $this->cache->clear();
+        $this->cache?->clear();
     }
 
     /**

@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\DependencyInjection;
 
+use Nowo\SepaPaymentBundle\Cache\ValidationCache;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
+use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * Extension class that loads and manages the SepaPayment bundle configuration.
@@ -37,6 +39,12 @@ final class NowoSepaPaymentExtension extends Extension
 
         // Set parameters from configuration
         $container->setParameter('nowo_sepa_payment.default_currency', $config['default_currency']);
+
+        // Validation cache: explicit wiring (never autowire an arbitrary PSR-16 service)
+        $cacheServiceId = $config['validation_cache']['service'];
+        $container->getDefinition(ValidationCache::class)
+            ->setArgument('$cache', $cacheServiceId !== null ? new Reference((string) $cacheServiceId) : null)
+            ->setArgument('$defaultTtl', $config['validation_cache']['ttl']);
     }
 
     /**

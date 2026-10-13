@@ -17,7 +17,7 @@ use Symfony\Component\Validator\Constraint;
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
 class Bic extends Constraint
 {
-    public const INVALID_BIC_ERROR = 'a1b2c3d4-5e6f-7g8h-9i0j-k1l2m3n4o5p6';
+    public const INVALID_BIC_ERROR = '4e3f8a2c-9b1d-4c7e-8f5a-2d6b0c1e9a73';
 
     public string $message = 'bic.invalid';
 

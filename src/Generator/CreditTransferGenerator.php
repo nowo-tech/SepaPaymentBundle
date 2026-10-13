@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nowo\SepaPaymentBundle\Generator;
 
 use DateTime;
+use DateTimeImmutable;
 use DateTimeInterface;
 use Digitick\Sepa\DomBuilder\DomBuilderFactory;
 use Digitick\Sepa\GroupHeader;
@@ -25,6 +26,7 @@ use Nowo\SepaPaymentBundle\Model\CreditTransfer\CreditTransferData;
 use Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use Nowo\SepaPaymentBundle\Validator\SepaBusinessRulesValidator;
+use Nowo\SepaPaymentBundle\Validator\SepaStringSanitizer;
 use Nowo\SepaPaymentBundle\Validator\XsdValidator;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -61,6 +63,11 @@ class CreditTransferGenerator
     private bool $validateXsd;
 
     /**
+     * Sanitizer used to enforce SEPA field length limits.
+     */
+    private readonly SepaStringSanitizer $stringSanitizer;
+
+    /**
      * Constructor.
      *
      * @param IbanValidator $ibanValidator IBAN validator instance
@@ -71,6 +78,7 @@ class CreditTransferGenerator
      * @param SepaPaymentLogger|null $logger Optional logger for structured logging
      * @param BicLookupServiceInterface|null $bicLookupService Optional BIC lookup service for auto-filling BIC
      * @param string $defaultCurrency Currency used when a transaction has none (bundle config `default_currency`; SEPA requires EUR)
+     * @param SepaStringSanitizer|null $stringSanitizer Sanitizer used to enforce SEPA field length limits
      */
     public function __construct(
         private readonly IbanValidator $ibanValidator,
@@ -98,9 +106,11 @@ class CreditTransferGenerator
         /**
          * Default currency (ISO 4217) for transactions without an explicit currency.
          */
-        private readonly string $defaultCurrency = SepaBusinessRulesValidator::SEPA_CURRENCY
+        private readonly string $defaultCurrency = SepaBusinessRulesValidator::SEPA_CURRENCY,
+        ?SepaStringSanitizer $stringSanitizer = null
     ) {
-        $this->validateXsd = $validateXsd && $this->xsdValidator instanceof XsdValidator;
+        $this->validateXsd     = $validateXsd && $this->xsdValidator instanceof XsdValidator;
+        $this->stringSanitizer = $stringSanitizer ?? new SepaStringSanitizer();
     }
 
     /**
@@ -153,6 +163,7 @@ class CreditTransferGenerator
                 $creditTransferData->getMessageId(),
                 $creditTransferData->getInitiatingPartyName(),
             );
+            self::setGroupHeaderCreationDate($groupHeader, $creditTransferData->getCreationDate());
 
             // Create transfer file with group header (digitick/sepa-xml 3.x writes pain.001.001.09)
             $transferFile = new CustomerCreditTransferFile($groupHeader);
@@ -838,6 +849,8 @@ class CreditTransferGenerator
             $this->assertSepaCurrency($transaction->getCurrency());
         }
 
+        $this->assertFieldLengths($creditTransferData);
+
         if (!$this->ibanValidator->isValid($creditTransferData->getCreditorIban())) {
             $message = $this->translator->trans('validation.invalid_creditor_iban', ['%iban%' => $creditTransferData->getCreditorIban()], 'NowoSepaPaymentBundle');
 
@@ -849,6 +862,47 @@ class CreditTransferGenerator
                 $message = $this->translator->trans('validation.invalid_creditor_iban', ['%iban%' => $transaction->getCreditorIban()], 'NowoSepaPaymentBundle');
 
                 throw new InvalidArgumentException($message);
+            }
+        }
+    }
+
+    /**
+     * Writes the requested creation date into the group header (GrpHdr/CreDtTm).
+     * digitick/sepa-xml always uses "now" and exposes no setter for it.
+     *
+     * @param GroupHeader $groupHeader The group header
+     * @param DateTimeInterface $creationDate The creation date and time
+     */
+    private static function setGroupHeaderCreationDate(GroupHeader $groupHeader, DateTimeInterface $creationDate): void
+    {
+        $immutableDate = DateTimeImmutable::createFromInterface($creationDate);
+        (function () use ($immutableDate): void {
+            // @igor-ignore - Bound to the per-call GroupHeader instance, not to this service.
+            $this->creationDateTime = $immutableDate;
+        })->call($groupHeader);
+    }
+
+    /**
+     * Enforces the SEPA (EPC implementation guidelines) maximum field lengths.
+     *
+     * @param CreditTransferData $creditTransferData The credit transfer data to check
+     *
+     * @throws InvalidArgumentException If a field exceeds its maximum length
+     */
+    private function assertFieldLengths(CreditTransferData $creditTransferData): void
+    {
+        $sanitizer = $this->stringSanitizer;
+        $sanitizer->assertMaxLength('MsgId', $creditTransferData->getMessageId(), SepaStringSanitizer::MAX_IDENTIFIER_LENGTH);
+        $sanitizer->assertMaxLength('InitgPty/Nm', $creditTransferData->getInitiatingPartyName(), SepaStringSanitizer::MAX_NAME_LENGTH);
+        $sanitizer->assertMaxLength('PmtInfId', $creditTransferData->getPaymentInfoId(), SepaStringSanitizer::MAX_IDENTIFIER_LENGTH);
+        $sanitizer->assertMaxLength('Dbtr/Nm', $creditTransferData->getCreditorName(), SepaStringSanitizer::MAX_NAME_LENGTH);
+
+        foreach ($creditTransferData->getTransactions() as $transaction) {
+            $sanitizer->assertMaxLength('EndToEndId', $transaction->getEndToEndId(), SepaStringSanitizer::MAX_IDENTIFIER_LENGTH);
+            $sanitizer->assertMaxLength('Cdtr/Nm', $transaction->getCreditorName(), SepaStringSanitizer::MAX_NAME_LENGTH);
+            $remittanceInformation = $transaction->getRemittanceInformation();
+            if ($remittanceInformation !== null) {
+                $sanitizer->assertMaxLength('RmtInf/Ustrd', $remittanceInformation, SepaStringSanitizer::MAX_REMITTANCE_INFO_LENGTH);
             }
         }
     }

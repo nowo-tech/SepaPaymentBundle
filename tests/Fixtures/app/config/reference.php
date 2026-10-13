@@ -693,7 +693,11 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     },
  * }
  * @psalm-type NowoSepaPaymentConfig = array{
- *     default_currency?: scalar|Param|null, // Default currency code for payment (ISO 4217) // Default: "EUR"
+ *     default_currency?: scalar|Param|null, // Default currency code (ISO 4217, 3 uppercase letters) for generated transactions without an explicit currency. SEPA schemes only support EUR; generators reject any other currency. // Default: "EUR"
+ *     validation_cache?: array{ // Caches IBAN/BIC validation results (CachedIbanValidator, CachedBicValidator) in a PSR-16 cache. Disabled when no service is set.
+ *         service?: scalar|Param|null, // Service id of a PSR-16 cache (Psr\SimpleCache\CacheInterface), e.g. a Symfony\Component\Cache\Psr16Cache wrapping a dedicated pool. Null disables caching. // Default: null
+ *         ttl?: int|Param, // Default TTL in seconds for cached validation results. // Default: 3600
+ *     },
  * }
  * @psalm-type ConfigType = array{
  *     imports?: ImportsConfig,

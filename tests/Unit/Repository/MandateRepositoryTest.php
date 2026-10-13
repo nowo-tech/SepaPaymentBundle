@@ -140,4 +140,23 @@ class MandateRepositoryTest extends TestCase
         $this->assertSame([], $this->repository->getHistory('M-RST'));
         $this->assertSame([], $this->repository->findActive());
     }
+
+    /**
+     * Regression: findExpired() honours the last collection date and explicit expiration dates
+     * (it used to always compute signature date + 36 months).
+     */
+    public function testFindExpiredUsesMandateExpirationRules(): void
+    {
+        $recentlyCollected = new Mandate('M-COLLECTED', new DateTime('2018-01-01'), 'ES9121000418450200051332', 'A');
+        $recentlyCollected->setLastCollectionDate(new DateTime('2024-01-01'));
+        $explicit = new Mandate('M-EXPLICIT', new DateTime('2024-01-01'), 'ES9121000418450200051332', 'B');
+        $explicit->setExpirationDate(new DateTime('2024-02-01'));
+
+        $this->repository->save($recentlyCollected);
+        $this->repository->save($explicit);
+
+        $expired = $this->repository->findExpired(new DateTime('2024-06-01'));
+
+        $this->assertSame(['M-EXPLICIT'], array_map(static fn (Mandate $m): string => $m->getMandateId(), $expired));
+    }
 }

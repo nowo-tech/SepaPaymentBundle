@@ -11,6 +11,7 @@ This document describes the configuration options available for the SEPA Payment
   - [Structure](#structure)
 - [Configuration Options](#configuration-options)
   - [`default_currency`](#default-currency)
+  - [`validation_cache`](#validation-cache)
 - [How Configuration Works](#how-configuration-works)
 - [Accessing Configuration in Code](#accessing-configuration-in-code)
 - [Environment-Specific Configuration](#environment-specific-configuration)
@@ -55,6 +56,24 @@ nowo_sepa_payment:
 ```yaml
 nowo_sepa_payment:
     default_currency: EUR
+```
+
+### `validation_cache`
+
+- **Type**: `array` with `service` (`string|null`, default `null`) and `ttl` (`int`, seconds, default `3600`)
+- **Description**: Caches IBAN/BIC validation results used by `CachedIbanValidator` and `CachedBicValidator` in a PSR-16 cache (`Psr\SimpleCache\CacheInterface`). With `service: null` (default) caching is disabled and the cached validators simply delegate to the plain validators.
+- **Note**: `ValidationCache::clear()` clears the whole PSR-16 pool, so use a dedicated pool. In FrankenPHP worker mode prefer a shared pool (APCu/Redis/filesystem) over an in-memory `ArrayAdapter`.
+
+```yaml
+services:
+    app.sepa_validation_cache:
+        class: Symfony\Component\Cache\Psr16Cache
+        arguments: ['@cache.app']   # better: a dedicated pool
+
+nowo_sepa_payment:
+    validation_cache:
+        service: app.sepa_validation_cache
+        ttl: 86400
 ```
 
 ## How Configuration Works

@@ -142,6 +142,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Mandate expiry**: SEPA mandates lapse 36 months after the **last collection** (EPC SDD rulebook), not 36 months after signature. `Mandate` gains `recordCollection()`, `setLastCollectionDate()` / `getLastCollectionDate()` and `getInactivityExpirationDate()`; `getExpirationDate()` resolves explicit expiry → last collection + 36 months → signature + 36 months. `MandateRepository::findExpired()` now delegates to the mandate (it ignored explicit expiration dates).
+- **Direct debit mandate signature date**: a transaction without `debtorMandateSignDate` no longer defaults to the due date; `generateFromArray()` throws a clear `InvalidArgumentException`.
+- **SEPA max lengths**: generators validate `MsgId`, `PmtInfId`, `EndToEndId`, `MndtId`, creditor scheme id (35), names (70) and `Ustrd` (140) via `SepaStringSanitizer::assertMaxLength()`. `IdentifierGenerator` rejects prefixes that would exceed 35 characters (`MAX_PREFIX_LENGTH` = 11).
+- **Credit transfer creation date**: the `creationDate` is written to `GrpHdr/CreDtTm` (it was parsed but ignored).
+- **ValidationCache**: the cache is typed `?Psr\SimpleCache\CacheInterface` and wired through the new `validation_cache.service` / `validation_cache.ttl` options, so `CachedIbanValidator` / `CachedBicValidator` can actually cache.
+- **Bic constraint**: `INVALID_BIC_ERROR` is now a valid UUID.
+- **SepaStringSanitizer**: `:` is allowed and kept, matching the documented SEPA character set.
+
+### Changed
+
+- Symfony floor raised to `^6.4` (CI starts at 6.4).
+- Composer: removed unused `brick/math`; added `symfony/event-dispatcher`, `symfony/http-foundation` and `psr/simple-cache`, which the bundle uses directly.
+
 ## [1.3.0] - 2026-10-13
 
 ### Fixed

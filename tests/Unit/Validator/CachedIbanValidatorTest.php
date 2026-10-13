@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Tests\Unit\Validator;
 
-use ArrayObject;
 use Nowo\SepaPaymentBundle\Cache\ValidationCache;
 use Nowo\SepaPaymentBundle\Tests\Unit\Cache\ArrayCache;
 use Nowo\SepaPaymentBundle\Validator\CachedIbanValidator;
@@ -27,7 +26,7 @@ class CachedIbanValidatorTest extends TestCase
     public function testValidationWithCache(): void
     {
         $ibanValidator   = new IbanValidator();
-        $cache           = new ArrayObject();
+        $cache           = new ArrayCache();
         $validationCache = new ValidationCache($cache);
         $cachedValidator = new CachedIbanValidator($ibanValidator, $validationCache);
 
@@ -78,7 +77,7 @@ class CachedIbanValidatorTest extends TestCase
     public function testInvalidIbanCaching(): void
     {
         $ibanValidator   = new IbanValidator();
-        $cache           = new ArrayObject();
+        $cache           = new ArrayCache();
         $validationCache = new ValidationCache($cache);
         $cachedValidator = new CachedIbanValidator($ibanValidator, $validationCache);
 

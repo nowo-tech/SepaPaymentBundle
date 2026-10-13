@@ -10,11 +10,11 @@
 
 ## Requirements
 
-- PHP >= 8.1, < 8.6
-- Symfony ^6.0 || ^7.0 || ^8.0
+- PHP >= 8.2, < 8.6
+- Symfony ^6.4 || ^7.0 || ^8.0
 - Composer 2
 
-The bundle pulls in `digitick/sepa-xml` and `brick/math` as dependencies.
+The bundle pulls in `digitick/sepa-xml` and `psr/simple-cache` (interface only) as dependencies.
 
 ## Install via Composer
 

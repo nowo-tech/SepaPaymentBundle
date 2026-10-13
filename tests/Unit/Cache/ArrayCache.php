@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Tests\Unit\Cache;
 
+use DateInterval;
+use Psr\SimpleCache\CacheInterface;
+
+use function array_key_exists;
+
 /**
- * Simple array-based cache implementation for testing.
- * Implements PSR-16 SimpleCache interface methods.
+ * Simple array-based PSR-16 cache implementation for testing.
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
  */
-class ArrayCache
+class ArrayCache implements CacheInterface
 {
     /**
      * Cache storage.
@@ -21,76 +25,78 @@ class ArrayCache
     private array $storage = [];
 
     /**
-     * Gets a value from cache.
-     *
-     * @param string $key Cache key
-     *
-     * @return mixed Cached value or null if not found
+     * Last TTL passed to set().
      */
-    public function get(string $key): mixed
-    {
-        if (!isset($this->storage[$key])) {
-            return null;
-        }
+    public DateInterval|int|null $lastTtl = null;
 
-        return $this->storage[$key];
+    public function get(string $key, mixed $default = null): mixed
+    {
+        return array_key_exists($key, $this->storage) ? $this->storage[$key] : $default;
     }
 
-    /**
-     * Sets a value in cache.
-     *
-     * @param string $key Cache key
-     * @param mixed $value Value to cache
-     * @param int $ttl Time to live (ignored in this simple implementation)
-     *
-     * @return bool True on success
-     */
-    public function set(string $key, mixed $value, ?int $ttl = null): bool
+    public function set(string $key, mixed $value, DateInterval|int|null $ttl = null): bool
     {
         $this->storage[$key] = $value;
+        $this->lastTtl       = $ttl;
 
         return true;
     }
 
-    /**
-     * Checks if a key exists in cache.
-     *
-     * @param string $key Cache key
-     *
-     * @return bool True if key exists, false otherwise
-     */
-    public function has(string $key): bool
-    {
-        return isset($this->storage[$key]);
-    }
-
-    /**
-     * Deletes a value from cache.
-     *
-     * @param string $key Cache key
-     *
-     * @return bool True on success
-     */
     public function delete(string $key): bool
     {
-        if (isset($this->storage[$key])) {
-            unset($this->storage[$key]);
+        unset($this->storage[$key]);
 
-            return true;
-        }
-
-        return false;
+        return true;
     }
 
-    /**
-     * Clears all cache entries.
-     *
-     * @return bool True on success
-     */
     public function clear(): bool
     {
         $this->storage = [];
 
         return true;
+    }
+
+    /**
+     * @param iterable<string> $keys
+     *
+     * @return iterable<string, mixed>
+     */
+    public function getMultiple(iterable $keys, mixed $default = null): iterable
+    {
+        $result = [];
+        foreach ($keys as $key) {
+            $result[$key] = $this->get($key, $default);
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param iterable<string, mixed> $values
+     */
+    public function setMultiple(iterable $values, DateInterval|int|null $ttl = null): bool
+    {
+        foreach ($values as $key => $value) {
+            $this->set($key, $value, $ttl);
+        }
+
+        return true;
+    }
+
+    /**
+     * @param iterable<string> $keys
+     */
+    public function deleteMultiple(iterable $keys): bool
+    {
+        foreach ($keys as $key) {
+            $this->delete($key);
+        }
+
+        return true;
+    }
+
+    public function has(string $key): bool
+    {
+        return array_key_exists($key, $this->storage);
     }
 }

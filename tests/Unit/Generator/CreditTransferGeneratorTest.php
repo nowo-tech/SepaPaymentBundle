@@ -2058,4 +2058,95 @@ class CreditTransferGeneratorTest extends TestCase
         $this->assertIsString($xmlOutput);
         $this->assertStringNotContainsString('PstlAdr', $xmlOutput);
     }
+
+    /**
+     * Regression: the creationDate passed in array data is written to GrpHdr/CreDtTm (it used to be ignored).
+     */
+    public function testGenerateFromArrayUsesCreationDate(): void
+    {
+        $xml = $this->generator->generateFromArray($this->lengthTestArray(['creationDate' => '2024-01-15T10:30:00+01:00']));
+
+        $this->assertStringContainsString('<CreDtTm>2024-01-15T10:30:00+01:00</CreDtTm>', $xml);
+    }
+
+    /**
+     * The creation date of a CreditTransferData object is written to GrpHdr/CreDtTm.
+     */
+    public function testGenerateUsesCreationDateOfData(): void
+    {
+        $data = new CreditTransferData('MSG-001', new DateTime('2023-05-06 07:08:09+00:00'), 'My Company', 'PMT-001', 'ES9121000418450200051332', 'My Company Name', new DateTime('2024-01-20'));
+        $data->addTransaction(new Transaction('E2E-001', 10.0, 'EUR', 'GB82WEST12345698765432', 'John Doe'));
+
+        $this->assertStringContainsString('<CreDtTm>2023-05-06T07:08:09+00:00</CreDtTm>', $this->generator->generate($data));
+    }
+
+    /**
+     * SEPA maximum lengths are enforced (Max35Text identifiers, 70-char names, 140-char Ustrd).
+     *
+     * @param array<string, mixed> $override Top-level overrides
+     * @param array<string, mixed> $transactionOverride Transaction overrides
+     */
+    #[DataProvider('tooLongFieldProvider')]
+    public function testGenerateRejectsTooLongFields(array $override, array $transactionOverride, string $field): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('SEPA field ' . $field . ' must be at most');
+
+        $this->generator->generateFromArray($this->lengthTestArray($override, $transactionOverride));
+    }
+
+    /**
+     * @return iterable<string, array{0: array<string, mixed>, 1: array<string, mixed>, 2: string}>
+     */
+    public static function tooLongFieldProvider(): iterable
+    {
+        yield 'MsgId' => [['reference' => str_repeat('M', 36)], [], 'MsgId'];
+        yield 'PmtInfId' => [['paymentInfoId' => str_repeat('P', 36)], [], 'PmtInfId'];
+        yield 'InitgPty name' => [['initiatingPartyName' => str_repeat('I', 71)], [], 'InitgPty/Nm'];
+        yield 'Debtor name' => [['debtorName' => str_repeat('D', 71)], [], 'Dbtr/Nm'];
+        yield 'EndToEndId' => [[], ['endToEndId' => str_repeat('E', 36)], 'EndToEndId'];
+        yield 'Creditor name' => [[], ['creditorName' => str_repeat('C', 71)], 'Cdtr/Nm'];
+        yield 'Ustrd' => [[], ['remittanceInformation' => str_repeat('R', 141)], 'RmtInf/Ustrd'];
+    }
+
+    /**
+     * Values exactly at the SEPA limits are accepted.
+     */
+    public function testGenerateAcceptsFieldsAtMaximumLength(): void
+    {
+        $xml = $this->generator->generateFromArray($this->lengthTestArray(
+            ['reference' => str_repeat('M', 35), 'paymentInfoId' => str_repeat('P', 35), 'initiatingPartyName' => str_repeat('I', 70)],
+            ['endToEndId' => str_repeat('E', 35), 'creditorName' => str_repeat('C', 70), 'remittanceInformation' => str_repeat('R', 140)],
+        ));
+
+        $this->assertStringContainsString(str_repeat('M', 35), $xml);
+    }
+
+    /**
+     * Builds credit transfer array data for length tests.
+     *
+     * @param array<string, mixed> $override Top-level overrides
+     * @param array<string, mixed> $transactionOverride Transaction overrides
+     *
+     * @return array<string, mixed>
+     */
+    private function lengthTestArray(array $override = [], array $transactionOverride = []): array
+    {
+        return array_merge([
+            'reference'              => 'MSG-001',
+            'initiatingPartyName'    => 'My Company',
+            'paymentInfoId'          => 'PMT-001',
+            'debtorIban'             => 'ES9121000418450200051332',
+            'debtorName'             => 'My Company Name',
+            'requestedExecutionDate' => '2024-01-20',
+            'transactions'           => [
+                array_merge([
+                    'amount'       => 10.0,
+                    'creditorIban' => 'GB82WEST12345698765432',
+                    'creditorName' => 'John Doe',
+                    'endToEndId'   => 'E2E-001',
+                ], $transactionOverride),
+            ],
+        ], $override);
+    }
 }

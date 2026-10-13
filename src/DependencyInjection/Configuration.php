@@ -41,6 +41,21 @@ final class Configuration implements ConfigurationInterface
                         ->thenInvalid('Invalid default_currency %s: expected a 3-letter uppercase ISO 4217 code (SEPA: "EUR").')
                     ->end()
                 ->end()
+                ->arrayNode('validation_cache')
+                    ->info('Caches IBAN/BIC validation results (CachedIbanValidator, CachedBicValidator) in a PSR-16 cache. Disabled when no service is set.')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode('service')
+                            ->defaultNull()
+                            ->info('Service id of a PSR-16 cache (Psr\\SimpleCache\\CacheInterface), e.g. a Symfony\\Component\\Cache\\Psr16Cache wrapping a dedicated pool. Null disables caching.')
+                        ->end()
+                        ->integerNode('ttl')
+                            ->defaultValue(3600)
+                            ->min(1)
+                            ->info('Default TTL in seconds for cached validation results.')
+                        ->end()
+                    ->end()
+                ->end()
             ->end();
 
         return $treeBuilder;

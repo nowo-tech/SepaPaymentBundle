@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Tests\Unit\Validator;
 
-use ArrayObject;
 use Nowo\SepaPaymentBundle\Cache\ValidationCache;
 use Nowo\SepaPaymentBundle\Tests\Unit\Cache\ArrayCache;
 use Nowo\SepaPaymentBundle\Validator\BicValidator;
@@ -25,7 +24,7 @@ class CachedBicValidatorTest extends TestCase
     public function testValidationWithCache(): void
     {
         $bicValidator    = new BicValidator();
-        $cache           = new ArrayObject();
+        $cache           = new ArrayCache();
         $validationCache = new ValidationCache($cache);
         $cachedValidator = new CachedBicValidator($bicValidator, $validationCache);
 
@@ -76,7 +75,7 @@ class CachedBicValidatorTest extends TestCase
     public function testInvalidBicCaching(): void
     {
         $bicValidator    = new BicValidator();
-        $cache           = new ArrayObject();
+        $cache           = new ArrayCache();
         $validationCache = new ValidationCache($cache);
         $cachedValidator = new CachedBicValidator($bicValidator, $validationCache);
 

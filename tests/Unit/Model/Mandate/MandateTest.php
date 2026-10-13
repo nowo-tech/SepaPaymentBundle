@@ -302,4 +302,57 @@ class MandateTest extends TestCase
         $this->assertFalse($mandate->isExpired());
         $this->assertFalse($mandate->isExpired(new DateTime('2030-01-01')));
     }
+
+    /**
+     * Regression (EPC SDD rulebook): a mandate lapses 36 months after the LAST collection, not after signature.
+     */
+    public function testExpirationIs36MonthsAfterLastCollection(): void
+    {
+        $mandate = new Mandate('MANDATE-001', new DateTime('2020-01-15'), 'ES9121000418450200051332', 'John Doe');
+        $mandate->setLastCollectionDate(new DateTime('2024-03-10'));
+
+        $this->assertSame('2027-03-10', $mandate->getExpirationDate()?->format('Y-m-d'));
+        $this->assertFalse($mandate->isExpired(new DateTime('2025-01-01')));
+        $this->assertTrue($mandate->isExpired(new DateTime('2027-03-11')));
+    }
+
+    /**
+     * Without any collection, the mandate lapses 36 months after signature.
+     */
+    public function testExpirationFallsBackToSignatureDateWithoutCollections(): void
+    {
+        $mandate = new Mandate('MANDATE-001', new DateTime('2020-01-15'), 'ES9121000418450200051332', 'John Doe');
+
+        $this->assertNull($mandate->getLastCollectionDate());
+        $this->assertSame('2023-01-15', $mandate->getInactivityExpirationDate()->format('Y-m-d'));
+    }
+
+    /**
+     * recordCollection() only moves the last collection date forward.
+     */
+    public function testRecordCollectionKeepsLatestDate(): void
+    {
+        $mandate = new Mandate('MANDATE-001', new DateTime('2020-01-15'), 'ES9121000418450200051332', 'John Doe');
+        $mandate->recordCollection(new DateTime('2022-05-01'));
+        $mandate->recordCollection(new DateTime('2021-01-01'));
+
+        $this->assertSame('2022-05-01', $mandate->getLastCollectionDate()?->format('Y-m-d'));
+
+        $mandate->recordCollection(new DateTime('2023-02-01'));
+        $this->assertSame('2023-02-01', $mandate->getLastCollectionDate()?->format('Y-m-d'));
+        $this->assertSame('2026-02-01', $mandate->getExpirationDate()?->format('Y-m-d'));
+    }
+
+    /**
+     * An explicit expiration date takes precedence over the inactivity rule.
+     */
+    public function testExplicitExpirationDateOverridesLastCollection(): void
+    {
+        $mandate = new Mandate('MANDATE-001', new DateTime('2020-01-15'), 'ES9121000418450200051332', 'John Doe');
+        $mandate->setLastCollectionDate(new DateTime('2024-03-10'));
+        $mandate->setExpirationDate(new DateTime('2025-01-01'));
+
+        $this->assertSame('2025-01-01', $mandate->getExpirationDate()?->format('Y-m-d'));
+        $this->assertSame('2027-03-10', $mandate->getInactivityExpirationDate()->format('Y-m-d'));
+    }
 }

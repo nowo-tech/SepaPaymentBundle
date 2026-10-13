@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Tests\Unit\Generator;
 
+use InvalidArgumentException;
 use Nowo\SepaPaymentBundle\Generator\IdentifierGenerator;
 use PHPUnit\Framework\TestCase;
+
+use function strlen;
 
 /**
  * Test cases for IdentifierGenerator.
@@ -127,5 +130,36 @@ class IdentifierGeneratorTest extends TestCase
         $this->assertStringStartsWith('TEST-', $id1);
         $this->assertNotEquals($id1, $id2);
         $this->assertMatchesRegularExpression('/^TEST-\d{14}-[a-f0-9]{8}$/', $id1);
+    }
+
+    /**
+     * Regression: custom identifiers never exceed the SEPA Max35Text limit.
+     */
+    public function testGenerateCustomIdWithMaximumPrefixFitsSepaLimit(): void
+    {
+        $id = (new IdentifierGenerator())->generateCustomId(str_repeat('A', IdentifierGenerator::MAX_PREFIX_LENGTH));
+
+        $this->assertSame(35, strlen($id));
+    }
+
+    /**
+     * Regression: a prefix that would push the identifier past 35 characters is rejected.
+     */
+    public function testGenerateCustomIdRejectsTooLongPrefix(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('too long');
+
+        (new IdentifierGenerator())->generateCustomId(str_repeat('A', IdentifierGenerator::MAX_PREFIX_LENGTH + 1));
+    }
+
+    /**
+     * The prefix limit also applies to the typed generators.
+     */
+    public function testGenerateMessageIdRejectsTooLongPrefix(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        (new IdentifierGenerator())->generateMessageId('A-VERY-LONG-PREFIX');
     }
 }

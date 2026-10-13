@@ -25,6 +25,7 @@ use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitData;
 use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitTransaction;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use Nowo\SepaPaymentBundle\Validator\SepaBusinessRulesValidator;
+use Nowo\SepaPaymentBundle\Validator\SepaStringSanitizer;
 use Nowo\SepaPaymentBundle\Validator\XsdValidator;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -67,6 +68,11 @@ class DirectDebitGenerator
     private bool $validateXsd;
 
     /**
+     * Sanitizer used to enforce SEPA field length limits.
+     */
+    private readonly SepaStringSanitizer $stringSanitizer;
+
+    /**
      * Constructor.
      *
      * @param IbanValidator $ibanValidator IBAN validator instance
@@ -76,6 +82,7 @@ class DirectDebitGenerator
      * @param SepaPaymentLogger|null $logger Optional logger for structured logging
      * @param BicLookupServiceInterface|null $bicLookupService Optional BIC lookup service for auto-filling BIC
      * @param string $defaultCurrency Currency used when a transaction has none (bundle config `default_currency`; SEPA requires EUR)
+     * @param SepaStringSanitizer|null $stringSanitizer Sanitizer used to enforce SEPA field length limits
      */
     public function __construct(
         private readonly IbanValidator $ibanValidator,
@@ -99,9 +106,11 @@ class DirectDebitGenerator
         /**
          * Default currency (ISO 4217) for transactions without an explicit currency.
          */
-        private readonly string $defaultCurrency = SepaBusinessRulesValidator::SEPA_CURRENCY
+        private readonly string $defaultCurrency = SepaBusinessRulesValidator::SEPA_CURRENCY,
+        ?SepaStringSanitizer $stringSanitizer = null
     ) {
-        $this->validateXsd = $validateXsd && $this->xsdValidator instanceof XsdValidator;
+        $this->validateXsd     = $validateXsd && $this->xsdValidator instanceof XsdValidator;
+        $this->stringSanitizer = $stringSanitizer ?? new SepaStringSanitizer();
     }
 
     /**
@@ -349,7 +358,7 @@ class DirectDebitGenerator
             foreach ($data['transactions'] as $transactionData) {
                 // Normalize transaction array keys
                 $transactionData = $this->normalizeTransactionArrayKeys($transactionData);
-                $transaction     = $this->createTransactionFromArray($transactionData, $dueDate);
+                $transaction     = $this->createTransactionFromArray($transactionData);
                 $directDebitData->addTransaction($transaction);
             }
         }
@@ -427,14 +436,13 @@ class DirectDebitGenerator
     /**
      * Creates DirectDebitTransaction from array format.
      *
-     * @param array<string, mixed> $transactionData The transaction data
-     * @param DateTimeInterface $defaultDate Default date for mandate sign date if not provided
+     * @param array<string, mixed> $transactionData The transaction data (debtorMandateSignDate is required)
      *
      * @throws InvalidArgumentException If the data is invalid
      *
      * @return DirectDebitTransaction The DirectDebitTransaction object
      */
-    private function createTransactionFromArray(array $transactionData, DateTimeInterface $defaultDate): DirectDebitTransaction
+    private function createTransactionFromArray(array $transactionData): DirectDebitTransaction
     {
         $required = ['debtorIban', 'debtorName', 'debtorMandate', 'endToEndId'];
         foreach ($required as $field) {
@@ -446,15 +454,14 @@ class DirectDebitGenerator
         // "amount" is always in euros (decimal); "amountCents" is the explicit integer alternative
         $amount = $this->parseAmount($transactionData);
 
-        // Parse mandate sign date
-        $mandateSignDate = $defaultDate;
-        if (isset($transactionData['debtorMandateSignDate'])) {
-            $signDate = $transactionData['debtorMandateSignDate'];
-            if (is_string($signDate)) {
-                $mandateSignDate = new DateTime($signDate);
-            } elseif ($signDate instanceof DateTimeInterface) {
-                $mandateSignDate = $signDate;
-            }
+        // Mandate signature date (DtOfSgntr) is mandatory in SEPA: never guess it from the due date
+        $signDate = $transactionData['debtorMandateSignDate'] ?? null;
+        if (is_string($signDate) && $signDate !== '') {
+            $mandateSignDate = new DateTime($signDate);
+        } elseif ($signDate instanceof DateTimeInterface) {
+            $mandateSignDate = $signDate;
+        } else {
+            throw new InvalidArgumentException(sprintf('Missing or invalid required transaction field: debtorMandateSignDate (mandate signature date) for mandate "%s".', (string) $transactionData['debtorMandate']));
         }
 
         $transaction = new DirectDebitTransaction(
@@ -875,6 +882,8 @@ class DirectDebitGenerator
             $this->assertSepaCurrency($transaction->getCurrency() ?? $this->defaultCurrency);
         }
 
+        $this->assertFieldLengths($directDebitData);
+
         if (!$this->ibanValidator->isValid($directDebitData->getCreditorIban())) {
             throw new InvalidArgumentException('Invalid creditor IBAN: ' . $directDebitData->getCreditorIban());
         }
@@ -882,6 +891,33 @@ class DirectDebitGenerator
         foreach ($directDebitData->getTransactions() as $transaction) {
             if (!$this->ibanValidator->isValid($transaction->getDebtorIban())) {
                 throw new InvalidArgumentException('Invalid debtor IBAN: ' . $transaction->getDebtorIban());
+            }
+        }
+    }
+
+    /**
+     * Enforces the SEPA (EPC implementation guidelines) maximum field lengths.
+     *
+     * @param DirectDebitData $directDebitData The direct debit data to check
+     *
+     * @throws InvalidArgumentException If a field exceeds its maximum length
+     */
+    private function assertFieldLengths(DirectDebitData $directDebitData): void
+    {
+        $sanitizer = $this->stringSanitizer;
+        $sanitizer->assertMaxLength('MsgId', $directDebitData->getMessageId(), SepaStringSanitizer::MAX_IDENTIFIER_LENGTH);
+        $sanitizer->assertMaxLength('InitgPty/Nm', $directDebitData->getInitiatingPartyName(), SepaStringSanitizer::MAX_NAME_LENGTH);
+        $sanitizer->assertMaxLength('PmtInfId', $directDebitData->getPaymentInfoId(), SepaStringSanitizer::MAX_IDENTIFIER_LENGTH);
+        $sanitizer->assertMaxLength('Cdtr/Nm', $directDebitData->getCreditorName(), SepaStringSanitizer::MAX_NAME_LENGTH);
+        $sanitizer->assertMaxLength('CdtrSchmeId', $directDebitData->getCreditorId(), SepaStringSanitizer::MAX_IDENTIFIER_LENGTH);
+
+        foreach ($directDebitData->getTransactions() as $transaction) {
+            $sanitizer->assertMaxLength('EndToEndId', $transaction->getEndToEndId(), SepaStringSanitizer::MAX_IDENTIFIER_LENGTH);
+            $sanitizer->assertMaxLength('Dbtr/Nm', $transaction->getDebtorName(), SepaStringSanitizer::MAX_NAME_LENGTH);
+            $sanitizer->assertMaxLength('MndtId', $transaction->getDebtorMandate(), SepaStringSanitizer::MAX_IDENTIFIER_LENGTH);
+            $remittanceInformation = $transaction->getRemittanceInformation();
+            if ($remittanceInformation !== null) {
+                $sanitizer->assertMaxLength('RmtInf/Ustrd', $remittanceInformation, SepaStringSanitizer::MAX_REMITTANCE_INFO_LENGTH);
             }
         }
     }

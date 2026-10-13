@@ -248,11 +248,12 @@ class DirectDebitGeneratorTest extends TestCase
             'localInstrumentCode' => 'CORE',
             'transactions'        => [
                 [
-                    'amount'        => 100.50,
-                    'debtorIban'    => 'GB82WEST12345698765432',
-                    'debtorName'    => 'John Doe',
-                    'debtorMandate' => 'MANDATE-001',
-                    'endToEndId'    => 'E2E-001',
+                    'amount'                => 100.50,
+                    'debtorIban'            => 'GB82WEST12345698765432',
+                    'debtorName'            => 'John Doe',
+                    'debtorMandate'         => 'MANDATE-001',
+                    'debtorMandateSignDate' => '2023-12-01',
+                    'endToEndId'            => 'E2E-001',
                 ],
             ],
         ];
@@ -284,10 +285,11 @@ class DirectDebitGeneratorTest extends TestCase
             'localInstrumentCode' => 'CORE',
             'transactions'        => [
                 array_merge([
-                    'debtorIban'    => 'GB82WEST12345698765432',
-                    'debtorName'    => 'John Doe',
-                    'debtorMandate' => 'MANDATE-001',
-                    'endToEndId'    => 'E2E-001',
+                    'debtorIban'            => 'GB82WEST12345698765432',
+                    'debtorName'            => 'John Doe',
+                    'debtorMandate'         => 'MANDATE-001',
+                    'debtorMandateSignDate' => '2023-12-01',
+                    'endToEndId'            => 'E2E-001',
                 ], $transaction),
             ],
         ];
@@ -423,11 +425,12 @@ class DirectDebitGeneratorTest extends TestCase
             'localInstrumentCode' => 'CORE',
             'transactions'        => [
                 [
-                    'amount'        => 100.50,
-                    'debtorIban'    => 'GB82WEST12345698765432',
-                    'debtorName'    => 'John Doe',
-                    'debtorMandate' => 'MANDATE-001',
-                    'endToEndId'    => 'E2E-001',
+                    'amount'                => 100.50,
+                    'debtorIban'            => 'GB82WEST12345698765432',
+                    'debtorName'            => 'John Doe',
+                    'debtorMandate'         => 'MANDATE-001',
+                    'debtorMandateSignDate' => '2023-12-01',
+                    'endToEndId'            => 'E2E-001',
                 ],
             ],
         ];
@@ -455,11 +458,12 @@ class DirectDebitGeneratorTest extends TestCase
             'localInstrumentCode' => 'CORE',
             'transactions'        => [
                 [
-                    'amount'        => 100.50,
-                    'debtorIban'    => 'GB82WEST12345698765432',
-                    'debtorName'    => 'John Doe',
-                    'debtorMandate' => 'MANDATE-001',
-                    'endToEndId'    => 'E2E-001',
+                    'amount'                => 100.50,
+                    'debtorIban'            => 'GB82WEST12345698765432',
+                    'debtorName'            => 'John Doe',
+                    'debtorMandate'         => 'MANDATE-001',
+                    'debtorMandateSignDate' => '2023-12-01',
+                    'endToEndId'            => 'E2E-001',
                 ],
             ],
         ];
@@ -471,35 +475,28 @@ class DirectDebitGeneratorTest extends TestCase
     }
 
     /**
-     * Tests XML generation from array without debtorMandateSignDate (uses default).
+     * Regression: a missing debtorMandateSignDate must be rejected instead of silently defaulting to the due date.
      */
-    public function testGenerateFromArrayWithoutMandateSignDate(): void
+    public function testGenerateFromArrayWithoutMandateSignDateThrows(): void
     {
-        $data = [
-            'reference'           => 'MSG-001',
-            'bankAccountOwner'    => 'My Company',
-            'paymentInfoId'       => 'PMT-001',
-            'dueDate'             => '2024-01-20',
-            'creditorName'        => 'My Company Name',
-            'creditorIban'        => 'ES9121000418450200051332',
-            'seqType'             => 'FRST',
-            'creditorId'          => 'ES1234567890123456789012',
-            'localInstrumentCode' => 'CORE',
-            'transactions'        => [
-                [
-                    'amount'        => 100.50,
-                    'debtorIban'    => 'GB82WEST12345698765432',
-                    'debtorName'    => 'John Doe',
-                    'debtorMandate' => 'MANDATE-001',
-                    'endToEndId'    => 'E2E-001',
-                ],
-            ],
-        ];
+        $data = $this->directDebitArray(['amount' => 100.50]);
+        unset($data['transactions'][0]['debtorMandateSignDate']);
 
-        $xml = $this->generator->generateFromArray($data);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('debtorMandateSignDate');
 
-        $this->assertStringContainsString('<?xml', $xml);
-        $this->assertStringContainsString('CstmrDrctDbtInitn', $xml);
+        $this->generator->generateFromArray($data);
+    }
+
+    /**
+     * An empty or non-date debtorMandateSignDate is rejected as well.
+     */
+    public function testGenerateFromArrayWithInvalidMandateSignDateThrows(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('debtorMandateSignDate');
+
+        $this->generator->generateFromArray($this->directDebitArray(['amount' => 100.50, 'debtorMandateSignDate' => '']));
     }
 
     /**
@@ -2294,5 +2291,38 @@ class DirectDebitGeneratorTest extends TestCase
         $xmlOutput = $dom->saveXML();
         $this->assertIsString($xmlOutput);
         $this->assertStringNotContainsString('PstlAdr', $xmlOutput);
+    }
+
+    /**
+     * SEPA maximum lengths are enforced in direct debits (Max35Text identifiers, 70-char names, 140-char Ustrd).
+     *
+     * @param array<string, mixed> $override Top-level overrides
+     * @param array<string, mixed> $transactionOverride Transaction overrides
+     */
+    #[DataProvider('tooLongFieldProvider')]
+    public function testGenerateRejectsTooLongFields(array $override, array $transactionOverride, string $field): void
+    {
+        $data = array_merge($this->directDebitArray(array_merge(['amount' => 10.0, 'debtorMandateSignDate' => '2023-12-01'], $transactionOverride)), $override);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('SEPA field ' . $field . ' must be at most');
+
+        $this->generator->generateFromArray($data);
+    }
+
+    /**
+     * @return iterable<string, array{0: array<string, mixed>, 1: array<string, mixed>, 2: string}>
+     */
+    public static function tooLongFieldProvider(): iterable
+    {
+        yield 'MsgId' => [['reference' => str_repeat('M', 36)], [], 'MsgId'];
+        yield 'PmtInfId' => [['paymentInfoId' => str_repeat('P', 36)], [], 'PmtInfId'];
+        yield 'InitgPty name' => [['bankAccountOwner' => str_repeat('I', 71)], [], 'InitgPty/Nm'];
+        yield 'Creditor name' => [['creditorName' => str_repeat('C', 71)], [], 'Cdtr/Nm'];
+        yield 'Creditor scheme id' => [['creditorId' => str_repeat('9', 36)], [], 'CdtrSchmeId'];
+        yield 'EndToEndId' => [[], ['endToEndId' => str_repeat('E', 36)], 'EndToEndId'];
+        yield 'Debtor name' => [[], ['debtorName' => str_repeat('D', 71)], 'Dbtr/Nm'];
+        yield 'Mandate id' => [[], ['debtorMandate' => str_repeat('X', 36)], 'MndtId'];
+        yield 'Ustrd' => [[], ['remittanceInformation' => str_repeat('R', 141)], 'RmtInf/Ustrd'];
     }
 }
