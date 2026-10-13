@@ -3,6 +3,7 @@
 ## Table of contents
 
 - [Unreleased](#unreleased)
+- [To 1.4.1](#to-141)
 - [To 1.4.0](#to-140)
 - [To 1.3.0](#to-130)
 - [To 1.2.32](#to-1232)
@@ -159,6 +160,16 @@
 - [Getting Help](#getting-help)
 
 ## Unreleased
+
+## To 1.4.1
+
+From **1.4.0** — test kernel reference.php no longer tracked
+
+```bash
+composer update nowo-tech/sepa-payment-bundle
+```
+
+- No breaking changes. No application upgrade steps.
 
 ## To 1.4.0
 
