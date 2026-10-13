@@ -1,6 +1,6 @@
 # Deprecated Fields in SEPA Direct Debit
 
-This document describes fields that were previously required or allowed in SEPA Direct Debit transactions (pain.008.001.02) but can **no longer be included** according to current SEPA standards.
+This document describes fields that were previously required or allowed in SEPA Direct Debit transactions (pain.008; the bundle generates pain.008.001.09) but can **no longer be included** according to current SEPA standards.
 
 
 ## Table of contents
@@ -21,7 +21,7 @@ This document describes fields that were previously required or allowed in SEPA 
 
 ## Important Information
 
-SEPA standards have evolved and some fields that were previously required or common have been **removed or deprecated** in the most recent versions of the pain.008.001.02 format. It is important not to attempt to include these fields, as they may cause validation errors or rejection by banks.
+SEPA standards have evolved and some fields that were previously required or common have been **removed or deprecated** in the most recent versions of the pain.008 format. It is important not to attempt to include these fields, as they may cause validation errors or rejection by banks.
 
 **Note:** As of version 0.0.8, postal addresses for both creditor and debtor **are now supported** and will be included in the generated XML. The addresses are added using structured format (PstlAdr) with elements like StrtNm, TwnNm, PstCd, and Ctry.
 
@@ -175,7 +175,7 @@ $xml = $generator->generateFromArray($data);
 - **Postal Code** (`PstCd`): Postal/ZIP code
 - **Country** (`Ctry`): ISO 3166-1 alpha-2 country code
 
-The addresses are automatically added to the XML using DOM manipulation, ensuring compatibility with the SEPA pain.008.001.02 format.
+The addresses are automatically added to the XML using DOM manipulation, in the ISO 20022 element order of the generated pain.008.001.09 format.
 
 **Note:** The address is also required in the **SEPA mandate** (the document that authorizes the direct debit). The mandate is managed separately and contains:
 
@@ -187,17 +187,17 @@ The addresses are automatically added to the XML using DOM manipulation, ensurin
 - Mandate type (CORE, B2B)
 - Sequence type (FRST, RCUR, OOFF, FNAL)
 
-The XML transaction (pain.008.001.02) only references the mandate by its identifier; it does not include all the mandate information.
+The XML transaction (pain.008) only references the mandate by its identifier; it does not include all the mandate information.
 
 ## References
 
 - [SEPA Direct Debit Scheme Rulebook](https://www.europeanpaymentscouncil.eu/document-library/rulebooks)
-- [ISO 20022 pain.008.001.02 Specification](https://www.iso20022.org/)
+- [ISO 20022 pain.008 Specification](https://www.iso20022.org/)
 - [Digitick\Sepa Library Documentation](https://github.com/digitick/sepa-xml)
 
 ## Compatibility Notes
 
-This bundle uses the `digitick/sepa-xml ^3.0` library, which implements the pain.008.001.02 standard. If you attempt to include deprecated fields, the library may:
+This bundle uses the `digitick/sepa-xml ^3.0` library, which generates the pain.008.001.09 format by default. If you attempt to include deprecated fields, the library may:
 
 1. Silently ignore them
 2. Throw an exception

@@ -13,9 +13,11 @@ use Exception;
 use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
+use function in_array;
+
 /**
  * SEPA Credit Transfer XML parser.
- * Parses SEPA XML files to extract information.
+ * Parses SEPA XML files to extract information (pain.001.001.03 and pain.001.001.09).
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
@@ -24,6 +26,21 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 class CreditTransferParser
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.parser.credit_transfer_parser';
+
+    /**
+     * ISO 20022 namespace of pain.001.001.03 (2009 version).
+     */
+    public const NAMESPACE_001_001_03 = 'urn:iso:std:iso:20022:tech:xsd:pain.001.001.03';
+
+    /**
+     * ISO 20022 namespace of pain.001.001.09 (written by the bundle generators via digitick/sepa-xml 3.x).
+     */
+    public const NAMESPACE_001_001_09 = 'urn:iso:std:iso:20022:tech:xsd:pain.001.001.09';
+
+    /**
+     * Supported document namespaces; the first one is used when the document declares another namespace.
+     */
+    public const SUPPORTED_NAMESPACES = [self::NAMESPACE_001_001_03, self::NAMESPACE_001_001_09];
 
     /**
      * Parses a SEPA Credit Transfer XML file.
@@ -42,7 +59,7 @@ class CreditTransferParser
         }
 
         $xpath = new DOMXPath($dom);
-        $xpath->registerNamespace('sepa', 'urn:iso:std:iso:20022:tech:xsd:pain.001.001.03');
+        $xpath->registerNamespace('sepa', $this->resolveNamespace($dom));
 
         $data = [];
 
@@ -152,7 +169,7 @@ class CreditTransferParser
             }
 
             $xpath = new DOMXPath($dom);
-            $xpath->registerNamespace('sepa', 'urn:iso:std:iso:20022:tech:xsd:pain.001.001.03');
+            $xpath->registerNamespace('sepa', $this->resolveNamespace($dom));
 
             $msgId            = $this->getFirstNode($xpath, '//sepa:MsgId');
             $cstmrCdtTrfInitn = $this->getFirstNode($xpath, '//sepa:CstmrCdtTrfInitn');
@@ -178,5 +195,16 @@ class CreditTransferParser
         $node = $list->item(0);
 
         return $node instanceof DOMNode ? $node : null;
+    }
+
+    /**
+     * Returns the Credit Transfer namespace declared by the document root when it is supported
+     * (pain.001.001.03 or pain.001.001.09), otherwise the pain.001.001.03 namespace.
+     */
+    private function resolveNamespace(DOMDocument $dom): string
+    {
+        $namespace = $dom->documentElement?->namespaceURI;
+
+        return in_array($namespace, self::SUPPORTED_NAMESPACES, true) ? $namespace : self::SUPPORTED_NAMESPACES[0];
     }
 }

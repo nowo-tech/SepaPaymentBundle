@@ -9,6 +9,7 @@ Behaviour changes in array input, validation and XSD handling (minor release). R
 - **XSD validation really validates.** With `validateXsd: true`, or when calling `XsdValidator::validate*()`, invalid XML now throws, and a missing schema (custom path that does not exist, unknown type, unbundled pain version) throws `validation.xsd_schema_not_found` instead of returning `true`.
 - **Stricter IBAN / CCC checks.** IBANs with an unknown country code or the wrong length for their country are invalid; `CccConverter::cccToIban()` throws on wrong CCC control digits. Clean stored data that relied on the old leniency.
 - **Translated constraint messages.** If you translated `iban.invalid`, `bic.invalid`, etc. in the default `validators` domain as a workaround, move those overrides to the `NowoSepaPaymentBundle` domain.
+- **Parsers read the 2019 versions too.** `CreditTransferParser` / `DirectDebitParser` now parse `pain.001.001.09` / `pain.008.001.09` (the format the generators write) as well as `.03` / `.02`. Code that parsed the bundle's own output and got empty `transactions` will now receive data. The generators' output format is unchanged (`.09`).
 - New translation keys: `validation.xsd_schema_not_found`, `validation.invalid_amount`, `validation.invalid_currency_code`.
 
 ```bash

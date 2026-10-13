@@ -150,6 +150,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **IBAN validation**: `IbanValidator::isValid()` checks the ISO 13616 registry length per country and rejects unknown country codes (a checksum-valid IBAN of the wrong length used to pass).
 - **CCC conversion**: `CccConverter::cccToIban()` rejects a CCC whose control digits are wrong instead of producing an IBAN for a mistyped account.
 - **Constraint messages**: `Iban`, `Bic`, `SepaCreditorIdentifier`, `CreditCard` and `SepaCountry` violations now use the constraint's translation domain (`NowoSepaPaymentBundle`), so users see translated messages instead of raw keys such as `iban.invalid`.
+- **Parsers**: `CreditTransferParser` and `DirectDebitParser` read the namespace from the document and support `pain.001.001.03` / `.09` and `pain.008.001.02` / `.09`. They used to only read the 2009 namespaces and returned no transactions for the `.09` files written by the bundle's own generators. The direct debit parser reads the debtor BIC from both `BIC` and `BICFI`.
+- **Docs**: README and guides stated that the generators write `pain.001.001.03` / `pain.008.001.02`; they write `pain.001.001.09` / `pain.008.001.09` (digitick/sepa-xml 3.x defaults).
 - **SEPA countries**: `SepaCountryValidator` follows EPC409-09 v8.0 and now includes Andorra, Vatican City, Albania, Moldova, Montenegro, North Macedonia, Serbia, Gibraltar, Guernsey, Jersey, Isle of Man, Åland and the French overseas territories (GF, GP, MQ, RE, YT, PM, BL, MF).
 
 ### Changed

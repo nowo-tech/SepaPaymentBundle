@@ -116,7 +116,7 @@ class XsdValidator
     }
 
     /**
-     * Validates Credit Transfer XML against pain.001.001.03 schema.
+     * Validates Credit Transfer XML against the bundled pain.001 schema matching its namespace (.03 or .09; default .03).
      *
      * @param string $xml The XML content to validate
      * @param string|null $xsdPath Optional path to XSD schema file
@@ -131,7 +131,7 @@ class XsdValidator
     }
 
     /**
-     * Validates Direct Debit XML against pain.008.001.02 schema.
+     * Validates Direct Debit XML against the bundled pain.008 schema matching its namespace (.02 or .09; default .02).
      *
      * @param string $xml The XML content to validate
      * @param string|null $xsdPath Optional path to XSD schema file

@@ -420,7 +420,7 @@ $messageId = $generator->generateMessageId('MY-MSG');
 
 ## SEPA XML Parser
 
-The bundle provides parsers for both SEPA Credit Transfer and SEPA Direct Debit XML files.
+The bundle provides parsers for both SEPA Credit Transfer and SEPA Direct Debit XML files. The parsers read the ISO 20022 namespace from the document and support `pain.001.001.03` / `pain.001.001.09` (credit transfer) and `pain.008.001.02` / `pain.008.001.09` (direct debit), so files produced by the bundle's generators (2019 `.09` versions) can be parsed back. Documents in other namespaces are not recognised (`isValid*()` returns `false`).
 
 ### Parsing SEPA Credit Transfer
 
@@ -548,7 +548,7 @@ $validator = new XsdValidator(new IdentityTranslator());
 try {
     $isValid = $validator->validateCreditTransfer($xml);
     if ($isValid) {
-        echo "XML is valid against pain.001.001.03 schema";
+        echo "XML is valid against the pain.001 schema matching its namespace";
     }
 } catch (\InvalidArgumentException $e) {
     echo "Validation failed: " . $e->getMessage();
@@ -558,7 +558,7 @@ try {
 try {
     $isValid = $validator->validateDirectDebit($xml);
     if ($isValid) {
-        echo "XML is valid against pain.008.001.02 schema";
+        echo "XML is valid against the pain.008 schema matching its namespace";
     }
 } catch (\InvalidArgumentException $e) {
     echo "Validation failed: " . $e->getMessage();
@@ -1252,7 +1252,7 @@ file_put_contents('credit-transfer.xml', $xml);
 
 **Note about Addresses:**
 
-Postal addresses for both creditor and debtor are **optional** and will be included in the XML **only if provided** in the array. Addresses are added using structured format (PstlAdr) with elements like StrtNm, TwnNm, PstCd, and Ctry. The addresses are automatically added to the XML using DOM manipulation, ensuring compatibility with the SEPA pain.001.001.03 format.
+Postal addresses for both creditor and debtor are **optional** and will be included in the XML **only if provided** in the array. Addresses are added using structured format (PstlAdr) with elements StrtNm, PstCd, TwnNm and Ctry. The addresses are automatically added to the XML using DOM manipulation, in the ISO 20022 element order (StrtNm, PstCd, TwnNm, Ctry) of the generated pain.001.001.09 format.
 
 **Important:**
 - Addresses are **completely optional** - if not provided, no address elements will be added to the XML
@@ -1452,7 +1452,7 @@ file_put_contents('direct_debit.xml', $xml);
 
 **Note about Addresses:**
 
-As of version 0.0.8, postal addresses for both creditor and debtor are **optional** and will be included in the XML **only if provided** in the array. Addresses are added using structured format (PstlAdr) with elements like StrtNm, TwnNm, PstCd, and Ctry. The addresses are automatically added to the XML using DOM manipulation, ensuring compatibility with the SEPA pain.008.001.02 format.
+As of version 0.0.8, postal addresses for both creditor and debtor are **optional** and will be included in the XML **only if provided** in the array. Addresses are added using structured format (PstlAdr) with elements StrtNm, PstCd, TwnNm and Ctry. The addresses are automatically added to the XML using DOM manipulation, in the ISO 20022 element order (StrtNm, PstCd, TwnNm, Ctry) of the generated pain.008.001.09 format.
 
 **Important:**
 - Addresses are **completely optional** - if not provided, no address elements will be added to the XML

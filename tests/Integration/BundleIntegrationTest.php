@@ -245,6 +245,9 @@ final class BundleIntegrationTest extends KernelTestCase
         $this->assertIsArray($parsed);
         $this->assertArrayHasKey('transactions', $parsed);
         $this->assertIsArray($parsed['transactions']);
+        $this->assertCount(1, $parsed['transactions']);
+        $this->assertSame(10.0, $parsed['transactions'][0]['amount']);
+        $this->assertSame('GB82WEST12345698765432', $parsed['transactions'][0]['iban']);
     }
 
     public function testDirectDebitParserParsesGeneratedXml(): void
@@ -281,6 +284,10 @@ final class BundleIntegrationTest extends KernelTestCase
         $this->assertIsArray($parsed);
         $this->assertArrayHasKey('transactions', $parsed);
         $this->assertIsArray($parsed['transactions']);
+        $this->assertCount(1, $parsed['transactions']);
+        $this->assertSame(25.0, $parsed['transactions'][0]['amount']);
+        $this->assertSame('GB82WEST12345698765432', $parsed['transactions'][0]['debtorIban']);
+        $this->assertSame('MND-002', $parsed['transactions'][0]['mandateId']);
     }
 
     public function testIbanValidatorServiceIsUsable(): void

@@ -171,7 +171,7 @@ class DirectDebitGenerator
                 $directDebitData->getInitiatingPartyName(),
             );
 
-            // Create transfer file (pain.008.001.02 format) with group header
+            // Create transfer file with group header (digitick/sepa-xml 3.x writes pain.008.001.09)
             $transferFile = new CustomerDirectDebitTransferFile($groupHeader);
 
             // Auto-fill creditor BIC if missing
@@ -713,7 +713,7 @@ class DirectDebitGenerator
             $xpath = new DOMXPath($dom);
             // Detect namespace from root element
             $root      = $dom->documentElement;
-            $namespace = $root->namespaceURI ?? 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.02';
+            $namespace = $root->namespaceURI ?? 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.09';
             $xpath->registerNamespace('ns', $namespace);
 
             // Add creditor address if available

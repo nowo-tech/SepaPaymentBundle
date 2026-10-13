@@ -4,7 +4,7 @@
 
 > ⭐ **Found this useful?** Give it a star on GitHub! It helps us maintain and improve the project.
 
-**Symfony bundle for SEPA (Single Euro Payments Area) payment management** - Generate SEPA Credit Transfer (pain.001.001.03) and Direct Debit (pain.008.001.02) XML files compliant with ISO 20022 standards. Includes comprehensive IBAN/BIC validation, mandate management, XSD schema validation, and banking utilities for European payments.
+**Symfony bundle for SEPA (Single Euro Payments Area) payment management** - Generate SEPA Credit Transfer (pain.001.001.09) and Direct Debit (pain.008.001.09) XML files compliant with ISO 20022 standards. Includes comprehensive IBAN/BIC validation, mandate management, XSD schema validation, and banking utilities for European payments.
 
 ![FrankenPHP Friendly Worker Mode](docs/images/frankenphp-friendly.png)
 
@@ -30,8 +30,8 @@ It is safe when the kernel is **not** reset between requests: request-scoped in-
 - ✅ **Symfony Events**: Event system for extensibility (before/after generation events)
 - ✅ **Structured Logging**: Comprehensive logging for SEPA operations with PSR-3 integration
 - ✅ **SEPA Mandates**: Manage SEPA Direct Debit mandates with full support
-- ✅ **Credit Transfer**: Generate SEPA Credit Transfer XML files (pain.001.001.03 format) using Digitick\Sepa library
-- ✅ **Direct Debit**: Generate SEPA Direct Debit XML files (pain.008.001.02 format) using Digitick\Sepa library
+- ✅ **Credit Transfer**: Generate SEPA Credit Transfer XML files (pain.001.001.09 format) using Digitick\Sepa library
+- ✅ **Direct Debit**: Generate SEPA Direct Debit XML files (pain.008.001.09 format) using Digitick\Sepa library
 - ✅ **Array-based API**: Generate both types of payment files from simple array format
 - ✅ **Object-based API**: Generate payment files using typed objects for better type safety
 - ✅ **Multiple Transactions**: Support for batch payments in a single file

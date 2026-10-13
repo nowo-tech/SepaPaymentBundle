@@ -13,9 +13,11 @@ use Exception;
 use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
+use function in_array;
+
 /**
  * SEPA Direct Debit XML parser.
- * Parses SEPA Direct Debit XML files to extract information.
+ * Parses SEPA Direct Debit XML files to extract information (pain.008.001.02 and pain.008.001.09).
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
@@ -24,6 +26,21 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 class DirectDebitParser
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.parser.direct_debit_parser';
+
+    /**
+     * ISO 20022 namespace of pain.008.001.02 (2009 version).
+     */
+    public const NAMESPACE_008_001_02 = 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.02';
+
+    /**
+     * ISO 20022 namespace of pain.008.001.09 (written by the bundle generators via digitick/sepa-xml 3.x).
+     */
+    public const NAMESPACE_008_001_09 = 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.09';
+
+    /**
+     * Supported document namespaces; the first one is used when the document declares another namespace.
+     */
+    public const SUPPORTED_NAMESPACES = [self::NAMESPACE_008_001_02, self::NAMESPACE_008_001_09];
 
     /**
      * Parses a SEPA Direct Debit XML file.
@@ -42,7 +59,7 @@ class DirectDebitParser
         }
 
         $xpath = new DOMXPath($dom);
-        $xpath->registerNamespace('sepa', 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.02');
+        $xpath->registerNamespace('sepa', $this->resolveNamespace($dom));
 
         $data = [];
 
@@ -185,7 +202,8 @@ class DirectDebitParser
             if ($dbtrAgt instanceof DOMNode) {
                 $finInstnId = $this->getFirstNode($xpath, './/sepa:FinInstnId', $dbtrAgt);
                 if ($finInstnId instanceof DOMNode) {
-                    $bic = $this->getFirstNode($xpath, './/sepa:BIC', $finInstnId);
+                    // pain.008.001.02 uses BIC, pain.008.001.09 uses BICFI
+                    $bic = $this->getFirstNode($xpath, './/sepa:BIC | .//sepa:BICFI', $finInstnId);
                     if ($bic instanceof DOMNode) {
                         $transaction['debtorBic'] = $bic->nodeValue;
                     }
@@ -274,7 +292,7 @@ class DirectDebitParser
             }
 
             $xpath = new DOMXPath($dom);
-            $xpath->registerNamespace('sepa', 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.02');
+            $xpath->registerNamespace('sepa', $this->resolveNamespace($dom));
 
             $msgId             = $this->getFirstNode($xpath, '//sepa:MsgId');
             $cstmrDrctDbtInitn = $this->getFirstNode($xpath, '//sepa:CstmrDrctDbtInitn');
@@ -300,5 +318,16 @@ class DirectDebitParser
         $node = $list->item(0);
 
         return $node instanceof DOMNode ? $node : null;
+    }
+
+    /**
+     * Returns the Direct Debit namespace declared by the document root when it is supported
+     * (pain.008.001.02 or pain.008.001.09), otherwise the pain.008.001.02 namespace.
+     */
+    private function resolveNamespace(DOMDocument $dom): string
+    {
+        $namespace = $dom->documentElement?->namespaceURI;
+
+        return in_array($namespace, self::SUPPORTED_NAMESPACES, true) ? $namespace : self::SUPPORTED_NAMESPACES[0];
     }
 }
