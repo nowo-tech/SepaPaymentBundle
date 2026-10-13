@@ -79,9 +79,9 @@ class DeprecatedController extends AbstractController
     {
         // Using deprecated RemesaGenerator with array format
         $data = [
-            'reference'              => 'MSG-DEPRECATED-ARRAY-001',
-            'initiatingPartyName'    => 'Deprecated Array Demo',
-            'paymentInfoId'          => 'PMT-DEPRECATED-ARRAY-001',
+            'reference'           => 'MSG-DEPRECATED-ARRAY-001',
+            'initiatingPartyName' => 'Deprecated Array Demo',
+            'paymentInfoId'       => 'PMT-DEPRECATED-ARRAY-001',
             // Same array keys as CreditTransferGenerator::generateFromArray() (it delegates to it):
             // debtor* = company that pays, creditor* per transaction = beneficiary.
             'debtorIban'             => 'ES9121000418450200051332',
