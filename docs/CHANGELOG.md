@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.4.0] - 2026-10-13](#140-2026-10-13)
 - [[1.3.0] - 2026-10-13](#130-2026-10-13)
 - [[1.2.32] - 2026-10-13](#1232-2026-10-13)
 - [[1.2.31] - 2026-10-09](#1231-2026-10-09)
@@ -142,6 +143,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-13
+
 ### Fixed
 
 - **Mandate expiry**: SEPA mandates lapse 36 months after the **last collection** (EPC SDD rulebook), not 36 months after signature. `Mandate` gains `recordCollection()`, `setLastCollectionDate()` / `getLastCollectionDate()` and `getInactivityExpirationDate()`; `getExpirationDate()` resolves explicit expiry → last collection + 36 months → signature + 36 months. `MandateRepository::findExpired()` now delegates to the mandate (it ignored explicit expiration dates).
@@ -156,6 +159,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Symfony floor raised to `^6.4` (CI starts at 6.4).
 - Composer: removed unused `brick/math`; added `symfony/event-dispatcher`, `symfony/http-foundation` and `psr/simple-cache`, which the bundle uses directly.
+
+[1.4.0]: https://github.com/nowo-tech/SepaPaymentBundle/releases/tag/v1.4.0
 
 ## [1.3.0] - 2026-10-13
 

@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## To 1.4.0
+
+From **1.3.0** — mandate expiry after last collection, SEPA field length limits, required sign date, PSR-16 validation cache, Symfony >=6.4.
+
+```bash
+composer update nowo-tech/sepa-payment-bundle
+```
+
 - **Symfony 6.4 minimum.** The Symfony floor moves from `^6.0` to `^6.4` (6.0–6.3 were never tested in CI and are end of life). `brick/math` is no longer required; `symfony/event-dispatcher`, `symfony/http-foundation` and `psr/simple-cache` are now explicit dependencies.
 - **`debtorMandateSignDate` is required** in `DirectDebitGenerator::generateFromArray()` transactions. It used to default silently to the due date, producing a wrong `DtOfSgntr`; a missing or empty value now throws `InvalidArgumentException`.
 - **SEPA field lengths are enforced.** Generators throw `InvalidArgumentException` when `MsgId`, `PmtInfId`, `EndToEndId`, `MndtId` or the creditor scheme id exceed 35 characters, a name (`Nm`) exceeds 70, or `Ustrd` exceeds 140. `IdentifierGenerator` rejects prefixes longer than 11 characters (`IdentifierGenerator::MAX_PREFIX_LENGTH`). Such files used to be generated and then rejected by the bank.
@@ -86,6 +94,7 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
 ## Table of contents
 
+- [To 1.4.0](#to-140)
 - [To 1.3.0](#to-130)
 - [To 1.2.32](#to-1232)
 - [To 1.2.31](#to-1231)
