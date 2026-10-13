@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## To 1.3.0
+
+From **1.2.32** — correct amounts, real XSD validation, valid PstlAdr order, stricter IBAN/CCC/country validation, parsers read the generated pain .09 files.
+
+```bash
+composer update nowo-tech/sepa-payment-bundle
+```
+
 Behaviour changes in array input, validation and XSD handling (minor release). Review these before upgrading:
 
 - **`amount` is always in euros.** `generateFromArray()` used to divide any `amount` greater than 10000 by 100. If you passed cents in `amount` (e.g. `'amount' => 15000` meaning EUR 150.00), switch to `'amountCents' => 15000`; otherwise you will now generate EUR 15,000.00. Decimal euro amounts (`100.50`, `15000.00`) are unchanged. `amount` and `amountCents` cannot be combined.
@@ -69,6 +77,7 @@ This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
 ## Table of contents
 
+- [To 1.3.0](#to-130)
 - [To 1.2.32](#to-1232)
 - [To 1.2.31](#to-1231)
 - [Upgrading from 1.2.26 to 1.2.27](#upgrading-from-1226-to-1227)

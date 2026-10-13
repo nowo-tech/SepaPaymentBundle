@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.3.0] - 2026-10-13](#130-2026-10-13)
 - [[1.2.32] - 2026-10-13](#1232-2026-10-13)
 - [[1.2.31] - 2026-10-09](#1231-2026-10-09)
 - [[1.2.30] - 2026-10-01](#1230-2026-10-01)
@@ -141,6 +142,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-13
+
 ### Fixed
 
 - **Amounts (breaking for callers passing cents)**: `generateFromArray()` no longer treats any `amount` above 10000 as cents (EUR 15,000.00 used to be written as EUR 150.00). `amount` is always a decimal amount in euros; use the new optional `amountCents` (integer) key to pass cents. Passing both, neither or a non-numeric amount throws.
@@ -157,6 +160,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - `createResponse()` builds `Content-Disposition` with `HeaderUtils::makeDisposition()` (quotes and non-ASCII filenames are encoded, path separators replaced). Simple filenames are now sent unquoted (`attachment; filename=remesa.xml`), which is equivalent per RFC 6266.
+
+[1.3.0]: https://github.com/nowo-tech/SepaPaymentBundle/releases/tag/v1.3.0
 
 ## [1.2.32] - 2026-10-13
 
