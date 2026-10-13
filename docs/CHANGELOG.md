@@ -2,10 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
-
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.2.32] - 2026-10-13](#1232-2026-10-13)
 - [[1.2.31] - 2026-10-09](#1231-2026-10-09)
 - [[1.2.30] - 2026-10-01](#1230-2026-10-01)
 - [[1.2.29] - 2026-09-28](#1229-2026-09-28)
@@ -141,9 +141,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.32] - 2026-10-13
+
 ### Changed
 
 - Development: `composer.json` pins `config.platform.php` to 8.2.0 so the committed lock stays installable on the minimum PHP; CI overrides the platform per matrix cell.
+
+[1.2.32]: https://github.com/nowo-tech/SepaPaymentBundle/releases/tag/v1.2.32
 
 ## [1.2.31] - 2026-10-09
 

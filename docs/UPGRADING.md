@@ -1,7 +1,16 @@
 # Upgrade Guide
 
-
 ## Unreleased
+
+## To 1.2.32
+
+From **1.2.31** — dependency refresh and repository maintenance.
+
+```bash
+composer update nowo-tech/sepa-payment-bundle
+```
+
+- No breaking changes. No application upgrade steps.
 
 ## To 1.2.31
 
@@ -43,9 +52,9 @@ php bin/console cache:clear
 
 This guide helps you upgrade between versions of the SEPA Payment Bundle.
 
-
 ## Table of contents
 
+- [To 1.2.32](#to-1232)
 - [To 1.2.31](#to-1231)
 - [Upgrading from 1.2.26 to 1.2.27](#upgrading-from-1226-to-1227)
   - [🐛 Fixed (1.2.27)](#fixed-1227)
