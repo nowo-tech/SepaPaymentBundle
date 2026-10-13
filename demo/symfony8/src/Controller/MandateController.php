@@ -70,6 +70,10 @@ class MandateController extends AbstractController
             // Update sequence type
             $mandateService->updateSequenceType('MANDATE-DEMO-001', 'RCUR');
 
+            // EPC rule (1.4.0): the mandate lapses 36 months after the last collection, not after signature.
+            $expiryBySignature = $mandate->getExpirationDate()?->format('Y-m-d');
+            $mandate->recordCollection(new DateTime('2025-06-01'));
+
             // Get mandate history
             $history = $mandateService->getMandateHistory('MANDATE-DEMO-001');
 
@@ -89,6 +93,12 @@ class MandateController extends AbstractController
                     'signatureDate'  => $mandate->getSignatureDate()->format('Y-m-d'),
                     'expirationDate' => $mandate->getExpirationDate()?->format('Y-m-d'),
                     'isExpired'      => $mandate->isExpired(),
+                ],
+                'expiry' => [
+                    'beforeAnyCollection'      => $expiryBySignature,
+                    'lastCollectionDate'       => $mandate->getLastCollectionDate()?->format('Y-m-d'),
+                    'inactivityExpirationDate' => $mandate->getInactivityExpirationDate()->format('Y-m-d'),
+                    'rule'                     => '36 months after the last collection (signature date if never collected)',
                 ],
                 'history'    => array_map(static fn ($h) => $h->toArray(), $history),
                 'validation' => [
@@ -115,6 +125,12 @@ class MandateController extends AbstractController
     public function demoMandateLifecycle(MandateService $mandateService): JsonResponse
     {
         try {
+            // The service returns the same Mandate instance at every stage: snapshot each one.
+            $snapshot = static fn ($m): array => [
+                'status'   => $m->getStatus()->value,
+                'isActive' => $m->isActive(),
+            ];
+
             // Create mandate
             $mandate1 = $mandateService->createMandate(
                 'MANDATE-LIFECYCLE-001',
@@ -122,14 +138,15 @@ class MandateController extends AbstractController
                 'ES9121000418450200051332',
                 'John Doe',
             );
+            $created = $snapshot($mandate1);
 
             // Suspend mandate
             $mandateService->suspendMandate('MANDATE-LIFECYCLE-001');
-            $suspendedMandate = $mandateService->findMandate('MANDATE-LIFECYCLE-001');
+            $suspended = $snapshot($mandateService->findMandate('MANDATE-LIFECYCLE-001'));
 
             // Reactivate mandate
             $mandateService->reactivateMandate('MANDATE-LIFECYCLE-001');
-            $reactivatedMandate = $mandateService->findMandate('MANDATE-LIFECYCLE-001');
+            $reactivated = $snapshot($mandateService->findMandate('MANDATE-LIFECYCLE-001'));
 
             // Revoke mandate
             $mandateService->revokeMandate('MANDATE-LIFECYCLE-001', 'Customer request');
@@ -138,21 +155,10 @@ class MandateController extends AbstractController
             $response = new JsonResponse([
                 'message' => 'Mandate lifecycle demonstration',
                 'stages'  => [
-                    'created' => [
-                        'status'   => $mandate1->getStatus()->value,
-                        'isActive' => $mandate1->isActive(),
-                    ],
-                    'suspended' => [
-                        'status'   => $suspendedMandate->getStatus()->value,
-                        'isActive' => $suspendedMandate->isActive(),
-                    ],
-                    'reactivated' => [
-                        'status'   => $reactivatedMandate->getStatus()->value,
-                        'isActive' => $reactivatedMandate->isActive(),
-                    ],
-                    'revoked' => [
-                        'status'           => $revokedMandate->getStatus()->value,
-                        'isActive'         => $revokedMandate->isActive(),
+                    'created'     => $created,
+                    'suspended'   => $suspended,
+                    'reactivated' => $reactivated,
+                    'revoked'     => $snapshot($revokedMandate) + [
                         'revocationDate'   => $revokedMandate->getRevocationDate()?->format('Y-m-d H:i:s'),
                         'revocationReason' => $revokedMandate->getRevocationReason(),
                     ],

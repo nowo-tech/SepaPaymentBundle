@@ -82,18 +82,20 @@ class DeprecatedController extends AbstractController
             'reference'              => 'MSG-DEPRECATED-ARRAY-001',
             'initiatingPartyName'    => 'Deprecated Array Demo',
             'paymentInfoId'          => 'PMT-DEPRECATED-ARRAY-001',
-            'creditorIban'           => 'ES9121000418450200051332',
-            'creditorName'           => 'Deprecated Array Company',
+            // Same array keys as CreditTransferGenerator::generateFromArray() (it delegates to it):
+            // debtor* = company that pays, creditor* per transaction = beneficiary.
+            'debtorIban'             => 'ES9121000418450200051332',
+            'debtorName'             => 'Deprecated Array Company',
             'requestedExecutionDate' => '2024-01-20',
-            'creditorBic'            => 'CAIXESBBXXX',
+            'debtorBic'              => 'CAIXESBBXXX',
             'transactions'           => [
                 [
                     'amount'                => 150.75,
                     'currency'              => 'EUR',
-                    'debtorIban'            => 'GB82WEST12345698765432',
-                    'debtorName'            => 'John Doe (Deprecated Array)',
+                    'creditorIban'          => 'GB82WEST12345698765432',
+                    'creditorName'          => 'John Doe (Deprecated Array)',
                     'endToEndId'            => 'E2E-DEPRECATED-ARRAY-001',
-                    'debtorBic'             => 'WESTGB22',
+                    'creditorBic'           => 'WESTGB22',
                     'remittanceInformation' => 'Invoice using deprecated RemesaGenerator',
                 ],
             ],
@@ -198,13 +200,8 @@ class DeprecatedController extends AbstractController
         ];
 
         try {
-            // Generate XML using deprecated RemesaGenerator (uses debtor* in arrays)
-            $dataForRemesa                                  = $data;
-            $dataForRemesa['transactions'][0]['debtorIban'] = $data['transactions'][0]['creditorIban'];
-            $dataForRemesa['transactions'][0]['debtorName'] = $data['transactions'][0]['creditorName'];
-            $dataForRemesa['transactions'][0]['debtorBic']  = $data['transactions'][0]['creditorBic'];
-            unset($dataForRemesa['transactions'][0]['creditorIban'], $dataForRemesa['transactions'][0]['creditorName'], $dataForRemesa['transactions'][0]['creditorBic']);
-            $xmlDeprecated = $remesaGenerator->generateFromArray($dataForRemesa);
+            // Generate XML using deprecated RemesaGenerator (delegates to CreditTransferGenerator, same array keys)
+            $xmlDeprecated = $remesaGenerator->generateFromArray($data);
 
             // Generate XML using new CreditTransferGenerator (uses debtor* in arrays for level 1, creditor* for transactions)
             $xmlNew = $creditTransferGenerator->generateFromArray($data);
