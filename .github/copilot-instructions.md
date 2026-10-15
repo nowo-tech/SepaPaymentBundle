@@ -22,3 +22,7 @@ Use this when suggesting code, tests, documentation, or CI changes for this repo
 ### Tests
 
 - Add or update tests for payment edge cases; maintain coverage targets from CI and README.
+
+## Commits
+
+- Never add AI co-author trailers: no `Co-authored-by: Cursor` / `cursoragent@cursor.com`, no `Co-Authored-By: Claude …` / `noreply@anthropic.com` (REQ-GIT-001).
