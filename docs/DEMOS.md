@@ -4,6 +4,20 @@ The bundle includes demo projects for different Symfony versions. Each demo has 
 
 **Note**: The demos include examples of both deprecated classes (marked with ⚠️) and new classes to demonstrate backward compatibility. The deprecated classes still work but show deprecation warnings. They will be removed in version 2.0.0.
 
+## Table of contents
+
+- [Available Demos](#available-demos)
+- [Demo Endpoints](#demo-endpoints)
+  - [Validators](#validators)
+  - [Converters](#converters)
+  - [Generators](#generators)
+  - [Credit Transfer (New - Recommended)](#credit-transfer-new---recommended)
+  - [Credit Transfer (Deprecated - Still Works)](#credit-transfer-deprecated---still-works)
+  - [Direct Debit](#direct-debit)
+  - [Parsers](#parsers)
+  - [Export/Import](#exportimport)
+- [Quick Start with Docker](#quick-start-with-docker)
+
 ## Available Demos
 
 - **Symfony 8.0 Demo**: `demo/symfony8/` (Port 8001 by default)

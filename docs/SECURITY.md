@@ -1,5 +1,13 @@
 # Security policy
 
+## Table of contents
+
+- [Supported versions](#supported-versions)
+- [Reporting a vulnerability](#reporting-a-vulnerability)
+- [Security considerations for this bundle](#security-considerations-for-this-bundle)
+- [Release security checklist (12.4.1)](#release-security-checklist-1241)
+- [Logging of payment identifiers](#logging-of-payment-identifiers)
+
 ## Supported versions
 
 Security fixes are applied to the current major version line. Please upgrade to the latest patch release to receive security updates.
@@ -39,7 +47,6 @@ Before tagging a release, confirm:
 | **Limits / DoS** | Timeouts, size limits, rate limits where applicable. |
 
 Record confirmation in the release PR or tag notes.
-
 
 ## Logging of payment identifiers
 

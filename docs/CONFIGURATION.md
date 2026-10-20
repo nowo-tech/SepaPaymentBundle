@@ -2,7 +2,6 @@
 
 This document describes the configuration options available for the SEPA Payment Bundle.
 
-
 ## Table of contents
 
 - [Overview](#overview)
@@ -10,13 +9,16 @@ This document describes the configuration options available for the SEPA Payment
   - [Location](#location)
   - [Structure](#structure)
 - [Configuration Options](#configuration-options)
-  - [`default_currency`](#default-currency)
-  - [`validation_cache`](#validation-cache)
+  - [`default_currency`](#default_currency)
+  - [`validation_cache`](#validation_cache)
 - [How Configuration Works](#how-configuration-works)
 - [Accessing Configuration in Code](#accessing-configuration-in-code)
 - [Environment-Specific Configuration](#environment-specific-configuration)
 - [Validation](#validation)
 - [Translations](#translations)
+  - [Are bundle translations overridable?](#are-bundle-translations-overridable)
+  - [Load order (priority, highest first)](#load-order-priority-highest-first)
+  - [How to override in your application](#how-to-override-in-your-application)
 - [Examples](#examples)
   - [Basic Configuration](#basic-configuration)
   - [Multi-Currency Setup](#multi-currency-setup)

@@ -2,6 +2,13 @@
 
 The bundle provides console commands for common operations.
 
+## Table of contents
+
+- [Validate IBAN](#validate-iban)
+- [Convert CCC to IBAN](#convert-ccc-to-iban)
+- [Validate Credit Card](#validate-credit-card)
+- [Parse Direct Debit XML](#parse-direct-debit-xml)
+
 ## Validate IBAN
 
 ```bash

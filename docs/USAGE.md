@@ -2,10 +2,8 @@
 
 This document provides detailed usage examples for all features of the SEPA Payment Bundle.
 
-
 ## Table of contents
 
-- [Table of Contents](#table-of-contents)
 - [IBAN Validation](#iban-validation)
 - [CCC to IBAN Conversion](#ccc-to-iban-conversion)
 - [BIC Validation](#bic-validation)
@@ -23,7 +21,7 @@ This document provides detailed usage examples for all features of the SEPA Paym
   - [Parsing SEPA Direct Debit](#parsing-sepa-direct-debit)
 - [Amounts and Currency in Array Input](#amounts-and-currency-in-array-input)
 - [XSD Schema Validation](#xsd-schema-validation)
-  - [Basic Usage](#basic-usage)
+  - [Basic Usage](#basic-usage-1)
   - [Using Custom XSD Schema Files](#using-custom-xsd-schema-files)
   - [Validating Against Schema String](#validating-against-schema-string)
   - [Enabling XSD Validation in Generators](#enabling-xsd-validation-in-generators)
@@ -45,20 +43,21 @@ This document provides detailed usage examples for all features of the SEPA Paym
   - [Registering Event Listeners](#registering-event-listeners)
   - [Using Event Dispatcher in Generators](#using-event-dispatcher-in-generators)
 - [Structured Logging](#structured-logging)
-  - [Basic Usage](#basic-usage)
-  - [Automatic Integration in Generators](#automatic-integration-in-generators)
+  - [Basic Usage](#basic-usage-2)
+  - [Automatic Integration in Generators](#automatic-integration-in-generators-1)
   - [Logging Methods](#logging-methods)
   - [Context Data](#context-data)
-  - [Dependency Injection](#dependency-injection)
+  - [Dependency Injection](#dependency-injection-1)
   - [Custom Logger Integration](#custom-logger-integration)
   - [Log Levels](#log-levels)
 - [SEPA Mandates](#sepa-mandates)
 - [Generating SEPA Credit Transfer (Remesa de Pago)](#generating-sepa-credit-transfer-remesa-de-pago)
+  - [`CreditTransferGenerator` and `TranslatorInterface`](#credittransfergenerator-and-translatorinterface)
   - [Using Array Format (Recommended)](#using-array-format-recommended)
   - [Using Object Format](#using-object-format)
 - [Generating SEPA Direct Debit (Remesa de Cobro)](#generating-sepa-direct-debit-remesa-de-cobro)
-  - [Using Array Format (Recommended)](#using-array-format-recommended)
-  - [Using Object Format](#using-object-format)
+  - [Using Array Format (Recommended)](#using-array-format-recommended-1)
+  - [Using Object Format](#using-object-format-1)
 - [Using with Dependency Injection](#using-with-dependency-injection)
   - [Service Aliases](#service-aliases)
 - [Overriding bundle translations](#overriding-bundle-translations)

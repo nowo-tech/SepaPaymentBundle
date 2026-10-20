@@ -59,6 +59,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Documentation: wave-1 REQ compliance — README GitHub stars + Coverage badges and documentation list order, CONTRIBUTING Cursor Agent settings (REQ-IDE-006), tables of contents in long docs (broken anchors fixed), commented demo `.env.example`, Spec Kit inventory refresh (80/80; ISO 20022 XSD schemas and NOTICE mapped).
+
 ## [1.4.1] - 2026-10-13
 
 ### Changed

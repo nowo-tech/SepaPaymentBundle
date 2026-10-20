@@ -2,9 +2,9 @@
 
 **Baseline spec**: [`spec.md`](spec.md)  
 **Package**: `nowo-tech/sepa-payment-bundle`  
-**Last audited**: 2026-07-07
+**Last audited**: 2026-10-20
 
-This file proves that **every production source artifact** under `src/` is referenced by the baseline specification. PHPUnit under `tests/` and XSD files under `Resources/schemas/` (when added) are referenced by requirement IDs but counted here when present under `src/`.
+This file proves that **every production source artifact** under `src/` is referenced by the baseline specification. PHPUnit under `tests/` is out of scope; the ISO 20022 XSD files under `Resources/schemas/` ship with the package and are counted.
 
 ## Bundle & DI (`src/`)
 
@@ -138,7 +138,11 @@ This file proves that **every production source artifact** under `src/` is refer
 
 | Source file | Spec section | Requirement IDs |
 | --- | --- | --- |
-| `Resources/schemas/.gitkeep` | XSD placeholder directory | FR-VAL-008 |
+| `Resources/schemas/pain.001.001.03.xsd` | ISO 20022 CustomerCreditTransferInitiationV03 schema | FR-VAL-008, FR-GEN-001 |
+| `Resources/schemas/pain.001.001.09.xsd` | ISO 20022 CustomerCreditTransferInitiationV09 schema | FR-VAL-008, FR-GEN-001 |
+| `Resources/schemas/pain.008.001.02.xsd` | ISO 20022 CustomerDirectDebitInitiationV02 schema | FR-VAL-008, FR-GEN-002 |
+| `Resources/schemas/pain.008.001.09.xsd` | ISO 20022 CustomerDirectDebitInitiationV09 schema | FR-VAL-008, FR-GEN-002 |
+| `Resources/schemas/NOTICE` | Provenance / licence notice for the bundled ISO 20022 schemas | FR-VAL-008 |
 | `Resources/translations/NowoSepaPaymentBundle.de.yaml` | Constraint messages DE | FR-I18N-001 |
 | `Resources/translations/NowoSepaPaymentBundle.en.yaml` | Constraint messages en | FR-I18N-001 |
 | `Resources/translations/NowoSepaPaymentBundle.en_GB.yaml` | Constraint messages en_GB | FR-I18N-001 |
@@ -169,6 +173,8 @@ This file proves that **every production source artifact** under `src/` is refer
 | Mandate | 3 | 3 |
 | Worker subscriber | 1 | 1 |
 | Converter & logger | 2 | 2 |
-| Schemas placeholder | 1 | 1 |
+| XSD schemas | 5 | 5 |
 | Translations | 12 | 12 |
-| **Total `src/` artifacts** | **76** | **76** |
+| **Total `src/` artifacts** | **80** | **80** |
+
+Audit command (production count): `git ls-files src | wc -l` → **80** (2026-10-20).

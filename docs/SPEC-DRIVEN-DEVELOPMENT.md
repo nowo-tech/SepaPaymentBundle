@@ -10,6 +10,17 @@ There is no separate executable spec language (for example Gherkin); tests and s
 
 ---
 
+## Table of contents
+
+- [User stories](#user-stories)
+- [Bundle functional scope](#bundle-functional-scope)
+- [Validating the functional spec](#validating-the-functional-spec)
+- [Requirement identifiers (`REQ-*`)](#requirement-identifiers-req-)
+- [Suggested workflow for contributors](#suggested-workflow-for-contributors)
+- [GitHub Spec Kit (summary)](#github-spec-kit-summary)
+- [Relationship to Engram / external checklists](#relationship-to-engram--external-checklists)
+- [See also](#see-also)
+
 ## User stories
 
 The sections below state **behavior**; this subsection states **intent** in backlog-friendly form.
@@ -89,7 +100,6 @@ When you change scripted behavior, **update the existing `REQ-*` comment** if th
    - For **new features**, use Cursor Agent skills (`/speckit-specify`, `/speckit-plan`, `/speckit-tasks`) as documented in SPEC-KIT.
 
 ---
-
 
 ## GitHub Spec Kit (summary)
 

@@ -1,6 +1,6 @@
 # SEPA Payment Bundle
 
-[![CI](https://github.com/nowo-tech/SepaPaymentBundle/actions/workflows/ci.yml/badge.svg)](https://github.com/nowo-tech/SepaPaymentBundle/actions/workflows/ci.yml) [![Packagist Version](https://img.shields.io/packagist/v/nowo-tech/sepa-payment-bundle.svg?style=flat)](https://packagist.org/packages/nowo-tech/sepa-payment-bundle) [![Packagist Downloads](https://img.shields.io/packagist/dt/nowo-tech/sepa-payment-bundle.svg)](https://packagist.org/packages/nowo-tech/sepa-payment-bundle) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?logo=php)](https://php.net) [![Symfony](https://img.shields.io/badge/Symfony-6.4%2B%20%7C%207.4%2B%20%7C%208.0%20%7C%208.1%2B-000000?logo=symfony)](https://symfony.com)
+[![CI](https://github.com/nowo-tech/SepaPaymentBundle/actions/workflows/ci.yml/badge.svg)](https://github.com/nowo-tech/SepaPaymentBundle/actions/workflows/ci.yml) [![Packagist Version](https://img.shields.io/packagist/v/nowo-tech/sepa-payment-bundle.svg?style=flat)](https://packagist.org/packages/nowo-tech/sepa-payment-bundle) [![Packagist Downloads](https://img.shields.io/packagist/dt/nowo-tech/sepa-payment-bundle.svg)](https://packagist.org/packages/nowo-tech/sepa-payment-bundle) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?logo=php)](https://php.net) [![Symfony](https://img.shields.io/badge/Symfony-6.4%2B%20%7C%207.4%2B%20%7C%208.0%20%7C%208.1%2B-000000?logo=symfony)](https://symfony.com) [![GitHub stars](https://img.shields.io/github/stars/nowo-tech/sepa-payment-bundle.svg?style=social&label=Star)](https://github.com/nowo-tech/SepaPaymentBundle) [![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen)](#tests-and-coverage)
 
 > ⭐ **Found this useful?** Give it a star on GitHub! It helps us maintain and improve the project.
 
@@ -155,7 +155,6 @@ See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for development setup, testing, c
 
 - [Installation](docs/INSTALLATION.md)
 - [Configuration](docs/CONFIGURATION.md)
-- [PSR evaluation (REQ-CS-007)](docs/PSR.md)
 - [Usage](docs/USAGE.md)
 - [Contributing](docs/CONTRIBUTING.md)
 - [Code of Conduct](CODE_OF_CONDUCT.md)
@@ -166,10 +165,11 @@ See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for development setup, testing, c
 - [Engram](docs/ENGRAM.md)
 - [Spec-driven development](docs/SPEC-DRIVEN-DEVELOPMENT.md)
 - [GitHub Spec Kit](docs/SPEC-KIT.md)
-- [GitHub Actions CI requirements](docs/GITHUB_CI.md)
 
 ### Additional documentation
 
+- [PSR evaluation (REQ-CS-007)](docs/PSR.md)
+- [GitHub Actions CI requirements](docs/GITHUB_CI.md)
 - [Commands](docs/COMMANDS.md)
 - [Demo projects](docs/DEMOS.md)
 - [Demo with FrankenPHP (development and production)](docs/DEMO-FRANKENPHP.md)
@@ -178,6 +178,7 @@ See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for development setup, testing, c
 - [Deprecated fields](docs/DEPRECATED_FIELDS.md)
 - [Future improvements](docs/FUTURE.md)
 - [Branching](docs/BRANCHING.md)
+
 ## Tests and coverage
 
 - Tests: PHPUnit (PHP)

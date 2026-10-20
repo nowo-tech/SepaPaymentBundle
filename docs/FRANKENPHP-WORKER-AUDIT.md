@@ -9,6 +9,19 @@
 | Remediation (2026-09-23) | W-01/W-02 resolved with a bundle-owned `kernel.request` subscriber (`src/EventSubscriber/WorkerStateResetSubscriber.php`) that resets `ResetInterface` services tagged `nowo_sepa_payment.request_scoped` on every main request; W-03 resolved (libxml flag restored in `finally`). Regression tests: `tests/Integration/WorkerModeIntegrationTest.php`, `tests/Unit/EventSubscriber/WorkerStateResetSubscriberTest.php` |
 | **Verdict** | ✅ **Viable under scenario B** — the default in-memory `MandateRepository` and runtime `BicLookupService::addMapping()` mappings are now request-scoped (reset at the start of each main request, and on `kernel.reset`); everything else is stateless. The in-memory repository is still not a persistence layer: bind `MandateRepositoryInterface` to a persistent implementation in production. |
 
+## Table of contents
+
+- [Execution model assumed](#execution-model-assumed)
+- [Summary](#summary)
+- [Services reviewed](#services-reviewed)
+- [Findings](#findings)
+  - [W-01 — In-memory `MandateRepository` keeps mandates across requests and users (High)](#w-01--in-memory-mandaterepository-keeps-mandates-across-requests-and-users-high)
+  - [W-02 — `BicLookupService::addMapping()` mutates a shared lookup table (Medium)](#w-02--biclookupserviceaddmapping-mutates-a-shared-lookup-table-medium)
+  - [W-03 — `XsdValidator` forces the process-wide libxml error mode to `false` (Low)](#w-03--xsdvalidator-forces-the-process-wide-libxml-error-mode-to-false-low)
+  - [W-04 — Third-party static sanitizer in `digitick/sepa-xml` (Info)](#w-04--third-party-static-sanitizer-in-digiticksepa-xml-info)
+- [Usage recommendations in worker mode](#usage-recommendations-in-worker-mode)
+- [Re-audit triggers](#re-audit-triggers)
+
 ## Execution model assumed
 
 FrankenPHP worker mode boots the Symfony kernel once per worker and serves many requests with the same container. This audit assumes the **strict** variant: the kernel is **not** rebooted between requests, so every shared service, static property and PHP global survives from one request to the next. Two scenarios are evaluated:
