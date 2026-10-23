@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Nowo\SepaPaymentBundle\Tests\Unit\Validator;
 
 use DateTime;
+use DateTimeImmutable;
 use Nowo\SepaPaymentBundle\Validator\SepaBusinessRulesValidator;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Clock\MockClock;
 
 /**
  * Test cases for SepaBusinessRulesValidator.
@@ -180,5 +182,16 @@ class SepaBusinessRulesValidatorTest extends TestCase
 
         $this->assertNotEmpty($errors);
         $this->assertStringContainsString('Mandate expiration date', $errors[0]);
+    }
+
+    public function testDateRulesUseTheInjectedClock(): void
+    {
+        $validator = new SepaBusinessRulesValidator(new MockClock('2030-06-15 10:00:00'));
+
+        self::assertTrue($validator->isValidExecutionDate(new DateTimeImmutable('2030-06-15')));
+        self::assertFalse($validator->isValidExecutionDate(new DateTimeImmutable('2030-06-15'), false));
+        self::assertFalse($validator->isValidExecutionDate(new DateTimeImmutable('2030-06-14')));
+        self::assertTrue($validator->isValidMandateExpirationDate(new DateTimeImmutable('2030-06-16')));
+        self::assertFalse($validator->isValidMandateExpirationDate(new DateTimeImmutable('2030-06-15')));
     }
 }

@@ -15,6 +15,8 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 use function in_array;
 
+use const LIBXML_NONET;
+
 /**
  * SEPA Direct Debit XML parser.
  * Parses SEPA Direct Debit XML files to extract information (pain.008.001.02 and pain.008.001.09).
@@ -54,7 +56,7 @@ class DirectDebitParser
     public function parseDirectDebit(string $xml): array
     {
         $dom = new DOMDocument();
-        if (!@$dom->loadXML($xml)) {
+        if (!@$dom->loadXML($xml, LIBXML_NONET)) {
             throw new InvalidArgumentException('Invalid XML format');
         }
 
@@ -287,7 +289,7 @@ class DirectDebitParser
             }
 
             $dom = new DOMDocument();
-            if (!@$dom->loadXML($xml)) {
+            if (!@$dom->loadXML($xml, LIBXML_NONET)) {
                 return false;
             }
 

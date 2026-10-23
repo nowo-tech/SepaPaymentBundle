@@ -6,6 +6,8 @@ namespace Nowo\SepaPaymentBundle\Validator;
 
 use DateTime;
 use DateTimeInterface;
+use Psr\Clock\ClockInterface;
+use Symfony\Component\Clock\NativeClock;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 use function in_array;
@@ -27,6 +29,14 @@ class SepaBusinessRulesValidator
      * Maximum transaction amount in EUR (999,999,999.99).
      */
     public const MAX_TRANSACTION_AMOUNT = 999999999.99;
+
+    /**
+     * @param ClockInterface $clock Source of "today" for date rules (REQ-DI-001); inject a MockClock in tests
+     */
+    public function __construct(
+        private readonly ClockInterface $clock = new NativeClock(),
+    ) {
+    }
 
     /**
      * Maximum number of transactions per file.
@@ -72,7 +82,7 @@ class SepaBusinessRulesValidator
      */
     public function isValidExecutionDate(DateTimeInterface $executionDate, bool $allowToday = true): bool
     {
-        $today             = new DateTime('today');
+        $today             = DateTime::createFromInterface($this->clock->now())->setTime(0, 0);
         $executionDateOnly = new DateTime($executionDate->format('Y-m-d'));
 
         if ($allowToday) {
@@ -117,7 +127,7 @@ class SepaBusinessRulesValidator
      */
     public function isValidMandateExpirationDate(DateTimeInterface $expirationDate): bool
     {
-        $today              = new DateTime('today');
+        $today              = DateTime::createFromInterface($this->clock->now())->setTime(0, 0);
         $expirationDateOnly = new DateTime($expirationDate->format('Y-m-d'));
 
         return $expirationDateOnly > $today;

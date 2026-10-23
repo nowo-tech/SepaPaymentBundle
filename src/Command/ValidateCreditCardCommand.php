@@ -19,6 +19,8 @@ use function strlen;
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
+ *
+ * @final since 1.5, will be final in 2.0 (not an extension point; decorate or replace the service instead)
  */
 #[AsCommand(name: 'sepa:validate-credit-card', description: 'Validates a credit card number and displays its information')]
 class ValidateCreditCardCommand extends Command

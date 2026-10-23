@@ -161,6 +161,9 @@
 
 ## Unreleased
 
+- New runtime requirements `psr/clock` and `symfony/clock`. `new SepaBusinessRulesValidator()` still works (native clock); pass a `MockClock` in tests.
+- Commands, constraint validators, `CccConverter`, `ExportService`, `PhpTempCsvStreamHandler` and `BicLookupService` are `@final`: Symfony's debug class loader reports a deprecation if you extend them; decorate the services instead (they become `final` in 2.0).
+
 ## To 1.4.1
 
 From **1.4.0** — test kernel reference.php no longer tracked

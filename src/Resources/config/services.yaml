@@ -72,23 +72,19 @@ services:
     # All services are public and can be autowired or retrieved by their aliases
 
     # Console Commands
-    # Commands still need explicit configuration for tags and arguments
+    # Commands are tagged by #[AsCommand] + autoconfigure; only their arguments are configured here (REQ-SF-003)
     Nowo\SepaPaymentBundle\Command\ValidateIbanCommand:
-        tags: ['console.command']
         arguments:
             $ibanValidator: '@nowo_sepa_payment.validator.iban_validator'
 
     Nowo\SepaPaymentBundle\Command\ConvertCccCommand:
-        tags: ['console.command']
         arguments:
             $cccConverter: '@nowo_sepa_payment.converter.ccc_converter'
 
     Nowo\SepaPaymentBundle\Command\ValidateCreditCardCommand:
-        tags: ['console.command']
         arguments:
             $creditCardValidator: '@nowo_sepa_payment.validator.credit_card_validator'
 
     Nowo\SepaPaymentBundle\Command\ParseDirectDebitCommand:
-        tags: ['console.command']
         arguments:
             $parser: '@nowo_sepa_payment.parser.direct_debit_parser'

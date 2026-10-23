@@ -163,7 +163,7 @@ class CreditTransferGenerator
                 $creditTransferData->getMessageId(),
                 $creditTransferData->getInitiatingPartyName(),
             );
-            self::setGroupHeaderCreationDate($groupHeader, $creditTransferData->getCreationDate());
+            $this->setGroupHeaderCreationDate($groupHeader, $creditTransferData->getCreationDate());
 
             // Create transfer file with group header (digitick/sepa-xml 3.x writes pain.001.001.09)
             $transferFile = new CustomerCreditTransferFile($groupHeader);
@@ -286,7 +286,7 @@ class CreditTransferGenerator
     {
         return new Response($xmlData, Response::HTTP_OK, [
             'Content-Type'        => 'application/xml',
-            'Content-Disposition' => self::makeAttachmentDisposition($filename),
+            'Content-Disposition' => $this->makeAttachmentDisposition($filename),
         ]);
     }
 
@@ -544,7 +544,7 @@ class CreditTransferGenerator
         }
 
         $amount = $transactionData['amount'];
-        if (!is_int($amount) && !is_float($amount) && !(is_string($amount) && is_numeric($amount))) {
+        if (!is_int($amount) && !is_float($amount) && (!is_string($amount) || !is_numeric($amount))) {
             throw new InvalidArgumentException($invalidMessage);
         }
 
@@ -581,7 +581,7 @@ class CreditTransferGenerator
      *
      * @return string The header value
      */
-    private static function makeAttachmentDisposition(string $filename): string
+    private function makeAttachmentDisposition(string $filename): string
     {
         $filename = str_replace(['/', '\\'], '_', $filename);
         $fallback = (string) preg_replace('/[^\x20-\x7e]|[%"]/', '_', $filename);
@@ -873,7 +873,7 @@ class CreditTransferGenerator
      * @param GroupHeader $groupHeader The group header
      * @param DateTimeInterface $creationDate The creation date and time
      */
-    private static function setGroupHeaderCreationDate(GroupHeader $groupHeader, DateTimeInterface $creationDate): void
+    private function setGroupHeaderCreationDate(GroupHeader $groupHeader, DateTimeInterface $creationDate): void
     {
         $immutableDate = DateTimeImmutable::createFromInterface($creationDate);
         (function () use ($immutableDate): void {

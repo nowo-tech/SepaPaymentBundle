@@ -141,7 +141,7 @@ class DirectDebitGenerator
     {
         return new Response($xmlData, Response::HTTP_OK, [
             'Content-Type'        => 'application/xml',
-            'Content-Disposition' => self::makeAttachmentDisposition($filename),
+            'Content-Disposition' => $this->makeAttachmentDisposition($filename),
         ]);
     }
 
@@ -552,7 +552,7 @@ class DirectDebitGenerator
         }
 
         $amount = $transactionData['amount'];
-        if (!is_int($amount) && !is_float($amount) && !(is_string($amount) && is_numeric($amount))) {
+        if (!is_int($amount) && !is_float($amount) && (!is_string($amount) || !is_numeric($amount))) {
             throw new InvalidArgumentException(self::INVALID_AMOUNT_MESSAGE);
         }
 
@@ -585,7 +585,7 @@ class DirectDebitGenerator
      *
      * @return string The header value
      */
-    private static function makeAttachmentDisposition(string $filename): string
+    private function makeAttachmentDisposition(string $filename): string
     {
         $filename = str_replace(['/', '\\'], '_', $filename);
         $fallback = (string) preg_replace('/[^\x20-\x7e]|[%"]/', '_', $filename);

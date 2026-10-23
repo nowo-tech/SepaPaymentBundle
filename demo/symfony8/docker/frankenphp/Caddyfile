@@ -6,7 +6,7 @@
 :80 {
 	root * /app/public
 	encode zstd br gzip
-	# No worker: one PHP process per request (reliable for demos/CI; Symfony index.php works as-is)
+	# Worker mode (FRANKENPHP_MODE=worker, default): long-lived PHP workers; classic mode uses Caddyfile.dev.
 	mercure {
 		anonymous
 	}
@@ -14,5 +14,9 @@
 	php_server {
 		hot_reload
 		try_files {path} /index.php
+		worker {
+			file /app/public/index.php
+			watch
+		}
 	}
 }

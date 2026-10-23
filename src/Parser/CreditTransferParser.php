@@ -15,6 +15,8 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 use function in_array;
 
+use const LIBXML_NONET;
+
 /**
  * SEPA Credit Transfer XML parser.
  * Parses SEPA XML files to extract information (pain.001.001.03 and pain.001.001.09).
@@ -54,7 +56,7 @@ class CreditTransferParser
     public function parseCreditTransfer(string $xml): array
     {
         $dom = new DOMDocument();
-        if (!@$dom->loadXML($xml)) {
+        if (!@$dom->loadXML($xml, LIBXML_NONET)) {
             throw new InvalidArgumentException('Invalid XML format');
         }
 
@@ -164,7 +166,7 @@ class CreditTransferParser
             }
 
             $dom = new DOMDocument();
-            if (!@$dom->loadXML($xml)) {
+            if (!@$dom->loadXML($xml, LIBXML_NONET)) {
                 return false;
             }
 

@@ -61,6 +61,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `SepaBusinessRulesValidator` takes "today" from an injected PSR-20 clock (`symfony/clock` `NativeClock` by default) instead of `new DateTime('today')` (REQ-DI-001); `psr/clock` and `symfony/clock` are now required.
+- SEPA XML parsing (`CreditTransferParser`, `DirectDebitParser`, `XsdValidator`) loads documents with `LIBXML_NONET` (no network access while parsing).
+- Commands, Symfony constraint validators, `CccConverter`, `ExportService`, `PhpTempCsvStreamHandler` and `BicLookupService` are marked `@final` (real `final` in 2.0); models, events, generators and parsers stay extensible (REQ-PHP-001). Redundant `console.command` tags removed (commands use `#[AsCommand]`) (REQ-SF-003).
+- Demo: the worker Caddyfile now really enables `worker { file /app/public/index.php; watch }` (`FRANKENPHP_MODE=worker`), `make up` installs `vendor/` first, the compose port fallback matches `.env.example` (8003), and the demo release check runs `update-bundle` first, now with `--with-dependencies` so new bundle requirements reach the demo lock (REQ-DEMO-002, REQ-DEMO-010, REQ-DEMO-005, REQ-DEMO-007).
+- `release-check` starts with `ensure-up` and runs `check-no-raw-html-form`; `make validate-translations` checks key parity per domain against `en` (REQ-MAKE-002, REQ-MAKE-004); Rector targets PHP 8.2 (REQ-CS-003); composer keywords trimmed to the package domain (REQ-PKG-004).
+- `docs/SECURITY.md` adds attack surface, threat model and exposure, and the release checklist gains the AI-audit item (REQ-SEC-001, REQ-SEC-002); the co-author check accepts git worktrees.
+
+### Changed
+
 - Dependencies refreshed (Composer and pnpm/npm lock files of the bundle and its demos, campaign 2026-10-19).
 - `.php-cs-fixer.dist.php`: `new ParallelConfig(2)` (REQ-CS-001).
 - Documentation: wave-1 REQ compliance — README GitHub stars + Coverage badges and documentation list order, CONTRIBUTING Cursor Agent settings (REQ-IDE-006), tables of contents in long docs (broken anchors fixed), commented demo `.env.example`, Spec Kit inventory refresh (80/80; ISO 20022 XSD schemas and NOTICE mapped).

@@ -209,6 +209,9 @@ test-all:
 	fi
 
 # Test coverage for all demos
+update-bundle-all:
+	@for d in $(DEMOS); do $(MAKE) -C $$d update-bundle || exit 1; done
+
 test-coverage-all:
 	@echo "📊 Running tests with coverage for all demos..."
 	@FAILED=0; \
@@ -265,8 +268,8 @@ verify-all:
 		echo "✅ All demos verified successfully!"; \
 	fi
 
-# release-check: test-coverage-all, then release-verify
-release-check: test-coverage-all release-verify
+# REQ-DEMO-007 release-check: sync the bundle, run the demo tests with coverage, then release-verify
+release-check: update-bundle-all test-coverage-all release-verify
 	@echo "✅ All demos passed release-check."
 
 # Release verify: for each demo, up → sleep → healthcheck (HTTP 200) → down

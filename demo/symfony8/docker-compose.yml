@@ -7,7 +7,7 @@ services:
     container_name: sepa-payment-demo-symfony8-php
     working_dir: /app
     ports:
-      - "${PORT:-8001}:80"
+      - "${PORT:-8003}:80"
     volumes:
       - .:/app
       # Mount bundle root so the path repo symlink works and template/code changes are visible

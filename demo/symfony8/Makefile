@@ -22,6 +22,8 @@ help:
 
 up:
 	@if [ ! -f .env ]; then cp .env.example .env 2>/dev/null || true; fi
+	@# Install vendor/ in a one-off container first: worker mode cannot boot a fresh checkout without it.
+	$(COMPOSE) run --rm -T --no-deps --entrypoint composer -e COMPOSER_MEMORY_LIMIT=-1 php install --no-interaction
 	$(COMPOSE) up -d
 	@echo "Waiting for container to be ready..."
 	@sleep 5
@@ -43,8 +45,7 @@ build:
 ensure-up:
 	@if ! $(COMPOSE) exec -T php true 2>/dev/null; then \
 		echo "Starting container..."; \
-		$(COMPOSE) up -d; \
-		sleep 5; \
+		$(MAKE) up; \
 	fi
 
 install: ensure-up
@@ -58,7 +59,7 @@ update: ensure-up
 	$(COMPOSE) exec -T php composer update --no-interaction
 
 update-bundle: ensure-up
-	$(COMPOSE) exec -T php composer update nowo-tech/sepa-payment-bundle --no-interaction
+	$(COMPOSE) exec -T php composer update nowo-tech/sepa-payment-bundle --with-dependencies --no-interaction
 	@$(MAKE) link-bundle
 	$(COMPOSE) exec -T php php bin/console cache:clear
 	@echo "Bundle updated. Reload the page in the browser."

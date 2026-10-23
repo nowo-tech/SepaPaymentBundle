@@ -10,9 +10,10 @@ use LibXMLError;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
-use function dirname;
 use function is_file;
 use function str_starts_with;
+
+use const LIBXML_NONET;
 
 /**
  * XSD Schema validator for SEPA XML files.
@@ -67,7 +68,7 @@ class XsdValidator
         // Load XML with error handling
         $previousUseErrors = libxml_use_internal_errors(true);
         try {
-            $loaded = @$dom->loadXML($xml);
+            $loaded = @$dom->loadXML($xml, LIBXML_NONET);
             $errors = libxml_get_errors();
             libxml_clear_errors();
         } finally {
@@ -184,7 +185,7 @@ class XsdValidator
      */
     public static function getSchemaDirectory(): string
     {
-        return dirname(__DIR__) . '/Resources/schemas';
+        return __DIR__ . '/../Resources/schemas';
     }
 
     /**
@@ -204,7 +205,7 @@ class XsdValidator
         // Load XML with error handling
         $previousUseErrors = libxml_use_internal_errors(true);
         try {
-            $loaded = @$dom->loadXML($xml);
+            $loaded = @$dom->loadXML($xml, LIBXML_NONET);
             $errors = libxml_get_errors();
             libxml_clear_errors();
         } finally {
