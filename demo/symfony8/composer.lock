@@ -76,7 +76,7 @@
         },
         {
             "name": "nowo-tech/sepa-payment-bundle",
-            "version": "dev-chore/req-wave2",
+            "version": "dev-main",
             "dist": {
                 "type": "path",
                 "url": "/var/sepa-payment-bundle",
