@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.5.0] - 2026-10-23](#150---2026-10-23)
 - [[1.4.1] - 2026-10-13](#141---2026-10-13)
 - [[1.4.0] - 2026-10-13](#140---2026-10-13)
 - [[1.3.0] - 2026-10-13](#130---2026-10-13)
@@ -59,6 +60,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-10-23
+
+REQ wave 2: injected PSR-20 clock, LIBXML_NONET parsing, @final services, demo worker mode and release gates. See [UPGRADING](UPGRADING.md#to-150).
+
 ### Changed
 
 - `SepaBusinessRulesValidator` takes "today" from an injected PSR-20 clock (`symfony/clock` `NativeClock` by default) instead of `new DateTime('today')` (REQ-DI-001); `psr/clock` and `symfony/clock` are now required.
@@ -73,6 +78,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dependencies refreshed (Composer and pnpm/npm lock files of the bundle and its demos, campaign 2026-10-19).
 - `.php-cs-fixer.dist.php`: `new ParallelConfig(2)` (REQ-CS-001).
 - Documentation: wave-1 REQ compliance — README GitHub stars + Coverage badges and documentation list order, CONTRIBUTING Cursor Agent settings (REQ-IDE-006), tables of contents in long docs (broken anchors fixed), commented demo `.env.example`, Spec Kit inventory refresh (80/80; ISO 20022 XSD schemas and NOTICE mapped).
+
+[1.5.0]: https://github.com/nowo-tech/SepaPaymentBundle/releases/tag/v1.5.0
 
 ## [1.4.1] - 2026-10-13
 

@@ -3,6 +3,7 @@
 ## Table of contents
 
 - [Unreleased](#unreleased)
+- [To 1.5.0](#to-150)
 - [To 1.4.1](#to-141)
 - [To 1.4.0](#to-140)
 - [To 1.3.0](#to-130)
@@ -152,14 +153,22 @@
 - [Upgrading to 0.0.5](#upgrading-to-005)
   - [Payment Method](#payment-method)
 - [Upgrading to 0.0.4](#upgrading-to-004)
-  - [Digitick\\Sepa v3.0 Compatibility](#digiticksepa-v30-compatibility)
+  - [Digitick\Sepa v3.0 Compatibility](#digiticksepa-v30-compatibility)
 - [Upgrading to 0.0.3](#upgrading-to-003)
-  - [Breaking Changes from Digitick\\Sepa v3.0](#breaking-changes-from-digiticksepa-v30)
+  - [Breaking Changes from Digitick\Sepa v3.0](#breaking-changes-from-digiticksepa-v30)
 - [General Upgrade Notes](#general-upgrade-notes)
   - [Demo Applications](#demo-applications)
 - [Getting Help](#getting-help)
 
 ## Unreleased
+
+## To 1.5.0
+
+From **1.4.1**:
+
+```bash
+composer update nowo-tech/sepa-payment-bundle
+```
 
 - New runtime requirements `psr/clock` and `symfony/clock`. `new SepaBusinessRulesValidator()` still works (native clock); pass a `MockClock` in tests.
 - Commands, constraint validators, `CccConverter`, `ExportService`, `PhpTempCsvStreamHandler` and `BicLookupService` are `@final`: Symfony's debug class loader reports a deprecation if you extend them; decorate the services instead (they become `final` in 2.0).
