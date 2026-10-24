@@ -25,9 +25,12 @@ class PaymentValidationFormType extends AbstractType
     {
         $builder
             ->add('iban', TextType::class, [
-                'label'    => 'IBAN',
-                'required' => true,
-                'attr'     => [
+                'label'     => 'IBAN',
+                'required'  => true,
+                'help'      => 'Example: ES9121000418450200051332',
+                'help_attr' => ['class' => 'help-text'],
+                'row_attr'  => ['class' => 'form-group'],
+                'attr'      => [
                     'placeholder' => 'ES9121000418450200051332',
                     'class'       => 'form-control',
                 ],
@@ -37,9 +40,12 @@ class PaymentValidationFormType extends AbstractType
                 ],
             ])
             ->add('bic', TextType::class, [
-                'label'    => 'BIC',
-                'required' => true,
-                'attr'     => [
+                'label'     => 'BIC',
+                'required'  => true,
+                'help'      => 'Example: ESPBESMM',
+                'help_attr' => ['class' => 'help-text'],
+                'row_attr'  => ['class' => 'form-group'],
+                'attr'      => [
                     'placeholder' => 'ESPBESMM',
                     'class'       => 'form-control',
                 ],
@@ -49,9 +55,12 @@ class PaymentValidationFormType extends AbstractType
                 ],
             ])
             ->add('countryCode', TextType::class, [
-                'label'    => 'SEPA Country Code',
-                'required' => true,
-                'attr'     => [
+                'label'     => 'SEPA Country Code',
+                'required'  => true,
+                'help'      => 'SEPA country code (2 letters). Example: ES, FR, DE',
+                'help_attr' => ['class' => 'help-text'],
+                'row_attr'  => ['class' => 'form-group'],
+                'attr'      => [
                     'placeholder' => 'ES',
                     'class'       => 'form-control',
                     'maxlength'   => 2,
@@ -62,9 +71,12 @@ class PaymentValidationFormType extends AbstractType
                 ],
             ])
             ->add('creditorIdentifier', TextType::class, [
-                'label'    => 'SEPA Creditor Identifier',
-                'required' => false,
-                'attr'     => [
+                'label'     => 'SEPA Creditor Identifier',
+                'required'  => false,
+                'help'      => 'Example: ES97ZZZM12345678 (optional)',
+                'help_attr' => ['class' => 'help-text'],
+                'row_attr'  => ['class' => 'form-group'],
+                'attr'      => [
                     'placeholder' => 'ES97ZZZM12345678',
                     'class'       => 'form-control',
                 ],
@@ -73,9 +85,12 @@ class PaymentValidationFormType extends AbstractType
                 ],
             ])
             ->add('creditCard', TextType::class, [
-                'label'    => 'Credit Card Number',
-                'required' => false,
-                'attr'     => [
+                'label'     => 'Credit Card Number',
+                'required'  => false,
+                'help'      => 'Example: 4532015112830366 (optional)',
+                'help_attr' => ['class' => 'help-text'],
+                'row_attr'  => ['class' => 'form-group'],
+                'attr'      => [
                     'placeholder' => '4532015112830366',
                     'class'       => 'form-control',
                 ],

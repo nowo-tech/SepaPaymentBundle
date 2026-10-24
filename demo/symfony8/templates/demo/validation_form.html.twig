@@ -107,42 +107,11 @@
 
         {{ form_start(form) }}
 
-        <div class="form-group">
-            {{ form_label(form.iban) }}
-            {{ form_widget(form.iban) }}
-            {{ form_errors(form.iban) }}
-            <div class="help-text">Example: ES9121000418450200051332</div>
-        </div>
-
-        <div class="form-group">
-            {{ form_label(form.bic) }}
-            {{ form_widget(form.bic) }}
-            {{ form_errors(form.bic) }}
-            <div class="help-text">Example: ESPBESMM</div>
-        </div>
-
-        <div class="form-group">
-            {{ form_label(form.countryCode) }}
-            {{ form_widget(form.countryCode) }}
-            {{ form_errors(form.countryCode) }}
-            <div class="help-text">SEPA country code (2 letters). Example: ES, FR, DE</div>
-        </div>
-
-        <div class="form-group">
-            {{ form_label(form.creditorIdentifier) }}
-            {{ form_widget(form.creditorIdentifier) }}
-            {{ form_errors(form.creditorIdentifier) }}
-            <div class="help-text">Example: ES97ZZZM12345678 (optional)</div>
-        </div>
-
-        <div class="form-group">
-            {{ form_label(form.creditCard) }}
-            {{ form_widget(form.creditCard) }}
-            {{ form_errors(form.creditCard) }}
-            <div class="help-text">Example: 4532015112830366 (optional)</div>
-        </div>
-
-        {{ form_rest(form) }}
+        {% for child in form %}
+            {% if not child.rendered %}
+                {{ form_row(child) }}
+            {% endif %}
+        {% endfor %}
 
         <button type="submit" class="btn">Validate</button>
 

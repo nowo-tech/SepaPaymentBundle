@@ -60,6 +60,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Demo: `demo/validation_form.html.twig` renders the form through the child loop (`form_row(child)`) instead of `form_label`/`form_widget`/`form_errors` per field; the example hints and `form-group` wrappers moved to `help` / `help_attr` / `row_attr` in `PaymentValidationFormType` (REQ-TWIG-003).
+
 ## [1.5.0] - 2026-10-23
 
 REQ wave 2: injected PSR-20 clock, LIBXML_NONET parsing, @final services, demo worker mode and release gates. See [UPGRADING](UPGRADING.md#to-150).
