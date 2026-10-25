@@ -61,6 +61,7 @@ This document provides detailed usage examples for all features of the SEPA Paym
 - [Using with Dependency Injection](#using-with-dependency-injection)
   - [Service Aliases](#service-aliases)
 - [Overriding bundle translations](#overriding-bundle-translations)
+- [Forms in host apps and demos (REQ-TWIG-005)](#forms-in-host-apps-and-demos-req-twig-005)
 
 ## IBAN Validation
 
@@ -1707,3 +1708,20 @@ credit_card:
 ```
 
 For the full list of keys, load order (priority), and configuration options, see [Configuration → Translations](CONFIGURATION.md#translations).
+
+## Forms in host apps and demos (REQ-TWIG-005)
+
+The bundle ships no page templates of its own; its validators and services are used from your own Symfony forms. Every form in host apps and in the demo is a PHP Form Type created in the controller and rendered only with the Twig form helpers and the rendered-aware child loop (REQ-TWIG-003):
+
+```twig
+{{ form_start(form) }}
+    {% for child in form %}
+        {% if not child.rendered %}
+            {{ form_row(child) }}
+        {% endif %}
+    {% endfor %}
+    <button type="submit">Submit</button>
+{{ form_end(form) }}
+```
+
+Hosts and demos must not reintroduce raw `<form>` / `<input>` / `<textarea>` / `<select>` markup; `make check-no-raw-html-form` (part of `make release-check`) fails when bundle or demo Twig contains them.
