@@ -3193,16 +3193,16 @@
         },
         {
             "name": "nowo-tech/phpstan-frankenphp",
-            "version": "v1.3.0",
+            "version": "v1.3.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nowo-tech/PhpStanFrankenPhp.git",
-                "reference": "8ad8c62f3c5decfd92332f70d599b6dad1e68820"
+                "reference": "943010bc203ce403c4c6e808eadc9c2c868c7c49"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nowo-tech/PhpStanFrankenPhp/zipball/8ad8c62f3c5decfd92332f70d599b6dad1e68820",
-                "reference": "8ad8c62f3c5decfd92332f70d599b6dad1e68820",
+                "url": "https://api.github.com/repos/nowo-tech/PhpStanFrankenPhp/zipball/943010bc203ce403c4c6e808eadc9c2c868c7c49",
+                "reference": "943010bc203ce403c4c6e808eadc9c2c868c7c49",
                 "shasum": ""
             },
             "require": {
@@ -3276,7 +3276,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-10-13T10:11:25+00:00"
+            "time": "2026-10-22T05:58:06+00:00"
         },
         {
             "name": "phar-io/manifest",
@@ -3446,11 +3446,11 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "2.3.1",
+            "version": "2.3.2",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/6155239b488e95d26d1ebd95c6b4bb294d7f09db",
-                "reference": "6155239b488e95d26d1ebd95c6b4bb294d7f09db",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/18bc23a0682f08591529377d271b5c4dfe9ed1dd",
+                "reference": "18bc23a0682f08591529377d271b5c4dfe9ed1dd",
                 "shasum": ""
             },
             "require": {
@@ -3506,7 +3506,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-10-08T21:09:11+00:00"
+            "time": "2026-10-24T11:36:00+00:00"
         },
         {
             "name": "phpstan/phpstan-phpunit",
