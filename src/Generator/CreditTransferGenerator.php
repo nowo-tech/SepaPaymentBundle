@@ -28,6 +28,8 @@ use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use Nowo\SepaPaymentBundle\Validator\SepaBusinessRulesValidator;
 use Nowo\SepaPaymentBundle\Validator\SepaStringSanitizer;
 use Nowo\SepaPaymentBundle\Validator\XsdValidator;
+use Psr\Clock\ClockInterface;
+use Symfony\Component\Clock\NativeClock;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\HeaderUtils;
@@ -107,7 +109,11 @@ class CreditTransferGenerator
          * Default currency (ISO 4217) for transactions without an explicit currency.
          */
         private readonly string $defaultCurrency = SepaBusinessRulesValidator::SEPA_CURRENCY,
-        ?SepaStringSanitizer $stringSanitizer = null
+        ?SepaStringSanitizer $stringSanitizer = null,
+        /**
+         * Source of the default creation date (REQ-DI-001).
+         */
+        private readonly ClockInterface $clock = new NativeClock(),
     ) {
         $this->validateXsd     = $validateXsd && $this->xsdValidator instanceof XsdValidator;
         $this->stringSanitizer = $stringSanitizer ?? new SepaStringSanitizer();
@@ -316,7 +322,7 @@ class CreditTransferGenerator
         }
 
         // Parse dates
-        $creationDate = $data['creationDate'] ?? new DateTime();
+        $creationDate = $data['creationDate'] ?? DateTime::createFromInterface($this->clock->now());
         if (is_string($creationDate)) {
             $creationDate = new DateTime($creationDate);
         } elseif (!$creationDate instanceof DateTimeInterface) {

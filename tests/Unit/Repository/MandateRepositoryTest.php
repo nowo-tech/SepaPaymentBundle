@@ -10,6 +10,7 @@ use Nowo\SepaPaymentBundle\Model\Mandate\MandateHistory;
 use Nowo\SepaPaymentBundle\Model\Mandate\MandateStatus;
 use Nowo\SepaPaymentBundle\Repository\MandateRepository;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Clock\MockClock;
 use Symfony\Contracts\Service\ResetInterface;
 
 /**
@@ -158,5 +159,17 @@ class MandateRepositoryTest extends TestCase
         $expired = $this->repository->findExpired(new DateTime('2024-06-01'));
 
         $this->assertSame(['M-EXPLICIT'], array_map(static fn (Mandate $m): string => $m->getMandateId(), $expired));
+    }
+
+    public function testFindExpiredWithoutDateUsesTheInjectedClock(): void
+    {
+        $repository = new MandateRepository(new MockClock('2020-06-01'));
+        $repository->save(new Mandate('M-CLOCK', new DateTime('2020-01-01'), 'ES9121000418450200051332', 'John', 'CORE', 'FRST'));
+
+        $this->assertCount(0, $repository->findExpired());
+        $this->assertCount(0, (new MandateRepository(new MockClock('2020-01-02')))->findExpired());
+        $later = new MandateRepository(new MockClock('2030-01-01'));
+        $later->save(new Mandate('M-CLOCK', new DateTime('2020-01-01'), 'ES9121000418450200051332', 'John', 'CORE', 'FRST'));
+        $this->assertCount(1, $later->findExpired());
     }
 }

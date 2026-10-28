@@ -23,6 +23,7 @@ use Nowo\SepaPaymentBundle\Validator\XsdValidator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
+use Symfony\Component\Clock\MockClock;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -2148,5 +2149,29 @@ class CreditTransferGeneratorTest extends TestCase
                 ], $transactionOverride),
             ],
         ], $override);
+    }
+
+    public function testDefaultCreationDateComesFromTheInjectedClock(): void
+    {
+        $translator = $this->createMock(TranslatorInterface::class);
+        $translator->method('trans')->willReturnCallback(TranslationHelper::createTranslatorCallback());
+        $generator = new CreditTransferGenerator(new IbanValidator(), $translator, clock: new MockClock('2026-10-28 08:15:00'));
+
+        $xml = $generator->generateFromArray([
+            'reference'              => 'MSG-CLOCK',
+            'initiatingPartyName'    => 'My Company',
+            'paymentInfoId'          => 'PMT-001',
+            'requestedExecutionDate' => '2026-11-02',
+            'debtorName'             => 'My Company Name',
+            'debtorIban'             => 'ES9121000418450200051332',
+            'transactions'           => [[
+                'amount'       => 10.0,
+                'creditorIban' => 'GB82WEST12345698765432',
+                'creditorName' => 'John Doe',
+                'endToEndId'   => 'E2E-001',
+            ]],
+        ]);
+
+        $this->assertStringContainsString('<CreDtTm>2026-10-28T08:15:00', $xml);
     }
 }

@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Repository;
 
-use DateTime;
 use DateTimeInterface;
 use Nowo\SepaPaymentBundle\Model\Mandate\Mandate;
 use Nowo\SepaPaymentBundle\Model\Mandate\MandateHistory;
+use Psr\Clock\ClockInterface;
+use Symfony\Component\Clock\NativeClock;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Contracts\Service\ResetInterface;
 
@@ -41,6 +42,14 @@ class MandateRepository implements MandateRepositoryInterface, ResetInterface
      * @var array<string, array<int, MandateHistory>>
      */
     private array $history = [];
+
+    /**
+     * @param ClockInterface $clock Source of "now" for {@see findExpired()} without a date (REQ-DI-001)
+     */
+    public function __construct(
+        private readonly ClockInterface $clock = new NativeClock(),
+    ) {
+    }
 
     /**
      * Saves a mandate.
@@ -110,7 +119,7 @@ class MandateRepository implements MandateRepositoryInterface, ResetInterface
     public function findExpired(?DateTimeInterface $beforeDate = null): array
     {
         $result    = [];
-        $checkDate = $beforeDate ?? new DateTime();
+        $checkDate = $beforeDate ?? $this->clock->now();
 
         foreach ($this->mandates as $mandate) {
             // Check if mandate has expiration date and is expired

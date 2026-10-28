@@ -11,7 +11,9 @@ use Nowo\SepaPaymentBundle\Model\Mandate\Mandate;
 use Nowo\SepaPaymentBundle\Model\Mandate\MandateHistory;
 use Nowo\SepaPaymentBundle\Model\Mandate\MandateStatus;
 use Nowo\SepaPaymentBundle\Repository\MandateRepositoryInterface;
+use Psr\Clock\ClockInterface;
 use RuntimeException;
+use Symfony\Component\Clock\NativeClock;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 use function in_array;
@@ -47,7 +49,8 @@ class MandateService
      * @param MandateRepositoryInterface $repository Mandate repository
      */
     public function __construct(
-        private readonly MandateRepositoryInterface $repository
+        private readonly MandateRepositoryInterface $repository,
+        private readonly ClockInterface $clock = new NativeClock(),
     ) {
     }
 
@@ -83,7 +86,7 @@ class MandateService
         // @igor-ignore - Service coordinates I/O or request-scoped work; not unsafe worker singleton state.
         $this->repository->addHistory(new MandateHistory(
             $mandateId,
-            new DateTime(),
+            $this->now(),
             'created',
             '',
             'active',
@@ -125,7 +128,7 @@ class MandateService
         // @igor-ignore - Service coordinates I/O or request-scoped work; not unsafe worker singleton state.
         $this->repository->addHistory(new MandateHistory(
             $mandateId,
-            new DateTime(),
+            $this->now(),
             'sequence_change',
             $oldSequenceType,
             $sequenceType,
@@ -153,14 +156,14 @@ class MandateService
         }
 
         $oldStatus = $mandate->getStatus()->value;
-        $mandate->revoke($reason);
+        $mandate->revoke($reason, $this->now());
         $this->repository->save($mandate);
 
         // Add history entry
         // @igor-ignore - Service coordinates I/O or request-scoped work; not unsafe worker singleton state.
         $this->repository->addHistory(new MandateHistory(
             $mandateId,
-            new DateTime(),
+            $this->now(),
             'status_change',
             $oldStatus,
             MandateStatus::REVOKED->value,
@@ -194,7 +197,7 @@ class MandateService
         // @igor-ignore - Service coordinates I/O or request-scoped work; not unsafe worker singleton state.
         $this->repository->addHistory(new MandateHistory(
             $mandateId,
-            new DateTime(),
+            $this->now(),
             'status_change',
             $oldStatus,
             MandateStatus::SUSPENDED->value,
@@ -229,7 +232,7 @@ class MandateService
         // @igor-ignore - Service coordinates I/O or request-scoped work; not unsafe worker singleton state.
         $this->repository->addHistory(new MandateHistory(
             $mandateId,
-            new DateTime(),
+            $this->now(),
             'status_change',
             $oldStatus,
             MandateStatus::ACTIVE->value,
@@ -341,5 +344,13 @@ class MandateService
     public function findExpiredMandates(?DateTimeInterface $beforeDate = null): array
     {
         return $this->repository->findExpired($beforeDate);
+    }
+
+    /**
+     * Current time from the injected clock (REQ-DI-001), as the mutable DateTime the history model stores.
+     */
+    private function now(): DateTime
+    {
+        return DateTime::createFromInterface($this->clock->now());
     }
 }

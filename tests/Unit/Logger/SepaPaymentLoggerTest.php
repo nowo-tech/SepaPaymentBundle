@@ -127,6 +127,13 @@ class SepaPaymentLoggerTest extends TestCase
         $this->assertSame('****LID', $this->testLogger->logs[1]['context']['bic']);
     }
 
+    public function testValuesNotLongerThanTheVisiblePartAreFullyMasked(): void
+    {
+        $this->sepaLogger->logBicValidation('AB', false);
+
+        $this->assertSame('**', $this->testLogger->logs[0]['context']['bic']);
+    }
+
     public function testLogBusinessRulesValidation(): void
     {
         $this->sepaLogger->logBusinessRulesValidation('amount_limit', true);

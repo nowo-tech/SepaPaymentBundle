@@ -62,6 +62,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Injectable clock (REQ-DI-001).** `MandateService` (history timestamps, revocation date), `CreditTransferGenerator`
+  (default `creationDate`) and the in-memory `MandateRepository` (`findExpired()` without a date) take an optional
+  `Psr\Clock\ClockInterface` (default `NativeClock`; Symfony autowires the `clock` service) instead of `new DateTime()`,
+  so tests can freeze time. `Mandate::revoke()` accepts an optional revocation time.
+
 - Docs: USAGE states that host and demo forms are Symfony Form Types rendered with `form_start` / the `not child.rendered` child loop / `form_end`, and that raw `<form>` / `<input>` must not be reintroduced; `check-no-raw-html-form` enforces it in `release-check` (REQ-TWIG-005 rule 9).
 - Developer tooling: `check-no-raw-html-form` no longer exempts every `*theme*` / `views/Form/` file or lines marked `twig-005-ignore` (none exist); any raw `<form>` / `<input>` / `<textarea>` / `<select>` in bundle or demo Twig now fails `release-check` (REQ-TWIG-005 rule 10).
 - Demo: `demo/validation_form.html.twig` renders the form through the child loop (`form_row(child)`) instead of `form_label`/`form_widget`/`form_errors` per field; the example hints and `form-group` wrappers moved to `help` / `help_attr` / `row_attr` in `PaymentValidationFormType` (REQ-TWIG-003).

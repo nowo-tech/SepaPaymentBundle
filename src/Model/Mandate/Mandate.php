@@ -355,15 +355,16 @@ class Mandate
      * Revokes the mandate.
      *
      * @param string|null $reason Optional revocation reason
+     * @param DateTimeInterface|null $revokedAt Revocation time (null = now); services pass their clock's time
      */
-    public function revoke(?string $reason = null): self
+    public function revoke(?string $reason = null, ?DateTimeInterface $revokedAt = null): self
     {
         // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
         $this->status = MandateStatus::REVOKED;
         // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
         $this->active = false;
         // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
-        $this->revocationDate = new DateTime();
+        $this->revocationDate = $revokedAt ?? new DateTime();
         // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
         $this->revocationReason = $reason;
 

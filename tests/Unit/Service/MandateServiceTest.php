@@ -12,6 +12,7 @@ use Nowo\SepaPaymentBundle\Repository\MandateRepository;
 use Nowo\SepaPaymentBundle\Service\MandateService;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use Symfony\Component\Clock\MockClock;
 
 /**
  * Tests for MandateService.
@@ -418,5 +419,18 @@ class MandateServiceTest extends TestCase
         $this->expectExceptionMessage('Cannot reactivate an expired mandate');
 
         $this->service->reactivateMandate('MANDATE-EXPIRED');
+    }
+
+    public function testHistoryAndRevocationUseTheInjectedClock(): void
+    {
+        $clock   = new MockClock('2026-10-28 09:30:00');
+        $service = new MandateService(new MandateRepository(), $clock);
+        $service->createMandate('M-CLOCK', new DateTime('2024-01-01'), 'ES9121000418450200051332', 'John Doe');
+        $clock->modify('+1 hour');
+        $revoked = $service->revokeMandate('M-CLOCK', 'test');
+
+        $history = $service->getMandateHistory('M-CLOCK');
+        $this->assertSame('2026-10-28 09:30:00', $history[0]->getTimestamp()->format('Y-m-d H:i:s'));
+        $this->assertSame('2026-10-28 10:30:00', $revoked->getRevocationDate()?->format('Y-m-d H:i:s'));
     }
 }
