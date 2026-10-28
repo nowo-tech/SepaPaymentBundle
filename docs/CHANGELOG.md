@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[1.6.0] - 2026-10-28](#160---2026-10-28)
 - [[1.5.0] - 2026-10-23](#150---2026-10-23)
 - [[1.4.1] - 2026-10-13](#141---2026-10-13)
 - [[1.4.0] - 2026-10-13](#140---2026-10-13)
@@ -60,6 +61,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-10-28
+
+SepaPayment: mandates, the in-memory repository and credit transfers use an injectable clock. See [UPGRADING](UPGRADING.md#to-160).
+
 ### Changed
 
 - **Injectable clock (REQ-DI-001).** `MandateService` (history timestamps, revocation date), `CreditTransferGenerator`
@@ -70,6 +75,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Docs: USAGE states that host and demo forms are Symfony Form Types rendered with `form_start` / the `not child.rendered` child loop / `form_end`, and that raw `<form>` / `<input>` must not be reintroduced; `check-no-raw-html-form` enforces it in `release-check` (REQ-TWIG-005 rule 9).
 - Developer tooling: `check-no-raw-html-form` no longer exempts every `*theme*` / `views/Form/` file or lines marked `twig-005-ignore` (none exist); any raw `<form>` / `<input>` / `<textarea>` / `<select>` in bundle or demo Twig now fails `release-check` (REQ-TWIG-005 rule 10).
 - Demo: `demo/validation_form.html.twig` renders the form through the child loop (`form_row(child)`) instead of `form_label`/`form_widget`/`form_errors` per field; the example hints and `form-group` wrappers moved to `help` / `help_attr` / `row_attr` in `PaymentValidationFormType` (REQ-TWIG-003).
+
+[1.6.0]: https://github.com/nowo-tech/SepaPaymentBundle/releases/tag/v1.6.0
 
 ## [1.5.0] - 2026-10-23
 
