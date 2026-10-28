@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[2.0.0] - 2026-10-28](#200---2026-10-28)
 - [[1.6.0] - 2026-10-28](#160---2026-10-28)
 - [[1.5.0] - 2026-10-23](#150---2026-10-23)
 - [[1.4.1] - 2026-10-13](#141---2026-10-13)
@@ -61,6 +62,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-10-28
+
+SepaPayment 2.0: final classes, interfaces for every extension point. See [UPGRADING](UPGRADING.md#to-200).
+
 ### Changed (BC break — see [UPGRADING](UPGRADING.md#to-200))
 
 - **Concrete classes are `final`** (REQ-PHP-001): the 53 services, value objects, events, commands and constraints
@@ -75,6 +80,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Mandate::getExpirationDate()` returns `DateTimeInterface` (never `null`: the 36-month inactivity rule always
   applies).
 - `CreditCardValidator::stripNonDigits()` (protected test hook) is removed.
+
+[2.0.0]: https://github.com/nowo-tech/SepaPaymentBundle/releases/tag/v2.0.0
 
 ## [1.6.0] - 2026-10-28
 

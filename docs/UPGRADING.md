@@ -3,6 +3,7 @@
 ## Table of contents
 
 - [Unreleased](#unreleased)
+- [To 2.0.0](#to-200)
 - [To 1.6.0](#to-160)
 - [To 1.5.0](#to-150)
 - [To 1.4.1](#to-141)
@@ -162,6 +163,14 @@
 - [Getting Help](#getting-help)
 
 ## Unreleased
+
+## To 2.0.0
+
+From **1.6.0**:
+
+```bash
+composer update nowo-tech/sepa-payment-bundle
+```
 
 From **1.6.0** — **major**: concrete classes are `final`.
 
