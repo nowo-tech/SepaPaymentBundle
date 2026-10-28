@@ -13,7 +13,7 @@ use DateTimeInterface;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
  */
-class MandateHistory
+final class MandateHistory
 {
     /**
      * Constructor.

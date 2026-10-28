@@ -18,7 +18,7 @@ use function sprintf;
  * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
-class IdentifierGenerator
+final class IdentifierGenerator
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.generator.identifier_generator';
 

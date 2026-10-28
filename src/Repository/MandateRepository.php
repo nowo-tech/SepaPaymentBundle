@@ -25,7 +25,7 @@ use Symfony\Contracts\Service\ResetInterface;
  * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
-class MandateRepository implements MandateRepositoryInterface, ResetInterface
+final class MandateRepository implements MandateRepositoryInterface, ResetInterface
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.repository.mandate_repository';
 
@@ -189,7 +189,7 @@ class MandateRepository implements MandateRepositoryInterface, ResetInterface
      */
     private function getExpirationDate(Mandate $mandate): DateTimeInterface
     {
-        return $mandate->getExpirationDate() ?? $mandate->getInactivityExpirationDate();
+        return $mandate->getExpirationDate();
     }
 
     /**

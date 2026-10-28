@@ -17,7 +17,7 @@ use function sprintf;
  * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
-class SepaStringSanitizer
+final class SepaStringSanitizer
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.validator.sepa_string_sanitizer';
 

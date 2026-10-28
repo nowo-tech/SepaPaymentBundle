@@ -13,7 +13,6 @@ use InvalidArgumentException;
 use Nowo\SepaPaymentBundle\Parser\CreditTransferParser;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
-use stdClass;
 
 /**
  * Test cases for CreditTransferParser.
@@ -539,39 +538,6 @@ class CreditTransferParserTest extends TestCase
         $node   = $method->invoke($this->parser, $xpath, './/sepa:EndToEndId', $context);
         $this->assertInstanceOf(DOMNode::class, $node);
         $this->assertSame('E2E-1', $node->nodeValue);
-    }
-
-    /**
-     * Covers the defensive continue when a transaction node is not a DOMNode (getTransactionNodes is overridden to return non-DOMNode).
-     */
-    public function testParseSkipsNonDomNodeInTransactionNodes(): void
-    {
-        $parser = new class extends CreditTransferParser {
-            public function getTransactionNodes(DOMXPath $xpath): iterable
-            {
-                return [new stdClass()];
-            }
-        };
-        $xml = <<<'XML'
-            <?xml version="1.0" encoding="UTF-8"?>
-            <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
-                <CstmrCdtTrfInitn>
-                    <GrpHdr>
-                        <MsgId>MSG-SKIP</MsgId>
-                        <CreDtTm>2024-01-15T10:00:00</CreDtTm>
-                        <InitgPty><Nm>Co</Nm></InitgPty>
-                    </GrpHdr>
-                    <PmtInf>
-                        <PmtInfId>PMT-SKIP</PmtInfId>
-                        <NbOfTxs>0</NbOfTxs>
-                        <CtrlSum>0</CtrlSum>
-                    </PmtInf>
-                </CstmrCdtTrfInitn>
-            </Document>
-            XML;
-        $data = $parser->parseCreditTransfer($xml);
-        $this->assertSame('MSG-SKIP', $data['messageId']);
-        $this->assertCount(0, $data['transactions']);
     }
 
     /**

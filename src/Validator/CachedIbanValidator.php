@@ -15,7 +15,7 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
  * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
-class CachedIbanValidator
+final class CachedIbanValidator implements IbanValidatorInterface
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.validator.cached_iban_validator';
 

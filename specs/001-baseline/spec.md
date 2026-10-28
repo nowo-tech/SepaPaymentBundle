@@ -82,9 +82,11 @@ See user stories US-01…US-05 in [`docs/SPEC-DRIVEN-DEVELOPMENT.md`](../../docs
 
 ---
 
+- **FR-API-001**: 2.0 — every concrete class is `final`; extension points are interfaces aliased to the defaults (`XsdValidatorInterface`, `DirectDebitParserInterface`, `IbanValidatorInterface`, `BicValidatorInterface`, `CreditCardValidatorInterface`, `SepaCountryValidatorInterface`, `SepaCreditorIdentifierValidatorInterface`, plus the existing repository / lookup / cache / CSV interfaces), decoration and events. Generators, the parse command and the constraint validators depend on the interfaces; `CachedIbanValidator` / `CachedBicValidator` implement them.
+
 ## Success Criteria
 
-- **SC-001**: **80/80** production files under `src/` mapped in [`code-inventory.md`](code-inventory.md) (audited 2026-10-20; `git ls-files src | wc -l`).
+- **SC-001**: **87/87** production files under `src/` mapped in [`code-inventory.md`](code-inventory.md) (audited 2026-10-29; `git ls-files src | wc -l`).
 - **SC-002**: Generated XML samples in tests pass XSD when schemas enabled.
 - **SC-003**: PHPUnit + PHPStan pass in CI (`composer qa`).
 - **SC-004**: Deprecated APIs documented in CHANGELOG/UPGRADING with 2.0.0 removal target.

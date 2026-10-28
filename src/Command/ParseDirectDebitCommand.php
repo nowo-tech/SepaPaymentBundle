@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Nowo\SepaPaymentBundle\Command;
 
 use Exception;
-use Nowo\SepaPaymentBundle\Parser\DirectDebitParser;
+use Nowo\SepaPaymentBundle\Parser\DirectDebitParserInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -25,19 +25,17 @@ use const JSON_UNESCAPED_UNICODE;
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
- *
- * @final since 1.5, will be final in 2.0 (not an extension point; decorate or replace the service instead)
  */
 #[AsCommand(name: 'nowo:sepa:parse-direct-debit', description: 'Parses a SEPA Direct Debit XML file and displays the extracted information')]
-class ParseDirectDebitCommand extends Command
+final class ParseDirectDebitCommand extends Command
 {
     /**
      * Constructor.
      *
-     * @param DirectDebitParser $parser Direct Debit parser instance
+     * @param DirectDebitParserInterface $parser Direct Debit parser
      */
     public function __construct(
-        private readonly DirectDebitParser $parser
+        private readonly DirectDebitParserInterface $parser
     ) {
         parent::__construct();
     }

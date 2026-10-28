@@ -15,7 +15,7 @@ use Symfony\Component\Validator\Constraint;
  * @copyright 2026 Nowo.tech
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
-class SepaCreditorIdentifier extends Constraint
+final class SepaCreditorIdentifier extends Constraint
 {
     public const INVALID_SEPA_CREDITOR_IDENTIFIER_ERROR = 'c7d8e9f0-1a2b-3c4d-5e6f-7a8b9c0d1e2f';
 

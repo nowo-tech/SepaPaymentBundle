@@ -7,6 +7,7 @@ namespace Nowo\SepaPaymentBundle\Tests\Unit\Validator\Constraint;
 use Nowo\SepaPaymentBundle\Validator\Constraint\SepaCreditorIdentifier;
 use Nowo\SepaPaymentBundle\Validator\Constraint\SepaCreditorIdentifierValidator as ConstraintSepaCreditorIdentifierValidator;
 use Nowo\SepaPaymentBundle\Validator\SepaCreditorIdentifierValidator as SepaCreditorIdentifierValidatorService;
+use Nowo\SepaPaymentBundle\Validator\SepaCreditorIdentifierValidatorInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Constraint;
@@ -46,7 +47,7 @@ class SepaCreditorIdentifierValidatorTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->sepaCreditorIdentifierValidatorService = $this->createMock(SepaCreditorIdentifierValidatorService::class);
+        $this->sepaCreditorIdentifierValidatorService = $this->createMock(SepaCreditorIdentifierValidatorInterface::class);
         $this->validator                              = new ConstraintSepaCreditorIdentifierValidator($this->sepaCreditorIdentifierValidatorService);
         $this->context                                = $this->createMock(ExecutionContextInterface::class);
         $this->validator->initialize($this->context);

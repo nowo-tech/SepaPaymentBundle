@@ -25,7 +25,7 @@ use const LIBXML_NONET;
  * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
-class CreditTransferParser
+final class CreditTransferParser
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.parser.credit_transfer_parser';
 
@@ -99,9 +99,6 @@ class CreditTransferParser
         // Extract transactions (PHPStan: foreach over DOMNodeList|false; only iterate when it is DOMNodeList)
         $transactions = [];
         foreach ($this->getTransactionNodes($xpath) as $txInf) {
-            if (!$txInf instanceof DOMNode) {
-                continue;
-            }
             $transaction = [];
 
             $endToEndId = $this->getFirstNode($xpath, './/sepa:EndToEndId', $txInf);
@@ -141,13 +138,21 @@ class CreditTransferParser
     /**
      * Returns the list of transaction nodes for iteration (extracted for testability of defensive continue).
      *
-     * @return iterable<int, DOMNode|mixed>
+     * @return list<DOMNode>
      */
-    protected function getTransactionNodes(DOMXPath $xpath): iterable
+    private function getTransactionNodes(DOMXPath $xpath): array
     {
         $txInfNodes = $xpath->query('//sepa:CdtTrfTxInf');
+        $nodes      = [];
+        if ($txInfNodes instanceof DOMNodeList) {
+            foreach ($txInfNodes as $node) {
+                if ($node instanceof DOMNode) {
+                    $nodes[] = $node;
+                }
+            }
+        }
 
-        return $txInfNodes instanceof DOMNodeList ? $txInfNodes : [];
+        return $nodes;
     }
 
     /**

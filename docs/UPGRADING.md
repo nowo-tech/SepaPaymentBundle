@@ -163,6 +163,33 @@
 
 ## Unreleased
 
+From **1.6.0** — **major**: concrete classes are `final`.
+
+```bash
+composer require nowo-tech/sepa-payment-bundle:^2.0
+```
+
+- **No subclassing.** Every concrete class under `src/` is `final`. If you extended one, depend on its interface and
+  compose or decorate instead:
+
+  | Extended before | Use now |
+  | --- | --- |
+  | `XsdValidator` | `XsdValidatorInterface` (new; aliased to `XsdValidator`) |
+  | `DirectDebitParser` | `DirectDebitParserInterface` (new; aliased to `DirectDebitParser`) |
+  | `MandateRepository` | `MandateRepositoryInterface` (implement your own storage) |
+  | `IbanValidator`, `BicValidator`, `CreditCardValidator`, `SepaCountryValidator`, `SepaCreditorIdentifierValidator` | The matching `*ValidatorInterface` (new; the constraint validators depend on it) |
+  | `BicLookupService` | `BicLookupServiceInterface` |
+  | `ValidationCache` | `ValidationCacheInterface` |
+  | Generators, parsers, validators | Symfony service decoration (`#[AsDecorator]`) or the `Before*` / `After*` events |
+
+- **Mocks in your tests.** PHPUnit cannot mock final classes: mock the interfaces above (generators accept any
+  `XsdValidatorInterface`, `ParseDirectDebitCommand` any `DirectDebitParserInterface`, the constraint validators any
+  matching `*ValidatorInterface`) or use the real services.
+- If you wired a constraint validator by hand, its constructor now takes the validator interface; the concrete
+  services still satisfy it.
+- `Mandate::getExpirationDate()` is non-nullable (`DateTimeInterface`); drop `?? …` fallbacks.
+- `CreditCardValidator::stripNonDigits()` was a protected test hook and is gone; `normalize()` is unchanged.
+
 ## To 1.6.0
 
 From **1.5.0**:

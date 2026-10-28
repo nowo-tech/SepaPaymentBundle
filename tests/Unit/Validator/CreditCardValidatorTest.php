@@ -294,29 +294,4 @@ class CreditCardValidatorTest extends TestCase
         $method = $ref->getMethod('validateLuhn');
         $this->assertTrue($method->invoke($this->validator, '59'));
     }
-
-    /**
-     * Covers normalize() when stripNonDigits returns null (e.g. preg_replace error path).
-     */
-    public function testNormalizeWhenStripNonDigitsReturnsNull(): void
-    {
-        $validator = new class extends CreditCardValidator {
-            protected function stripNonDigits(string $input): ?string
-            {
-                return null;
-            }
-        };
-        $this->assertSame('', $validator->normalize('4532015112830366'));
-    }
-
-    /**
-     * Covers stripNonDigits (protected) via reflection so the method is executed on the main class.
-     */
-    public function testStripNonDigitsViaReflection(): void
-    {
-        $ref    = new ReflectionClass(CreditCardValidator::class);
-        $method = $ref->getMethod('stripNonDigits');
-        $this->assertSame('4532015112830366', $method->invoke($this->validator, '4532 0151-1283 0366'));
-        $this->assertSame('', $method->invoke($this->validator, ''));
-    }
 }

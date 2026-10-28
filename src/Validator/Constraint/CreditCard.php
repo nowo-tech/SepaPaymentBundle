@@ -15,7 +15,7 @@ use Symfony\Component\Validator\Constraint;
  * @copyright 2026 Nowo.tech
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
-class CreditCard extends Constraint
+final class CreditCard extends Constraint
 {
     public const INVALID_CREDIT_CARD_ERROR = 'd1e2f3a4-5b6c-7d8e-9f0a-1b2c3d4e5f6a';
 

@@ -26,7 +26,7 @@ use function in_array;
  * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
-class MandateService
+final class MandateService
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.service.mandate_service';
 

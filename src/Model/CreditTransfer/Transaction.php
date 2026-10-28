@@ -13,7 +13,7 @@ use function is_array;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
  */
-class Transaction
+final class Transaction
 {
     /**
      * Creditor BIC (optional).

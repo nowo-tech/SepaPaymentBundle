@@ -28,6 +28,7 @@ use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use Nowo\SepaPaymentBundle\Validator\SepaBusinessRulesValidator;
 use Nowo\SepaPaymentBundle\Validator\SepaStringSanitizer;
 use Nowo\SepaPaymentBundle\Validator\XsdValidator;
+use Nowo\SepaPaymentBundle\Validator\XsdValidatorInterface;
 use Psr\Clock\ClockInterface;
 use Symfony\Component\Clock\NativeClock;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
@@ -55,7 +56,7 @@ use const ENT_XML1;
  * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
-class CreditTransferGenerator
+final class CreditTransferGenerator
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.generator.credit_transfer_generator';
 
@@ -91,7 +92,7 @@ class CreditTransferGenerator
         /**
          * XSD validator instance (optional).
          */
-        private readonly ?XsdValidator $xsdValidator = null,
+        private readonly ?XsdValidatorInterface $xsdValidator = null,
         bool $validateXsd = false,
         /**
          * Event dispatcher instance (optional).
@@ -115,7 +116,7 @@ class CreditTransferGenerator
          */
         private readonly ClockInterface $clock = new NativeClock(),
     ) {
-        $this->validateXsd     = $validateXsd && $this->xsdValidator instanceof XsdValidator;
+        $this->validateXsd     = $validateXsd && $this->xsdValidator instanceof XsdValidatorInterface;
         $this->stringSanitizer = $stringSanitizer ?? new SepaStringSanitizer();
     }
 
@@ -247,7 +248,7 @@ class CreditTransferGenerator
             $xml = $this->addAddressesToXml($xml, $creditTransferData);
 
             // Validate against XSD schema if enabled
-            if ($this->validateXsd && $this->xsdValidator instanceof XsdValidator) {
+            if ($this->validateXsd && $this->xsdValidator instanceof XsdValidatorInterface) {
                 try {
                     $this->xsdValidator->validateCreditTransfer($xml);
                 } catch (InvalidArgumentException $e) {

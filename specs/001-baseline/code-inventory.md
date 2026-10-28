@@ -2,7 +2,7 @@
 
 **Baseline spec**: [`spec.md`](spec.md)  
 **Package**: `nowo-tech/sepa-payment-bundle`  
-**Last audited**: 2026-10-20
+**Last audited**: 2026-10-29  
 
 This file proves that **every production source artifact** under `src/` is referenced by the baseline specification. PHPUnit under `tests/` is out of scope; the ISO 20022 XSD files under `Resources/schemas/` ship with the package and are counted.
 
@@ -39,6 +39,7 @@ This file proves that **every production source artifact** under `src/` is refer
 | --- | --- | --- |
 | `Parser/CreditTransferParser.php` | pain.001 DOM parse | FR-PARSE-001 |
 | `Parser/DirectDebitParser.php` | pain.008 DOM parse | FR-PARSE-002 |
+| `Parser/DirectDebitParserInterface.php` | pain.008 parser contract (2.0) | FR-PARSE-002, FR-API-001 |
 | `Parser/RemesaParser.php` | Deprecated CT parser | FR-PARSE-003 |
 
 ## Validators — services (`src/Validator/`)
@@ -46,13 +47,19 @@ This file proves that **every production source artifact** under `src/` is refer
 | Source file | Spec section | Requirement IDs |
 | --- | --- | --- |
 | `Validator/IbanValidator.php` | IBAN ISO 13616 | FR-VAL-001 |
+| `Validator/IbanValidatorInterface.php` | Iban validation contract (2.0) | FR-VAL-001, FR-API-001 |
 | `Validator/BicValidator.php` | BIC ISO 13616 | FR-VAL-002 |
+| `Validator/BicValidatorInterface.php` | Bic validation contract (2.0) | FR-VAL-002, FR-API-001 |
 | `Validator/CreditCardValidator.php` | Luhn + card type | FR-VAL-003 |
+| `Validator/CreditCardValidatorInterface.php` | CreditCard validation contract (2.0) | FR-VAL-003, FR-API-001 |
 | `Validator/SepaCountryValidator.php` | SEPA country list | FR-VAL-004 |
+| `Validator/SepaCountryValidatorInterface.php` | SepaCountry validation contract (2.0) | FR-VAL-004, FR-API-001 |
 | `Validator/SepaCreditorIdentifierValidator.php` | Creditor ID MOD97-10 | FR-VAL-005 |
+| `Validator/SepaCreditorIdentifierValidatorInterface.php` | SepaCreditorIdentifier validation contract (2.0) | FR-VAL-005, FR-API-001 |
 | `Validator/SepaBusinessRulesValidator.php` | Amount/currency/date rules | FR-VAL-006 |
 | `Validator/SepaStringSanitizer.php` | SEPA charset sanitize | FR-VAL-007 |
 | `Validator/XsdValidator.php` | pain.001 / pain.008 XSD | FR-VAL-008 |
+| `Validator/XsdValidatorInterface.php` | XSD validation contract (2.0) | FR-VAL-008, FR-API-001 |
 | `Validator/CachedIbanValidator.php` | Cached IBAN decorator | FR-VAL-009 |
 | `Validator/CachedBicValidator.php` | Cached BIC decorator | FR-VAL-010 |
 
@@ -160,21 +167,18 @@ This file proves that **every production source artifact** under `src/` is refer
 
 | Category | Files | Mapped |
 | --- | ---: | ---: |
-| Bundle & DI | 4 | 4 |
-| Commands | 4 | 4 |
-| Generators | 4 | 4 |
-| Parsers | 3 | 3 |
-| Validators (services) | 10 | 10 |
-| Validators (constraints) | 10 | 10 |
-| Models | 9 | 9 |
-| Events | 6 | 6 |
-| Export | 3 | 3 |
-| Lookup & cache | 4 | 4 |
-| Mandate | 3 | 3 |
-| Worker subscriber | 1 | 1 |
-| Converter & logger | 2 | 2 |
-| XSD schemas | 5 | 5 |
-| Translations | 12 | 12 |
-| **Total `src/` artifacts** | **80** | **80** |
-
-Audit command (production count): `git ls-files src | wc -l` → **80** (2026-10-20).
+| Bundle & DI (`src/`) | 4 | 4 |
+| Commands (`src/Command/`) | 4 | 4 |
+| Generators (`src/Generator/`) | 4 | 4 |
+| Parsers (`src/Parser/`) | 4 | 4 |
+| Validators — services (`src/Validator/`) | 16 | 16 |
+| Validators — Symfony constraints (`src/Validator/Constraint/`) | 10 | 10 |
+| Models (`src/Model/`) | 9 | 9 |
+| Events (`src/Event/`) | 6 | 6 |
+| Export (`src/Exporter/`) | 3 | 3 |
+| Lookup & cache (`src/Lookup/`, `src/Cache/`) | 4 | 4 |
+| Mandate service & repository (`src/Service/`, `src/Repository/`) | 3 | 3 |
+| Worker / request lifecycle (`src/EventSubscriber/`) | 1 | 1 |
+| Converter & logger (`src/Converter/`, `src/Logger/`) | 2 | 2 |
+| Resources under `src/Resources/` | 17 | 17 |
+| **Total `src/` artifacts** | **87** | **87** |

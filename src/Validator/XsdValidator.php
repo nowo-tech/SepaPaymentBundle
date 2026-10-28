@@ -23,7 +23,8 @@ use const LIBXML_NONET;
  * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
-class XsdValidator
+#[AsAlias(id: XsdValidatorInterface::class)]
+final class XsdValidator implements XsdValidatorInterface
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.validator.xsd_validator';
 

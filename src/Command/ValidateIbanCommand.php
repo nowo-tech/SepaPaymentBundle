@@ -17,11 +17,9 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
- *
- * @final since 1.5, will be final in 2.0 (not an extension point; decorate or replace the service instead)
  */
 #[AsCommand(name: 'nowo:sepa:validate-iban', description: 'Validates an IBAN and shows detailed information')]
-class ValidateIbanCommand extends Command
+final class ValidateIbanCommand extends Command
 {
     /**
      * Constructor.

@@ -21,7 +21,7 @@ use function sprintf;
  * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
-class SepaBusinessRulesValidator
+final class SepaBusinessRulesValidator
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.validator.sepa_business_rules_validator';
 

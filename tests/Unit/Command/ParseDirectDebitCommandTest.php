@@ -6,6 +6,7 @@ namespace Nowo\SepaPaymentBundle\Tests\Unit\Command;
 
 use Nowo\SepaPaymentBundle\Command\ParseDirectDebitCommand;
 use Nowo\SepaPaymentBundle\Parser\DirectDebitParser;
+use Nowo\SepaPaymentBundle\Parser\DirectDebitParserInterface;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -355,7 +356,7 @@ class ParseDirectDebitCommandTest extends TestCase
      */
     public function testParseWhenParserThrowsException(): void
     {
-        $parser = $this->createMock(DirectDebitParser::class);
+        $parser = $this->createMock(DirectDebitParserInterface::class);
         $parser->method('isValidDirectDebit')->willReturn(true);
         $parser->method('parseDirectDebit')->willThrowException(new RuntimeException('Parse error'));
 
@@ -381,7 +382,7 @@ class ParseDirectDebitCommandTest extends TestCase
      */
     public function testParseWithJsonOutputWhenJsonEncodeFailsOutputsFallback(): void
     {
-        $parser = $this->createMock(DirectDebitParser::class);
+        $parser = $this->createMock(DirectDebitParserInterface::class);
         $parser->method('isValidDirectDebit')->willReturn(true);
         // Data containing invalid UTF-8 makes json_encode return false
         $parser->method('parseDirectDebit')->willReturn([
@@ -411,7 +412,7 @@ class ParseDirectDebitCommandTest extends TestCase
      */
     public function testParseWithNonNumericAmountInTransaction(): void
     {
-        $parser = $this->createMock(DirectDebitParser::class);
+        $parser = $this->createMock(DirectDebitParserInterface::class);
         $parser->method('isValidDirectDebit')->willReturn(true);
         $parser->method('parseDirectDebit')->willReturn([
             'messageId'           => 'MSG-001',
@@ -458,7 +459,7 @@ class ParseDirectDebitCommandTest extends TestCase
      */
     public function testParseWithEmptyTransactionsShowsWarning(): void
     {
-        $parser = $this->createMock(DirectDebitParser::class);
+        $parser = $this->createMock(DirectDebitParserInterface::class);
         $parser->method('isValidDirectDebit')->willReturn(true);
         $parser->method('parseDirectDebit')->willReturn([
             'messageId'           => 'MSG-001',

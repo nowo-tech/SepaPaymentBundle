@@ -13,7 +13,7 @@ use Symfony\Contracts\EventDispatcher\Event;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
  */
-class AfterCreditTransferGenerationEvent extends Event
+final class AfterCreditTransferGenerationEvent extends Event
 {
     /**
      * Constructor.

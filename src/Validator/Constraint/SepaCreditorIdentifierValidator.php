@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nowo\SepaPaymentBundle\Validator\Constraint;
 
 use Nowo\SepaPaymentBundle\Validator\SepaCreditorIdentifierValidator as SepaCreditorIdentifierValidatorService;
+use Nowo\SepaPaymentBundle\Validator\SepaCreditorIdentifierValidatorInterface;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
@@ -17,10 +18,8 @@ use function is_string;
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
- *
- * @final since 1.5, will be final in 2.0 (not an extension point; decorate or replace the service instead)
  */
-class SepaCreditorIdentifierValidator extends ConstraintValidator
+final class SepaCreditorIdentifierValidator extends ConstraintValidator
 {
     /**
      * Constructor.
@@ -31,7 +30,7 @@ class SepaCreditorIdentifierValidator extends ConstraintValidator
         /**
          * SEPA Creditor Identifier validator service.
          */
-        private readonly SepaCreditorIdentifierValidatorService $sepaCreditorIdentifierValidator
+        private readonly SepaCreditorIdentifierValidatorInterface $sepaCreditorIdentifierValidator
     ) {
     }
 

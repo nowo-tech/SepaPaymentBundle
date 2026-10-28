@@ -16,7 +16,7 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
  * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
-class ValidationCache implements ValidationCacheInterface
+final class ValidationCache implements ValidationCacheInterface
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.cache.validation_cache';
 

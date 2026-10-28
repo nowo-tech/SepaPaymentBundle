@@ -14,7 +14,7 @@ use function is_array;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
  */
-class DirectDebitTransaction
+final class DirectDebitTransaction
 {
     /**
      * Remittance information (optional).

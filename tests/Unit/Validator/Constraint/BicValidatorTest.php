@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Tests\Unit\Validator\Constraint;
 
-use Nowo\SepaPaymentBundle\Validator\BicValidator as BicValidatorService;
+use Nowo\SepaPaymentBundle\Validator\BicValidatorInterface;
 use Nowo\SepaPaymentBundle\Validator\Constraint\Bic;
 use Nowo\SepaPaymentBundle\Validator\Constraint\BicValidator as ConstraintBicValidator;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -25,7 +25,7 @@ class BicValidatorTest extends TestCase
     /**
      * BIC validator service mock.
      *
-     * @var BicValidatorService|MockObject
+     * @var BicValidatorInterface|MockObject
      */
     private MockObject $bicValidatorService;
 
@@ -46,7 +46,7 @@ class BicValidatorTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->bicValidatorService = $this->createMock(BicValidatorService::class);
+        $this->bicValidatorService = $this->createMock(BicValidatorInterface::class);
         $this->validator           = new ConstraintBicValidator($this->bicValidatorService);
         $this->context             = $this->createMock(ExecutionContextInterface::class);
         $this->validator->initialize($this->context);

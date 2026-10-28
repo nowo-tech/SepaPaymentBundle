@@ -19,7 +19,7 @@ use Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction;
 use Nowo\SepaPaymentBundle\Tests\Unit\Helper\TranslationHelper;
 use Nowo\SepaPaymentBundle\Tests\Unit\Logger\TestLogger;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
-use Nowo\SepaPaymentBundle\Validator\XsdValidator;
+use Nowo\SepaPaymentBundle\Validator\XsdValidatorInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -1529,7 +1529,7 @@ class CreditTransferGeneratorTest extends TestCase
      */
     public function testGenerateWithXsdValidationFailure(): void
     {
-        $xsdValidator = $this->createMock(XsdValidator::class);
+        $xsdValidator = $this->createMock(XsdValidatorInterface::class);
         $xsdValidator->method('validateCreditTransfer')->willThrowException(new InvalidArgumentException('XSD error'));
         $translator = $this->createMock(TranslatorInterface::class);
         $translator->method('trans')->willReturn('Generated XML failed XSD validation');

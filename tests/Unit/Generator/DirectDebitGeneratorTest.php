@@ -18,7 +18,7 @@ use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitData;
 use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitTransaction;
 use Nowo\SepaPaymentBundle\Tests\Unit\Logger\TestLogger;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
-use Nowo\SepaPaymentBundle\Validator\XsdValidator;
+use Nowo\SepaPaymentBundle\Validator\XsdValidatorInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -1669,7 +1669,7 @@ class DirectDebitGeneratorTest extends TestCase
      */
     public function testGenerateWithXsdValidationFailure(): void
     {
-        $xsdValidator = $this->createMock(XsdValidator::class);
+        $xsdValidator = $this->createMock(XsdValidatorInterface::class);
         $xsdValidator->method('validateDirectDebit')->willThrowException(new InvalidArgumentException('XSD error'));
         $generator = new DirectDebitGenerator(new IbanValidator(), $xsdValidator, true);
 
@@ -1705,7 +1705,7 @@ class DirectDebitGeneratorTest extends TestCase
     {
         $testLogger   = new TestLogger();
         $sepaLogger   = new SepaPaymentLogger($testLogger);
-        $xsdValidator = $this->createMock(XsdValidator::class);
+        $xsdValidator = $this->createMock(XsdValidatorInterface::class);
         $xsdValidator->method('validateDirectDebit')->willThrowException(new InvalidArgumentException('XSD validation failed'));
         $generator = new DirectDebitGenerator(new IbanValidator(), $xsdValidator, true, null, $sepaLogger);
 

@@ -13,7 +13,7 @@ use Symfony\Contracts\EventDispatcher\Event;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
  */
-class AfterValidationEvent extends Event
+final class AfterValidationEvent extends Event
 {
     /**
      * Constructor.

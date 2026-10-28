@@ -61,6 +61,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed (BC break — see [UPGRADING](UPGRADING.md#to-200))
+
+- **Concrete classes are `final`** (REQ-PHP-001): the 53 services, value objects, events, commands and constraints
+  under `src/` can no longer be extended. Customise through the interfaces and composition (new ones below),
+  `MandateRepositoryInterface`, `BicLookupServiceInterface`,
+  `ValidationCacheInterface`, `CsvStreamHandlerInterface`, decorators and the events.
+- New interfaces, aliased to the default implementations: `XsdValidatorInterface`, `DirectDebitParserInterface`,
+  `IbanValidatorInterface`, `BicValidatorInterface`, `CreditCardValidatorInterface`, `SepaCountryValidatorInterface`,
+  `SepaCreditorIdentifierValidatorInterface`. Generators type-hint `?XsdValidatorInterface`, `ParseDirectDebitCommand`
+  `DirectDebitParserInterface`, and the Symfony constraint validators the matching validator interface;
+  `CachedIbanValidator` / `CachedBicValidator` implement theirs, so they can replace the plain services.
+- `Mandate::getExpirationDate()` returns `DateTimeInterface` (never `null`: the 36-month inactivity rule always
+  applies).
+- `CreditCardValidator::stripNonDigits()` (protected test hook) is removed.
+
 ## [1.6.0] - 2026-10-28
 
 SepaPayment: mandates, the in-memory repository and credit transfers use an injectable clock. See [UPGRADING](UPGRADING.md#to-160).

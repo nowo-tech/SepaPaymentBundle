@@ -25,7 +25,8 @@ use const LIBXML_NONET;
  * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
-class DirectDebitParser
+#[AsAlias(id: DirectDebitParserInterface::class)]
+final class DirectDebitParser implements DirectDebitParserInterface
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.parser.direct_debit_parser';
 
@@ -150,11 +151,7 @@ class DirectDebitParser
         }
 
         $transactions = [];
-        foreach ($this->getDirectDebitTransactionNodes($xpath) as $txInf) {
-            $ctx = $txInf instanceof DOMNode ? $txInf : null;
-            if (!$ctx instanceof DOMNode) {
-                continue;
-            }
+        foreach ($this->getDirectDebitTransactionNodes($xpath) as $ctx) {
             $transaction = [];
 
             $endToEndId = $this->getFirstNode($xpath, './/sepa:EndToEndId', $ctx);
@@ -228,13 +225,21 @@ class DirectDebitParser
     /**
      * Returns the list of direct debit transaction nodes for iteration (extracted for testability of defensive continue).
      *
-     * @return iterable<int, DOMNode|mixed>
+     * @return list<DOMNode>
      */
-    protected function getDirectDebitTransactionNodes(DOMXPath $xpath): iterable
+    private function getDirectDebitTransactionNodes(DOMXPath $xpath): array
     {
         $drctDbtTxInfNodes = $xpath->query('//sepa:DrctDbtTxInf');
+        $nodes             = [];
+        if ($drctDbtTxInfNodes instanceof DOMNodeList) {
+            foreach ($drctDbtTxInfNodes as $node) {
+                if ($node instanceof DOMNode) {
+                    $nodes[] = $node;
+                }
+            }
+        }
 
-        return $drctDbtTxInfNodes instanceof DOMNodeList ? $drctDbtTxInfNodes : [];
+        return $nodes;
     }
 
     /**

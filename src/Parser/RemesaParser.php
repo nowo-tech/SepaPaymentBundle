@@ -19,7 +19,7 @@ use const E_USER_DEPRECATED;
  * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
-class RemesaParser
+final class RemesaParser
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.parser.remesa_parser';
 

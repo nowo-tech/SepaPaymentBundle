@@ -10,6 +10,7 @@ use Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction;
 use Nowo\SepaPaymentBundle\Model\Remesa\RemesaData;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use Nowo\SepaPaymentBundle\Validator\XsdValidator;
+use Nowo\SepaPaymentBundle\Validator\XsdValidatorInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -25,7 +26,7 @@ use const E_USER_DEPRECATED;
  * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
-class RemesaGenerator
+final class RemesaGenerator
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.generator.remesa_generator';
 
@@ -42,7 +43,7 @@ class RemesaGenerator
      * @param XsdValidator|null $xsdValidator Optional XSD validator instance
      * @param bool $validateXsd Whether to validate XML against XSD schema
      */
-    public function __construct(IbanValidator $ibanValidator, TranslatorInterface $translator, ?XsdValidator $xsdValidator = null, bool $validateXsd = false)
+    public function __construct(IbanValidator $ibanValidator, TranslatorInterface $translator, ?XsdValidatorInterface $xsdValidator = null, bool $validateXsd = false)
     {
         $this->generator = new CreditTransferGenerator($ibanValidator, $translator, $xsdValidator, $validateXsd);
     }

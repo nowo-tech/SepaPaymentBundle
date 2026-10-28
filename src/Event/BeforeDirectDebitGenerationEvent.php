@@ -14,7 +14,7 @@ use Symfony\Contracts\EventDispatcher\Event;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
  */
-class BeforeDirectDebitGenerationEvent extends Event
+final class BeforeDirectDebitGenerationEvent extends Event
 {
     /**
      * Constructor.

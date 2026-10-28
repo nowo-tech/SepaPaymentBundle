@@ -15,7 +15,7 @@ use function is_array;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
  */
-class CreditTransferData
+final class CreditTransferData
 {
     /**
      * Creditor BIC (optional).

@@ -15,7 +15,7 @@ use Symfony\Component\Validator\Constraint;
  * @copyright 2026 Nowo.tech
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
-class Iban extends Constraint
+final class Iban extends Constraint
 {
     public const INVALID_IBAN_ERROR = 'b6d7a4c1-3b2e-4f8a-9c5d-1e2f3a4b5c6d';
 

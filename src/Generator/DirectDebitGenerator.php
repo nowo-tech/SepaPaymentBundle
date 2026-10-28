@@ -27,6 +27,7 @@ use Nowo\SepaPaymentBundle\Validator\IbanValidator;
 use Nowo\SepaPaymentBundle\Validator\SepaBusinessRulesValidator;
 use Nowo\SepaPaymentBundle\Validator\SepaStringSanitizer;
 use Nowo\SepaPaymentBundle\Validator\XsdValidator;
+use Nowo\SepaPaymentBundle\Validator\XsdValidatorInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\HeaderUtils;
@@ -53,7 +54,7 @@ use const ENT_XML1;
  * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
-class DirectDebitGenerator
+final class DirectDebitGenerator
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.generator.direct_debit_generator';
 
@@ -89,7 +90,7 @@ class DirectDebitGenerator
         /**
          * XSD validator instance (optional).
          */
-        private readonly ?XsdValidator $xsdValidator = null,
+        private readonly ?XsdValidatorInterface $xsdValidator = null,
         bool $validateXsd = false,
         /**
          * Event dispatcher instance (optional).
@@ -109,7 +110,7 @@ class DirectDebitGenerator
         private readonly string $defaultCurrency = SepaBusinessRulesValidator::SEPA_CURRENCY,
         ?SepaStringSanitizer $stringSanitizer = null
     ) {
-        $this->validateXsd     = $validateXsd && $this->xsdValidator instanceof XsdValidator;
+        $this->validateXsd     = $validateXsd && $this->xsdValidator instanceof XsdValidatorInterface;
         $this->stringSanitizer = $stringSanitizer ?? new SepaStringSanitizer();
     }
 
@@ -261,7 +262,7 @@ class DirectDebitGenerator
             $xml = $this->addAddressesToXml($xml, $directDebitData);
 
             // Validate against XSD schema if enabled
-            if ($this->validateXsd && $this->xsdValidator instanceof XsdValidator) {
+            if ($this->validateXsd && $this->xsdValidator instanceof XsdValidatorInterface) {
                 try {
                     $this->xsdValidator->validateDirectDebit($xml);
                 } catch (InvalidArgumentException $e) {
@@ -604,8 +605,6 @@ class DirectDebitGenerator
         CustomerDirectDebitTransferInformation $transferInformation,
         DirectDebitTransaction $transaction
     ): void {
-        $transaction->getAdditionalData();
-
         // Set debtor address if available
         $debtorAddress = $transaction->getDebtorAddress();
         if ($debtorAddress !== null) {

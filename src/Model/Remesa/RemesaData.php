@@ -18,7 +18,7 @@ use const E_USER_DEPRECATED;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
  */
-class RemesaData
+final class RemesaData
 {
     /**
      * Credit transfer data instance.

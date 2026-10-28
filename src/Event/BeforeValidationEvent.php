@@ -13,7 +13,7 @@ use Symfony\Contracts\EventDispatcher\Event;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
  */
-class BeforeValidationEvent extends Event
+final class BeforeValidationEvent extends Event
 {
     /**
      * Validation result (can be modified by listeners).

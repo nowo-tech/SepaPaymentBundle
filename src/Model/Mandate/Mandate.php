@@ -15,7 +15,7 @@ use RuntimeException;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
  */
-class Mandate
+final class Mandate
 {
     /**
      * BIC of the debtor's bank (optional).
@@ -232,9 +232,9 @@ class Mandate
      *     collection has been presented for 36 months);
      *  3. signature date + 36 months when no collection has ever been presented.
      *
-     * @return DateTimeInterface|null The expiration date
+     * @return DateTimeInterface The expiration date (never null: the inactivity rule always applies)
      */
-    public function getExpirationDate(): ?DateTimeInterface
+    public function getExpirationDate(): DateTimeInterface
     {
         if ($this->expirationDate instanceof DateTimeInterface) {
             return $this->expirationDate;
@@ -321,14 +321,9 @@ class Mandate
      */
     public function isExpired(?DateTimeInterface $checkDate = null): bool
     {
-        $expirationDate = $this->getExpirationDate();
-        if (!$expirationDate instanceof DateTimeInterface) {
-            return false;
-        }
-
         $checkDate ??= new DateTime();
 
-        return $expirationDate < $checkDate;
+        return $this->getExpirationDate() < $checkDate;
     }
 
     /**

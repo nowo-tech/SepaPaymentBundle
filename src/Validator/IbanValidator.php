@@ -20,7 +20,8 @@ use const STR_PAD_LEFT;
  * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
-class IbanValidator
+#[AsAlias(id: IbanValidatorInterface::class)]
+final class IbanValidator implements IbanValidatorInterface
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.validator.iban_validator';
 

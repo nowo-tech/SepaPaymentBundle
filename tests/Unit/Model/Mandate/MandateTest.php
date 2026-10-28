@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Nowo\SepaPaymentBundle\Tests\Unit\Model\Mandate;
 
 use DateTime;
-use DateTimeInterface;
 use Nowo\SepaPaymentBundle\Model\Mandate\Mandate;
 use Nowo\SepaPaymentBundle\Model\Mandate\MandateStatus;
 use PHPUnit\Framework\TestCase;
@@ -285,22 +284,6 @@ class MandateTest extends TestCase
         $mandate->setExpirationDate(new DateTime('2025-12-31'));
         $this->assertFalse($mandate->isExpired(new DateTime('2025-01-01')));
         $this->assertTrue($mandate->isExpired(new DateTime('2026-06-01')));
-    }
-
-    /**
-     * Covers isExpired when getExpirationDate returns null (branch return false).
-     * Uses a subclass that overrides getExpirationDate to return null.
-     */
-    public function testIsExpiredReturnsFalseWhenExpirationDateIsNull(): void
-    {
-        $mandate = new class('MANDATE-001', new DateTime(), 'ES9121000418450200051332', 'John Doe') extends Mandate {
-            public function getExpirationDate(): ?DateTimeInterface
-            {
-                return null;
-            }
-        };
-        $this->assertFalse($mandate->isExpired());
-        $this->assertFalse($mandate->isExpired(new DateTime('2030-01-01')));
     }
 
     /**

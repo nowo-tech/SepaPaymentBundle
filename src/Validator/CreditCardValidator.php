@@ -16,7 +16,8 @@ use function strlen;
  * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
-class CreditCardValidator
+#[AsAlias(id: CreditCardValidatorInterface::class)]
+final class CreditCardValidator implements CreditCardValidatorInterface
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.validator.credit_card_validator';
     /**
@@ -95,21 +96,7 @@ class CreditCardValidator
      */
     public function normalize(string $cardNumber): string
     {
-        $result = $this->stripNonDigits(trim($cardNumber));
-
-        return $result ?? '';
-    }
-
-    /**
-     * Strips non-digit characters from a string. Extracted for testability of null coalescence.
-     *
-     * @param string $input The string to strip
-     *
-     * @return string|null The digits-only string, or null on preg_replace error
-     */
-    protected function stripNonDigits(string $input): ?string
-    {
-        return preg_replace('/[^0-9]/', '', $input);
+        return preg_replace('/[^0-9]/', '', trim($cardNumber)) ?? '';
     }
 
     /**

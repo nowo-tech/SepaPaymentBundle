@@ -6,7 +6,7 @@ namespace Nowo\SepaPaymentBundle\Tests\Unit\Validator\Constraint;
 
 use Nowo\SepaPaymentBundle\Validator\Constraint\CreditCard;
 use Nowo\SepaPaymentBundle\Validator\Constraint\CreditCardValidator as ConstraintCreditCardValidator;
-use Nowo\SepaPaymentBundle\Validator\CreditCardValidator as CreditCardValidatorService;
+use Nowo\SepaPaymentBundle\Validator\CreditCardValidatorInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Constraint;
@@ -30,7 +30,7 @@ class CreditCardValidatorTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->creditCardValidatorService = $this->createMock(CreditCardValidatorService::class);
+        $this->creditCardValidatorService = $this->createMock(CreditCardValidatorInterface::class);
         $this->validator                  = new ConstraintCreditCardValidator($this->creditCardValidatorService);
         $this->context                    = $this->createMock(ExecutionContextInterface::class);
         $this->validator->initialize($this->context);

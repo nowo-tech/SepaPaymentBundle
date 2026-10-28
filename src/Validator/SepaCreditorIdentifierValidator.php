@@ -31,7 +31,8 @@ use const STR_PAD_LEFT;
  * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
-class SepaCreditorIdentifierValidator
+#[AsAlias(id: SepaCreditorIdentifierValidatorInterface::class)]
+final class SepaCreditorIdentifierValidator implements SepaCreditorIdentifierValidatorInterface
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.validator.sepa_creditor_identifier_validator';
 

@@ -14,7 +14,7 @@ use Symfony\Contracts\EventDispatcher\Event;
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
  */
-class BeforeCreditTransferGenerationEvent extends Event
+final class BeforeCreditTransferGenerationEvent extends Event
 {
     /**
      * Constructor.
