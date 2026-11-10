@@ -3,12 +3,24 @@ ISO 20022 XML schemas
 pain.001.001.03.xsd  CustomerCreditTransferInitiationV03 (2009)
 pain.008.001.02.xsd  CustomerDirectDebitInitiationV02 (2009)
 pain.001.001.09.xsd  CustomerCreditTransferInitiationV09 (2019)
-pain.008.001.09.xsd  CustomerDirectDebitInitiationV09
+pain.008.001.08.xsd  CustomerDirectDebitInitiationV08 (2019; Standards Editor R1.6.15, 2019-02-14)
+pain.008.001.09.xsd  CustomerDirectDebitInitiationV09 (2020; Standards Editor R1.6.16, 2020-03-05)
 
 These files are the unmodified message schemas published by the ISO 20022
 Registration Authority, which may be used and reproduced freely under the
 ISO 20022 Intellectual Property Right Policy. They are not the official source:
 the sole source of up-to-date ISO 20022 message standards is
-https://www.iso20022.org/.
+https://www.iso20022.org/ (message catalogue, Payments Initiation - pain).
+
+pain.008.001.08.xsd and pain.008.001.09.xsd are byte-identical to the copies
+distributed with digitick/sepa-xml 3.2.0 (doc/ISO20022/pain/008/001/), the
+library that writes the XML. SHA-256:
+
+  pain.008.001.02.xsd  05cf20eb514b4accce38f6bc2f5e516bde46112b9fc15b49fa3b49e37e70bf17
+  pain.008.001.08.xsd  3b2efe2239fceea22b17eb980df58c8b80db7322cf7781f8fd64ee8d17696210
+  pain.008.001.09.xsd  1b544948a7ab2a974004c24ce4f0eb6edf593396059abbc671141594e07fae5a
+
+pain.008.001.08 is the version of the EPC SEPA Direct Debit Core and B2B
+Customer-to-PSP Implementation Guidelines (EPC130-08 / EPC131-08, 2023 rulebook).
 
 Used by Nowo\SepaPaymentBundle\Validator\XsdValidator (see docs/USAGE.md).

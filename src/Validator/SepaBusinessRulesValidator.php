@@ -31,6 +31,16 @@ final class SepaBusinessRulesValidator
     public const MAX_TRANSACTION_AMOUNT = 999999999.99;
 
     /**
+     * Smallest transaction amount in cents accepted by the EPC rulebooks (EUR 0.01).
+     */
+    public const MIN_TRANSACTION_AMOUNT_CENTS = 1;
+
+    /**
+     * Largest transaction amount in cents accepted by the EPC rulebooks (EUR 999 999 999.99).
+     */
+    public const MAX_TRANSACTION_AMOUNT_CENTS = 99_999_999_999;
+
+    /**
      * @param ClockInterface $clock Source of "today" for date rules (REQ-DI-001); inject a MockClock in tests
      */
     public function __construct(
@@ -58,6 +68,17 @@ final class SepaBusinessRulesValidator
     public function isValidTransactionAmount(float $amount): bool
     {
         return $amount > 0 && $amount <= self::MAX_TRANSACTION_AMOUNT;
+    }
+
+    /**
+     * Whether an amount in cents is inside the EPC range for one transaction (1 to 99 999 999 999 cents).
+     * The generators enforce this range since 2.2.0.
+     *
+     * @param int $amountCents The transaction amount in cents
+     */
+    public static function isValidTransactionAmountCents(int $amountCents): bool
+    {
+        return $amountCents >= self::MIN_TRANSACTION_AMOUNT_CENTS && $amountCents <= self::MAX_TRANSACTION_AMOUNT_CENTS;
     }
 
     /**

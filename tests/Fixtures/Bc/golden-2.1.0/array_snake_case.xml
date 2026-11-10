@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.001.09" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:iso:std:iso:20022:tech:xsd:pain.008.001.09 pain.008.001.09.xsd">
+  <CstmrDrctDbtInitn>
+    <GrpHdr>
+      <MsgId>MSG-BC-006</MsgId>
+      <CreDtTm>NORMALISED</CreDtTm>
+      <NbOfTxs>4</NbOfTxs>
+      <CtrlSum>1770.25</CtrlSum>
+      <InitgPty>
+        <Nm>Nowo Creditor SL</Nm>
+      </InitgPty>
+    </GrpHdr>
+    <PmtInf>
+      <PmtInfId>PMT-BC-006</PmtInfId>
+      <PmtMtd>DD</PmtMtd>
+      <NbOfTxs>4</NbOfTxs>
+      <CtrlSum>1770.25</CtrlSum>
+      <PmtTpInf>
+        <SvcLvl>
+          <Cd>SEPA</Cd>
+        </SvcLvl>
+        <LclInstrm>
+          <Cd>CORE</Cd>
+        </LclInstrm>
+        <SeqTp>RCUR</SeqTp>
+      </PmtTpInf>
+      <ReqdColltnDt>2026-12-01</ReqdColltnDt>
+      <Cdtr>
+        <Nm>Nowo Creditor SL</Nm>
+      </Cdtr>
+      <CdtrAcct>
+        <Id>
+          <IBAN>ES9121000418450200051332</IBAN>
+        </Id>
+      </CdtrAcct>
+      <CdtrAgt>
+        <FinInstnId>
+          <BICFI>CAIXESBBXXX</BICFI>
+        </FinInstnId>
+      </CdtrAgt>
+      <ChrgBr>SLEV</ChrgBr>
+      <CdtrSchmeId>
+        <Id>
+          <PrvtId>
+            <Othr>
+              <Id>ES59ZZZX1234567</Id>
+              <SchmeNm>
+                <Prtry>SEPA</Prtry>
+              </SchmeNm>
+            </Othr>
+          </PrvtId>
+        </Id>
+      </CdtrSchmeId>
+      <DrctDbtTxInf>
+        <PmtId>
+          <EndToEndId>E2E-BC-6-1</EndToEndId>
+        </PmtId>
+        <InstdAmt Ccy="EUR">1500.25</InstdAmt>
+        <DrctDbtTx>
+          <MndtRltdInf>
+            <MndtId>M-1</MndtId>
+            <DtOfSgntr>2025-01-01</DtOfSgntr>
+          </MndtRltdInf>
+        </DrctDbtTx>
+        <DbtrAgt>
+          <FinInstnId>
+            <Othr>
+              <Id>NOTPROVIDED</Id>
+            </Othr>
+          </FinInstnId>
+        </DbtrAgt>
+        <Dbtr>
+          <Nm>John Doe</Nm>
+        </Dbtr>
+        <DbtrAcct>
+          <Id>
+            <IBAN>GB82WEST12345698765432</IBAN>
+          </Id>
+        </DbtrAcct>
+        <RmtInf>
+          <Ustrd>Invoice 1</Ustrd>
+        </RmtInf>
+      </DrctDbtTxInf>
+      <DrctDbtTxInf>
+        <PmtId>
+          <EndToEndId>E2E-BC-6-2</EndToEndId>
+        </PmtId>
+        <InstdAmt Ccy="EUR">19.99</InstdAmt>
+        <DrctDbtTx>
+          <MndtRltdInf>
+            <MndtId>M-2</MndtId>
+            <DtOfSgntr>2025-02-01</DtOfSgntr>
+          </MndtRltdInf>
+        </DrctDbtTx>
+        <DbtrAgt>
+          <FinInstnId>
+            <BICFI>COBADEFFXXX</BICFI>
+          </FinInstnId>
+        </DbtrAgt>
+        <Dbtr>
+          <Nm>Erika Mustermann</Nm>
+        </Dbtr>
+        <DbtrAcct>
+          <Id>
+            <IBAN>DE89370400440532013000</IBAN>
+          </Id>
+        </DbtrAcct>
+      </DrctDbtTxInf>
+      <DrctDbtTxInf>
+        <PmtId>
+          <EndToEndId>E2E-BC-6-3</EndToEndId>
+        </PmtId>
+        <InstdAmt Ccy="EUR">0.01</InstdAmt>
+        <DrctDbtTx>
+          <MndtRltdInf>
+            <MndtId>M-3</MndtId>
+            <DtOfSgntr>2025-03-01</DtOfSgntr>
+          </MndtRltdInf>
+        </DrctDbtTx>
+        <DbtrAgt>
+          <FinInstnId>
+            <BICFI>BNPAFRPP</BICFI>
+          </FinInstnId>
+        </DbtrAgt>
+        <Dbtr>
+          <Nm>Jean Dupont</Nm>
+          <PstlAdr>
+            <StrtNm>Rue de Rivoli 1</StrtNm>
+            <PstCd>75001</PstCd>
+            <TwnNm>Paris</TwnNm>
+            <Ctry>FR</Ctry>
+          </PstlAdr>
+        </Dbtr>
+        <DbtrAcct>
+          <Id>
+            <IBAN>FR1420041010050500013M02606</IBAN>
+          </Id>
+        </DbtrAcct>
+      </DrctDbtTxInf>
+      <DrctDbtTxInf>
+        <PmtId>
+          <EndToEndId>E2E-BC-6-4</EndToEndId>
+        </PmtId>
+        <InstdAmt Ccy="EUR">250.00</InstdAmt>
+        <DrctDbtTx>
+          <MndtRltdInf>
+            <MndtId>M-4</MndtId>
+            <DtOfSgntr>2025-04-01</DtOfSgntr>
+          </MndtRltdInf>
+        </DrctDbtTx>
+        <DbtrAgt>
+          <FinInstnId>
+            <BICFI>ABNANL2A</BICFI>
+          </FinInstnId>
+        </DbtrAgt>
+        <Dbtr>
+          <Nm>Jan Jansen</Nm>
+        </Dbtr>
+        <DbtrAcct>
+          <Id>
+            <IBAN>NL91ABNA0417164300</IBAN>
+          </Id>
+        </DbtrAcct>
+      </DrctDbtTxInf>
+    </PmtInf>
+  </CstmrDrctDbtInitn>
+</Document>

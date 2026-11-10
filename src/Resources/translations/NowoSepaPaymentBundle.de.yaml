@@ -28,6 +28,7 @@ validation.invalid_keys_transaction: 'Ungültige Schlüssel in der Transaktion: 
 # Business rules validation
 validation.invalid_transaction_amount: 'Der Transaktionsbetrag %amount% überschreitet den maximal zulässigen Betrag von %max_amount% EUR'
 validation.invalid_transaction_count: 'Die Anzahl der Transaktionen %count% überschreitet die maximal zulässige Anzahl von %max_count%'
+validation.transaction_amount_out_of_range: "Ungültiger Betrag für die Zahlung \"%end_to_end_id%\": %amount% EUR liegt außerhalb des SEPA-Bereichs von 0,01 bis 999999999,99 EUR."
 validation.invalid_execution_date_future: 'Das Ausführungsdatum muss heute oder in der Zukunft liegen'
 validation.invalid_currency: 'Die Währung %currency% ist für SEPA nicht gültig. Nur EUR ist erlaubt.'
 validation.invalid_sequence_type: 'Ungültiger Sequenztyp: %type%. Muss einer der folgenden sein: %valid_types%'
@@ -51,3 +52,42 @@ credit_card:
 
 sepa_country:
     invalid: 'Dieser Wert ist kein gültiger SEPA-Ländercode.'
+
+# ISO 20022 reason codes of SEPA R-transactions (Nowo\SepaPaymentBundle\Model\ReasonCode)
+reason_code:
+    AC01: "Kontokennung fehlerhaft (ungültige IBAN)"
+    AC03: "Kontokennung des Zahlungsempfängers fehlerhaft"
+    AC04: "Konto erloschen"
+    AC06: "Konto gesperrt oder für Lastschriften vom Zahler gesperrt"
+    AC13: "Konto des Zahlers ist ein Verbraucherkonto (B2B nicht zulässig)"
+    AG01: "Lastschrift auf diesem Konto aus regulatorischen Gründen nicht zulässig"
+    AG02: "Geschäftsvorfallcode fehlerhaft, ungültiges Dateiformat"
+    AM04: "Keine ausreichende Deckung"
+    AM05: "Doppelte Einreichung"
+    AM09: "Falscher Betrag"
+    ARDT: "Zahlung bereits zurückgegeben"
+    BE05: "Gläubiger-Identifikationsnummer fehlerhaft"
+    CNOR: "Bank des Zahlungsempfängers nimmt am Verfahren nicht teil"
+    CUST: "Auf Wunsch des Kunden"
+    DNOR: "Bank des Zahlers nimmt am Verfahren nicht teil"
+    DUPL: "Doppelte Zahlung"
+    ED05: "Verrechnung fehlgeschlagen"
+    FF01: "Ungültiges Dateiformat"
+    FOCR: "Rückgabe nach einem Rückruf"
+    FRAD: "Betrügerische Veranlassung"
+    LEGL: "Rechtliche Entscheidung"
+    MD01: "Kein gültiges Mandat oder nicht autorisierte Zahlung"
+    MD02: "Mandatsdaten fehlen oder sind fehlerhaft"
+    MD06: "Erstattung vom Zahler verlangt (autorisierte Zahlung)"
+    MD07: "Zahler verstorben"
+    MS02: "Vom Zahler abgelehnt (ohne Angabe von Gründen)"
+    MS03: "Grund von der Bank nicht angegeben"
+    NOAS: "Keine Antwort des Begünstigten"
+    NOOR: "Ursprüngliche Zahlung nicht erhalten"
+    RC01: "Bankkennung (BIC) fehlerhaft"
+    RR01: "Konto oder Identifikation des Zahlers fehlt (regulatorischer Grund)"
+    RR02: "Name oder Adresse des Zahlers fehlt (regulatorischer Grund)"
+    RR03: "Name oder Adresse des Zahlungsempfängers fehlt (regulatorischer Grund)"
+    RR04: "Regulatorischer Grund"
+    SL01: "Besonderer Dienst der Bank des Zahlers"
+    TECH: "Technisches Problem, das zu einer fehlerhaften Zahlung führte"

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nowo\SepaPaymentBundle\Generator;
 
 use DateTime;
+use DateTimeImmutable;
 use DateTimeInterface;
 use Digitick\Sepa\DomBuilder\DomBuilderFactory;
 use Digitick\Sepa\GroupHeader;
@@ -19,22 +20,29 @@ use Exception;
 use InvalidArgumentException;
 use Nowo\SepaPaymentBundle\Event\AfterDirectDebitGenerationEvent;
 use Nowo\SepaPaymentBundle\Event\BeforeDirectDebitGenerationEvent;
+use Nowo\SepaPaymentBundle\Http\SepaXmlResponseFactory;
 use Nowo\SepaPaymentBundle\Logger\SepaPaymentLogger;
 use Nowo\SepaPaymentBundle\Lookup\BicLookupServiceInterface;
 use Nowo\SepaPaymentBundle\Model\Amount;
 use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitData;
+use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitGenerationOptions;
 use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitTransaction;
-use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+use Nowo\SepaPaymentBundle\Model\DirectDebit\Pain008Version;
+use Nowo\SepaPaymentBundle\Model\DirectDebit\SequenceType;
+use Nowo\SepaPaymentBundle\Model\DirectDebit\SequenceTypeMode;
+use Nowo\SepaPaymentBundle\Model\PartyIdentification;
+use Nowo\SepaPaymentBundle\Validator\IbanValidatorInterface;
 use Nowo\SepaPaymentBundle\Validator\SepaBusinessRulesValidator;
 use Nowo\SepaPaymentBundle\Validator\SepaStringSanitizer;
 use Nowo\SepaPaymentBundle\Validator\XsdValidator;
 use Nowo\SepaPaymentBundle\Validator\XsdValidatorInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
+use function array_column;
+use function array_key_first;
 use function count;
 use function in_array;
 use function is_array;
@@ -43,7 +51,9 @@ use function is_int;
 use function is_string;
 use function sprintf;
 use function strlen;
+use function trigger_error;
 
+use const E_USER_DEPRECATED;
 use const ENT_XML1;
 
 /**
@@ -55,7 +65,8 @@ use const ENT_XML1;
  * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
-final class DirectDebitGenerator
+#[AsAlias(id: DirectDebitGeneratorInterface::class)]
+final class DirectDebitGenerator implements DirectDebitGeneratorInterface
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.generator.direct_debit_generator';
 
@@ -75,9 +86,19 @@ final class DirectDebitGenerator
     private readonly SepaStringSanitizer $stringSanitizer;
 
     /**
+     * Default message version (bundle config `direct_debit.pain_version`).
+     */
+    private readonly Pain008Version $defaultPainVersion;
+
+    /**
+     * Default sequence type mode (bundle config `direct_debit.sequence_type_mode`).
+     */
+    private readonly SequenceTypeMode $defaultSequenceTypeMode;
+
+    /**
      * Constructor.
      *
-     * @param IbanValidator $ibanValidator IBAN validator instance
+     * @param IbanValidatorInterface $ibanValidator IBAN validator (any implementation, e.g. a host decorator)
      * @param XsdValidator|null $xsdValidator Optional XSD validator instance
      * @param bool $validateXsd Whether to enable XSD validation (default: false)
      * @param EventDispatcherInterface|null $eventDispatcher Optional event dispatcher for Symfony events
@@ -85,9 +106,11 @@ final class DirectDebitGenerator
      * @param BicLookupServiceInterface|null $bicLookupService Optional BIC lookup service for auto-filling BIC
      * @param string $defaultCurrency Currency used when a transaction has none (bundle config `default_currency`; SEPA requires EUR)
      * @param SepaStringSanitizer|null $stringSanitizer Sanitizer used to enforce SEPA field length limits
+     * @param Pain008Version|string $defaultPainVersion Message version when the call gives none (config `direct_debit.pain_version`)
+     * @param SequenceTypeMode|string $defaultSequenceTypeMode Sequence type mode when the call gives none (config `direct_debit.sequence_type_mode`)
      */
     public function __construct(
-        private readonly IbanValidator $ibanValidator,
+        private readonly IbanValidatorInterface $ibanValidator,
         /**
          * XSD validator instance (optional).
          */
@@ -109,30 +132,37 @@ final class DirectDebitGenerator
          * Default currency (ISO 4217) for transactions without an explicit currency.
          */
         private readonly string $defaultCurrency = SepaBusinessRulesValidator::SEPA_CURRENCY,
-        ?SepaStringSanitizer $stringSanitizer = null
+        ?SepaStringSanitizer $stringSanitizer = null,
+        Pain008Version|string $defaultPainVersion = Pain008Version::DEFAULT,
+        SequenceTypeMode|string $defaultSequenceTypeMode = SequenceTypeMode::DEFAULT,
     ) {
-        $this->validateXsd     = $validateXsd && $this->xsdValidator instanceof XsdValidatorInterface;
-        $this->stringSanitizer = $stringSanitizer ?? new SepaStringSanitizer();
+        $this->validateXsd             = $validateXsd && $this->xsdValidator instanceof XsdValidatorInterface;
+        $this->stringSanitizer         = $stringSanitizer ?? new SepaStringSanitizer();
+        $this->defaultPainVersion      = Pain008Version::fromValue($defaultPainVersion);
+        $this->defaultSequenceTypeMode = SequenceTypeMode::fromValue($defaultSequenceTypeMode);
     }
 
     /**
      * Generates a SEPA Direct Debit XML file from array data.
      *
      * @param array<string, mixed> $data The direct debit data in array format
+     * @param DirectDebitGenerationOptions|null $options Per-call options (null: bundle configuration)
      *
      * @throws InvalidArgumentException If the data is invalid
      *
      * @return string The XML content
      */
-    public function generateFromArray(array $data): string
+    public function generateFromArray(array $data, ?DirectDebitGenerationOptions $options = null): string
     {
         $directDebitData = $this->createDirectDebitDataFromArray($data);
 
-        return $this->generate($directDebitData);
+        return $this->generate($directDebitData, $options);
     }
 
     /**
      * Creates an HTTP Response with XML content for download.
+     *
+     * @deprecated since nowo-tech/sepa-payment-bundle 2.2, use {@see SepaXmlResponseFactory::createResponse()} (removed in 3.0)
      *
      * @param string $xmlData The XML content
      * @param string $filename The filename for the download (e.g., "direct-debit.xml")
@@ -141,25 +171,32 @@ final class DirectDebitGenerator
      */
     public function createResponse(string $xmlData, string $filename): Response
     {
-        return new Response($xmlData, Response::HTTP_OK, [
-            'Content-Type'        => 'application/xml',
-            'Content-Disposition' => $this->makeAttachmentDisposition($filename),
-        ]);
+        @trigger_error('DirectDebitGenerator::createResponse() is deprecated since nowo-tech/sepa-payment-bundle 2.2: use Nowo\\SepaPaymentBundle\\Http\\SepaXmlResponseFactory::createResponse() instead.', E_USER_DEPRECATED);
+
+        return (new SepaXmlResponseFactory())->createResponse($xmlData, $filename);
     }
 
     /**
      * Generates a SEPA Direct Debit XML file.
      *
+     * One `PmtInf` is written per payment-information block ({@see DirectDebitData::getPaymentInformation()}); in the
+     * {@see SequenceTypeMode::PER_TRANSACTION} mode a block whose transactions carry different sequence types is split
+     * into one `PmtInf` per sequence type (`<PmtInfId>-FRST`, `<PmtInfId>-RCUR`, ...).
+     *
      * @param DirectDebitData $directDebitData The direct debit data
+     * @param DirectDebitGenerationOptions|null $options Per-call options (null options: bundle configuration)
      *
      * @throws InvalidArgumentException If the data is invalid
      *
      * @return string The XML content
      */
-    public function generate(DirectDebitData $directDebitData): string
+    public function generate(DirectDebitData $directDebitData, ?DirectDebitGenerationOptions $options = null): string
     {
         $transactionCount = count($directDebitData->getTransactions());
         $messageId        = $directDebitData->getMessageId();
+        $painVersion      = $options?->getPainVersion() ?? $this->defaultPainVersion;
+        $sequenceTypeMode = $options?->getSequenceTypeMode() ?? $this->defaultSequenceTypeMode;
+        $validateXsd      = ($options?->getValidateXsd() ?? $this->validateXsd) && $this->xsdValidator instanceof XsdValidatorInterface;
 
         // Log generation start
         if ($this->logger instanceof SepaPaymentLogger) {
@@ -175,18 +212,26 @@ final class DirectDebitGenerator
             }
 
             $this->validateDirectDebitData($directDebitData);
+            $blocks = $this->resolvePaymentBlocks($directDebitData, $sequenceTypeMode);
 
             // Create and configure group header
             $groupHeader = new GroupHeader(
                 $directDebitData->getMessageId(),
                 $directDebitData->getInitiatingPartyName(),
             );
+            $creationDateTime = $options?->getCreationDateTime();
+            if ($creationDateTime instanceof DateTimeImmutable) {
+                $this->setGroupHeaderCreationDate($groupHeader, $creationDateTime);
+            }
 
-            // Create transfer file with group header (digitick/sepa-xml 3.x writes pain.008.001.09)
+            // Create transfer file with group header (the version is chosen when the DOM is built)
             $transferFile = new CustomerDirectDebitTransferFile($groupHeader);
 
             // Auto-fill creditor BIC if missing
             $creditorBic = $directDebitData->getCreditorBic();
+            if ($creditorBic === '') {
+                $creditorBic = null;
+            }
             if ($creditorBic === null && $this->bicLookupService instanceof BicLookupServiceInterface) {
                 $lookedUpBic = $this->bicLookupService->lookupBic($directDebitData->getCreditorIban());
                 if ($lookedUpBic !== null) {
@@ -194,76 +239,55 @@ final class DirectDebitGenerator
                 }
             }
 
-            // Create payment information
-            $paymentInformation = new PaymentInformation(
-                $directDebitData->getPaymentInfoId(),
-                $this->ibanValidator->normalize($directDebitData->getCreditorIban()),
-                $creditorBic ?? '',
-                $directDebitData->getCreditorName(),
-                $this->defaultCurrency,
-            );
-            // Payment method is automatically set based on the transfer file type (CustomerDirectDebitTransferFile)
-            $paymentInformation->setDueDate($directDebitData->getDueDate());
-            $paymentInformation->setCreditorId($directDebitData->getCreditorId());
-            $paymentInformation->setSequenceType($directDebitData->getSequenceType());
-            $paymentInformation->setLocalInstrumentCode($directDebitData->getLocalInstrumentCode());
-
-            // Set creditor address if available
+            $creditorIban    = $this->ibanValidator->normalize($directDebitData->getCreditorIban());
             $creditorAddress = $directDebitData->getCreditorAddress();
-            if ($creditorAddress !== null) {
-                $this->setCreditorPostalAddress($paymentInformation, $creditorAddress);
-            }
-
-            // Add transactions
-            foreach ($directDebitData->getTransactions() as $transaction) {
-                $transferInformation = new CustomerDirectDebitTransferInformation(
-                    $transaction->getAmountCents(), // exact integer cents
-                    $this->ibanValidator->normalize($transaction->getDebtorIban()),
-                    $transaction->getDebtorName(),
-                    $transaction->getEndToEndId(),
+            $written         = [];
+            $controlSum      = 0;
+            foreach ($blocks as $block) {
+                // Without a BIC the creditor agent is written as <Othr><Id>NOTPROVIDED</Id></Othr> (P4)
+                $paymentInformation = new PaymentInformation(
+                    $block['id'],
+                    $creditorIban,
+                    $creditorBic,
+                    $directDebitData->getCreditorName(),
+                    $this->defaultCurrency,
                 );
-                $transferInformation->setCurrency($transaction->getCurrency() ?? $this->defaultCurrency);
+                // Payment method is automatically set based on the transfer file type (CustomerDirectDebitTransferFile)
+                $paymentInformation->setDueDate($block['dueDate']);
+                $paymentInformation->setCreditorId($directDebitData->getCreditorId());
+                // In the "omit" mode a placeholder is written here and the SeqTp element removed afterwards
+                $paymentInformation->setSequenceType($block['sequenceType'] ?? SequenceType::RECURRENT);
+                $paymentInformation->setLocalInstrumentCode($block['localInstrumentCode']);
 
-                $transferInformation->setMandateId($transaction->getDebtorMandate());
-                $transferInformation->setMandateSignDate($transaction->getDebtorMandateSignDate());
-
-                if ($transaction->getRemittanceInformation() !== null) {
-                    $transferInformation->setRemittanceInformation($transaction->getRemittanceInformation());
+                // Set creditor address if available
+                if ($creditorAddress !== null) {
+                    $this->setCreditorPostalAddress($paymentInformation, $creditorAddress);
                 }
 
-                // Auto-fill debtor BIC if missing
-                $debtorBic = $transaction->getDebtorBic();
-                if ($debtorBic === null && $this->bicLookupService instanceof BicLookupServiceInterface) {
-                    $lookedUpBic = $this->bicLookupService->lookupBic($transaction->getDebtorIban());
-                    if ($lookedUpBic !== null) {
-                        $debtorBic = $lookedUpBic;
-                    }
+                foreach ($block['transactions'] as $transaction) {
+                    $paymentInformation->addTransfer($this->createTransferInformation($transaction));
+                    $written[] = $transaction;
+                    $controlSum += $transaction->getAmountCents();
                 }
 
-                // Set debtor BIC if available
-                if ($debtorBic !== null) {
-                    $transferInformation->setBic($debtorBic);
-                }
-
-                // Apply additional data if available
-                // Note: This allows for future extensibility. Additional fields can be set
-                // using methods available in CustomerDirectDebitTransferInformation
-                $this->applyAdditionalData($transferInformation, $transaction);
-
-                $paymentInformation->addTransfer($transferInformation);
+                $transferFile->addPaymentInformation($paymentInformation);
             }
-
-            $transferFile->addPaymentInformation($paymentInformation);
 
             // Generate XML
-            $domBuilder = DomBuilderFactory::createDomBuilder($transferFile);
+            $domBuilder = DomBuilderFactory::createDomBuilder($transferFile, $painVersion->value);
             $xml        = $domBuilder->asXml();
 
-            // Add addresses to XML if they were provided
-            $xml = $this->addAddressesToXml($xml, $directDebitData);
+            // Add addresses, the initiating party id and the sequence type mode to the XML
+            $xml = $this->addAddressesToXml(
+                $xml,
+                $directDebitData,
+                $written,
+                $sequenceTypeMode === SequenceTypeMode::OMIT,
+                $directDebitData->getInitiatingPartyIdentification(),
+            );
 
-            // Validate against XSD schema if enabled
-            if ($this->validateXsd && $this->xsdValidator instanceof XsdValidatorInterface) {
+            // Validate against the XSD of the written version if enabled
+            if ($validateXsd && $this->xsdValidator instanceof XsdValidatorInterface) {
                 try {
                     $this->xsdValidator->validateDirectDebit($xml);
                 } catch (InvalidArgumentException $e) {
@@ -271,9 +295,16 @@ final class DirectDebitGenerator
                 }
             }
 
-            // Dispatch after generation event
+            // Dispatch after generation event (before the host stores the file: the bundle never persists anything)
             if ($this->eventDispatcher instanceof EventDispatcherInterface) {
-                $afterEvent = new AfterDirectDebitGenerationEvent($xml, $directDebitData->getMessageId());
+                $afterEvent = new AfterDirectDebitGenerationEvent(
+                    $xml,
+                    $directDebitData->getMessageId(),
+                    array_column($blocks, 'id'),
+                    $painVersion->value,
+                    count($written),
+                    $controlSum,
+                );
                 $this->eventDispatcher->dispatch($afterEvent);
                 $xml = $afterEvent->getXml();
             }
@@ -292,6 +323,134 @@ final class DirectDebitGenerator
 
             throw $e;
         }
+    }
+
+    /**
+     * Builds the library transfer information of one transaction.
+     *
+     * @param DirectDebitTransaction $transaction The transaction
+     */
+    private function createTransferInformation(DirectDebitTransaction $transaction): CustomerDirectDebitTransferInformation
+    {
+        $transferInformation = new CustomerDirectDebitTransferInformation(
+            $transaction->getAmountCents(), // exact integer cents
+            $this->ibanValidator->normalize($transaction->getDebtorIban()),
+            $transaction->getDebtorName(),
+            $transaction->getEndToEndId(),
+        );
+        $transferInformation->setCurrency($transaction->getCurrency() ?? $this->defaultCurrency);
+
+        $transferInformation->setMandateId($transaction->getDebtorMandate());
+        $transferInformation->setMandateSignDate($transaction->getDebtorMandateSignDate());
+
+        if ($transaction->getRemittanceInformation() !== null) {
+            $transferInformation->setRemittanceInformation($transaction->getRemittanceInformation());
+        }
+
+        // Auto-fill debtor BIC if missing
+        $debtorBic = $transaction->getDebtorBic();
+        if ($debtorBic === null && $this->bicLookupService instanceof BicLookupServiceInterface) {
+            $lookedUpBic = $this->bicLookupService->lookupBic($transaction->getDebtorIban());
+            if ($lookedUpBic !== null) {
+                $debtorBic = $lookedUpBic;
+            }
+        }
+
+        // Set debtor BIC if available (without one the debtor agent is written as NOTPROVIDED)
+        if ($debtorBic !== null) {
+            $transferInformation->setBic($debtorBic);
+        }
+
+        // Apply additional data if available
+        // Note: This allows for future extensibility. Additional fields can be set
+        // using methods available in CustomerDirectDebitTransferInformation
+        $this->applyAdditionalData($transferInformation, $transaction);
+
+        return $transferInformation;
+    }
+
+    /**
+     * Resolves the `PmtInf` blocks to write: the data's payment-information blocks, with the sequence type mode applied.
+     *
+     * @param DirectDebitData $directDebitData The direct debit data
+     * @param SequenceTypeMode $mode The sequence type mode
+     *
+     * @throws InvalidArgumentException If a sequence type is missing, or a PmtInfId is too long or used twice
+     *
+     * @return list<array{id: string, dueDate: DateTimeInterface, sequenceType: string|null, localInstrumentCode: string, transactions: list<DirectDebitTransaction>}>
+     */
+    private function resolvePaymentBlocks(DirectDebitData $directDebitData, SequenceTypeMode $mode): array
+    {
+        $resolved = [];
+        foreach ($directDebitData->getPaymentInformation() as $block) {
+            $base = [
+                'id'                  => $block->getPaymentInfoId(),
+                'dueDate'             => $block->getDueDate(),
+                'sequenceType'        => null,
+                'localInstrumentCode' => $block->getLocalInstrumentCode(),
+                'transactions'        => $block->getTransactions(),
+            ];
+
+            if ($mode !== SequenceTypeMode::PER_TRANSACTION) {
+                $base['sequenceType'] = $mode === SequenceTypeMode::ALWAYS_RCUR ? SequenceType::RECURRENT : null;
+                $resolved[]           = $base;
+                continue;
+            }
+
+            /** @var array<string, list<DirectDebitTransaction>> $groups */
+            $groups = [];
+            foreach ($block->getTransactions() as $transaction) {
+                $sequenceType = $transaction->getSequenceType() ?? $block->getSequenceType();
+                if ($sequenceType === null) {
+                    throw new InvalidArgumentException(sprintf('Missing sequence type for transaction "%s" in payment information "%s": set it on the block or on the transaction, or use the "always_rcur" or "omit" sequence type mode.', $transaction->getEndToEndId(), $block->getPaymentInfoId()));
+                }
+                $groups[$sequenceType][] = $transaction;
+            }
+
+            if (count($groups) <= 1) {
+                $sequenceType = $groups === [] ? $block->getSequenceType() : array_key_first($groups);
+                if ($sequenceType === null) {
+                    throw new InvalidArgumentException(sprintf('Missing sequence type for payment information "%s".', $block->getPaymentInfoId()));
+                }
+                $base['sequenceType'] = $sequenceType;
+                $resolved[]           = $base;
+                continue;
+            }
+
+            foreach ($groups as $sequenceType => $transactions) {
+                $resolved[] = [
+                    'id'           => $block->getPaymentInfoId() . '-' . $sequenceType,
+                    'sequenceType' => (string) $sequenceType,
+                    'transactions' => $transactions,
+                ] + $base;
+            }
+        }
+
+        $seen = [];
+        foreach ($resolved as $block) {
+            $this->stringSanitizer->assertMaxLength('PmtInfId', $block['id'], SepaStringSanitizer::MAX_IDENTIFIER_LENGTH);
+            if (isset($seen[$block['id']])) {
+                throw new InvalidArgumentException(sprintf('Duplicate payment information id (PmtInfId) "%s": every block of a file needs its own id.', $block['id']));
+            }
+            $seen[$block['id']] = true;
+        }
+
+        return $resolved;
+    }
+
+    /**
+     * Writes the requested creation date into the group header (GrpHdr/CreDtTm).
+     * digitick/sepa-xml always uses "now" and exposes no setter for it.
+     *
+     * @param GroupHeader $groupHeader The group header
+     * @param DateTimeImmutable $creationDate The creation date and time
+     */
+    private function setGroupHeaderCreationDate(GroupHeader $groupHeader, DateTimeImmutable $creationDate): void
+    {
+        (function () use ($creationDate): void {
+            // @igor-ignore - Bound to the per-call GroupHeader instance, not to this service.
+            $this->creationDateTime = $creationDate;
+        })->call($groupHeader);
     }
 
     /**
@@ -590,22 +749,6 @@ final class DirectDebitGenerator
     }
 
     /**
-     * Builds a safe Content-Disposition attachment header value (RFC 6266) for the given filename.
-     * Path separators are replaced and a plain-ASCII fallback is added for non-ASCII names.
-     *
-     * @param string $filename The requested download filename
-     *
-     * @return string The header value
-     */
-    private function makeAttachmentDisposition(string $filename): string
-    {
-        $filename = str_replace(['/', '\\'], '_', $filename);
-        $fallback = (string) preg_replace('/[^\x20-\x7e]|[%"]/', '_', $filename);
-
-        return HeaderUtils::makeDisposition(HeaderUtils::DISPOSITION_ATTACHMENT, $filename, $fallback);
-    }
-
-    /**
      * Applies additional data to the transfer information if available.
      * This method can be extended to support additional fields from the Digitick\Sepa library.
      *
@@ -707,15 +850,18 @@ final class DirectDebitGenerator
     }
 
     /**
-     * Adds addresses to the generated XML using DOM manipulation.
-     * This ensures addresses are included even if the library doesn't support them directly.
+     * Adds addresses (and, since 2.2, the initiating party id and the "omit" sequence type mode) to the generated XML
+     * using DOM manipulation. This ensures they are included even if the library doesn't support them directly.
      *
      * @param string $xml The generated XML
      * @param DirectDebitData $directDebitData The direct debit data with addresses
+     * @param list<DirectDebitTransaction>|null $transactions The transactions in the order they were written (null: the data's order)
+     * @param bool $omitSequenceType Whether to remove every PmtTpInf/SeqTp element
+     * @param PartyIdentification|null $initiatingPartyId The initiating party identification (GrpHdr/InitgPty/Id)
      *
      * @return string The XML with addresses added
      */
-    private function addAddressesToXml(string $xml, DirectDebitData $directDebitData): string
+    private function addAddressesToXml(string $xml, DirectDebitData $directDebitData, ?array $transactions = null, bool $omitSequenceType = false, ?PartyIdentification $initiatingPartyId = null): string
     {
         try {
             $dom                     = new DOMDocument();
@@ -733,19 +879,26 @@ final class DirectDebitGenerator
             $namespace = $root->namespaceURI ?? 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.09';
             $xpath->registerNamespace('ns', $namespace);
 
-            // Add creditor address if available
+            // Add creditor address if available (to the creditor of every payment-information block)
             $creditorAddress = $directDebitData->getCreditorAddress();
             if ($creditorAddress !== null) {
                 $this->addCreditorAddressToDom($dom, $xpath, $creditorAddress, $namespace);
             }
 
             // Add debtor addresses for each transaction
-            $transactions = $directDebitData->getTransactions();
-            foreach ($transactions as $index => $transaction) {
+            foreach ($transactions ?? $directDebitData->getTransactions() as $index => $transaction) {
                 $debtorAddress = $transaction->getDebtorAddress();
                 if ($debtorAddress !== null) {
                     $this->addDebtorAddressToDom($dom, $xpath, $debtorAddress, $index, $namespace);
                 }
+            }
+
+            if ($omitSequenceType) {
+                $this->removeSequenceTypes($xpath);
+            }
+
+            if ($initiatingPartyId instanceof PartyIdentification) {
+                $this->addInitiatingPartyIdToDom($dom, $xpath, $initiatingPartyId, $namespace);
             }
 
             // PHPStan: saveXML() returns string|false; we guarantee valid XML from loadXML(), return string or original
@@ -776,11 +929,79 @@ final class DirectDebitGenerator
             }
         }
 
-        $creditorNode = $creditorNodes->item(0);
-        if (!$creditorNode instanceof DOMElement) {
+        foreach ($creditorNodes as $creditorNode) {
+            if ($creditorNode instanceof DOMElement) {
+                $this->createPostalAddressElement($dom, $creditorNode, $address, $namespace);
+            }
+        }
+    }
+
+    /**
+     * Removes every sequence type element (PmtInf/PmtTpInf/SeqTp; the "omit" sequence type mode).
+     *
+     * @param DOMXPath $xpath The XPath object (namespace registered as "ns")
+     */
+    private function removeSequenceTypes(DOMXPath $xpath): void
+    {
+        $nodes = $xpath->query('//ns:PmtInf/ns:PmtTpInf/ns:SeqTp');
+        if ($nodes === false) {
             return;
         }
-        $this->createPostalAddressElement($dom, $creditorNode, $address, $namespace);
+        foreach ($nodes as $node) {
+            if ($node instanceof DOMElement) {
+                $node->parentNode?->removeChild($node);
+            }
+        }
+    }
+
+    /**
+     * Writes the initiating party identification (GrpHdr/InitgPty/Id) after InitgPty/Nm.
+     *
+     * @param DOMDocument $dom The DOM document
+     * @param DOMXPath $xpath The XPath object (namespace registered as "ns")
+     * @param PartyIdentification $identification The identification
+     * @param string $namespace The namespace URI
+     */
+    private function addInitiatingPartyIdToDom(DOMDocument $dom, DOMXPath $xpath, PartyIdentification $identification, string $namespace): void
+    {
+        $parties = $xpath->query('//ns:GrpHdr/ns:InitgPty');
+        $party   = $parties === false ? null : $parties->item(0);
+        if (!$party instanceof DOMElement) {
+            return;
+        }
+
+        $existing = $xpath->query('ns:Id', $party);
+        if ($existing !== false) {
+            foreach ($existing as $node) {
+                if ($node instanceof DOMElement) {
+                    $party->removeChild($node);
+                }
+            }
+        }
+
+        $other = $dom->createElementNS($namespace, 'Othr');
+        $other->appendChild($dom->createElementNS($namespace, 'Id', htmlspecialchars($identification->getId(), ENT_XML1, 'UTF-8')));
+        $schemeCode        = $identification->getSchemeCode();
+        $schemeProprietary = $identification->getSchemeProprietary();
+        if ($schemeCode !== null || $schemeProprietary !== null) {
+            $schemeName = $dom->createElementNS($namespace, 'SchmeNm');
+            $schemeName->appendChild($schemeCode !== null
+                ? $dom->createElementNS($namespace, 'Cd', $schemeCode)
+                : $dom->createElementNS($namespace, 'Prtry', htmlspecialchars((string) $schemeProprietary, ENT_XML1, 'UTF-8')));
+            $other->appendChild($schemeName);
+        }
+        $issuer = $identification->getIssuer();
+        if ($issuer !== null) {
+            $other->appendChild($dom->createElementNS($namespace, 'Issr', htmlspecialchars($issuer, ENT_XML1, 'UTF-8')));
+        }
+
+        $kind = $dom->createElementNS($namespace, $identification->isOrganisation() ? 'OrgId' : 'PrvtId');
+        $kind->appendChild($other);
+        $id = $dom->createElementNS($namespace, 'Id');
+        $id->appendChild($kind);
+
+        // InitgPty: Nm, PstlAdr, Id, CtryOfRes, CtctDtls; the generator writes Nm only
+        $party->appendChild($id);
     }
 
     /**
@@ -901,6 +1122,13 @@ final class DirectDebitGenerator
         foreach ($directDebitData->getTransactions() as $transaction) {
             if (!$this->ibanValidator->isValid($transaction->getDebtorIban())) {
                 throw new InvalidArgumentException('Invalid debtor IBAN: ' . $transaction->getDebtorIban());
+            }
+        }
+
+        // EPC range per transaction (KQ-P-L3): 0.01 to 999 999 999.99 EUR
+        foreach ($directDebitData->getTransactions() as $transaction) {
+            if (!SepaBusinessRulesValidator::isValidTransactionAmountCents($transaction->getAmountCents())) {
+                throw new InvalidArgumentException(sprintf('Invalid amount for transaction "%s": %s EUR is outside the SEPA range of 0.01 to 999999999.99 EUR (1 to %d cents).', $transaction->getEndToEndId(), $transaction->getAmountDecimal(), SepaBusinessRulesValidator::MAX_TRANSACTION_AMOUNT_CENTS));
             }
         }
     }

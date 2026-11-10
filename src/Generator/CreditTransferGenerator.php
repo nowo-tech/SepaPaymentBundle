@@ -20,12 +20,13 @@ use Exception;
 use InvalidArgumentException;
 use Nowo\SepaPaymentBundle\Event\AfterCreditTransferGenerationEvent;
 use Nowo\SepaPaymentBundle\Event\BeforeCreditTransferGenerationEvent;
+use Nowo\SepaPaymentBundle\Http\SepaXmlResponseFactory;
 use Nowo\SepaPaymentBundle\Logger\SepaPaymentLogger;
 use Nowo\SepaPaymentBundle\Lookup\BicLookupServiceInterface;
 use Nowo\SepaPaymentBundle\Model\Amount;
 use Nowo\SepaPaymentBundle\Model\CreditTransfer\CreditTransferData;
 use Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction;
-use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+use Nowo\SepaPaymentBundle\Validator\IbanValidatorInterface;
 use Nowo\SepaPaymentBundle\Validator\SepaBusinessRulesValidator;
 use Nowo\SepaPaymentBundle\Validator\SepaStringSanitizer;
 use Nowo\SepaPaymentBundle\Validator\XsdValidator;
@@ -34,7 +35,6 @@ use Psr\Clock\ClockInterface;
 use Symfony\Component\Clock\NativeClock;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
@@ -45,7 +45,9 @@ use function is_float;
 use function is_int;
 use function is_string;
 use function strlen;
+use function trigger_error;
 
+use const E_USER_DEPRECATED;
 use const ENT_XML1;
 
 /**
@@ -57,7 +59,8 @@ use const ENT_XML1;
  * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
-final class CreditTransferGenerator
+#[AsAlias(id: CreditTransferGeneratorInterface::class)]
+final class CreditTransferGenerator implements CreditTransferGeneratorInterface
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.generator.credit_transfer_generator';
 
@@ -74,7 +77,7 @@ final class CreditTransferGenerator
     /**
      * Constructor.
      *
-     * @param IbanValidator $ibanValidator IBAN validator instance
+     * @param IbanValidatorInterface $ibanValidator IBAN validator (any implementation, e.g. a host decorator)
      * @param TranslatorInterface $translator Translator for internationalized error messages
      * @param XsdValidator|null $xsdValidator Optional XSD validator instance
      * @param bool $validateXsd Whether to enable XSD validation (default: false)
@@ -85,7 +88,7 @@ final class CreditTransferGenerator
      * @param SepaStringSanitizer|null $stringSanitizer Sanitizer used to enforce SEPA field length limits
      */
     public function __construct(
-        private readonly IbanValidator $ibanValidator,
+        private readonly IbanValidatorInterface $ibanValidator,
         /**
          * Translator instance.
          */
@@ -289,13 +292,14 @@ final class CreditTransferGenerator
      * @param string $filename The filename for the download (e.g., "credit-transfer.xml")
      *
      * @return Response The HTTP response with XML content
+     *
+     * @deprecated since nowo-tech/sepa-payment-bundle 2.2, use {@see SepaXmlResponseFactory::createResponse()} (removed in 3.0)
      */
     public function createResponse(string $xmlData, string $filename): Response
     {
-        return new Response($xmlData, Response::HTTP_OK, [
-            'Content-Type'        => 'application/xml',
-            'Content-Disposition' => $this->makeAttachmentDisposition($filename),
-        ]);
+        @trigger_error('CreditTransferGenerator::createResponse() is deprecated since nowo-tech/sepa-payment-bundle 2.2: use Nowo\\SepaPaymentBundle\\Http\\SepaXmlResponseFactory::createResponse() instead.', E_USER_DEPRECATED);
+
+        return (new SepaXmlResponseFactory())->createResponse($xmlData, $filename);
     }
 
     /**
@@ -592,22 +596,6 @@ final class CreditTransferGenerator
     }
 
     /**
-     * Builds a safe Content-Disposition attachment header value (RFC 6266) for the given filename.
-     * Path separators are replaced and a plain-ASCII fallback is added for non-ASCII names.
-     *
-     * @param string $filename The requested download filename
-     *
-     * @return string The header value
-     */
-    private function makeAttachmentDisposition(string $filename): string
-    {
-        $filename = str_replace(['/', '\\'], '_', $filename);
-        $fallback = (string) preg_replace('/[^\x20-\x7e]|[%"]/', '_', $filename);
-
-        return HeaderUtils::makeDisposition(HeaderUtils::DISPOSITION_ATTACHMENT, $filename, $fallback);
-    }
-
-    /**
      * Attempts to set postal address on transfer information (debtor address).
      * Note: The Digitick\Sepa library may not support this directly, so addresses
      * are also added via DOM manipulation in addAddressesToXml() method.
@@ -878,6 +866,15 @@ final class CreditTransferGenerator
         foreach ($creditTransferData->getTransactions() as $transaction) {
             if (!$this->ibanValidator->isValid($transaction->getCreditorIban())) {
                 $message = $this->translator->trans('validation.invalid_creditor_iban', ['%iban%' => $transaction->getCreditorIban()], 'NowoSepaPaymentBundle');
+
+                throw new InvalidArgumentException($message);
+            }
+        }
+
+        // EPC range per transaction (KQ-P-L3): 0.01 to 999 999 999.99 EUR
+        foreach ($creditTransferData->getTransactions() as $transaction) {
+            if (!SepaBusinessRulesValidator::isValidTransactionAmountCents($transaction->getAmountCents())) {
+                $message = $this->translator->trans('validation.transaction_amount_out_of_range', ['%end_to_end_id%' => $transaction->getEndToEndId(), '%amount%' => $transaction->getAmountDecimal()], 'NowoSepaPaymentBundle');
 
                 throw new InvalidArgumentException($message);
             }

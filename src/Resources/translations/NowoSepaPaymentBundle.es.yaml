@@ -28,6 +28,7 @@ validation.invalid_keys_transaction: 'Clave(s) inválida(s) en la transacción: 
 # Business rules validation
 validation.invalid_transaction_amount: 'El importe de la transacción %amount% excede el importe máximo permitido de %max_amount% EUR'
 validation.invalid_transaction_count: 'El número de transacciones %count% excede el número máximo permitido de %max_count%'
+validation.transaction_amount_out_of_range: "Importe no válido para la operación \"%end_to_end_id%\": %amount% EUR está fuera del rango SEPA de 0,01 a 999999999,99 EUR."
 validation.invalid_execution_date_future: 'La fecha de ejecución debe ser hoy o en el futuro'
 validation.invalid_currency: 'La moneda %currency% no es válida para SEPA. Solo se permite EUR.'
 validation.invalid_sequence_type: 'Tipo de secuencia inválido: %type%. Debe ser uno de: %valid_types%'
@@ -51,3 +52,42 @@ credit_card:
 
 sepa_country:
     invalid: 'Este valor no es un código de país SEPA válido.'
+
+# ISO 20022 reason codes of SEPA R-transactions (Nowo\SepaPaymentBundle\Model\ReasonCode)
+reason_code:
+    AC01: "Identificador de cuenta incorrecto (IBAN no válido)"
+    AC03: "Identificador de la cuenta del acreedor incorrecto"
+    AC04: "Cuenta cancelada"
+    AC06: "Cuenta bloqueada, o bloqueada para adeudos por el deudor"
+    AC13: "La cuenta del deudor es de consumidor (B2B no permitido)"
+    AG01: "Adeudo no permitido en esta cuenta por motivos regulatorios"
+    AG02: "Código de operación incorrecto, formato de fichero no válido"
+    AM04: "Fondos insuficientes"
+    AM05: "Cobro duplicado"
+    AM09: "Importe incorrecto"
+    ARDT: "Operación ya devuelta"
+    BE05: "Identificador del acreedor incorrecto"
+    CNOR: "El banco del acreedor no está adherido al esquema"
+    CUST: "Solicitado por el cliente"
+    DNOR: "El banco del deudor no está adherido al esquema"
+    DUPL: "Pago duplicado"
+    ED05: "Liquidación fallida"
+    FF01: "Formato de fichero no válido"
+    FOCR: "Devolución tras una solicitud de cancelación"
+    FRAD: "Origen fraudulento"
+    LEGL: "Decisión judicial"
+    MD01: "Sin mandato válido, u operación no autorizada"
+    MD02: "Datos del mandato ausentes o incorrectos"
+    MD06: "Reembolso solicitado por el deudor (operación autorizada)"
+    MD07: "Deudor fallecido"
+    MS02: "Rechazado por el deudor (motivo no especificado)"
+    MS03: "Motivo no especificado por el banco"
+    NOAS: "Sin respuesta del beneficiario"
+    NOOR: "Operación original no recibida"
+    RC01: "Identificador del banco (BIC) incorrecto"
+    RR01: "Falta la cuenta o la identificación del deudor (motivo regulatorio)"
+    RR02: "Falta el nombre o la dirección del deudor (motivo regulatorio)"
+    RR03: "Falta el nombre o la dirección del acreedor (motivo regulatorio)"
+    RR04: "Motivo regulatorio"
+    SL01: "Servicio específico ofrecido por el banco del deudor"
+    TECH: "Problema técnico que provocó una operación errónea"

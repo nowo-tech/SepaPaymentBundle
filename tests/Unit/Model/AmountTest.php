@@ -77,6 +77,21 @@ final class AmountTest extends TestCase
         }
     }
 
+    /**
+     * D-P-I1: a float with more than 6 decimals just below a half cent is rounded once, like round($x, 2), not twice.
+     */
+    public function testFloatsJustBelowAHalfCentAreNotRoundedTwice(): void
+    {
+        self::assertSame(0, Amount::centsFromFloat(0.0049999999));
+        self::assertSame(0, Amount::centsFromFloat(0.0049999996));
+        self::assertSame(100, Amount::centsFromFloat(1.0049999997));
+        self::assertSame(-100, Amount::centsFromFloat(-1.0049999997));
+        self::assertSame(1, Amount::centsFromFloat(0.005));
+        foreach ([0.0049999999, 1.0049999997, 12.3449999991, 7.1249999999] as $amount) {
+            self::assertSame((int) round(round($amount, 2) * 100), Amount::centsFromFloat($amount), (string) $amount);
+        }
+    }
+
     public function testCentsAreWrittenWithTwoDecimals(): void
     {
         self::assertSame('0.30', Amount::decimalFromCents(30));

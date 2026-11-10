@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\DependencyInjection;
 
+use Nowo\SepaPaymentBundle\Model\DirectDebit\Pain008Version;
+use Nowo\SepaPaymentBundle\Model\DirectDebit\SequenceTypeMode;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
@@ -39,6 +41,26 @@ final class Configuration implements ConfigurationInterface
                     ->validate()
                         ->ifTrue(static fn (mixed $value): bool => !is_string($value) || preg_match('/^[A-Z]{3}$/', $value) !== 1)
                         ->thenInvalid('Invalid default_currency %s: expected a 3-letter uppercase ISO 4217 code (SEPA: "EUR").')
+                    ->end()
+                ->end()
+                ->arrayNode('direct_debit')
+                    ->info('Defaults of the direct debit (pain.008) generator; each one can be overridden per call with DirectDebitGenerationOptions.')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->enumNode('pain_version')
+                            ->values(Pain008Version::values())
+                            ->defaultValue(Pain008Version::DEFAULT->value)
+                            ->info('ISO 20022 message version written by DirectDebitGenerator: pain.008.001.02, pain.008.001.08 (EPC 2023) or pain.008.001.09 (default).')
+                        ->end()
+                        ->enumNode('sequence_type_mode')
+                            ->values(SequenceTypeMode::values())
+                            ->defaultValue(SequenceTypeMode::DEFAULT->value)
+                            ->info('How SeqTp is written: per_transaction (from the data; default), always_rcur, or omit (no SeqTp element).')
+                        ->end()
+                        ->booleanNode('validate_xsd')
+                            ->defaultFalse()
+                            ->info('Validate every generated direct debit file against the XSD of its version (shipped with the bundle).')
+                        ->end()
                     ->end()
                 ->end()
                 ->arrayNode('validation_cache')

@@ -27,11 +27,13 @@ use const STR_PAD_RIGHT;
  * Exact money conversions for the transaction DTOs: amounts are kept as integer cents.
  *
  * - a decimal string (`"1500.25"`, `"0.3"`) is read digit by digit, never through a float;
- * - a float is first written with 6 decimals (`sprintf('%.6F')`, which removes binary noise such as
- *   `0.1 + 0.2 = 0.30000000000000004`) and then read as a decimal string;
- * - digits beyond the cent are rounded **half up** (half away from zero, the euro convention of Regulation (EC)
- *   1103/97 and PHP's `round($x, 2)`): `"0.125"` → 13 cents, `"-0.125"` → -13, `1.005` → 101, `2.675` → 268.
- *   Because the float noise is removed first, the result does not depend on the PHP version.
+ * - a float is rounded once to the cent with `round($x, 2)` (half away from zero, which also absorbs binary noise such
+ *   as `0.1 + 0.2 = 0.30000000000000004`) and then read as a decimal string. Since 2.2.0 there is no intermediate
+ *   rounding to 6 decimals, so a float just below a half cent (`0.0049999999`) gives 0 cents like `round($x, 2)`,
+ *   not 1 (D-P-I1, double rounding);
+ * - digits of a decimal string beyond the cent are rounded **half up** (half away from zero, the euro convention of
+ *   Regulation (EC) 1103/97 and PHP's `round($x, 2)`): `"0.125"` → 13 cents, `"-0.125"` → -13, `1.005` → 101,
+ *   `2.675` → 268. The result does not depend on the PHP version.
  *
  * @internal
  *
@@ -119,7 +121,8 @@ final class Amount
             throw new InvalidArgumentException('Invalid amount: not a finite number.');
         }
 
-        return self::centsFromDecimal(sprintf('%.6F', $amount));
+        // One rounding only (D-P-I1): round() to the cent, then read the two-decimal string exactly.
+        return self::centsFromDecimal(sprintf('%.2F', round($amount, 2)));
     }
 
     /**

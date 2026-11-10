@@ -5,13 +5,20 @@ declare(strict_types=1);
 namespace Nowo\SepaPaymentBundle\Service;
 
 use DateTime;
+use DateTimeImmutable;
 use DateTimeInterface;
 use InvalidArgumentException;
+use Nowo\SepaPaymentBundle\Event\Mandate\MandateCreatedEvent;
+use Nowo\SepaPaymentBundle\Event\Mandate\MandateReactivatedEvent;
+use Nowo\SepaPaymentBundle\Event\Mandate\MandateRevokedEvent;
+use Nowo\SepaPaymentBundle\Event\Mandate\MandateSequenceTypeChangedEvent;
+use Nowo\SepaPaymentBundle\Event\Mandate\MandateSuspendedEvent;
 use Nowo\SepaPaymentBundle\Model\Mandate\Mandate;
 use Nowo\SepaPaymentBundle\Model\Mandate\MandateHistory;
 use Nowo\SepaPaymentBundle\Model\Mandate\MandateStatus;
 use Nowo\SepaPaymentBundle\Repository\MandateRepositoryInterface;
 use Psr\Clock\ClockInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use RuntimeException;
 use Symfony\Component\Clock\NativeClock;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
@@ -26,7 +33,8 @@ use function in_array;
  * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
-final class MandateService
+#[AsAlias(id: MandateServiceInterface::class)]
+final class MandateService implements MandateServiceInterface
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.service.mandate_service';
 
@@ -51,6 +59,10 @@ final class MandateService
     public function __construct(
         private readonly MandateRepositoryInterface $repository,
         private readonly ClockInterface $clock = new NativeClock(),
+        /**
+         * PSR-14 dispatcher for the mandate events (optional; since 2.2). Events are dispatched after the repository save.
+         */
+        private readonly ?EventDispatcherInterface $eventDispatcher = null,
     ) {
     }
 
@@ -92,6 +104,7 @@ final class MandateService
             'active',
             'Mandate created',
         ));
+        $this->dispatch(new MandateCreatedEvent($mandateId, $mandate->getStatus()->value, $this->occurredAt(), $mandate->getSequenceType(), $mandate->getType()));
 
         return $mandate;
     }
@@ -134,6 +147,7 @@ final class MandateService
             $sequenceType,
             "Sequence type changed from {$oldSequenceType} to {$sequenceType}",
         ));
+        $this->dispatch(new MandateSequenceTypeChangedEvent($mandateId, $mandate->getStatus()->value, $this->occurredAt(), $oldSequenceType, $sequenceType));
 
         return $mandate;
     }
@@ -169,6 +183,7 @@ final class MandateService
             MandateStatus::REVOKED->value,
             $reason ? "Mandate revoked: {$reason}" : 'Mandate revoked',
         ));
+        $this->dispatch(new MandateRevokedEvent($mandateId, $mandate->getStatus()->value, $this->occurredAt(), $oldStatus, $reason));
 
         return $mandate;
     }
@@ -203,6 +218,7 @@ final class MandateService
             MandateStatus::SUSPENDED->value,
             'Mandate suspended',
         ));
+        $this->dispatch(new MandateSuspendedEvent($mandateId, $mandate->getStatus()->value, $this->occurredAt(), $oldStatus));
 
         return $mandate;
     }
@@ -238,6 +254,7 @@ final class MandateService
             MandateStatus::ACTIVE->value,
             'Mandate reactivated',
         ));
+        $this->dispatch(new MandateReactivatedEvent($mandateId, $mandate->getStatus()->value, $this->occurredAt(), $oldStatus));
 
         return $mandate;
     }
@@ -352,5 +369,21 @@ final class MandateService
     private function now(): DateTime
     {
         return DateTime::createFromInterface($this->clock->now());
+    }
+
+    /**
+     * The event time from the service clock.
+     */
+    private function occurredAt(): DateTimeImmutable
+    {
+        return DateTimeImmutable::createFromInterface($this->clock->now());
+    }
+
+    /**
+     * Dispatches a mandate event when a dispatcher is set.
+     */
+    private function dispatch(object $event): void
+    {
+        $this->eventDispatcher?->dispatch($event);
     }
 }
