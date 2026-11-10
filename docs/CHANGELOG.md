@@ -102,7 +102,8 @@ test `tests/Integration/DirectDebitBackwardCompatibilityTest.php`).
 - **P5 / KQ-P-L3:** both generators reject a transaction outside the EPC range 1 … 99 999 999 999 cents
   (0.01 … 999 999 999.99 EUR) with an `InvalidArgumentException`. Banks reject those files anyway.
 - **P4:** a direct debit without a creditor BIC (null or `""`) is written with `CdtrAgt/FinInstnId/Othr/Id NOTPROVIDED`
-  instead of an empty `BICFI` element, which failed the XSD. Files with a BIC are unchanged.
+  instead of an empty `BICFI` element, which failed the XSD; an empty debtor BIC (`""`) now also gives `NOTPROVIDED`
+  (or the BIC lookup). Files with a BIC are unchanged.
 - Generators, `BicLookupService`, `CccConverter` and `ValidateIbanCommand` type `IbanValidatorInterface`, so a host
   decorator of the interface is no longer bypassed.
 - `DirectDebitData::getTransactions()` / `getTotalAmountCents()` cover every payment-information block.

@@ -349,6 +349,9 @@ final class DirectDebitGenerator implements DirectDebitGeneratorInterface
 
         // Auto-fill debtor BIC if missing
         $debtorBic = $transaction->getDebtorBic();
+        if ($debtorBic === '') {
+            $debtorBic = null;
+        }
         if ($debtorBic === null && $this->bicLookupService instanceof BicLookupServiceInterface) {
             $lookedUpBic = $this->bicLookupService->lookupBic($transaction->getDebtorIban());
             if ($lookedUpBic !== null) {

@@ -288,13 +288,14 @@ final class DirectDebitGenerator22Test extends TestCase
     }
 
     /**
-     * P4: without a creditor BIC (null or "") the agent is Othr/Id NOTPROVIDED, not an empty BIC.
+     * P4: without a creditor or debtor BIC (null or "") the agent is Othr/Id NOTPROVIDED, not an empty BIC.
      */
     #[DataProvider('versionProvider')]
     public function testMissingCreditorBicIsWrittenAsNotProvided(Pain008Version $version): void
     {
         $data = $this->singleBlockData();
         $data->setCreditorBic('');
+        $data->getTransactions()[0]->setDebtorBic('');
 
         $xml = (new DirectDebitGenerator(new IbanValidator(), $this->xsdValidator, true))->generate($data, new DirectDebitGenerationOptions($version));
 
