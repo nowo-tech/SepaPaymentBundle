@@ -64,6 +64,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Symfony Beacon spec 226, second part. Standard Symfony hosts need no change; the 2.1.0 golden-file test still passes
+byte for byte.
+
+### Added
+
+- **P6, bank report parsers:** `PaymentStatusReportParser` (pain.002.001.03 and .10) and
+  `DebitCreditNotificationParser` (camt.054.001.02 and .08), with ports `PaymentStatusReportParserInterface` and
+  `DebitCreditNotificationParserInterface`. They return value objects (`Model\Report\*`): group, block and transaction
+  statuses with `StatusReason` (ISO code → `ReasonCode`, proprietary code, originator, additional information), original
+  EndToEndId / instruction id / mandate id, amounts in integer cents; camt.054 entries with booking / value dates, bank
+  transaction code, batch transactions, parties and return reasons. Every document is size-capped
+  (`reports.max_size`, default 20 MiB), loaded with `LIBXML_NONET` and without DTD, and validated against the official
+  XSD (shipped; source and hashes in `src/Resources/schemas/NOTICE`). Pure parsing: the host does the matching.
+- **P8, mandates:** optional `MandateEvidence` (accepted-text hash, time, IP, channel, external id), debtor address,
+  owner reference and `MandateAmendment` on `Mandate`. `DirectDebitTransaction::setAmendment()` writes
+  `MndtRltdInf/AmdmntInd` + `AmdmntInfDtls` (original mandate id, original creditor scheme id / name, original debtor
+  IBAN, or SMNDA for a new debtor bank, which must be collected as FRST).
+- **P8:** `Formatter\IbanMasker` / `IbanMaskerInterface` (`ES91 **** **** **** **** 1332`).
+- **Bar gap 2:** `Mandate::toSnapshot()` / `Mandate::reconstitute()` with `MandateSnapshot` (`toArray()` / `fromArray()`,
+  JSON-safe), so a host repository can store mandates in its own table without a bundle entity.
+
+### Changed
+
+- **LB-I2:** `GrpHdr/CtrlSum` and `PmtInf/CtrlSum` of direct debits are written from the integer cents, exact for any
+  total (the library divided a float, inexact beyond 10¹⁵ cents).
+- **LB-I4:** text the generators add after the library (postal addresses, `InitgPty/Id` scheme name and issuer,
+  amendment creditor name) is reduced to the EPC character set like the library's own text; direct debit addresses
+  must fit the EPC lengths (street 70, town 35, postal code 16) and use an uppercase ISO country code, otherwise
+  `generate()` throws.
+- **LB-D-I1:** constructing a generator with `validateXsd: true` and no XSD validator throws instead of silently
+  disabling the validation (the bundle services always have one).
+
 ## [2.2.0] - 2026-11-10
 
 Direct debit: pain.008.001.02/.08/.09 selectable by config and per call, three sequence-type modes, several PmtInf blocks, InitgPty/Id and NOTPROVIDED, EPC amount range, R-transaction reason codes; PHP-version-independent float rounding. See [UPGRADING](https://github.com/nowo-tech/SepaPaymentBundle/blob/v2.2.0/docs/UPGRADING.md#to-220).

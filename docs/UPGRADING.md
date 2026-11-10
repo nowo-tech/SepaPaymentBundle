@@ -166,6 +166,18 @@
 
 ## Unreleased
 
+Nothing to do for a standard Symfony host. Check these points:
+
+- **Addresses** added to direct debits and credit transfers are now reduced to the EPC character set (`Straße & Söhne`
+  → `Strasse Sohne`), and direct debit addresses longer than the EPC limits (street 70, town 35, postal code 16) or with
+  a country code that is not two uppercase letters now throw. Banks rejected those files.
+- **Hand-built generators** with `validateXsd: true` and no XSD validator now throw in the constructor: pass an
+  `XsdValidator` or `false`.
+- **Control sums** of direct debits are exact for any total; files under 10¹³ EUR are unchanged.
+- **New, optional:** bank report parsers (pain.002, camt.054), `IbanMasker`, mandate evidence / address / owner
+  reference / amendments, `Mandate::toSnapshot()` / `reconstitute()`, and the `reports.max_size` option
+  ([CONFIGURATION.md](CONFIGURATION.md#reports)).
+
 ## To 2.2.0
 
 From **2.1.0**:

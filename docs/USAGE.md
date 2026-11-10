@@ -62,10 +62,13 @@ This document provides detailed usage examples for all features of the SEPA Paym
   - [Versions, several blocks, sequence types (2.2)](#versions-several-blocks-sequence-types-22)
 - [Using with Dependency Injection](#using-with-dependency-injection)
   - [Service Aliases](#service-aliases)
+- [Bank reports: pain.002 and camt.054 (2.3)](#bank-reports-pain002-and-camt054-23)
+- [Masking IBANs (2.3)](#masking-ibans-23)
 - [Using it from a DDD / hexagonal application](#using-it-from-a-ddd--hexagonal-application)
   - [Standard Symfony path](#standard-symfony-path)
   - [DDD / hexagonal path](#ddd--hexagonal-path)
   - [Mandates](#mandates)
+  - [Mandate snapshots, evidence and amendments (2.3)](#mandate-snapshots-evidence-and-amendments-23)
   - [Known limitations](#known-limitations)
 - [Overriding bundle translations](#overriding-bundle-translations)
 - [Forms in host apps and demos (REQ-TWIG-005)](#forms-in-host-apps-and-demos-req-twig-005)
@@ -527,6 +530,47 @@ if ($parser->isValidDirectDebit($xml)) {
     echo "Valid SEPA Direct Debit XML";
 }
 ```
+
+## Bank reports: pain.002 and camt.054 (2.3)
+
+`PaymentStatusReportParser` reads payment status reports (pain.002.001.03 and .10: rejections and acceptances of a
+submitted file) and `DebitCreditNotificationParser` reads debit / credit notifications (camt.054.001.02 and .08:
+booked collections, returns, refunds). Both validate the document against the official XSD shipped with the bundle,
+refuse DTDs and network access, and cap the size (`reports.max_size`). They return value objects; matching to your
+collections stays in your code:
+
+```php
+$report = $statusParser->parse($xml); // PaymentStatusReportParserInterface
+foreach ($report->getTransactionStatuses() as $status) {
+    if ($status->isRejected()) {
+        $reason = $status->getReason();
+        $this->collections->markRejected(
+            $status->getOriginalEndToEndId(),
+            $reason?->getCode() ?? $reason?->getProprietaryCode(),
+            $reason?->getReasonCode()?->getTranslationKey(), // e.g. reason_code.AM04
+        );
+    }
+}
+
+$notification = $camtParser->parse($xml); // DebitCreditNotificationParserInterface
+foreach ($notification->getTransactions() as $transaction) {
+    if ($transaction->isReturn()) {
+        $this->collections->markReturned($transaction->getEndToEndId(), $transaction->getAmountCents(), $transaction->getReturnReason()?->getReasonCode());
+    }
+}
+```
+
+Amounts are integer cents; unknown reason codes keep their raw `getCode()` and `getReasonCode()` returns null.
+
+## Masking IBANs (2.3)
+
+```php
+$masker = new IbanMasker(); // or inject IbanMaskerInterface
+$masker->mask('ES9121000418450200051332');          // ES91****************1332
+$masker->maskFormatted('ES9121000418450200051332', 2); // ES91 **** **** **** **** **32
+```
+
+Values shorter than 9 characters are fully masked.
 
 ## Amounts in the transaction DTOs
 
@@ -1881,11 +1925,41 @@ It dispatches PSR-14 events with the mandate id, the new status and the time (`E
 `MandateReactivatedEvent`; previous status / sequence type included). If your domain already has a mandate aggregate,
 you can skip `MandateService` and only pass the mandate id and signature date to the transaction DTOs.
 
+### Mandate snapshots, evidence and amendments (2.3)
+
+`Mandate::toSnapshot()` returns an immutable `MandateSnapshot` with every field; `MandateSnapshot::toArray()` is
+JSON-safe and `Mandate::reconstitute(MandateSnapshot::fromArray($row))` rebuilds the mandate without running any
+lifecycle rule. A host repository can therefore store mandates in its own table (columns or a JSON document, Doctrine
+XML mapping on its own entity) with no bundle entity:
+
+```php
+final class DbalMandateRepository implements MandateRepositoryInterface
+{
+    public function save(Mandate $mandate): void
+    {
+        $row = $mandate->toSnapshot()->toArray(); // mandateId, signatureDate, debtorIban, …, evidence, amendment
+        $this->connection->executeStatement('REPLACE INTO sepa_mandate (id, data) VALUES (?, ?)', [$row['mandateId'], json_encode($row)]);
+    }
+
+    public function findById(string $mandateId): ?Mandate
+    {
+        $json = $this->connection->fetchOne('SELECT data FROM sepa_mandate WHERE id = ?', [$mandateId]);
+
+        return $json === false ? null : Mandate::reconstitute(MandateSnapshot::fromArray(json_decode($json, true)));
+    }
+    // …
+}
+```
+
+Optional data on a mandate: `setEvidence(new MandateEvidence(hash('sha256', $acceptedText), $acceptedAt, $ip, 'web',
+$signupId))`, `setDebtorAddress()`, `setOwnerReference('customer:42')` and `setAmendment(new MandateAmendment(…))`.
+To report an amendment with the next collection, pass it to the transaction:
+`$transaction->setAmendment($mandate->getAmendment())` (written in `MndtRltdInf/AmdmntInfDtls`; a new debtor bank,
+SMNDA, must be collected as FRST).
+
 ### Known limitations
 
-- Rebuilding a `Mandate` in your repository uses the constructor plus setters (a snapshot / reconstitution API and
-  optional mandate evidence come with 2.3).
-- Parsers return arrays; pain.002 / camt.054 parsers returning value objects come with 2.3.
+- The pain.001 / pain.008 parsers return arrays (the pain.002 / camt.054 report parsers return value objects).
 - `getAmount()` / `getTotalAmount()` still return floats (a view of the cents); use the `*Cents()` getters for
   arithmetic.
 

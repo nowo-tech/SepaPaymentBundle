@@ -62,6 +62,8 @@ All classes are registered by resource in `src/Resources/config/services.yaml` w
 | `Generator\IdentifierGenerator` | yes | none (`date()` + `random_bytes()` per call) | ✅ | ✅ |
 | `Validator\XsdValidator` | yes | none (`readonly` translator); schemas are read from the shipped files on each call, nothing cached; saves/restores global libxml flag | ✅ | ✅ |
 | `Http\SepaXmlResponseFactory` | yes | none | ✅ | ✅ |
+| `Parser\PaymentStatusReportParser`, `Parser\DebitCreditNotificationParser` | yes | only the `readonly` size limit; schemas read per call, libxml error mode restored in `finally` (tested: 1,000 alternating reports and a failing one, flat memory, no libxml errors left) | ✅ | ✅ |
+| `Formatter\IbanMasker` | yes | none | ✅ | ✅ |
 | `Validator\CachedIbanValidator`, `Validator\CachedBicValidator` | yes | none (`readonly` deps) | ✅ | ✅ |
 | `Cache\ValidationCache` | yes | `$cache` untyped, not autowired (stays `null`); `readonly` TTL | ✅ | ✅ |
 | 7 plain validators (`IbanValidator`, `BicValidator`, `CreditCardValidator`, `SepaCountryValidator`, `SepaCreditorIdentifierValidator`, `SepaBusinessRulesValidator`, `SepaStringSanitizer`) | yes | none (constants only) | ✅ | ✅ |
