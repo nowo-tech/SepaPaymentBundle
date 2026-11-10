@@ -28,6 +28,7 @@ validation.invalid_keys_transaction: 'Clé(s) invalide(s) dans la transaction : 
 # Business rules validation
 validation.invalid_transaction_amount: 'Le montant de la transaction %amount% dépasse le montant maximum autorisé de %max_amount% EUR'
 validation.invalid_transaction_count: 'Le nombre de transactions %count% dépasse le nombre maximum autorisé de %max_count%'
+validation.transaction_amount_out_of_range: "Montant invalide pour l'opération \"%end_to_end_id%\" : %amount% EUR est hors de la plage SEPA de 0,01 à 999999999,99 EUR."
 validation.invalid_execution_date_future: 'La date d''exécution doit être aujourd''hui ou dans le futur'
 validation.invalid_currency: 'La devise %currency% n''est pas valide pour SEPA. Seul EUR est autorisé.'
 validation.invalid_sequence_type: 'Type de séquence invalide : %type%. Doit être l''un des suivants : %valid_types%'
@@ -51,3 +52,48 @@ credit_card:
 
 sepa_country:
     invalid: 'Cette valeur n''est pas un code pays SEPA valide.'
+
+# ISO 20022 reason codes of SEPA R-transactions (Nowo\SepaPaymentBundle\Model\ReasonCode)
+reason_code:
+    AC01: "Identifiant de compte incorrect (IBAN invalide)"
+    AC03: "Identifiant du compte du créancier incorrect"
+    AC04: "Compte clôturé"
+    AC06: "Compte bloqué, ou bloqué aux prélèvements par le débiteur"
+    AC13: "Le compte du débiteur est un compte de consommateur (B2B non autorisé)"
+    AG01: "Prélèvement interdit sur ce compte pour raisons réglementaires"
+    AG02: "Code opération incorrect, format de fichier invalide"
+    AM04: "Provision insuffisante"
+    AM05: "Opération en double"
+    AM06: "Montant inférieur au minimum convenu"
+    AM09: "Montant erroné"
+    ARDT: "Opération déjà retournée"
+    BE01: "Le nom du débiteur ne correspond pas au titulaire du compte"
+    BE05: "Identifiant créancier SEPA incorrect"
+    CNOR: "La banque du créancier n'est pas adhérente au schéma"
+    CUST: "À la demande du client"
+    DNOR: "La banque du débiteur n'est pas adhérente au schéma"
+    DUPL: "Paiement en double"
+    ED05: "Échec du règlement"
+    FF01: "Format de fichier invalide"
+    FOCR: "Retour suite à une demande d'annulation"
+    FRAD: "Origine frauduleuse"
+    LEGL: "Décision de justice"
+    MD01: "Absence de mandat valide, ou opération non autorisée"
+    MD02: "Données du mandat manquantes ou incorrectes"
+    MD06: "Remboursement demandé par le débiteur (opération autorisée)"
+    MD07: "Débiteur décédé"
+    MS02: "Refusé par le débiteur (motif non précisé)"
+    MS03: "Motif non précisé par la banque"
+    NOAS: "Pas de réponse du bénéficiaire"
+    NOOR: "Opération d'origine non reçue"
+    RC01: "Identifiant bancaire (BIC) incorrect"
+    RR01: "Compte ou identification du débiteur manquant (motif réglementaire)"
+    RR02: "Nom ou adresse du débiteur manquant (motif réglementaire)"
+    RR03: "Nom ou adresse du créancier manquant (motif réglementaire)"
+    RR04: "Motif réglementaire"
+    SL01: "Service spécifique proposé par la banque du débiteur"
+    SL11: "Créancier absent de la liste blanche du débiteur"
+    SL12: "Créancier sur la liste noire du débiteur"
+    SL13: "Nombre maximal de prélèvements fixé par le débiteur dépassé"
+    SL14: "Montant maximal de prélèvement fixé par le débiteur dépassé"
+    TECH: "Problème technique ayant causé une opération erronée"

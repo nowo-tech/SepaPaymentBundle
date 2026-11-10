@@ -25,7 +25,8 @@ use const LIBXML_NONET;
  * @copyright 2026 Nowo.tech
  */
 #[AsAlias(id: self::SERVICE_NAME, public: true)]
-final class CreditTransferParser
+#[AsAlias(id: CreditTransferParserInterface::class)]
+final class CreditTransferParser implements CreditTransferParserInterface
 {
     public const SERVICE_NAME = 'nowo_sepa_payment.parser.credit_transfer_parser';
 

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.001.09" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:iso:std:iso:20022:tech:xsd:pain.008.001.09 pain.008.001.09.xsd">
+  <CstmrDrctDbtInitn>
+    <GrpHdr>
+      <MsgId>MSG-BC-005</MsgId>
+      <CreDtTm>NORMALISED</CreDtTm>
+      <NbOfTxs>1</NbOfTxs>
+      <CtrlSum>10.00</CtrlSum>
+      <InitgPty>
+        <Nm>Nowo Creditor SL</Nm>
+      </InitgPty>
+    </GrpHdr>
+    <PmtInf>
+      <PmtInfId>PMT-BC-005</PmtInfId>
+      <PmtMtd>DD</PmtMtd>
+      <NbOfTxs>1</NbOfTxs>
+      <CtrlSum>10.00</CtrlSum>
+      <PmtTpInf>
+        <SvcLvl>
+          <Cd>SEPA</Cd>
+        </SvcLvl>
+        <LclInstrm>
+          <Cd>CORE</Cd>
+        </LclInstrm>
+        <SeqTp>FRST</SeqTp>
+      </PmtTpInf>
+      <ReqdColltnDt>2026-12-01</ReqdColltnDt>
+      <Cdtr>
+        <Nm>Nowo Creditor SL</Nm>
+      </Cdtr>
+      <CdtrAcct>
+        <Id>
+          <IBAN>ES9121000418450200051332</IBAN>
+        </Id>
+      </CdtrAcct>
+      <CdtrAgt>
+        <FinInstnId>
+          <BICFI>CAIXESBBXXX</BICFI>
+        </FinInstnId>
+      </CdtrAgt>
+      <ChrgBr>SLEV</ChrgBr>
+      <CdtrSchmeId>
+        <Id>
+          <PrvtId>
+            <Othr>
+              <Id>ES59ZZZX1234567</Id>
+              <SchmeNm>
+                <Prtry>SEPA</Prtry>
+              </SchmeNm>
+            </Othr>
+          </PrvtId>
+        </Id>
+      </CdtrSchmeId>
+      <DrctDbtTxInf>
+        <PmtId>
+          <EndToEndId>E2E-BC-5-1</EndToEndId>
+        </PmtId>
+        <InstdAmt Ccy="EUR">10.00</InstdAmt>
+        <DrctDbtTx>
+          <MndtRltdInf>
+            <MndtId>MNDT-E2E-BC-5-1</MndtId>
+            <DtOfSgntr>2025-06-30</DtOfSgntr>
+          </MndtRltdInf>
+        </DrctDbtTx>
+        <DbtrAgt>
+          <FinInstnId>
+            <Othr>
+              <Id>NOTPROVIDED</Id>
+            </Othr>
+          </FinInstnId>
+        </DbtrAgt>
+        <Dbtr>
+          <Nm>Debtor 4</Nm>
+        </Dbtr>
+        <DbtrAcct>
+          <Id>
+            <IBAN>IT60X0542811101000000123456</IBAN>
+          </Id>
+        </DbtrAcct>
+        <RmtInf>
+          <Ustrd>Fees   charges  2026 </Ustrd>
+        </RmtInf>
+      </DrctDbtTxInf>
+    </PmtInf>
+  </CstmrDrctDbtInitn>
+</Document>

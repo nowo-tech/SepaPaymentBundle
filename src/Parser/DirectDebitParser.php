@@ -41,9 +41,14 @@ final class DirectDebitParser implements DirectDebitParserInterface
     public const NAMESPACE_008_001_09 = 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.09';
 
     /**
+     * ISO 20022 namespace of pain.008.001.08 (EPC 2023 implementation guidelines; written by the generators since 2.2).
+     */
+    public const NAMESPACE_008_001_08 = 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.08';
+
+    /**
      * Supported document namespaces; the first one is used when the document declares another namespace.
      */
-    public const SUPPORTED_NAMESPACES = [self::NAMESPACE_008_001_02, self::NAMESPACE_008_001_09];
+    public const SUPPORTED_NAMESPACES = [self::NAMESPACE_008_001_02, self::NAMESPACE_008_001_09, self::NAMESPACE_008_001_08];
 
     /**
      * Parses a SEPA Direct Debit XML file.
@@ -201,7 +206,7 @@ final class DirectDebitParser implements DirectDebitParserInterface
             if ($dbtrAgt instanceof DOMNode) {
                 $finInstnId = $this->getFirstNode($xpath, './/sepa:FinInstnId', $dbtrAgt);
                 if ($finInstnId instanceof DOMNode) {
-                    // pain.008.001.02 uses BIC, pain.008.001.09 uses BICFI
+                    // pain.008.001.02 uses BIC, pain.008.001.08/.09 use BICFI
                     $bic = $this->getFirstNode($xpath, './/sepa:BIC | .//sepa:BICFI', $finInstnId);
                     if ($bic instanceof DOMNode) {
                         $transaction['debtorBic'] = $bic->nodeValue;
@@ -329,7 +334,7 @@ final class DirectDebitParser implements DirectDebitParserInterface
 
     /**
      * Returns the Direct Debit namespace declared by the document root when it is supported
-     * (pain.008.001.02 or pain.008.001.09), otherwise the pain.008.001.02 namespace.
+     * (pain.008.001.02, .08 or .09), otherwise the pain.008.001.02 namespace.
      */
     private function resolveNamespace(DOMDocument $dom): string
     {

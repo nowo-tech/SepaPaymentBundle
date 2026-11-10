@@ -28,6 +28,7 @@ validation.invalid_keys_transaction: 'Chave(s) inválida(s) na transação: %key
 # Business rules validation
 validation.invalid_transaction_amount: 'O valor da transação %amount% excede o valor máximo permitido de %max_amount% EUR'
 validation.invalid_transaction_count: 'O número de transações %count% excede o número máximo permitido de %max_count%'
+validation.transaction_amount_out_of_range: "Montante inválido para a operação \"%end_to_end_id%\": %amount% EUR está fora do intervalo SEPA de 0,01 a 999999999,99 EUR."
 validation.invalid_execution_date_future: 'A data de execução deve ser hoje ou no futuro'
 validation.invalid_currency: 'A moeda %currency% não é válida para SEPA. Apenas EUR é permitido.'
 validation.invalid_sequence_type: 'Tipo de sequência inválido: %type%. Deve ser um de: %valid_types%'
@@ -51,3 +52,48 @@ credit_card:
 
 sepa_country:
     invalid: 'Este valor não é um código de país SEPA válido.'
+
+# ISO 20022 reason codes of SEPA R-transactions (Nowo\SepaPaymentBundle\Model\ReasonCode)
+reason_code:
+    AC01: "Identificador de conta incorreto (IBAN inválido)"
+    AC03: "Identificador da conta do credor incorreto"
+    AC04: "Conta encerrada"
+    AC06: "Conta bloqueada, ou bloqueada para débitos diretos pelo devedor"
+    AC13: "A conta do devedor é de consumidor (B2B não permitido)"
+    AG01: "Débito direto proibido nesta conta por motivos regulamentares"
+    AG02: "Código de operação incorreto, formato de ficheiro inválido"
+    AM04: "Fundos insuficientes"
+    AM05: "Cobrança duplicada"
+    AM06: "Montante inferior ao mínimo acordado"
+    AM09: "Montante incorreto"
+    ARDT: "Operação já devolvida"
+    BE01: "O nome do devedor não corresponde ao titular da conta"
+    BE05: "Identificador do credor incorreto"
+    CNOR: "O banco do credor não aderiu ao esquema"
+    CUST: "A pedido do cliente"
+    DNOR: "O banco do devedor não aderiu ao esquema"
+    DUPL: "Pagamento duplicado"
+    ED05: "Liquidação falhada"
+    FF01: "Formato de ficheiro inválido"
+    FOCR: "Devolução na sequência de um pedido de cancelamento"
+    FRAD: "Origem fraudulenta"
+    LEGL: "Decisão judicial"
+    MD01: "Sem mandato válido, ou operação não autorizada"
+    MD02: "Dados do mandato em falta ou incorretos"
+    MD06: "Reembolso pedido pelo devedor (operação autorizada)"
+    MD07: "Devedor falecido"
+    MS02: "Recusado pelo devedor (motivo não especificado)"
+    MS03: "Motivo não especificado pelo banco"
+    NOAS: "Sem resposta do beneficiário"
+    NOOR: "Operação original não recebida"
+    RC01: "Identificador do banco (BIC) incorreto"
+    RR01: "Conta ou identificação do devedor em falta (motivo regulamentar)"
+    RR02: "Nome ou morada do devedor em falta (motivo regulamentar)"
+    RR03: "Nome ou morada do credor em falta (motivo regulamentar)"
+    RR04: "Motivo regulamentar"
+    SL01: "Serviço específico oferecido pelo banco do devedor"
+    SL11: "Credor não consta da lista branca do devedor"
+    SL12: "Credor consta da lista negra do devedor"
+    SL13: "Excedido o número máximo de débitos fixado pelo devedor"
+    SL14: "Excedido o montante máximo de débito fixado pelo devedor"
+    TECH: "Problema técnico que originou uma operação errada"

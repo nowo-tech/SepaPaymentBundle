@@ -28,6 +28,7 @@ validation.invalid_keys_transaction: 'Invalid key(s) in transaction: %keys%. Wit
 # Business rules validation
 validation.invalid_transaction_amount: 'Transaction amount %amount% exceeds maximum allowed amount of %max_amount% EUR'
 validation.invalid_transaction_count: 'Transaction count %count% exceeds maximum allowed count of %max_count%'
+validation.transaction_amount_out_of_range: "Invalid amount for transaction \"%end_to_end_id%\": %amount% EUR is outside the SEPA range of 0.01 to 999999999.99 EUR."
 validation.invalid_execution_date_future: 'Execution date must be today or in the future'
 validation.invalid_currency: 'Currency %currency% is not valid for SEPA. Only EUR is allowed.'
 validation.invalid_sequence_type: 'Invalid sequence type: %type%. Must be one of: %valid_types%'
@@ -51,3 +52,48 @@ credit_card:
 
 sepa_country:
     invalid: 'This value is not a valid SEPA country code.'
+
+# ISO 20022 reason codes of SEPA R-transactions (Nowo\SepaPaymentBundle\Model\ReasonCode)
+reason_code:
+    AC01: "Account identifier incorrect (invalid IBAN)"
+    AC03: "Creditor account identifier incorrect"
+    AC04: "Account closed"
+    AC06: "Account blocked, or blocked for direct debits by the debtor"
+    AC13: "Debtor account is a consumer account (B2B not allowed)"
+    AG01: "Direct debit forbidden on this account for regulatory reasons"
+    AG02: "Operation or transaction code incorrect, invalid file format"
+    AM04: "Insufficient funds"
+    AM05: "Duplicate collection"
+    AM06: "Amount below the agreed minimum"
+    AM09: "Wrong amount"
+    ARDT: "Transaction already returned"
+    BE01: "Debtor name does not match the account holder"
+    BE05: "Creditor identifier incorrect"
+    CNOR: "Creditor bank is not registered in the scheme"
+    CUST: "Requested by the customer"
+    DNOR: "Debtor bank is not registered in the scheme"
+    DUPL: "Duplicate payment"
+    ED05: "Settlement failed"
+    FF01: "Invalid file format"
+    FOCR: "Return following a cancellation request"
+    FRAD: "Fraudulent origin"
+    LEGL: "Legal decision"
+    MD01: "No valid mandate, or unauthorised transaction"
+    MD02: "Mandate data missing or incorrect"
+    MD06: "Refund requested by the debtor (authorised transaction)"
+    MD07: "Debtor deceased"
+    MS02: "Refused by the debtor (reason not specified)"
+    MS03: "Reason not specified by the bank"
+    NOAS: "No answer from the beneficiary"
+    NOOR: "Original transaction not received"
+    RC01: "Bank identifier (BIC) incorrect"
+    RR01: "Debtor account or identification missing (regulatory reason)"
+    RR02: "Debtor name or address missing (regulatory reason)"
+    RR03: "Creditor name or address missing (regulatory reason)"
+    RR04: "Regulatory reason"
+    SL01: "Specific service offered by the debtor's bank"
+    SL11: "Creditor not on the debtor's whitelist"
+    SL12: "Creditor on the debtor's blacklist"
+    SL13: "Maximum number of direct debits set by the debtor exceeded"
+    SL14: "Maximum direct debit amount set by the debtor exceeded"
+    TECH: "Technical problem resulting in an erroneous transaction"

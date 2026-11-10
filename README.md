@@ -4,7 +4,7 @@
 
 > ⭐ **Found this useful?** Give it a star on GitHub! It helps us maintain and improve the project.
 
-**Symfony bundle for SEPA (Single Euro Payments Area) payment management** - Generate SEPA Credit Transfer (pain.001.001.09) and Direct Debit (pain.008.001.09) XML files compliant with ISO 20022 standards. Includes comprehensive IBAN/BIC validation, mandate management, XSD schema validation, and banking utilities for European payments.
+**Symfony bundle for SEPA (Single Euro Payments Area) payment management** - Generate SEPA Credit Transfer (pain.001.001.09) and Direct Debit (pain.008.001.09 by default; .08 and .02 selectable) XML files compliant with ISO 20022 standards. Includes comprehensive IBAN/BIC validation, mandate management, XSD schema validation, and banking utilities for European payments.
 
 ![FrankenPHP Friendly Worker Mode](docs/images/frankenphp-friendly.png)
 
@@ -31,7 +31,8 @@ It is safe when the kernel is **not** reset between requests: request-scoped in-
 - ✅ **Structured Logging**: Comprehensive logging for SEPA operations with PSR-3 integration
 - ✅ **SEPA Mandates**: Manage SEPA Direct Debit mandates with full support
 - ✅ **Credit Transfer**: Generate SEPA Credit Transfer XML files (pain.001.001.09 format) using Digitick\Sepa library
-- ✅ **Direct Debit**: Generate SEPA Direct Debit XML files (pain.008.001.09 format) using Digitick\Sepa library
+- ✅ **Direct Debit**: Generate SEPA Direct Debit XML files (pain.008.001.09 by default; pain.008.001.08 and .02 by config or per call, each validated against its shipped XSD), several payment-information blocks per file, FRST/RCUR per transaction, always RCUR or no `SeqTp`, using Digitick\Sepa library
+- ✅ **Standard Symfony and DDD**: zero-config services for controllers, plus string-returning ports (`DirectDebitGeneratorInterface`, `MandateServiceInterface`, ...) and events carrying ids for hexagonal hosts (see [USAGE](docs/USAGE.md#using-it-from-a-ddd--hexagonal-application))
 - ✅ **Array-based API**: Generate both types of payment files from simple array format
 - ✅ **Object-based API**: Generate payment files using typed objects for better type safety
 - ✅ **Multiple Transactions**: Support for batch payments in a single file

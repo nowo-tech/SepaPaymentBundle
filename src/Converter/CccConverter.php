@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Nowo\SepaPaymentBundle\Converter;
 
 use InvalidArgumentException;
-use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+use Nowo\SepaPaymentBundle\Validator\IbanValidatorInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 use function sprintf;
@@ -25,10 +25,10 @@ final class CccConverter
     /**
      * Constructor.
      *
-     * @param IbanValidator $ibanValidator IBAN validator instance
+     * @param IbanValidatorInterface $ibanValidator IBAN validator (any implementation, e.g. a host decorator)
      */
     public function __construct(
-        private readonly IbanValidator $ibanValidator
+        private readonly IbanValidatorInterface $ibanValidator
     ) {
     }
 

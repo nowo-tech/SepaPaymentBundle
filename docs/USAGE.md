@@ -59,9 +59,14 @@ This document provides detailed usage examples for all features of the SEPA Paym
 - [Generating SEPA Direct Debit (Remesa de Cobro)](#generating-sepa-direct-debit-remesa-de-cobro)
   - [Using Array Format (Recommended)](#using-array-format-recommended-1)
   - [Using Object Format](#using-object-format-1)
+  - [Versions, several blocks, sequence types (2.2)](#versions-several-blocks-sequence-types-22)
 - [Using with Dependency Injection](#using-with-dependency-injection)
-- [Using it from a DDD / hexagonal application](#using-it-from-a-ddd--hexagonal-application)
   - [Service Aliases](#service-aliases)
+- [Using it from a DDD / hexagonal application](#using-it-from-a-ddd--hexagonal-application)
+  - [Standard Symfony path](#standard-symfony-path)
+  - [DDD / hexagonal path](#ddd--hexagonal-path)
+  - [Mandates](#mandates)
+  - [Known limitations](#known-limitations)
 - [Overriding bundle translations](#overriding-bundle-translations)
 - [Forms in host apps and demos (REQ-TWIG-005)](#forms-in-host-apps-and-demos-req-twig-005)
 
@@ -1406,10 +1411,9 @@ $xml = $generator->generate($creditTransferData);
 // Save to file
 file_put_contents('credit-transfer.xml', $xml);
 
-// Or return as HTTP Response (for Symfony controllers)
-use Symfony\Component\HttpFoundation\Response;
-$response = $generator->createResponse($xml, 'credit-transfer.xml');
-return $response;
+// Or return as HTTP Response (for Symfony controllers; createResponse() on the generator is deprecated since 2.2)
+use Nowo\SepaPaymentBundle\Http\SepaXmlResponseFactory;
+return (new SepaXmlResponseFactory())->createResponse($xml, 'credit-transfer.xml');
 ```
 
 ## Generating SEPA Direct Debit (Remesa de Cobro)
@@ -1611,11 +1615,85 @@ $directDebitData->addTransaction($transaction);
 $generator = new DirectDebitGenerator(new IbanValidator());
 $xml = $generator->generate($directDebitData);
 
-// Or return as HTTP Response (for Symfony controllers)
-use Symfony\Component\HttpFoundation\Response;
-$response = $generator->createResponse($xml, 'direct-debit.xml');
-return $response;
+// Or return as HTTP Response (for Symfony controllers; createResponse() on the generator is deprecated since 2.2)
+use Nowo\SepaPaymentBundle\Http\SepaXmlResponseFactory;
+return (new SepaXmlResponseFactory())->createResponse($xml, 'direct-debit.xml');
 ```
+
+### Versions, several blocks, sequence types (2.2)
+
+**Version (P1).** `pain.008.001.09` is the default. `pain.008.001.08` (EPC 2023 implementation guidelines) and
+`pain.008.001.02` are available through `direct_debit.pain_version` ([CONFIGURATION.md](CONFIGURATION.md#direct_debit))
+or per call; each one validates against its own XSD shipped in `src/Resources/schemas`:
+
+```php
+use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitGenerationOptions;
+use Nowo\SepaPaymentBundle\Model\DirectDebit\Pain008Version;
+
+$xml = $generator->generate($data, new DirectDebitGenerationOptions(
+    painVersion: Pain008Version::V08,   // or 'pain.008.001.08'
+    validateXsd: true,
+    creationDateTime: $now,             // GrpHdr/CreDtTm; default: now
+));
+```
+
+The options are per call only: the generator keeps no state between calls (safe in FrankenPHP worker mode).
+
+**Several payment-information blocks (P2).** One file, one `PmtInf` per block (for example per sequence type, due date
+or local instrument). The creditor stays on the file:
+
+```php
+use Nowo\SepaPaymentBundle\Model\DirectDebit\PaymentInformationData;
+
+$data = DirectDebitData::fromPaymentInformation(
+    'REM-2026-11', 'My Company SL', 'My Company SL', 'ES9121000418450200051332', 'ES59ZZZX1234567',
+    new PaymentInformationData('REM-2026-11-1', $dueDate, 'FRST', 'CORE', $firstCollections),
+    new PaymentInformationData('REM-2026-11-2', $dueDate, 'RCUR', 'CORE', $recurringCollections),
+);
+$data->setCreditorBic('CAIXESBBXXX');
+```
+
+`addPaymentInformation()` adds a block to a `DirectDebitData` built with the single-block constructor; the constructor
+block is written first when it has transactions.
+
+**Sequence types (P3).** `direct_debit.sequence_type_mode` or `DirectDebitGenerationOptions(sequenceTypeMode: …)`:
+
+| Mode | `SeqTp` written |
+| --- | --- |
+| `per_transaction` (default) | The block's sequence type, or each transaction's own (`$transaction->setSequenceType('FRST')`). A block whose transactions carry different types is written as one `PmtInf` per type, ids `<PmtInfId>-FRST`, `<PmtInfId>-RCUR`. |
+| `always_rcur` | RCUR for FRST, FNAL and missing types. One-off (OOFF) collections stay OOFF; a block with both is split into `<PmtInfId>-RCUR` and `<PmtInfId>-OOFF`. |
+| `omit` | No `SeqTp` element. Valid against the ISO schemas but **not conformant to the EPC rulebook**, which makes the sequence type (AT-21) mandatory: use it only if your bank's own guide requires it. |
+
+The generator also rejects files that banks refuse: an empty block or file, CORE and B2B blocks in one file (one file
+per local instrument), a duplicate `EndToEndId`, and address or identification text that is not valid UTF-8.
+
+So a host can put all collections of a remittance in one block with their own sequence type and let a setting decide
+between one block per type, RCUR only, or no `SeqTp`.
+
+**Initiating party id and agents (P4).** Spanish banks usually want `GrpHdr/InitgPty/Id`:
+
+```php
+use Nowo\SepaPaymentBundle\Model\PartyIdentification;
+
+$data->setInitiatingPartyIdentification(PartyIdentification::organisation('ES59000B12345678'));
+// PartyIdentification::organisation($id, schemeProprietary: 'SEPA'), ::privatePerson($id, schemeCode: 'NIDN'), issuer …
+```
+
+The creditor scheme id is written with `SchmeNm/Prtry SEPA`. Without a BIC, the creditor and debtor agents are written
+as `<FinInstnId><Othr><Id>NOTPROVIDED</Id></Othr></FinInstnId>`.
+
+**Amount range (P5).** Each transaction must be between 0.01 and 999 999 999.99 EUR (1 … 99 999 999 999 cents, the EPC
+limit); the generators throw `InvalidArgumentException` otherwise.
+
+**Reason codes (P7).** `Nowo\SepaPaymentBundle\Model\ReasonCode` lists the ISO 20022 reason codes of SEPA
+R-transactions (42 codes: AC01, AM04, AM06, MD01, MD06, MS02, SL11–SL14, …) with their ISO name, an English description and a translation key:
+
+```php
+$reason = ReasonCode::fromCode($codeFromTheBankFile); // null when unknown
+$label  = $translator->trans($reason->getTranslationKey(), [], ReasonCode::TRANSLATION_DOMAIN); // "Fondos insuficientes"
+```
+
+Parsing pain.002 / camt.054 bank files is planned for 2.3.
 
 ## Using with Dependency Injection
 
@@ -1654,10 +1732,10 @@ class MyService
         return $this->directDebitGenerator->generateFromArray($data);
     }
 
-    public function generateDirectDebitResponse(array $data): \Symfony\Component\HttpFoundation\Response
+    public function generateDirectDebitResponse(array $data, \Nowo\SepaPaymentBundle\Http\SepaXmlResponseFactory $responseFactory): \Symfony\Component\HttpFoundation\Response
     {
         $xml = $this->directDebitGenerator->generateFromArray($data);
-        return $this->directDebitGenerator->createResponse($xml, 'direct-debit.xml');
+        return $responseFactory->createResponse($xml, 'direct-debit.xml');
     }
 }
 ```
@@ -1695,41 +1773,79 @@ class MyService
 - `nowo_sepa_payment.validator.sepa_string_sanitizer` - SEPA string sanitizer
 - `nowo_sepa_payment.validator.sepa_country_validator` - SEPA country validator
 - `nowo_sepa_payment.validator.sepa_business_rules_validator` - SEPA business rules validator
+- `nowo_sepa_payment.http.sepa_xml_response_factory` - Download response for generated XML (since 2.2)
+- `nowo_sepa_payment.service.mandate_service` - Mandate service
+
+Ports (interfaces, since 2.2) autowire to the same services: `DirectDebitGeneratorInterface`,
+`CreditTransferGeneratorInterface`, `CreditTransferParserInterface`, `DirectDebitParserInterface`,
+`MandateServiceInterface`, `IbanValidatorInterface` (and the other validator interfaces).
 
 All services are public and available for dependency injection via autowiring (type-hinting) or explicit alias retrieval.
 
 ## Using it from a DDD / hexagonal application
 
 SepaPaymentBundle is an **infrastructure library**: it builds and parses SEPA XML files (pain.001 credit transfers,
-pain.008 direct debits) and validates IBAN, BIC, creditor identifiers and SEPA countries. It has no Doctrine entities
-and never touches your domain objects.
+pain.008 direct debits) and validates IBAN, BIC, creditor identifiers and SEPA countries. It has no Doctrine entities,
+never touches your domain objects, never opens a transaction and never flushes an EntityManager. Both paths below are
+supported; the standard one needs no configuration.
 
-### Keep payments in your domain
+### Standard Symfony path
+
+Inject the generator and the response factory in a controller, build the DTOs from your entities and return the file:
+
+```php
+#[Route('/remittances/{id}/pain008')]
+public function download(Remittance $remittance, DirectDebitGenerator $generator, SepaXmlResponseFactory $responses): Response
+{
+    $xml = $generator->generate($this->mapper->toDirectDebitData($remittance));
+
+    return $responses->createResponse($xml, sprintf('remittance-%d.xml', $remittance->getId()));
+}
+```
+
+Listen to `AfterDirectDebitGenerationEvent` to log the file (it carries the message id, PmtInf ids, version, count and
+control sum). Mandates can use `MandateService` with your own `MandateRepositoryInterface` adapter (see below).
+
+### DDD / hexagonal path
 
 Model payment batches, debtors and mandates in your own domain. Define an outbound port (for example
-`DirectDebitFileExporter`) and implement it in infrastructure by mapping your aggregate to the bundle DTOs. Pass your
-integer-cents money straight through with `fromCents()`; no float is involved:
+`DirectDebitFileExporter`) and implement it in infrastructure against the bundle **ports** — interfaces that return
+strings and take plain value objects (no HTTP, Doctrine or Symfony types): `DirectDebitGeneratorInterface`,
+`CreditTransferGeneratorInterface`, `CreditTransferParserInterface`, `DirectDebitParserInterface`,
+`MandateServiceInterface`, `IbanValidatorInterface` and the other validator interfaces. Pass your integer-cents money
+straight through with `fromCents()`; no float is involved:
 
 ```php
 final readonly class SepaDirectDebitFileExporter implements DirectDebitFileExporter // your port
 {
-    public function __construct(private DirectDebitGenerator $generator) {}
+    public function __construct(private DirectDebitGeneratorInterface $generator) {}
 
-    public function export(CollectionBatch $batch): string
+    public function export(CollectionBatch $batch, BankSettings $bank): string
     {
-        $data = new DirectDebitData(
-            $batch->id(), $batch->creditor()->name(), $batch->paymentInfoId(), $batch->dueDate(),
-            $batch->creditor()->name(), $batch->creditor()->iban(), $batch->sequenceType(),
-            $batch->creditor()->creditorId(), 'CORE',
-        );
-        foreach ($batch->collections() as $c) {
-            $data->addTransaction(DirectDebitTransaction::fromCents(
-                $c->amount()->cents(),
-                $c->debtorIban(), $c->debtorName(), $c->mandateId(), $c->mandateSignedOn(), $c->endToEndId(),
-            ));
+        $blocks = [];
+        foreach ($batch->groups() as $group) { // e.g. per due date
+            $block = new PaymentInformationData($group->id(), $group->dueDate(), null, 'CORE');
+            foreach ($group->collections() as $c) {
+                $block->addTransaction(DirectDebitTransaction::fromCents(
+                    $c->amount()->cents(),
+                    $c->debtorIban(), $c->debtorName(), $c->mandateId(), $c->mandateSignedOn(), $c->endToEndId(),
+                )->setSequenceType($c->isFirst() ? 'FRST' : 'RCUR'));
+            }
+            $blocks[] = $block;
         }
+        $data = DirectDebitData::fromPaymentInformation(
+            $batch->id(), $batch->creditor()->name(), $batch->creditor()->name(),
+            $batch->creditor()->iban(), $batch->creditor()->creditorId(), ...$blocks,
+        );
+        $data->setCreditorBic($batch->creditor()->bic());
+        $data->setInitiatingPartyIdentification(PartyIdentification::organisation($batch->creditor()->initiatingPartyId()));
 
-        return $this->generator->generate($data);
+        return $this->generator->generate($data, new DirectDebitGenerationOptions(
+            painVersion: $bank->painVersion(),
+            sequenceTypeMode: $bank->sequenceTypeMode(),
+            validateXsd: true,
+            creationDateTime: $batch->createdAt(),
+        ));
     }
 }
 ```
@@ -1738,22 +1854,38 @@ final readonly class SepaDirectDebitFileExporter implements DirectDebitFileExpor
 `generateFromArray()` accepts `amountCents` as well.
 
 - Validate input in your application layer with the constraints (`#[Iban]`, `#[Bic]`, `#[SepaCreditorIdentifier]`,
-  `#[SepaCountry]`) on command DTOs, or call the validator interfaces (`IbanValidatorInterface`, …) from your own
-  domain service adapters.
-- React to generation with `Before*GenerationEvent` (mutable DTO) and `After*GenerationEvent` (XML + message id), for
-  example to store the file or record the batch as sent.
+  `#[SepaCountry]`) on command DTOs, or call the validator interfaces from your own domain service adapters. A decorator
+  of `IbanValidatorInterface` (blocklist, cache) is used by the generators too.
+- Events carry ids, never entities. `Before*GenerationEvent` exposes the mutable DTO and `getMessageId()`;
+  `AfterDirectDebitGenerationEvent` the XML, message id, PmtInf ids, version, transaction count and control sum.
+- **Events fire before you persist** (P9): `AfterDirectDebitGenerationEvent` is dispatched inside `generate()`, before
+  your code stores or sends the file, and the mandate events right after `MandateRepositoryInterface::save()` — inside
+  your transaction if your adapter writes in one. Do not treat them as "committed"; dispatch your own domain event after
+  your commit (or through Messenger) when a listener needs the stored row. An exception thrown by a mandate-event
+  listener reaches your caller after `save()` and the history entry: catch it, or keep listeners side-effect free and
+  move the work to Messenger.
 
 ### Mandates
 
-`MandateService` stores mandates through `MandateRepositoryInterface`. The default implementation is in-memory and
-emptied on every request: bind the interface to your own persistent adapter in `services.yaml`. If your domain
-already has a mandate aggregate, you can skip `MandateService` and only pass the mandate id and signature date to the
-transaction DTOs.
+`MandateService` (port `MandateServiceInterface`) stores mandates through `MandateRepositoryInterface`. The default
+implementation is in-memory and emptied on every request: bind the interface to your own persistent adapter (your own
+table, Doctrine XML mapping or anything else; the bundle has no entity) in `services.yaml`:
+
+```yaml
+services:
+    Nowo\SepaPaymentBundle\Repository\MandateRepositoryInterface: '@App\Infrastructure\Sepa\MandateRepositoryAdapter'
+```
+
+It dispatches PSR-14 events with the mandate id, the new status and the time (`Event\Mandate\MandateCreatedEvent`,
+`MandateSequenceTypeChangedEvent`, `MandateRevokedEvent` with the reason, `MandateSuspendedEvent`,
+`MandateReactivatedEvent`; previous status / sequence type included). If your domain already has a mandate aggregate,
+you can skip `MandateService` and only pass the mandate id and signature date to the transaction DTOs.
 
 ### Known limitations
 
-- `MandateService` dispatches no events; rebuilding a `Mandate` in your repository uses the constructor plus setters.
-- Generators are final classes without interfaces and parsers return arrays.
+- Rebuilding a `Mandate` in your repository uses the constructor plus setters (a snapshot / reconstitution API and
+  optional mandate evidence come with 2.3).
+- Parsers return arrays; pain.002 / camt.054 parsers returning value objects come with 2.3.
 - `getAmount()` / `getTotalAmount()` still return floats (a view of the cents); use the `*Cents()` getters for
   arithmetic.
 

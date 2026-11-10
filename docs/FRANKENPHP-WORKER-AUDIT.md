@@ -41,7 +41,7 @@ A bundle that is safe under **B** is safe under **A** and under classic mode / P
 | Request / user / locale captured in services | ✅ | Data is passed as method arguments; translator is only called at runtime; dates are created per call |
 | Superglobals, `$_ENV`, `putenv`, `ini_set`, `setlocale`, timezone | ✅ | None of those; `XsdValidator` saves and restores the process-wide `libxml_use_internal_errors()` flag in `finally` |
 | Doctrine / EntityManager | ✅ N/A | No Doctrine; mandate persistence is an in-memory array (see W-01) |
-| Output, headers, `exit`, shutdown functions | ✅ | None; `createResponse()` returns a Symfony `Response` |
+| Output, headers, `exit`, shutdown functions | ✅ | None; `SepaXmlResponseFactory::createResponse()` (and the deprecated generator `createResponse()`) returns a Symfony `Response` |
 | Resources (files, sockets, cURL) held open | ✅ | `php://temp` stream opened and closed per CSV export; `file_get_contents()` only in a CLI command |
 | Memory growth across requests | ✅ | Both stores are bounded by one request (reset per main request) |
 | Blocking I/O and timeouts | ✅ | No network I/O; XSD validation reads local files only |
@@ -55,12 +55,13 @@ All classes are registered by resource in `src/Resources/config/services.yaml` w
 | Service | Shared | Mutable state | Scenario A | Scenario B |
 |---------|--------|---------------|------------|------------|
 | `Repository\MandateRepository` (default for `MandateRepositoryInterface`) | yes | `$mandates`, `$history` arrays filled by `save()` / `addHistory()`; request-scoped | ✅ `reset()` via `kernel.reset` | ✅ reset per main request |
-| `Service\MandateService` | yes | none itself (`readonly` repository); inherits repository state | ✅ | ✅ |
+| `Service\MandateService` | yes | none itself (`readonly` repository, clock, optional PSR-14 dispatcher); inherits repository state | ✅ | ✅ |
 | `Lookup\BicLookupService` (default for `BicLookupServiceInterface`) | yes | `$bicDatabase` mutated by public `addMapping()` (request-scoped); `$customMappings` readonly; `$cache` optional injected adapter (`#[WorkerSafe]`) | ✅ `reset()` via `kernel.reset` | ✅ reset per main request |
-| `Generator\CreditTransferGenerator`, `Generator\DirectDebitGenerator` | yes | `$validateXsd` set once in constructor; all deps `readonly` | ✅ (uses `BicLookupService`, see W-02) | ✅ |
+| `Generator\CreditTransferGenerator`, `Generator\DirectDebitGenerator` | yes | `$validateXsd`, default pain.008 version and sequence type mode set once in the constructor (`readonly`); per-call `DirectDebitGenerationOptions` are resolved into locals and never stored (tested: .09 then .02 then default on one instance, and 2,000 alternating calls with flat memory) | ✅ (uses `BicLookupService`, see W-02) | ✅ |
 | `Generator\RemesaGenerator` (deprecated) | yes | `readonly` inner `CreditTransferGenerator` | ✅ | ✅ |
 | `Generator\IdentifierGenerator` | yes | none (`date()` + `random_bytes()` per call) | ✅ | ✅ |
-| `Validator\XsdValidator` | yes | none (`readonly` translator); saves/restores global libxml flag | ✅ | ✅ |
+| `Validator\XsdValidator` | yes | none (`readonly` translator); schemas are read from the shipped files on each call, nothing cached; saves/restores global libxml flag | ✅ | ✅ |
+| `Http\SepaXmlResponseFactory` | yes | none | ✅ | ✅ |
 | `Validator\CachedIbanValidator`, `Validator\CachedBicValidator` | yes | none (`readonly` deps) | ✅ | ✅ |
 | `Cache\ValidationCache` | yes | `$cache` untyped, not autowired (stays `null`); `readonly` TTL | ✅ | ✅ |
 | 7 plain validators (`IbanValidator`, `BicValidator`, `CreditCardValidator`, `SepaCountryValidator`, `SepaCreditorIdentifierValidator`, `SepaBusinessRulesValidator`, `SepaStringSanitizer`) | yes | none (constants only) | ✅ | ✅ |

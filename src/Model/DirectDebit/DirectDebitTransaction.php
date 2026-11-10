@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nowo\SepaPaymentBundle\Model\DirectDebit;
 
 use DateTimeInterface;
+use InvalidArgumentException;
 use Nowo\SepaPaymentBundle\Model\Amount;
 
 use function is_array;
@@ -36,6 +37,11 @@ final class DirectDebitTransaction
      * Currency code (ISO 4217, optional). Null means the generator's default currency (EUR).
      */
     private ?string $currency = null;
+
+    /**
+     * Sequence type of this transaction (FRST, RCUR, OOFF, FNAL; optional). Null means the block's sequence type.
+     */
+    private ?string $sequenceType = null;
 
     /**
      * Additional data (optional).
@@ -335,5 +341,33 @@ final class DirectDebitTransaction
     public function getDebtorAddress(): ?array
     {
         return $this->additionalData['debtorAddress'] ?? null;
+    }
+
+    /**
+     * Sets the sequence type of this transaction (FRST, RCUR, OOFF or FNAL). In the default
+     * {@see SequenceTypeMode::PER_TRANSACTION} mode it overrides the block's sequence type, and a block whose
+     * transactions carry different sequence types is written as one `PmtInf` per sequence type.
+     *
+     * @param string|null $sequenceType The sequence type, or null for the block's one
+     *
+     * @throws InvalidArgumentException If the sequence type is not FRST, RCUR, OOFF or FNAL
+     */
+    public function setSequenceType(?string $sequenceType): self
+    {
+        if ($sequenceType !== null) {
+            SequenceType::assertValid($sequenceType, 'transaction "' . $this->endToEndId . '"');
+        }
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
+        $this->sequenceType = $sequenceType;
+
+        return $this;
+    }
+
+    /**
+     * Gets the sequence type of this transaction (null: the block's one).
+     */
+    public function getSequenceType(): ?string
+    {
+        return $this->sequenceType;
     }
 }

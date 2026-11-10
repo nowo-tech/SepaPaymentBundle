@@ -77,6 +77,57 @@ final class AmountTest extends TestCase
         }
     }
 
+    /**
+     * D-P-I1: a float with more than 6 decimals just below a half cent is rounded once, like round($x, 2), not twice.
+     */
+    public function testFloatsJustBelowAHalfCentAreNotRoundedTwice(): void
+    {
+        self::assertSame(0, Amount::centsFromFloat(0.0049999999));
+        self::assertSame(0, Amount::centsFromFloat(0.0049999996));
+        self::assertSame(100, Amount::centsFromFloat(1.0049999997));
+        self::assertSame(-100, Amount::centsFromFloat(-1.0049999997));
+        self::assertSame(1, Amount::centsFromFloat(0.005));
+        foreach ([0.0049999999, 1.0049999997, 12.3449999991, 7.1249999999] as $amount) {
+            self::assertSame((int) round(round($amount, 2) * 100), Amount::centsFromFloat($amount), (string) $amount);
+        }
+    }
+
+    /**
+     * LB-M1: computed floats (VAT 21 %, sums of three lines, quantity * price) give the exact half-up cents of their
+     * decimal value on every PHP version, without PHP's round() (changed in 8.4). Intended values use integer maths.
+     */
+    public function testComputedFloatsMatchExactDecimalArithmetic(): void
+    {
+        self::assertSame(424, Amount::centsFromFloat(3.5 * 1.21));
+        self::assertSame(2239, Amount::centsFromFloat(18.5 * 1.21));
+        self::assertSame(107354, Amount::centsFromFloat(1073 + 0.535));
+        self::assertSame(1, Amount::centsFromFloat(0.0050000001));
+        self::assertSame(99_999_999_999, Amount::centsFromFloat(999999999.99));
+        self::assertSame(0, Amount::centsFromFloat(1e-12));
+        self::assertSame(0, Amount::centsFromFloat(-0.0));
+
+        for ($base = 1; $base <= 60000; ++$base) {
+            self::assertSame(intdiv($base * 121 + 50, 100), Amount::centsFromFloat(($base / 100) * 1.21), 'VAT 21 % of ' . $base);
+            self::assertSame(intdiv($base * 110 + 50, 100), Amount::centsFromFloat(($base / 100) * 1.10), 'VAT 10 % of ' . $base);
+        }
+
+        // Fixed linear congruential sequence (same values on every PHP version)
+        $state = 226;
+        $next  = static function () use (&$state): int {
+            $state = ($state * 1103515245 + 12345) % 2147483648;
+
+            return $state;
+        };
+        for ($i = 0; $i < 60000; ++$i) {
+            $lines = [$next() % 999999 + 1, $next() % 999999 + 1, $next() % 999999 + 1]; // thousandths of a euro
+            self::assertSame(intdiv($lines[0] + $lines[1] + $lines[2] + 5, 10), Amount::centsFromFloat($lines[0] / 1000 + $lines[1] / 1000 + $lines[2] / 1000), 'sum ' . implode('+', $lines));
+
+            $quantity = $next() % 50 + 1;
+            $price    = $next() % 999999 + 1;
+            self::assertSame(intdiv($quantity * $price + 5, 10), Amount::centsFromFloat($quantity * ($price / 1000)), $quantity . ' x ' . $price);
+        }
+    }
+
     public function testCentsAreWrittenWithTwoDecimals(): void
     {
         self::assertSame('0.30', Amount::decimalFromCents(30));

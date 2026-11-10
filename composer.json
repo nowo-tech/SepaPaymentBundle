@@ -52,6 +52,7 @@
         "php": ">=8.2 <8.6",
         "digitick/sepa-xml": "^3.0",
         "psr/clock": "^1.0",
+        "psr/event-dispatcher": "^1.0",
         "psr/simple-cache": "^2.0 || ^3.0",
         "symfony/clock": "^6.4 || ^7.0 || ^8.0",
         "symfony/config": "^6.4 || ^7.0 || ^8.0",

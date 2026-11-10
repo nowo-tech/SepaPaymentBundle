@@ -49,4 +49,12 @@ final class BeforeCreditTransferGenerationEvent extends Event
         // @igor-ignore - Request-scoped Event DTO; not a shared worker service.
         $this->creditTransferData = $creditTransferData;
     }
+
+    /**
+     * Gets the message id of the file (since 2.2).
+     */
+    public function getMessageId(): string
+    {
+        return $this->getCreditTransferData()->getMessageId();
+    }
 }

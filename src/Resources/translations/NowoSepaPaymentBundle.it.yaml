@@ -28,6 +28,7 @@ validation.invalid_keys_transaction: "Chiave(i) non valida(e) nella transazione:
 # Business rules validation
 validation.invalid_transaction_amount: "L'importo della transazione %amount% supera l'importo massimo consentito di %max_amount% EUR"
 validation.invalid_transaction_count: "Il numero di transazioni %count% supera il numero massimo consentito di %max_count%"
+validation.transaction_amount_out_of_range: "Importo non valido per l'operazione \"%end_to_end_id%\": %amount% EUR è fuori dall'intervallo SEPA da 0,01 a 999999999,99 EUR."
 validation.invalid_execution_date_future: 'La data di esecuzione deve essere oggi o in futuro'
 validation.invalid_currency: "La valuta %currency% non è valida per SEPA. È consentito solo EUR."
 validation.invalid_sequence_type: 'Tipo di sequenza non valido: %type%. Deve essere uno dei seguenti: %valid_types%'
@@ -51,3 +52,48 @@ credit_card:
 
 sepa_country:
     invalid: 'Questo valore non è un codice paese SEPA valido.'
+
+# ISO 20022 reason codes of SEPA R-transactions (Nowo\SepaPaymentBundle\Model\ReasonCode)
+reason_code:
+    AC01: "Identificativo del conto errato (IBAN non valido)"
+    AC03: "Identificativo del conto del creditore errato"
+    AC04: "Conto chiuso"
+    AC06: "Conto bloccato, o bloccato per gli addebiti dal debitore"
+    AC13: "Il conto del debitore è un conto consumatore (B2B non consentito)"
+    AG01: "Addebito non consentito su questo conto per motivi regolamentari"
+    AG02: "Codice operazione errato, formato file non valido"
+    AM04: "Fondi insufficienti"
+    AM05: "Incasso duplicato"
+    AM06: "Importo inferiore al minimo concordato"
+    AM09: "Importo errato"
+    ARDT: "Operazione già restituita"
+    BE01: "Il nome del debitore non corrisponde al titolare del conto"
+    BE05: "Identificativo del creditore errato"
+    CNOR: "La banca del creditore non aderisce allo schema"
+    CUST: "Richiesto dal cliente"
+    DNOR: "La banca del debitore non aderisce allo schema"
+    DUPL: "Pagamento duplicato"
+    ED05: "Regolamento non riuscito"
+    FF01: "Formato file non valido"
+    FOCR: "Restituzione a seguito di una richiesta di annullamento"
+    FRAD: "Origine fraudolenta"
+    LEGL: "Decisione legale"
+    MD01: "Mandato non valido, o operazione non autorizzata"
+    MD02: "Dati del mandato mancanti o errati"
+    MD06: "Rimborso richiesto dal debitore (operazione autorizzata)"
+    MD07: "Debitore deceduto"
+    MS02: "Rifiutato dal debitore (motivo non specificato)"
+    MS03: "Motivo non specificato dalla banca"
+    NOAS: "Nessuna risposta dal beneficiario"
+    NOOR: "Operazione originale non ricevuta"
+    RC01: "Identificativo della banca (BIC) errato"
+    RR01: "Conto o identificazione del debitore mancante (motivo regolamentare)"
+    RR02: "Nome o indirizzo del debitore mancante (motivo regolamentare)"
+    RR03: "Nome o indirizzo del creditore mancante (motivo regolamentare)"
+    RR04: "Motivo regolamentare"
+    SL01: "Servizio specifico offerto dalla banca del debitore"
+    SL11: "Creditore non presente nella lista bianca del debitore"
+    SL12: "Creditore presente nella lista nera del debitore"
+    SL13: "Superato il numero massimo di addebiti fissato dal debitore"
+    SL14: "Superato l'importo massimo di addebito fissato dal debitore"
+    TECH: "Problema tecnico che ha causato un'operazione errata"

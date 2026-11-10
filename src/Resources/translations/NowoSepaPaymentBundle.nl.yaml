@@ -28,6 +28,7 @@ validation.invalid_keys_transaction: 'Ongeldige sleutel(s) in transactie: %keys%
 # Business rules validation
 validation.invalid_transaction_amount: 'Transactiebedrag %amount% overschrijdt het maximaal toegestane bedrag van %max_amount% EUR'
 validation.invalid_transaction_count: 'Aantal transacties %count% overschrijdt het maximaal toegestane aantal van %max_count%'
+validation.transaction_amount_out_of_range: "Ongeldig bedrag voor transactie \"%end_to_end_id%\": %amount% EUR valt buiten het SEPA-bereik van 0,01 tot 999999999,99 EUR."
 validation.invalid_execution_date_future: 'Uitvoeringsdatum moet vandaag of in de toekomst zijn'
 validation.invalid_currency: 'Valuta %currency% is niet geldig voor SEPA. Alleen EUR is toegestaan.'
 validation.invalid_sequence_type: 'Ongeldig sequencetype: %type%. Moet een van de volgende zijn: %valid_types%'
@@ -51,3 +52,48 @@ credit_card:
 
 sepa_country:
     invalid: 'Deze waarde is geen geldige SEPA-landcode.'
+
+# ISO 20022 reason codes of SEPA R-transactions (Nowo\SepaPaymentBundle\Model\ReasonCode)
+reason_code:
+    AC01: "Rekeningnummer onjuist (ongeldige IBAN)"
+    AC03: "Rekeningnummer van de begunstigde onjuist"
+    AC04: "Rekening opgeheven"
+    AC06: "Rekening geblokkeerd, of door de debiteur geblokkeerd voor incasso's"
+    AC13: "Rekening van de debiteur is een consumentenrekening (B2B niet toegestaan)"
+    AG01: "Incasso op deze rekening verboden om regelgevende redenen"
+    AG02: "Transactiecode onjuist, ongeldig bestandsformaat"
+    AM04: "Onvoldoende saldo"
+    AM05: "Dubbele incasso"
+    AM06: "Bedrag lager dan het overeengekomen minimum"
+    AM09: "Onjuist bedrag"
+    ARDT: "Transactie al teruggestort"
+    BE01: "Naam van de debiteur komt niet overeen met de rekeninghouder"
+    BE05: "Incassant-ID onjuist"
+    CNOR: "Bank van de incassant neemt niet deel aan het schema"
+    CUST: "Op verzoek van de klant"
+    DNOR: "Bank van de debiteur neemt niet deel aan het schema"
+    DUPL: "Dubbele betaling"
+    ED05: "Verrekening mislukt"
+    FF01: "Ongeldig bestandsformaat"
+    FOCR: "Terugboeking na een annuleringsverzoek"
+    FRAD: "Frauduleuze oorsprong"
+    LEGL: "Juridische beslissing"
+    MD01: "Geen geldige machtiging, of niet-geautoriseerde transactie"
+    MD02: "Machtigingsgegevens ontbreken of zijn onjuist"
+    MD06: "Terugbetaling gevraagd door de debiteur (geautoriseerde transactie)"
+    MD07: "Debiteur overleden"
+    MS02: "Geweigerd door de debiteur (reden niet opgegeven)"
+    MS03: "Reden niet opgegeven door de bank"
+    NOAS: "Geen antwoord van de begunstigde"
+    NOOR: "Oorspronkelijke transactie niet ontvangen"
+    RC01: "Bankidentificatie (BIC) onjuist"
+    RR01: "Rekening of identificatie van de debiteur ontbreekt (regelgevende reden)"
+    RR02: "Naam of adres van de debiteur ontbreekt (regelgevende reden)"
+    RR03: "Naam of adres van de incassant ontbreekt (regelgevende reden)"
+    RR04: "Regelgevende reden"
+    SL01: "Specifieke dienst van de bank van de debiteur"
+    SL11: "Incassant staat niet op de witte lijst van de debiteur"
+    SL12: "Incassant staat op de zwarte lijst van de debiteur"
+    SL13: "Maximaal aantal incasso's ingesteld door de debiteur overschreden"
+    SL14: "Maximaal incassobedrag ingesteld door de debiteur overschreden"
+    TECH: "Technisch probleem met een foutieve transactie als gevolg"

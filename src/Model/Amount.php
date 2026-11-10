@@ -6,10 +6,15 @@ namespace Nowo\SepaPaymentBundle\Model;
 
 use InvalidArgumentException;
 
+use function abs;
+use function floor;
 use function is_finite;
 use function is_float;
 use function is_int;
 use function is_numeric;
+use function log10;
+use function max;
+use function min;
 use function preg_match;
 use function sprintf;
 use function str_pad;
@@ -27,11 +32,14 @@ use const STR_PAD_RIGHT;
  * Exact money conversions for the transaction DTOs: amounts are kept as integer cents.
  *
  * - a decimal string (`"1500.25"`, `"0.3"`) is read digit by digit, never through a float;
- * - a float is first written with 6 decimals (`sprintf('%.6F')`, which removes binary noise such as
- *   `0.1 + 0.2 = 0.30000000000000004`) and then read as a decimal string;
- * - digits beyond the cent are rounded **half up** (half away from zero, the euro convention of Regulation (EC)
- *   1103/97 and PHP's `round($x, 2)`): `"0.125"` → 13 cents, `"-0.125"` → -13, `1.005` → 101, `2.675` → 268.
- *   Because the float noise is removed first, the result does not depend on the PHP version.
+ * - a float is first written with 15 significant digits in fixed notation (`sprintf('%.{n}F')`, the precision of a
+ *   double, which removes binary noise such as `0.1 + 0.2 = 0.30000000000000004` or `3.5 * 1.21 = 4.2349999…`) and
+ *   then read as a decimal string, so it is rounded only once (D-P-I1: `0.0049999999` gives 0 cents, not 1). This
+ *   never calls PHP's `round()`, whose behaviour changed in PHP 8.4, so the cents are the same on every PHP version
+ *   (LB-M1);
+ * - digits of a decimal string beyond the cent are rounded **half up** (half away from zero, the euro convention of
+ *   Regulation (EC) 1103/97 and PHP's `round($x, 2)`): `"0.125"` → 13 cents, `"-0.125"` → -13, `1.005` → 101,
+ *   `2.675` → 268. The result does not depend on the PHP version.
  *
  * @internal
  *
@@ -42,6 +50,12 @@ final class Amount
 {
     /** Longest integer part accepted (keeps the cents inside a 64-bit integer). */
     private const MAX_INTEGER_DIGITS = 15;
+
+    /** Significant digits kept from a float (the precision of an IEEE 754 double). */
+    private const FLOAT_SIGNIFICANT_DIGITS = 15;
+
+    /** Most decimals written for a float (amounts below 1e-6 EUR are 0 cents anyway). */
+    private const MAX_FLOAT_DECIMALS = 20;
 
     /** Largest absolute amount in cents (15 integer digits and 2 decimals: 999 999 999 999 999.99). */
     public const MAX_ABS_CENTS = 99_999_999_999_999_999;
@@ -119,7 +133,15 @@ final class Amount
             throw new InvalidArgumentException('Invalid amount: not a finite number.');
         }
 
-        return self::centsFromDecimal(sprintf('%.6F', $amount));
+        if ($amount === 0.0) {
+            return 0;
+        }
+
+        // 15 significant digits in fixed notation, then the exact decimal path: one rounding only (D-P-I1) and no
+        // dependency on round(), which PHP 8.4 changed (LB-M1). Below 1e-6 every value is 0 cents, so cap the decimals.
+        $decimals = min(self::MAX_FLOAT_DECIMALS, max(0, self::FLOAT_SIGNIFICANT_DIGITS - 1 - (int) floor(log10(abs($amount)))));
+
+        return self::centsFromDecimal(sprintf('%.' . $decimals . 'F', $amount));
     }
 
     /**

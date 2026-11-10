@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Nowo\SepaPaymentBundle\Lookup;
 
 use IgorPhp\IgorBundle\Attribute\WorkerSafe;
-use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+use Nowo\SepaPaymentBundle\Validator\IbanValidatorInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Contracts\Service\ResetInterface;
 
@@ -37,7 +37,7 @@ final class BicLookupService implements BicLookupServiceInterface, ResetInterfac
     /**
      * Constructor.
      *
-     * @param IbanValidator $ibanValidator IBAN validator instance
+     * @param IbanValidatorInterface $ibanValidator IBAN validator (any implementation, e.g. a host decorator)
      * @param object|null $cache Optional cache interface for caching lookups (must implement get/set methods)
      * @param int $cacheTtl Cache TTL in seconds (default: 86400)
      * @param array<string, array<string, string>> $customMappings Extra mappings (countryCode => [ bankCode => bic ]) kept for the service lifetime
@@ -46,7 +46,7 @@ final class BicLookupService implements BicLookupServiceInterface, ResetInterfac
         /**
          * IBAN validator instance.
          */
-        private readonly IbanValidator $ibanValidator,
+        private readonly IbanValidatorInterface $ibanValidator,
         /**
          * Cache interface (optional).
          */

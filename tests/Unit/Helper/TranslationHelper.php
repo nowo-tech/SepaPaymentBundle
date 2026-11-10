@@ -32,6 +32,7 @@ class TranslationHelper
         'validation.invalid_amount'                     => 'Invalid transaction amount: use either "amount" (decimal, in euros) or "amountCents" (integer, in cents), not both.',
         'validation.invalid_currency_code'              => 'Invalid currency "%currency%": expected a 3-letter uppercase ISO 4217 code.',
         'validation.invalid_currency'                   => 'Currency %currency% is not valid for SEPA. Only EUR is allowed.',
+        'validation.transaction_amount_out_of_range'    => 'Invalid amount for transaction "%end_to_end_id%": %amount% EUR is outside the SEPA range of 0.01 to 999999999.99 EUR.',
         'validation.invalid_date_type'                  => '%field% must be a string or DateTimeInterface',
         'validation.invalid_creation_date'              => 'creationDate must be a string or DateTimeInterface',
         'validation.invalid_execution_date'             => 'requestedExecutionDate must be a string or DateTimeInterface',

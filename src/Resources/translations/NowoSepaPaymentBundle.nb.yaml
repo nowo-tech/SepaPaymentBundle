@@ -28,6 +28,7 @@ validation.invalid_keys_transaction: 'Ugyldige nøkler i transaksjonen: %keys%. 
 # Business rules validation
 validation.invalid_transaction_amount: 'Transaksjonsbeløpet %amount% overstiger maksimalt tillatt beløp på %max_amount% EUR'
 validation.invalid_transaction_count: 'Antall transaksjoner %count% overstiger maksimalt tillatt antall på %max_count%'
+validation.transaction_amount_out_of_range: "Ugyldig beløp for transaksjonen \"%end_to_end_id%\": %amount% EUR er utenfor SEPA-området 0,01 til 999999999,99 EUR."
 validation.invalid_execution_date_future: 'Utføringsdatoen må være i dag eller i fremtiden'
 validation.invalid_currency: 'Valutaen %currency% er ikke gyldig for SEPA. Kun EUR er tillatt.'
 validation.invalid_sequence_type: 'Ugyldig sekvenstype: %type%. Må være en av: %valid_types%'
@@ -51,3 +52,48 @@ credit_card:
 
 sepa_country:
     invalid: 'Denne verdien er ikke en gyldig SEPA-landkode.'
+
+# ISO 20022 reason codes of SEPA R-transactions (Nowo\SepaPaymentBundle\Model\ReasonCode)
+reason_code:
+    AC01: "Feil kontoidentifikator (ugyldig IBAN)"
+    AC03: "Feil kontoidentifikator for kreditor"
+    AC04: "Kontoen er avsluttet"
+    AC06: "Kontoen er sperret, eller sperret for direkte debitering av debitor"
+    AC13: "Debitors konto er en forbrukerkonto (B2B ikke tillatt)"
+    AG01: "Direkte debitering er forbudt på denne kontoen av regulatoriske årsaker"
+    AG02: "Feil transaksjonskode, ugyldig filformat"
+    AM04: "Ikke tilstrekkelig dekning"
+    AM05: "Duplikat innkreving"
+    AM06: "Beløpet er lavere enn avtalt minimum"
+    AM09: "Feil beløp"
+    ARDT: "Transaksjonen er allerede returnert"
+    BE01: "Debitors navn samsvarer ikke med kontoinnehaveren"
+    BE05: "Feil kreditoridentifikator"
+    CNOR: "Kreditors bank er ikke registrert i ordningen"
+    CUST: "Etter kundens ønske"
+    DNOR: "Debitors bank er ikke registrert i ordningen"
+    DUPL: "Duplikat betaling"
+    ED05: "Oppgjøret mislyktes"
+    FF01: "Ugyldig filformat"
+    FOCR: "Retur etter en anmodning om kansellering"
+    FRAD: "Uredelig opprinnelse"
+    LEGL: "Rettslig avgjørelse"
+    MD01: "Ingen gyldig fullmakt, eller uautorisert transaksjon"
+    MD02: "Fullmaktsdata mangler eller er feil"
+    MD06: "Tilbakebetaling krevd av debitor (autorisert transaksjon)"
+    MD07: "Debitor er død"
+    MS02: "Avvist av debitor (årsak ikke oppgitt)"
+    MS03: "Årsak ikke oppgitt av banken"
+    NOAS: "Ikke svar fra mottakeren"
+    NOOR: "Opprinnelig transaksjon ikke mottatt"
+    RC01: "Feil bankidentifikator (BIC)"
+    RR01: "Debitors konto eller identifikasjon mangler (regulatorisk årsak)"
+    RR02: "Debitors navn eller adresse mangler (regulatorisk årsak)"
+    RR03: "Kreditors navn eller adresse mangler (regulatorisk årsak)"
+    RR04: "Regulatorisk årsak"
+    SL01: "Spesifikk tjeneste fra debitors bank"
+    SL11: "Kreditor er ikke på debitors hviteliste"
+    SL12: "Kreditor er på debitors svarteliste"
+    SL13: "Maksimalt antall direkte debiteringer satt av debitor er overskredet"
+    SL14: "Maksimalt debiteringsbeløp satt av debitor er overskredet"
+    TECH: "Teknisk problem som førte til en feilaktig transaksjon"

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Command;
 
-use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+use Nowo\SepaPaymentBundle\Validator\IbanValidatorInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -24,10 +24,10 @@ final class ValidateIbanCommand extends Command
     /**
      * Constructor.
      *
-     * @param IbanValidator $ibanValidator IBAN validator instance
+     * @param IbanValidatorInterface $ibanValidator IBAN validator (any implementation, e.g. a host decorator)
      */
     public function __construct(
-        private readonly IbanValidator $ibanValidator
+        private readonly IbanValidatorInterface $ibanValidator
     ) {
         parent::__construct();
     }

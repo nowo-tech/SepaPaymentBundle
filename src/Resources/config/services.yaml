@@ -27,6 +27,9 @@ services:
     Nowo\SepaPaymentBundle\Generator\DirectDebitGenerator:
         arguments:
             $defaultCurrency: '%nowo_sepa_payment.default_currency%'
+            $validateXsd: '%nowo_sepa_payment.direct_debit.validate_xsd%'
+            $defaultPainVersion: '%nowo_sepa_payment.direct_debit.pain_version%'
+            $defaultSequenceTypeMode: '%nowo_sepa_payment.direct_debit.sequence_type_mode%'
 
     # RemesaGenerator (deprecated) requires explicit args so TranslatorInterface is always second
     Nowo\SepaPaymentBundle\Generator\RemesaGenerator:
@@ -44,6 +47,9 @@ services:
     Nowo\SepaPaymentBundle\Validator\Constraint\:
         resource: '../../Validator/Constraint/*Validator.php'
         tags: ['validator.constraint_validator']
+
+    Nowo\SepaPaymentBundle\Http\:
+        resource: '../../Http/*'
 
     Nowo\SepaPaymentBundle\Exporter\:
         resource: '../../Exporter/*'

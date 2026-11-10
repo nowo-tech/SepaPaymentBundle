@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Nowo\SepaPaymentBundle\Generator;
 
 use Deprecated;
+use Nowo\SepaPaymentBundle\Http\SepaXmlResponseFactory;
 use Nowo\SepaPaymentBundle\Model\CreditTransfer\CreditTransferData;
 use Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction;
 use Nowo\SepaPaymentBundle\Model\Remesa\RemesaData;
-use Nowo\SepaPaymentBundle\Validator\IbanValidator;
+use Nowo\SepaPaymentBundle\Validator\IbanValidatorInterface;
 use Nowo\SepaPaymentBundle\Validator\XsdValidator;
 use Nowo\SepaPaymentBundle\Validator\XsdValidatorInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
@@ -38,12 +39,12 @@ final class RemesaGenerator
     /**
      * Constructor.
      *
-     * @param IbanValidator $ibanValidator IBAN validator instance
+     * @param IbanValidatorInterface $ibanValidator IBAN validator (any implementation, e.g. a host decorator)
      * @param TranslatorInterface $translator Translator for internationalized messages
      * @param XsdValidator|null $xsdValidator Optional XSD validator instance
      * @param bool $validateXsd Whether to validate XML against XSD schema
      */
-    public function __construct(IbanValidator $ibanValidator, TranslatorInterface $translator, ?XsdValidatorInterface $xsdValidator = null, bool $validateXsd = false)
+    public function __construct(IbanValidatorInterface $ibanValidator, TranslatorInterface $translator, ?XsdValidatorInterface $xsdValidator = null, bool $validateXsd = false)
     {
         $this->generator = new CreditTransferGenerator($ibanValidator, $translator, $xsdValidator, $validateXsd);
     }
@@ -92,19 +93,19 @@ final class RemesaGenerator
     /**
      * Creates an HTTP response with the XML content.
      *
-     * @deprecated Since 1.1.0, use CreditTransferGenerator::createResponse() instead
+     * @deprecated Since 1.1.0, use SepaXmlResponseFactory::createResponse() instead
      *
      * @param string $xml The XML content
      * @param string $filename The filename for the download
      *
      * @return Response The HTTP response
      */
-    #[Deprecated(message: 'Use CreditTransferGenerator::createResponse() instead', since: '1.1.0')]
+    #[Deprecated(message: 'Use SepaXmlResponseFactory::createResponse() instead', since: '1.1.0')]
     public function createResponse(string $xml, string $filename = 'credit-transfer.xml'): Response
     {
         @trigger_error('RemesaGenerator is deprecated since 1.1.0. Use CreditTransferGenerator instead.', E_USER_DEPRECATED);
 
-        return $this->generator->createResponse($xml, $filename);
+        return (new SepaXmlResponseFactory())->createResponse($xml, $filename);
     }
 
     /**
