@@ -22,6 +22,7 @@ use Nowo\SepaPaymentBundle\Event\AfterCreditTransferGenerationEvent;
 use Nowo\SepaPaymentBundle\Event\BeforeCreditTransferGenerationEvent;
 use Nowo\SepaPaymentBundle\Logger\SepaPaymentLogger;
 use Nowo\SepaPaymentBundle\Lookup\BicLookupServiceInterface;
+use Nowo\SepaPaymentBundle\Model\Amount;
 use Nowo\SepaPaymentBundle\Model\CreditTransfer\CreditTransferData;
 use Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
@@ -205,7 +206,7 @@ final class CreditTransferGenerator
             // Add transactions
             foreach ($creditTransferData->getTransactions() as $transaction) {
                 $transferInformation = new CustomerCreditTransferInformation(
-                    (int) round($transaction->getAmount() * 100), // Convert to cents
+                    $transaction->getAmountCents(), // exact integer cents
                     $this->ibanValidator->normalize($transaction->getCreditorIban()),
                     $transaction->getCreditorName(),
                     $transaction->getEndToEndId(),
@@ -478,9 +479,10 @@ final class CreditTransferGenerator
         // Currency defaults to the configured default currency (validated before generation)
         $currency = (string) ($transactionData['currency'] ?? $this->defaultCurrency);
 
+        // Decimal string built from the exact cents (no float); `new` keeps the DTO visibly local (Igor)
         $transaction = new Transaction(
             $transactionData['endToEndId'],
-            $amount,
+            Amount::decimalFromCents($amount),
             $currency,
             $transactionData['creditorIban'],
             $transactionData['creditorName'],
@@ -518,11 +520,14 @@ final class CreditTransferGenerator
      *
      * @param array<string, mixed> $transactionData The transaction data
      *
+     * A plain decimal string ("1500.25") is read exactly; an int is whole euros; a float or another numeric string
+     * ("1e3") is rounded half up to the cent like round($x, 2) ({@see Amount}).
+     *
      * @throws InvalidArgumentException If no amount, both amounts or a non-numeric amount is given
      *
-     * @return float The amount in euros
+     * @return int The amount in cents
      */
-    private function parseAmount(array $transactionData): float
+    private function parseAmount(array $transactionData): int
     {
         $hasAmount = isset($transactionData['amount']);
         $hasCents  = isset($transactionData['amountCents']);
@@ -547,15 +552,21 @@ final class CreditTransferGenerator
                 throw new InvalidArgumentException($invalidMessage);
             }
 
-            return $cents / 100;
+            return $cents;
         }
 
         $amount = $transactionData['amount'];
         if (!is_int($amount) && !is_float($amount) && (!is_string($amount) || !is_numeric($amount))) {
             throw new InvalidArgumentException($invalidMessage);
         }
+        if (is_int($amount)) {
+            return Amount::centsFromDecimal((string) $amount);
+        }
+        if (is_string($amount) && preg_match('/^-?\d{1,15}(?:\.\d+)?$/D', $amount) === 1) {
+            return Amount::centsFromDecimal($amount);
+        }
 
-        return (float) $amount;
+        return Amount::centsFromFloat((float) $amount);
     }
 
     /**

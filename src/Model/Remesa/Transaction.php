@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Model\Remesa;
 
+use Nowo\SepaPaymentBundle\Model\Amount;
 use Nowo\SepaPaymentBundle\Model\CreditTransfer\Transaction as CreditTransferTransaction;
 
 use const E_USER_DEPRECATED;
@@ -43,9 +44,9 @@ final class Transaction
         @trigger_error('Remesa\Transaction is deprecated since 1.1.0. Use CreditTransfer\Transaction instead.', E_USER_DEPRECATED);
 
         // Remesa\Transaction uses debtor* API (deprecated), but CreditTransfer\Transaction now uses creditor* fields
-        $this->creditTransferTransaction = new CreditTransferTransaction(
+        $this->creditTransferTransaction = CreditTransferTransaction::fromCents(
             $endToEndId,
-            $amount,
+            Amount::centsFromFloat($amount),
             $currency,
             $debtorIban, // Remesa API: debtorIban -> CreditTransfer API: creditorIban
             $debtorName,  // Remesa API: debtorName -> CreditTransfer API: creditorName
@@ -70,6 +71,16 @@ final class Transaction
     public function getAmount(): float
     {
         return $this->creditTransferTransaction->getAmount();
+    }
+
+    /**
+     * Gets the amount in cents (exact).
+     *
+     * @return int The amount in cents
+     */
+    public function getAmountCents(): int
+    {
+        return $this->creditTransferTransaction->getAmountCents();
     }
 
     /**

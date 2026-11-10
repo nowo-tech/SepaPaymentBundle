@@ -3,6 +3,7 @@
 ## Table of contents
 
 - [Unreleased](#unreleased)
+- [To 2.1.0](#to-210)
 - [To 2.0.0](#to-200)
 - [To 1.6.0](#to-160)
 - [To 1.5.0](#to-150)
@@ -163,6 +164,35 @@
 - [Getting Help](#getting-help)
 
 ## Unreleased
+
+## To 2.1.0
+
+From **2.0.x**:
+
+```bash
+composer update nowo-tech/sepa-payment-bundle
+```
+
+No breaking change; no configuration change.
+
+- **Prefer integer cents.** Replace `new DirectDebitTransaction(100.50, …)` with
+  `DirectDebitTransaction::fromCents(10050, …)` and `new Transaction('E2E-1', 100.50, 'EUR', …)` with
+  `Transaction::fromCents('E2E-1', 10050, 'EUR', …)`, or pass a decimal string (`'100.50'`). A float still works and
+  triggers a silenced `E_USER_DEPRECATED` (visible in the Symfony profiler / deprecation log).
+- **Rounding.** Amounts are stored as integer cents. A float is written with 6 decimals and rounded half up (half
+  away from zero) to the cent, so sub-cent floats now round like `round($x, 2)` on every PHP version
+  (`0.125` → 0.13, `-0.125` → -0.13, `1.005` → 1.01, `0.285` → 0.29, `2.675` → 2.68). Two-decimal amounts give the
+  same XML as before. 2.0 used `round($amount * 100)` on the binary value, so a few sub-cent values depended on the
+  PHP version (`1.005` and `0.285` were one cent lower on PHP 8.5); those now match `round($x, 2)`.
+- **Validation.** `NAN` / `INF` and non-numeric strings (`"1,50"`, `"abc"`) passed to the constructors throw
+  `InvalidArgumentException`. Other numeric strings (`"1e3"`, `" 1.5"`, `".5"`) keep working through the float path
+  with a silenced `E_USER_DEPRECATED`, as in `generateFromArray()`; pass a plain decimal string or cents instead.
+  `fromCents()` beyond ±99 999 999 999 999 999 cents (e.g. `PHP_INT_MAX`) throws "Invalid amount in cents …".
+- **Queued DTOs.** `DirectDebitTransaction` / `CreditTransfer\Transaction` objects serialised by 2.0 (for example in a
+  Messenger queue) have no `amountCents` property and cannot be used after the upgrade: drain the queue first, or
+  build the DTOs in the handler instead of serialising them.
+- `getAmount()` / `getTotalAmount()` keep returning floats (cents / 100); use `getAmountCents()` /
+  `getTotalAmountCents()` for arithmetic.
 
 ## To 2.0.0
 

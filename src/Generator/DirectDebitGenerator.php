@@ -21,6 +21,7 @@ use Nowo\SepaPaymentBundle\Event\AfterDirectDebitGenerationEvent;
 use Nowo\SepaPaymentBundle\Event\BeforeDirectDebitGenerationEvent;
 use Nowo\SepaPaymentBundle\Logger\SepaPaymentLogger;
 use Nowo\SepaPaymentBundle\Lookup\BicLookupServiceInterface;
+use Nowo\SepaPaymentBundle\Model\Amount;
 use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitData;
 use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitTransaction;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
@@ -216,7 +217,7 @@ final class DirectDebitGenerator
             // Add transactions
             foreach ($directDebitData->getTransactions() as $transaction) {
                 $transferInformation = new CustomerDirectDebitTransferInformation(
-                    (int) round($transaction->getAmount() * 100), // Convert to cents
+                    $transaction->getAmountCents(), // exact integer cents
                     $this->ibanValidator->normalize($transaction->getDebtorIban()),
                     $transaction->getDebtorName(),
                     $transaction->getEndToEndId(),
@@ -465,8 +466,9 @@ final class DirectDebitGenerator
             throw new InvalidArgumentException(sprintf('Missing or invalid required transaction field: debtorMandateSignDate (mandate signature date) for mandate "%s".', (string) $transactionData['debtorMandate']));
         }
 
+        // Decimal string built from the exact cents (no float); `new` keeps the DTO visibly local (Igor)
         $transaction = new DirectDebitTransaction(
-            $amount,
+            Amount::decimalFromCents($amount),
             $transactionData['debtorIban'],
             $transactionData['debtorName'],
             $transactionData['debtorMandate'],
@@ -523,11 +525,14 @@ final class DirectDebitGenerator
      *
      * @param array<string, mixed> $transactionData The transaction data
      *
+     * A plain decimal string ("1500.25") is read exactly; an int is whole euros; a float or another numeric string
+     * ("1e3") is rounded half up to the cent like round($x, 2) ({@see Amount}).
+     *
      * @throws InvalidArgumentException If no amount, both amounts or a non-numeric amount is given
      *
-     * @return float The amount in euros
+     * @return int The amount in cents
      */
-    private function parseAmount(array $transactionData): float
+    private function parseAmount(array $transactionData): int
     {
         $hasAmount = isset($transactionData['amount']);
         $hasCents  = isset($transactionData['amountCents']);
@@ -549,15 +554,21 @@ final class DirectDebitGenerator
                 throw new InvalidArgumentException(self::INVALID_AMOUNT_MESSAGE);
             }
 
-            return $cents / 100;
+            return $cents;
         }
 
         $amount = $transactionData['amount'];
         if (!is_int($amount) && !is_float($amount) && (!is_string($amount) || !is_numeric($amount))) {
             throw new InvalidArgumentException(self::INVALID_AMOUNT_MESSAGE);
         }
+        if (is_int($amount)) {
+            return Amount::centsFromDecimal((string) $amount);
+        }
+        if (is_string($amount) && preg_match('/^-?\d{1,15}(?:\.\d+)?$/D', $amount) === 1) {
+            return Amount::centsFromDecimal($amount);
+        }
 
-        return (float) $amount;
+        return Amount::centsFromFloat((float) $amount);
     }
 
     /**

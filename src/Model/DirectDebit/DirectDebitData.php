@@ -199,15 +199,25 @@ final class DirectDebitData
     }
 
     /**
-     * Calculates the total amount of all transactions.
+     * Calculates the total amount of all transactions, in euros (summed in cents, so 0.1 + 0.2 is 0.3).
      *
      * @return float The total amount
      */
     public function getTotalAmount(): float
     {
-        $total = 0.0;
+        return $this->getTotalAmountCents() / 100;
+    }
+
+    /**
+     * Calculates the total amount of all transactions, in cents (exact; the XML control sum).
+     *
+     * @return int The total amount in cents
+     */
+    public function getTotalAmountCents(): int
+    {
+        $total = 0;
         foreach ($this->transactions as $transaction) {
-            $total += $transaction->getAmount();
+            $total += $transaction->getAmountCents();
         }
 
         return $total;

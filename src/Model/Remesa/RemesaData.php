@@ -183,9 +183,9 @@ final class RemesaData
     {
         // Convert Transaction to CreditTransferTransaction
         // Remesa\Transaction uses debtor* fields (deprecated API), but CreditTransfer\Transaction now uses creditor* fields
-        $creditTransferTransaction = new CreditTransferTransaction(
+        $creditTransferTransaction = CreditTransferTransaction::fromCents(
             $transaction->getEndToEndId(),
-            $transaction->getAmount(),
+            $transaction->getAmountCents(),
             $transaction->getCurrency(),
             $transaction->getDebtorIban(), // Remesa\Transaction.getDebtorIban() -> CreditTransfer\Transaction.creditorIban
             $transaction->getDebtorName(),  // Remesa\Transaction.getDebtorName() -> CreditTransfer\Transaction.creditorName

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nowo\SepaPaymentBundle\Model\DirectDebit;
 
 use DateTimeInterface;
+use Nowo\SepaPaymentBundle\Model\Amount;
 
 use function is_array;
 
@@ -16,6 +17,11 @@ use function is_array;
  */
 final class DirectDebitTransaction
 {
+    /**
+     * Amount in cents (the exact value used in the XML).
+     */
+    private readonly int $amountCents;
+
     /**
      * Remittance information (optional).
      */
@@ -42,7 +48,10 @@ final class DirectDebitTransaction
     /**
      * Constructor.
      *
-     * @param float $amount Amount to debit
+     * `$amount` in euros: a decimal string ("1500.25") or an int (whole euros) is exact; a float still works but is deprecated since 2.1
+     * (it is rounded half up to the cent like `round($x, 2)`, see {@see Amount}); another numeric string ("1e3", " 1.5") is read like a float and deprecated too — use {@see self::fromCents()} or a decimal string.
+     *
+     * @param float|int|string $amount Amount to debit, in euros (decimal string or whole euros as int; float and non-decimal numeric strings deprecated)
      * @param string $debtorIban Debtor IBAN
      * @param string $debtorName Debtor name
      * @param string $debtorMandate Debtor mandate identifier
@@ -50,23 +59,59 @@ final class DirectDebitTransaction
      * @param string $endToEndId End-to-end identifier
      */
     public function __construct(
-        private readonly float $amount,
+        int|float|string $amount,
         private readonly string $debtorIban,
         private readonly string $debtorName,
         private readonly string $debtorMandate,
         private readonly DateTimeInterface $debtorMandateSignDate,
         private readonly string $endToEndId
     ) {
+        $this->amountCents = Amount::centsFromValue($amount, 'DirectDebitTransaction', 'DirectDebitTransaction::fromCents()');
     }
 
     /**
-     * Gets the amount.
+     * Creates a transaction from an amount in integer cents (exact; preferred).
+     *
+     * @param int $amountCents Amount to debit, in cents (1500025 = 15000.25 EUR)
+     * @param string $debtorIban Debtor IBAN
+     * @param string $debtorName Debtor name
+     * @param string $debtorMandate Debtor mandate identifier
+     * @param DateTimeInterface $debtorMandateSignDate Debtor mandate sign date
+     * @param string $endToEndId End-to-end identifier
+     */
+    public static function fromCents(int $amountCents, string $debtorIban, string $debtorName, string $debtorMandate, DateTimeInterface $debtorMandateSignDate, string $endToEndId): self
+    {
+        return new self(Amount::decimalFromCents($amountCents), $debtorIban, $debtorName, $debtorMandate, $debtorMandateSignDate, $endToEndId);
+    }
+
+    /**
+     * Gets the amount in euros (a float view of {@see self::getAmountCents()}; prefer the cents for arithmetic).
      *
      * @return float The amount
      */
     public function getAmount(): float
     {
-        return $this->amount;
+        return $this->amountCents / 100;
+    }
+
+    /**
+     * Gets the amount in cents (exact).
+     *
+     * @return int The amount in cents
+     */
+    public function getAmountCents(): int
+    {
+        return $this->amountCents;
+    }
+
+    /**
+     * Gets the amount in euros as a decimal string with two decimals ("15000.25").
+     *
+     * @return string The amount
+     */
+    public function getAmountDecimal(): string
+    {
+        return Amount::decimalFromCents($this->amountCents);
     }
 
     /**

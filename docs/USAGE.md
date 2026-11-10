@@ -19,6 +19,7 @@ This document provides detailed usage examples for all features of the SEPA Paym
 - [SEPA XML Parser](#sepa-xml-parser)
   - [Parsing SEPA Credit Transfer](#parsing-sepa-credit-transfer)
   - [Parsing SEPA Direct Debit](#parsing-sepa-direct-debit)
+- [Amounts in the transaction DTOs](#amounts-in-the-transaction-dtos)
 - [Amounts and Currency in Array Input](#amounts-and-currency-in-array-input)
 - [XSD Schema Validation](#xsd-schema-validation)
   - [Basic Usage](#basic-usage-1)
@@ -59,6 +60,7 @@ This document provides detailed usage examples for all features of the SEPA Paym
   - [Using Array Format (Recommended)](#using-array-format-recommended-1)
   - [Using Object Format](#using-object-format-1)
 - [Using with Dependency Injection](#using-with-dependency-injection)
+- [Using it from a DDD / hexagonal application](#using-it-from-a-ddd--hexagonal-application)
   - [Service Aliases](#service-aliases)
 - [Overriding bundle translations](#overriding-bundle-translations)
 - [Forms in host apps and demos (REQ-TWIG-005)](#forms-in-host-apps-and-demos-req-twig-005)
@@ -264,9 +266,9 @@ $creditTransferData = new CreditTransferData(
 );
 
 // Add transaction without BIC
-$transaction = new Transaction(
+$transaction = Transaction::fromCents(
     'E2E-001',
-    100.50,
+    10050,                         // EUR 100.50 in cents (or new Transaction('E2E-001', '100.50', …))
     'EUR',
     'GB82WEST12345698765432', // IBAN only, no BIC
     'John Doe'
@@ -521,11 +523,37 @@ if ($parser->isValidDirectDebit($xml)) {
 }
 ```
 
+## Amounts in the transaction DTOs
+
+`DirectDebitTransaction` and `CreditTransfer\Transaction` keep the amount as **integer cents**, the value written to the
+XML (`InstdAmt`) and summed into the control sum (`CtrlSum`, `getTotalAmountCents()`). Since 2.1:
+
+| Input | Example | Exact? |
+| --- | --- | --- |
+| `DirectDebitTransaction::fromCents(int $amountCents, …)` / `Transaction::fromCents($endToEndId, int $amountCents, …)` | `fromCents(10050, …)` | yes (preferred) |
+| decimal string in euros to the constructor | `new Transaction('E2E-1', '100.50', …)` | yes, read digit by digit |
+| int in euros to the constructor | `new DirectDebitTransaction(7, …)` (EUR 7.00) | yes |
+| float in euros to the constructor | `new Transaction('E2E-1', 100.50, …)` | **deprecated** (`E_USER_DEPRECATED`), still works |
+| other numeric string to the constructor | `'1e3'`, `' 1.5'`, `'.5'` | **deprecated** (`E_USER_DEPRECATED`), read like a float |
+
+Rounding: a float is first written with 6 decimals (`sprintf('%.6F')`, which removes binary noise such as
+`0.1 + 0.2 = 0.30000000000000004`) and read as a decimal string; digits beyond the cent are rounded **half up** (half
+away from zero, the euro convention and PHP's `round($x, 2)`): `"0.125"` → EUR 0.13, `"-0.125"` → EUR -0.13,
+`1.005` → EUR 1.01, `2.675` → EUR 2.68. Because the float noise is removed first, the result is the same on every PHP
+version. SEPA amounts have at most two decimals, so this only matters for computed values. A non-finite float (`NAN`,
+`INF`) or a string that is not numeric (`"1,50"`, `"abc"`) throws an `InvalidArgumentException`; so does an amount above
+EUR 999 999 999 999 999.99 (15 integer digits), including `fromCents(PHP_INT_MAX)`. The EPC limit (EUR 999 999 999.99)
+is not enforced by the DTOs.
+
+Read the amount back with `getAmountCents(): int` (exact), `getAmountDecimal(): string` (`"100.50"`) or
+`getAmount(): float` (kept for compatibility). `DirectDebitData::getTotalAmountCents()` and
+`CreditTransferData::getTotalAmountCents()` sum in cents; `getTotalAmount(): float` is that sum divided by 100.
+
 ## Amounts and Currency in Array Input
 
 `CreditTransferGenerator::generateFromArray()` and `DirectDebitGenerator::generateFromArray()` read each transaction amount from exactly one of:
 
-- `amount` — decimal amount **in euros** (`15000`, `15000.00` or `"15000.00"` all mean EUR 15,000.00). Large values are never reinterpreted as cents.
+- `amount` — decimal amount **in euros** (`15000`, `15000.00` or `"15000.00"` all mean EUR 15,000.00). Large values are never reinterpreted as cents. A plain decimal string is read exactly; a float or another numeric string (`"1e3"`) is rounded half up to the cent as described in [Amounts in the transaction DTOs](#amounts-in-the-transaction-dtos) (no deprecation on the array path).
 - `amountCents` (or `amount_cents`) — integer amount **in cents** (`1500000` means EUR 15,000.00).
 
 Passing both, neither, a non-numeric `amount` or a non-integer `amountCents` throws an `InvalidArgumentException`.
@@ -1339,18 +1367,18 @@ $creditTransferData->setCreditorAddress([
 ]);
 
 // Add transactions
-$transaction1 = new Transaction(
+$transaction1 = Transaction::fromCents(
     'E2E-001',                    // End-to-end ID (unique per transaction)
-    100.50,                       // Amount
+    10050,                        // Amount in cents (EUR 100.50)
     'EUR',                        // Currency (ISO 4217)
     'GB82WEST12345698765432',     // Debtor IBAN
     'John Doe'                    // Debtor name
 );
 
-$transaction1->setDebtorBic('WESTGB22');
+$transaction1->setCreditorBic('WESTGB22');
 
 // Set debtor address (will be included in XML)
-$transaction1->setDebtorAddress([
+$transaction1->setCreditorAddress([
     'street' => '123 Main Street',
     'city' => 'London',
     'postalCode' => 'SW1A 1AA',
@@ -1363,7 +1391,7 @@ $creditTransferData->addTransaction($transaction1);
 // Add more transactions if needed
 $transaction2 = new Transaction(
     'E2E-002',
-    200.75,
+    '200.75',                     // decimal string: exact too
     'EUR',
     'FR1420041010050500013M02606',
     'Jane Smith'
@@ -1545,8 +1573,8 @@ $directDebitData = new DirectDebitData(
 
 $directDebitData->setCreditorBic('CAIXESBBXXX');
 
-$transaction = new DirectDebitTransaction(
-    100.50,                                      // Amount
+$transaction = DirectDebitTransaction::fromCents(
+    10050,                                       // Amount in cents (EUR 100.50)
     'GB82WEST12345698765432',                    // Debtor IBAN
     'John Doe',                                  // Debtor name
     'MANDATE-001',                               // Mandate identifier
@@ -1669,6 +1697,65 @@ class MyService
 - `nowo_sepa_payment.validator.sepa_business_rules_validator` - SEPA business rules validator
 
 All services are public and available for dependency injection via autowiring (type-hinting) or explicit alias retrieval.
+
+## Using it from a DDD / hexagonal application
+
+SepaPaymentBundle is an **infrastructure library**: it builds and parses SEPA XML files (pain.001 credit transfers,
+pain.008 direct debits) and validates IBAN, BIC, creditor identifiers and SEPA countries. It has no Doctrine entities
+and never touches your domain objects.
+
+### Keep payments in your domain
+
+Model payment batches, debtors and mandates in your own domain. Define an outbound port (for example
+`DirectDebitFileExporter`) and implement it in infrastructure by mapping your aggregate to the bundle DTOs. Pass your
+integer-cents money straight through with `fromCents()`; no float is involved:
+
+```php
+final readonly class SepaDirectDebitFileExporter implements DirectDebitFileExporter // your port
+{
+    public function __construct(private DirectDebitGenerator $generator) {}
+
+    public function export(CollectionBatch $batch): string
+    {
+        $data = new DirectDebitData(
+            $batch->id(), $batch->creditor()->name(), $batch->paymentInfoId(), $batch->dueDate(),
+            $batch->creditor()->name(), $batch->creditor()->iban(), $batch->sequenceType(),
+            $batch->creditor()->creditorId(), 'CORE',
+        );
+        foreach ($batch->collections() as $c) {
+            $data->addTransaction(DirectDebitTransaction::fromCents(
+                $c->amount()->cents(),
+                $c->debtorIban(), $c->debtorName(), $c->mandateId(), $c->mandateSignedOn(), $c->endToEndId(),
+            ));
+        }
+
+        return $this->generator->generate($data);
+    }
+}
+```
+
+`CreditTransfer\Transaction::fromCents($endToEndId, $cents, 'EUR', $iban, $name)` does the same for credit transfers;
+`generateFromArray()` accepts `amountCents` as well.
+
+- Validate input in your application layer with the constraints (`#[Iban]`, `#[Bic]`, `#[SepaCreditorIdentifier]`,
+  `#[SepaCountry]`) on command DTOs, or call the validator interfaces (`IbanValidatorInterface`, …) from your own
+  domain service adapters.
+- React to generation with `Before*GenerationEvent` (mutable DTO) and `After*GenerationEvent` (XML + message id), for
+  example to store the file or record the batch as sent.
+
+### Mandates
+
+`MandateService` stores mandates through `MandateRepositoryInterface`. The default implementation is in-memory and
+emptied on every request: bind the interface to your own persistent adapter in `services.yaml`. If your domain
+already has a mandate aggregate, you can skip `MandateService` and only pass the mandate id and signature date to the
+transaction DTOs.
+
+### Known limitations
+
+- `MandateService` dispatches no events; rebuilding a `Mandate` in your repository uses the constructor plus setters.
+- Generators are final classes without interfaces and parsers return arrays.
+- `getAmount()` / `getTotalAmount()` still return floats (a view of the cents); use the `*Cents()` getters for
+  arithmetic.
 
 ## Overriding bundle translations
 
