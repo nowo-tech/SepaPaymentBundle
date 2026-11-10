@@ -1661,8 +1661,11 @@ block is written first when it has transactions.
 | Mode | `SeqTp` written |
 | --- | --- |
 | `per_transaction` (default) | The block's sequence type, or each transaction's own (`$transaction->setSequenceType('FRST')`). A block whose transactions carry different types is written as one `PmtInf` per type, ids `<PmtInfId>-FRST`, `<PmtInfId>-RCUR`. |
-| `always_rcur` | RCUR on every block. |
-| `omit` | No `SeqTp` element (optional in the ISO schemas; check that your bank accepts it). |
+| `always_rcur` | RCUR for FRST, FNAL and missing types. One-off (OOFF) collections stay OOFF; a block with both is split into `<PmtInfId>-RCUR` and `<PmtInfId>-OOFF`. |
+| `omit` | No `SeqTp` element. Valid against the ISO schemas but **not conformant to the EPC rulebook**, which makes the sequence type (AT-21) mandatory: use it only if your bank's own guide requires it. |
+
+The generator also rejects files that banks refuse: an empty block or file, CORE and B2B blocks in one file (one file
+per local instrument), a duplicate `EndToEndId`, and address or identification text that is not valid UTF-8.
 
 So a host can put all collections of a remittance in one block with their own sequence type and let a setting decide
 between one block per type, RCUR only, or no `SeqTp`.
@@ -1683,7 +1686,7 @@ as `<FinInstnId><Othr><Id>NOTPROVIDED</Id></Othr></FinInstnId>`.
 limit); the generators throw `InvalidArgumentException` otherwise.
 
 **Reason codes (P7).** `Nowo\SepaPaymentBundle\Model\ReasonCode` lists the ISO 20022 reason codes of SEPA
-R-transactions (AC01, AM04, MD01, MD06, MS02, …) with their ISO name, an English description and a translation key:
+R-transactions (42 codes: AC01, AM04, AM06, MD01, MD06, MS02, SL11–SL14, …) with their ISO name, an English description and a translation key:
 
 ```php
 $reason = ReasonCode::fromCode($codeFromTheBankFile); // null when unknown
@@ -1858,7 +1861,9 @@ final readonly class SepaDirectDebitFileExporter implements DirectDebitFileExpor
 - **Events fire before you persist** (P9): `AfterDirectDebitGenerationEvent` is dispatched inside `generate()`, before
   your code stores or sends the file, and the mandate events right after `MandateRepositoryInterface::save()` — inside
   your transaction if your adapter writes in one. Do not treat them as "committed"; dispatch your own domain event after
-  your commit (or through Messenger) when a listener needs the stored row.
+  your commit (or through Messenger) when a listener needs the stored row. An exception thrown by a mandate-event
+  listener reaches your caller after `save()` and the history entry: catch it, or keep listeners side-effect free and
+  move the work to Messenger.
 
 ### Mandates
 

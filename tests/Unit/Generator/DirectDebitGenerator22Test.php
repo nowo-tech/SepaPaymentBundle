@@ -161,7 +161,7 @@ final class DirectDebitGenerator22Test extends TestCase
 
         $this->assertSame(['PMT-1', 'PMT-2', 'PMT-3'], self::values($xml, '//ns:PmtInf/ns:PmtInfId'));
         $this->assertSame(['FRST', 'RCUR', 'RCUR'], self::values($xml, '//ns:PmtInf/ns:PmtTpInf/ns:SeqTp'));
-        $this->assertSame(['CORE', 'CORE', 'B2B'], self::values($xml, '//ns:PmtInf/ns:PmtTpInf/ns:LclInstrm/ns:Cd'));
+        $this->assertSame(['CORE', 'CORE', 'CORE'], self::values($xml, '//ns:PmtInf/ns:PmtTpInf/ns:LclInstrm/ns:Cd'));
         $this->assertSame(['2026-12-01', '2026-12-01', '2026-12-05'], self::values($xml, '//ns:PmtInf/ns:ReqdColltnDt'));
         $this->assertSame(['10.00', '30.50', '1.00'], self::values($xml, '//ns:PmtInf/ns:CtrlSum'));
         $this->assertSame(['4'], self::values($xml, '//ns:GrpHdr/ns:NbOfTxs'));
@@ -234,12 +234,12 @@ final class DirectDebitGenerator22Test extends TestCase
         (new DirectDebitGenerator(new IbanValidator()))->generate($data);
     }
 
-    public function testEmptyBlockWithoutSequenceTypeIsRejected(): void
+    public function testEmptyBlockIsRejected(): void
     {
         $block = new PaymentInformationData('PMT-E', new DateTimeImmutable('2026-12-01'));
         $data  = DirectDebitData::fromPaymentInformation('MSG-E', 'Creditor', 'Creditor', 'ES9121000418450200051332', 'ES59ZZZX1234567', $block);
 
-        $this->expectExceptionMessage('Missing sequence type for payment information "PMT-E"');
+        $this->expectExceptionMessage('Payment information "PMT-E" has no transactions');
         (new DirectDebitGenerator(new IbanValidator()))->generate($data);
     }
 
@@ -448,6 +448,101 @@ final class DirectDebitGenerator22Test extends TestCase
         new DirectDebitGenerator(new IbanValidator(), null, false, null, null, null, 'EUR', null, 'pain.008.001.05');
     }
 
+    /**
+     * LB-L4: an empty block added next to a full one is rejected too.
+     */
+    public function testEmptyAddedBlockIsRejected(): void
+    {
+        $data = $this->singleBlockData();
+        $data->addPaymentInformation(new PaymentInformationData('PMT-EMPTY', new DateTimeImmutable('2026-12-02'), 'RCUR'));
+
+        $this->expectExceptionMessage('Payment information "PMT-EMPTY" has no transactions');
+        (new DirectDebitGenerator(new IbanValidator()))->generate($data);
+    }
+
+    /**
+     * LB-L1: always_rcur keeps one-off (OOFF) collections; FRST and FNAL become RCUR. A block with both is split.
+     */
+    public function testAlwaysRcurKeepsOneOff(): void
+    {
+        $generator = new DirectDebitGenerator(new IbanValidator(), $this->xsdValidator, true);
+        $options   = new DirectDebitGenerationOptions(sequenceTypeMode: SequenceTypeMode::ALWAYS_RCUR);
+
+        $data = $this->singleBlockData();
+        $data->getTransactions()[0]->setSequenceType('OOFF');
+        $this->assertSame(['OOFF'], self::values($generator->generate($data, $options), '//ns:SeqTp'));
+
+        $block = new PaymentInformationData('PMT-AR', new DateTimeImmutable('2026-12-01'), 'FRST', 'CORE', [
+            self::tx('E2E-1', 100),
+            self::tx('E2E-2', 100)->setSequenceType('OOFF'),
+            self::tx('E2E-3', 100)->setSequenceType('FNAL'),
+        ]);
+        $data = DirectDebitData::fromPaymentInformation('MSG-AR', 'Creditor', 'Creditor', 'ES9121000418450200051332', 'ES59ZZZX1234567', $block);
+        $xml  = $generator->generate($data, $options);
+        $this->assertSame(['PMT-AR-RCUR', 'PMT-AR-OOFF'], self::values($xml, '//ns:PmtInfId'));
+        $this->assertSame(['RCUR', 'OOFF'], self::values($xml, '//ns:SeqTp'));
+        $this->assertSame(['E2E-1', 'E2E-3', 'E2E-2'], self::values($xml, '//ns:EndToEndId'));
+    }
+
+    /**
+     * LB-L5: CORE and B2B in one file are rejected.
+     */
+    public function testMixedLocalInstrumentsAreRejected(): void
+    {
+        $data = $this->singleBlockData();
+        $data->addPaymentInformation(new PaymentInformationData('PMT-B2B', new DateTimeImmutable('2026-12-02'), 'RCUR', 'B2B', [self::tx('E2E-B2B', 100)]));
+
+        $this->expectExceptionMessage('cannot mix local instruments (CORE, B2B)');
+        (new DirectDebitGenerator(new IbanValidator()))->generate($data);
+    }
+
+    /**
+     * LB-L5: validateXsd requested per call without an XSD validator throws instead of being ignored.
+     */
+    public function testValidateXsdWithoutValidatorThrows(): void
+    {
+        $this->expectExceptionMessage('the generator has no XSD validator');
+        (new DirectDebitGenerator(new IbanValidator()))->generate($this->singleBlockData(), new DirectDebitGenerationOptions(validateXsd: true));
+    }
+
+    /**
+     * LB-I6: an EndToEndId used twice in a file (across blocks) is rejected.
+     */
+    public function testDuplicateEndToEndIdIsRejected(): void
+    {
+        $data = $this->singleBlockData();
+        $data->addPaymentInformation(new PaymentInformationData('PMT-DUP', new DateTimeImmutable('2026-12-02'), 'RCUR', 'CORE', [self::tx('E2E-1', 100)]));
+
+        $this->expectExceptionMessage('Duplicate EndToEndId "E2E-1"');
+        (new DirectDebitGenerator(new IbanValidator()))->generate($data);
+    }
+
+    /**
+     * LB-L3: invalid UTF-8 in an address is rejected with a clear error (it used to give a raw, unprocessed file).
+     */
+    public function testInvalidUtf8AddressIsRejected(): void
+    {
+        $data = $this->singleBlockData();
+        $data->getTransactions()[0]->setDebtorAddress("Stra\xDFe 1", 'Berlin', '10115', 'DE');
+
+        $this->expectExceptionMessage('Invalid debtor address of transaction "E2E-1": the text is not valid UTF-8.');
+        (new DirectDebitGenerator(new IbanValidator()))->generate($data, new DirectDebitGenerationOptions(sequenceTypeMode: SequenceTypeMode::OMIT));
+    }
+
+    /**
+     * LB-M1: computed float amounts give the same cents on every PHP version (CI runs this on 8.2 to 8.5).
+     */
+    public function testComputedFloatAmountsInTheXml(): void
+    {
+        $data = new DirectDebitData('MSG-F', 'Creditor', 'PMT-F', new DateTimeImmutable('2026-12-01'), 'Creditor', 'ES9121000418450200051332', 'RCUR', 'ES59ZZZX1234567', 'CORE');
+        $data->setCreditorBic('CAIXESBBXXX');
+        foreach ([3.5 * 1.21, 18.5 * 1.21, 1073 + 0.535] as $i => $amount) {
+            $data->addTransaction(@new DirectDebitTransaction($amount, 'GB82WEST12345698765432', 'John Doe', 'M-' . $i, new DateTimeImmutable('2025-01-01'), 'E2E-F' . $i));
+        }
+
+        $this->assertSame(['4.24', '22.39', '1073.54'], self::values((new DirectDebitGenerator(new IbanValidator()))->generate($data), '//ns:InstdAmt'));
+    }
+
     private function singleBlockData(string $creditor = 'My Company'): DirectDebitData
     {
         $data = new DirectDebitData('MSG-SINGLE', $creditor, 'PMT-SINGLE', new DateTimeImmutable('2026-12-01'), $creditor, 'ES9121000418450200051332', 'FRST', 'ES59ZZZX1234567', 'CORE');
@@ -467,7 +562,7 @@ final class DirectDebitGenerator22Test extends TestCase
             'ES59ZZZX1234567',
             new PaymentInformationData('PMT-1', new DateTimeImmutable('2026-12-01'), 'FRST', 'CORE', [self::tx('E2E-1', 1000)]),
             new PaymentInformationData('PMT-2', new DateTimeImmutable('2026-12-01'), 'RCUR', 'CORE', [self::tx('E2E-2', 2000, 'COBADEFFXXX'), self::tx('E2E-3', 1050)]),
-            new PaymentInformationData('PMT-3', new DateTimeImmutable('2026-12-05'), 'RCUR', 'B2B', [self::tx('E2E-4', 100)]),
+            new PaymentInformationData('PMT-3', new DateTimeImmutable('2026-12-05'), 'RCUR', 'CORE', [self::tx('E2E-4', 100)]),
         );
         $data->setCreditorBic('CAIXESBBXXX');
 

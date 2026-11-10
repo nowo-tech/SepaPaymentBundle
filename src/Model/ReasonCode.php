@@ -50,11 +50,17 @@ enum ReasonCode: string
     /** Duplicate collection. */
     case AM05 = 'AM05';
 
+    /** Amount below the agreed minimum. */
+    case AM06 = 'AM06';
+
     /** Wrong amount. */
     case AM09 = 'AM09';
 
     /** Transaction already returned. */
     case ARDT = 'ARDT';
+
+    /** Debtor name does not match the account holder. */
+    case BE01 = 'BE01';
 
     /** Creditor identifier incorrect. */
     case BE05 = 'BE05';
@@ -128,6 +134,18 @@ enum ReasonCode: string
     /** Specific service offered by the debtor's bank. */
     case SL01 = 'SL01';
 
+    /** Creditor not on the debtor's whitelist. */
+    case SL11 = 'SL11';
+
+    /** Creditor on the debtor's blacklist. */
+    case SL12 = 'SL12';
+
+    /** Maximum number of direct debits set by the debtor exceeded. */
+    case SL13 = 'SL13';
+
+    /** Maximum direct debit amount set by the debtor exceeded. */
+    case SL14 = 'SL14';
+
     /** Technical problem resulting in an erroneous transaction. */
     case TECH = 'TECH';
 
@@ -157,8 +175,10 @@ enum ReasonCode: string
             self::AG02 => 'InvalidBankOperationCode',
             self::AM04 => 'InsufficientFunds',
             self::AM05 => 'Duplication',
+            self::AM06 => 'TooLowAmount',
             self::AM09 => 'WrongAmount',
             self::ARDT => 'AlreadyReturnedTransaction',
+            self::BE01 => 'InconsistentWithEndCustomer',
             self::BE05 => 'UnrecognisedInitiatingParty',
             self::CNOR => 'CreditorBankIsNotRegistered',
             self::CUST => 'RequestedByCustomer',
@@ -183,6 +203,10 @@ enum ReasonCode: string
             self::RR03 => 'MissingCreditorNameOrAddress',
             self::RR04 => 'RegulatoryReason',
             self::SL01 => 'SpecificServiceOfferedByDebtorAgent',
+            self::SL11 => 'CreditorNotOnWhitelistOfDebtor',
+            self::SL12 => 'CreditorOnBlacklistOfDebtor',
+            self::SL13 => 'MaximumNumberOfDirectDebitTransactionsExceeded',
+            self::SL14 => 'MaximumDirectDebitTransactionAmountExceeded',
             self::TECH => 'TechnicalProblem',
         };
     }
@@ -202,8 +226,10 @@ enum ReasonCode: string
             self::AG02 => 'Operation or transaction code incorrect, invalid file format',
             self::AM04 => 'Insufficient funds',
             self::AM05 => 'Duplicate collection',
+            self::AM06 => 'Amount below the agreed minimum',
             self::AM09 => 'Wrong amount',
             self::ARDT => 'Transaction already returned',
+            self::BE01 => 'Debtor name does not match the account holder',
             self::BE05 => 'Creditor identifier incorrect',
             self::CNOR => 'Creditor bank is not registered in the scheme',
             self::CUST => 'Requested by the customer',
@@ -228,6 +254,10 @@ enum ReasonCode: string
             self::RR03 => 'Creditor name or address missing (regulatory reason)',
             self::RR04 => 'Regulatory reason',
             self::SL01 => 'Specific service offered by the debtor\'s bank',
+            self::SL11 => 'Creditor not on the debtor\'s whitelist',
+            self::SL12 => 'Creditor on the debtor\'s blacklist',
+            self::SL13 => 'Maximum number of direct debits set by the debtor exceeded',
+            self::SL14 => 'Maximum direct debit amount set by the debtor exceeded',
             self::TECH => 'Technical problem resulting in an erroneous transaction',
         };
     }

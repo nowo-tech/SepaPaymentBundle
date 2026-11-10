@@ -80,11 +80,14 @@ test `tests/Integration/DirectDebitBackwardCompatibilityTest.php`).
   `getPaymentInformation()`. The single-block constructor and `addTransaction()` are unchanged.
 - **P3, sequence type modes:** `direct_debit.sequence_type_mode` / `DirectDebitGenerationOptions(sequenceTypeMode: …)`:
   `per_transaction` (default; `DirectDebitTransaction::setSequenceType()` overrides the block, and a block with mixed
-  types becomes one `PmtInf` per type, `<id>-FRST` / `<id>-RCUR`), `always_rcur`, `omit` (no `SeqTp`).
+  types becomes one `PmtInf` per type, `<id>-FRST` / `<id>-RCUR`), `always_rcur` (FRST / FNAL / none → RCUR; OOFF
+  stays OOFF, and a block with both is split into `<id>-RCUR` / `<id>-OOFF`), `omit` (no `SeqTp`: valid against the
+  ISO schemas but **not EPC-conformant**, the rulebook makes AT-21 mandatory; use it only when your bank's own guide
+  asks for it).
 - **P4:** `DirectDebitData::setInitiatingPartyIdentification(PartyIdentification::organisation(…)|privatePerson(…))`
   writes `GrpHdr/InitgPty/Id` (`OrgId` or `PrvtId`, optional `SchmeNm/Cd|Prtry` and `Issr`). The creditor scheme id keeps
   `SchmeNm/Prtry SEPA`.
-- **P7:** `Model\ReasonCode`, the ISO 20022 reason codes of SEPA R-transactions (36 codes), with ISO names, English
+- **P7:** `Model\ReasonCode`, the ISO 20022 reason codes of SEPA R-transactions (42 codes, including AM06, BE01 and SL11–SL14), with ISO names, English
   descriptions and `reason_code.<CODE>` translations in en, es, de, fr, it, nl, pt, nb and ru.
 - Per-call `creationDateTime` option (`GrpHdr/CreDtTm`) for reproducible direct debit files.
 - Ports (architecture bar): `DirectDebitGeneratorInterface`, `CreditTransferGeneratorInterface` (string-returning, no
@@ -95,6 +98,10 @@ test `tests/Integration/DirectDebitBackwardCompatibilityTest.php`).
   `MandateRevokedEvent`, `MandateSuspendedEvent`, `MandateReactivatedEvent` (mandate id, status, time; PSR-14, after
   the repository save). `AfterDirectDebitGenerationEvent` adds the PmtInf ids, version, transaction count and control
   sum; the `Before*GenerationEvent`s add `getMessageId()`.
+- Direct debit validation: a block or a file without transactions, CORE and B2B blocks in one file, a duplicate
+  `EndToEndId` in a file, an address or `PartyIdentification` text that is not valid UTF-8, and `validateXsd: true` on a
+  generator without an XSD validator now throw `InvalidArgumentException` (each one produced a file banks reject, or
+  silently skipped the check).
 - `SepaBusinessRulesValidator::isValidTransactionAmountCents()` and the `MIN/MAX_TRANSACTION_AMOUNT_CENTS` constants.
 
 ### Changed
@@ -102,8 +109,9 @@ test `tests/Integration/DirectDebitBackwardCompatibilityTest.php`).
 - **P5 / KQ-P-L3:** both generators reject a transaction outside the EPC range 1 … 99 999 999 999 cents
   (0.01 … 999 999 999.99 EUR) with an `InvalidArgumentException`. Banks reject those files anyway.
 - **P4:** a direct debit without a creditor BIC (null or `""`) is written with `CdtrAgt/FinInstnId/Othr/Id NOTPROVIDED`
-  instead of an empty `BICFI` element, which failed the XSD; an empty debtor BIC (`""`) now also gives `NOTPROVIDED`
-  (or the BIC lookup). Files with a BIC are unchanged.
+  instead of an empty `BICFI` element, which failed the XSD. An empty creditor or debtor BIC (`""`) is treated as
+  missing: the BIC lookup fills it when it is wired (the default container), otherwise `NOTPROVIDED`. Files with a BIC
+  are unchanged.
 - Generators, `BicLookupService`, `CccConverter` and `ValidateIbanCommand` type `IbanValidatorInterface`, so a host
   decorator of the interface is no longer bypassed.
 - `DirectDebitData::getTransactions()` / `getTotalAmountCents()` cover every payment-information block.
@@ -113,8 +121,15 @@ test `tests/Integration/DirectDebitBackwardCompatibilityTest.php`).
 ### Fixed
 
 - **D-P-I1:** a float amount with more than 6 decimals just below a half cent (e.g. `0.0049999999`) was rounded twice
-  (to 6 decimals, then half up) and gave one cent too many. It is now rounded once, like `round($x, 2)`. Floats with up
-  to 6 decimals give the same cents as 2.1 (checked on 18 million values on PHP 8.2 and 8.5).
+  (to 6 decimals, then half up) and gave one cent too many. A float is now written with 15 significant digits (the
+  precision of a double) and then rounded half up once, without PHP's `round()` (whose behaviour changed in PHP 8.4).
+  Computed floats give the exact half-up cents of their decimal value on every PHP version (`3.5 * 1.21` → 4.24,
+  `1073 + 0.535` → 1073.54), as in 2.1: checked on PHP 8.2, 8.4 and 8.5 against integer arithmetic for 300 000
+  VAT-21 % / VAT-10 % amounts, 300 000 sums of three lines and 300 000 quantity × price products, and against 2.1.0 for
+  6.6 million values with up to 6 decimals and 300 000 quotients (0 differences). Only floats within 5·10⁻⁷ below a half
+  cent change.
+- Post-processing of the direct debit XML (addresses, `InitgPty/Id`, the `omit` mode) now fails closed: an error throws
+  `InvalidArgumentException` instead of returning the unprocessed library XML.
 
 ### Deprecated
 

@@ -172,7 +172,17 @@ Nothing to do for a standard Symfony host: the default configuration keeps the 2
   makes `generate()` throw `InvalidArgumentException` (both generators). Filter them before generating.
 - **No creditor BIC:** the creditor agent is now `<Othr><Id>NOTPROVIDED</Id></Othr>` (it was an empty, XSD-invalid
   `BICFI`). Nothing changes when you set a BIC.
-- **Floats with more than 6 decimals** just below a half cent now round down like `round($x, 2)` (D-P-I1).
+- **Empty BIC strings:** `setCreditorBic('')` and `setDebtorBic('')` (or `debtorBic: ''` in arrays) are treated as "no
+  BIC": with the bundle container the BIC lookup now fills them from the IBAN, otherwise `NOTPROVIDED` is written.
+- **Floats with more than 6 decimals** just below a half cent now round down (D-P-I1). All other floats give the same
+  cents as 2.1, on every PHP version.
+- **Files banks reject now throw** `InvalidArgumentException` before any XML is returned: a block or file without
+  transactions, CORE and B2B blocks in one file (generate one file per instrument), the same `EndToEndId` twice in a
+  file, an address that is not valid UTF-8, and `validateXsd: true` on a hand-built generator without an XSD
+  validator. A post-processing failure also throws instead of returning the raw library XML.
+- **`omit` sequence type mode** writes files without `SeqTp`. They validate against the ISO schemas but do not conform
+  to the EPC rulebook (AT-21 is mandatory): use it only if your bank's own guide requires it. `always_rcur` keeps OOFF
+  collections as OOFF.
 - **`createResponse()` is deprecated** on the generators. Replace
 
   ```php

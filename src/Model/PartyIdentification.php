@@ -6,9 +6,9 @@ namespace Nowo\SepaPaymentBundle\Model;
 
 use InvalidArgumentException;
 
+use function mb_strlen;
 use function preg_match;
 use function sprintf;
-use function strlen;
 
 /**
  * Identification of a party as an ISO 20022 generic identification (`Id/OrgId/Othr` or `Id/PrvtId/Othr`), e.g. the
@@ -131,11 +131,14 @@ final class PartyIdentification
     /**
      * Checks a Max35Text value.
      *
-     * @throws InvalidArgumentException If the value is empty or longer than $max characters
+     * @throws InvalidArgumentException If the value is not valid UTF-8, empty or longer than $max characters
      */
     private function assertText(string $field, string $value, int $max): void
     {
-        if ($value === '' || strlen($value) > $max) {
+        if (preg_match('//u', $value) !== 1) {
+            throw new InvalidArgumentException(sprintf('Invalid %s: the text is not valid UTF-8.', $field));
+        }
+        if ($value === '' || mb_strlen($value, 'UTF-8') > $max) {
             throw new InvalidArgumentException(sprintf('Invalid %s "%s": use 1 to %d characters.', $field, $value, $max));
         }
     }

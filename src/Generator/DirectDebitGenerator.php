@@ -43,7 +43,9 @@ use Throwable;
 
 use function array_column;
 use function array_key_first;
+use function array_unique;
 use function count;
+use function implode;
 use function in_array;
 use function is_array;
 use function is_float;
@@ -197,6 +199,9 @@ final class DirectDebitGenerator implements DirectDebitGeneratorInterface
         $painVersion      = $options?->getPainVersion() ?? $this->defaultPainVersion;
         $sequenceTypeMode = $options?->getSequenceTypeMode() ?? $this->defaultSequenceTypeMode;
         $validateXsd      = ($options?->getValidateXsd() ?? $this->validateXsd) && $this->xsdValidator instanceof XsdValidatorInterface;
+        if ($options?->getValidateXsd() === true && !$this->xsdValidator instanceof XsdValidatorInterface) {
+            throw new InvalidArgumentException('XSD validation was requested (validateXsd: true) but the generator has no XSD validator: pass an XsdValidatorInterface to the constructor (the bundle service has one).');
+        }
 
         // Log generation start
         if ($this->logger instanceof SepaPaymentLogger) {
@@ -378,7 +383,8 @@ final class DirectDebitGenerator implements DirectDebitGeneratorInterface
      * @param DirectDebitData $directDebitData The direct debit data
      * @param SequenceTypeMode $mode The sequence type mode
      *
-     * @throws InvalidArgumentException If a sequence type is missing, or a PmtInfId is too long or used twice
+     * @throws InvalidArgumentException If a block is empty, a sequence type is missing, local instruments are mixed, or a
+     *                                  PmtInfId is too long or used twice
      *
      * @return list<array{id: string, dueDate: DateTimeInterface, sequenceType: string|null, localInstrumentCode: string, transactions: list<DirectDebitTransaction>}>
      */
@@ -386,6 +392,11 @@ final class DirectDebitGenerator implements DirectDebitGeneratorInterface
     {
         $resolved = [];
         foreach ($directDebitData->getPaymentInformation() as $block) {
+            // An empty PmtInf is XSD-invalid and every bank rejects it (LB-L4)
+            if ($block->getTransactions() === []) {
+                throw new InvalidArgumentException(sprintf('Payment information "%s" has no transactions: a direct debit file needs at least one transaction in every block.', $block->getPaymentInfoId()));
+            }
+
             $base = [
                 'id'                  => $block->getPaymentInfoId(),
                 'dueDate'             => $block->getDueDate(),
@@ -394,9 +405,8 @@ final class DirectDebitGenerator implements DirectDebitGeneratorInterface
                 'transactions'        => $block->getTransactions(),
             ];
 
-            if ($mode !== SequenceTypeMode::PER_TRANSACTION) {
-                $base['sequenceType'] = $mode === SequenceTypeMode::ALWAYS_RCUR ? SequenceType::RECURRENT : null;
-                $resolved[]           = $base;
+            if ($mode === SequenceTypeMode::OMIT) {
+                $resolved[] = $base;
                 continue;
             }
 
@@ -404,18 +414,17 @@ final class DirectDebitGenerator implements DirectDebitGeneratorInterface
             $groups = [];
             foreach ($block->getTransactions() as $transaction) {
                 $sequenceType = $transaction->getSequenceType() ?? $block->getSequenceType();
-                if ($sequenceType === null) {
+                if ($mode === SequenceTypeMode::ALWAYS_RCUR) {
+                    // One-off mandates stay OOFF; FRST, FNAL, RCUR and "none" become RCUR (LB-L1)
+                    $sequenceType = $sequenceType === SequenceType::ONE_OFF ? SequenceType::ONE_OFF : SequenceType::RECURRENT;
+                } elseif ($sequenceType === null) {
                     throw new InvalidArgumentException(sprintf('Missing sequence type for transaction "%s" in payment information "%s": set it on the block or on the transaction, or use the "always_rcur" or "omit" sequence type mode.', $transaction->getEndToEndId(), $block->getPaymentInfoId()));
                 }
                 $groups[$sequenceType][] = $transaction;
             }
 
-            if (count($groups) <= 1) {
-                $sequenceType = $groups === [] ? $block->getSequenceType() : array_key_first($groups);
-                if ($sequenceType === null) {
-                    throw new InvalidArgumentException(sprintf('Missing sequence type for payment information "%s".', $block->getPaymentInfoId()));
-                }
-                $base['sequenceType'] = $sequenceType;
+            if (count($groups) === 1) {
+                $base['sequenceType'] = array_key_first($groups);
                 $resolved[]           = $base;
                 continue;
             }
@@ -427,6 +436,12 @@ final class DirectDebitGenerator implements DirectDebitGeneratorInterface
                     'transactions' => $transactions,
                 ] + $base;
             }
+        }
+
+        // One local instrument per message: the EPC guidelines do not allow CORE and B2B in one file (LB-L5)
+        $instruments = array_unique(array_column($resolved, 'localInstrumentCode'));
+        if (count($instruments) > 1) {
+            throw new InvalidArgumentException(sprintf('A direct debit file cannot mix local instruments (%s): generate one file per instrument.', implode(', ', $instruments)));
         }
 
         $seen = [];
@@ -872,8 +887,8 @@ final class DirectDebitGenerator implements DirectDebitGeneratorInterface
             $dom->formatOutput       = true;
 
             if (!@$dom->loadXML($xml)) {
-                // If XML is invalid, return original
-                return $xml;
+                // Since 2.2 this step carries semantics (omit mode, InitgPty/Id): never return the raw library XML (LB-L3)
+                throw new InvalidArgumentException('Generated direct debit XML could not be loaded for post-processing (check that every text is valid UTF-8).');
             }
 
             $xpath = new DOMXPath($dom);
@@ -904,13 +919,17 @@ final class DirectDebitGenerator implements DirectDebitGeneratorInterface
                 $this->addInitiatingPartyIdToDom($dom, $xpath, $initiatingPartyId, $namespace);
             }
 
-            // PHPStan: saveXML() returns string|false; we guarantee valid XML from loadXML(), return string or original
             $saved = $dom->saveXML();
+            if ($saved === false) {
+                throw new InvalidArgumentException('Generated direct debit XML could not be written after post-processing.');
+            }
 
-            return $saved !== false ? $saved : $xml;
-        } catch (Throwable) {
-            // If DOM manipulation fails, return original XML
-            return $xml;
+            return $saved;
+        } catch (InvalidArgumentException $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            // Fail closed (LB-L3): a half-processed file would miss the sequence type mode or the initiating party id
+            throw new InvalidArgumentException('Generated direct debit XML could not be post-processed: ' . $e->getMessage(), 0, $e);
         }
     }
 
@@ -1128,6 +1147,21 @@ final class DirectDebitGenerator implements DirectDebitGeneratorInterface
             }
         }
 
+        // Texts added to the XML after the library must be valid UTF-8 (LB-L3)
+        $this->assertUtf8Address('creditor address', $directDebitData->getCreditorAddress());
+        foreach ($directDebitData->getTransactions() as $transaction) {
+            $this->assertUtf8Address(sprintf('debtor address of transaction "%s"', $transaction->getEndToEndId()), $transaction->getDebtorAddress());
+        }
+
+        // EndToEndId identifies a collection for the creditor and its bank: unique in the file (LB-I6)
+        $endToEndIds = [];
+        foreach ($directDebitData->getTransactions() as $transaction) {
+            if (isset($endToEndIds[$transaction->getEndToEndId()])) {
+                throw new InvalidArgumentException(sprintf('Duplicate EndToEndId "%s": every transaction of a file needs its own end-to-end id.', $transaction->getEndToEndId()));
+            }
+            $endToEndIds[$transaction->getEndToEndId()] = true;
+        }
+
         // EPC range per transaction (KQ-P-L3): 0.01 to 999 999 999.99 EUR
         foreach ($directDebitData->getTransactions() as $transaction) {
             if (!SepaBusinessRulesValidator::isValidTransactionAmountCents($transaction->getAmountCents())) {
@@ -1159,6 +1193,23 @@ final class DirectDebitGenerator implements DirectDebitGeneratorInterface
             $remittanceInformation = $transaction->getRemittanceInformation();
             if ($remittanceInformation !== null) {
                 $sanitizer->assertMaxLength('RmtInf/Ustrd', $remittanceInformation, SepaStringSanitizer::MAX_REMITTANCE_INFO_LENGTH);
+            }
+        }
+    }
+
+    /**
+     * Rejects an address with a value that is not valid UTF-8 (it would break the XML).
+     *
+     * @param string $field What the address is (used in the error message)
+     * @param array<string, string|null>|null $address The address
+     *
+     * @throws InvalidArgumentException If a value is not valid UTF-8
+     */
+    private function assertUtf8Address(string $field, ?array $address): void
+    {
+        foreach ($address ?? [] as $value) {
+            if ($value !== null && preg_match('//u', $value) !== 1) {
+                throw new InvalidArgumentException(sprintf('Invalid %s: the text is not valid UTF-8.', $field));
             }
         }
     }

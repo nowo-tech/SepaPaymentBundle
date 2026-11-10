@@ -70,7 +70,7 @@ setting; nothing is stored on the service between calls (FrankenPHP worker mode 
 | Key | Values | Default | Effect |
 | --- | --- | --- | --- |
 | `pain_version` | `pain.008.001.02`, `pain.008.001.08`, `pain.008.001.09` | `pain.008.001.09` | ISO 20022 version written. `.08` is the EPC 2023 implementation-guidelines format. |
-| `sequence_type_mode` | `per_transaction`, `always_rcur`, `omit` | `per_transaction` | `per_transaction`: `SeqTp` from the block, or from each transaction (`setSequenceType()`; mixed types split the block into `<id>-FRST`, `<id>-RCUR`, …). `always_rcur`: every block RCUR. `omit`: no `SeqTp` element (ask your bank first). |
+| `sequence_type_mode` | `per_transaction`, `always_rcur`, `omit` | `per_transaction` | `per_transaction`: `SeqTp` from the block, or from each transaction (`setSequenceType()`; mixed types split the block into `<id>-FRST`, `<id>-RCUR`, …). `always_rcur`: FRST, FNAL and missing types become RCUR; OOFF stays OOFF (a block with both is split into `<id>-RCUR` and `<id>-OOFF`). `omit`: no `SeqTp` element — valid against the ISO schemas but **not EPC-conformant** (the rulebook makes AT-21 mandatory); use it only if your bank's own guide requires it. |
 | `validate_xsd` | `true`, `false` | `false` | Validate every generated file against the XSD of its version (shipped in `src/Resources/schemas`). |
 
 ```yaml

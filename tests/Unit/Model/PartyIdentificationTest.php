@@ -40,6 +40,7 @@ final class PartyIdentificationTest extends TestCase
         yield 'both schemes' => [static fn (): PartyIdentification => PartyIdentification::organisation('A', 'SEPA', 'TXID'), 'not both'];
         yield 'bad code' => [static fn (): PartyIdentification => PartyIdentification::organisation('A', null, 'toolong'), 'scheme code'];
         yield 'long proprietary' => [static fn (): PartyIdentification => PartyIdentification::organisation('A', str_repeat('P', 36)), 'SchmeNm/Prtry'];
+        yield 'invalid UTF-8' => [static fn (): PartyIdentification => PartyIdentification::organisation("B\xFF1"), 'not valid UTF-8'];
         yield 'empty issuer' => [static fn (): PartyIdentification => PartyIdentification::privatePerson('A', null, null, ''), 'Issr'];
     }
 

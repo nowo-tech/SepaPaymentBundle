@@ -533,7 +533,7 @@ class DirectDebitGeneratorTest extends TestCase
     }
 
     /**
-     * Tests XML generation from array without transactions.
+     * Tests that a file without transactions is rejected (2.2, LB-L4).
      */
     public function testGenerateFromArrayWithoutTransactions(): void
     {
@@ -549,14 +549,14 @@ class DirectDebitGeneratorTest extends TestCase
             'localInstrumentCode' => 'CORE',
         ];
 
-        $xml = $this->generator->generateFromArray($data);
-
-        $this->assertStringContainsString('<?xml', $xml);
-        $this->assertStringContainsString('CstmrDrctDbtInitn', $xml);
+        // Since 2.2 (LB-L4) a file without transactions is rejected: it is XSD-invalid and banks refuse it
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('has no transactions');
+        $this->generator->generateFromArray($data);
     }
 
     /**
-     * Tests XML generation from array with empty transactions.
+     * Tests that an empty transaction list is rejected (2.2, LB-L4).
      */
     public function testGenerateFromArrayWithEmptyTransactions(): void
     {
@@ -573,10 +573,10 @@ class DirectDebitGeneratorTest extends TestCase
             'transactions'        => [],
         ];
 
-        $xml = $this->generator->generateFromArray($data);
-
-        $this->assertStringContainsString('<?xml', $xml);
-        $this->assertStringContainsString('CstmrDrctDbtInitn', $xml);
+        // Since 2.2 (LB-L4) a file without transactions is rejected: it is XSD-invalid and banks refuse it
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('has no transactions');
+        $this->generator->generateFromArray($data);
     }
 
     /**
@@ -1797,8 +1797,10 @@ class DirectDebitGeneratorTest extends TestCase
         );
         $ref    = new ReflectionClass(DirectDebitGenerator::class);
         $method = $ref->getMethod('addAddressesToXml');
-        $result = $method->invoke($this->generator, $invalidXml, $data);
-        $this->assertSame($invalidXml, $result);
+        // Since 2.2 (LB-L3) post-processing fails closed instead of returning the raw library XML
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('could not be loaded for post-processing');
+        $method->invoke($this->generator, $invalidXml, $data);
     }
 
     /**
@@ -2167,8 +2169,10 @@ class DirectDebitGeneratorTest extends TestCase
         ]);
         $ref    = new ReflectionClass(DirectDebitGenerator::class);
         $method = $ref->getMethod('addAddressesToXml');
-        $result = $method->invoke($this->generator, $validXml, $data);
-        $this->assertSame($validXml, $result);
+        // Since 2.2 (LB-L3) a DOM failure is reported instead of returning the unprocessed XML
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('could not be post-processed');
+        $method->invoke($this->generator, $validXml, $data);
     }
 
     /**
