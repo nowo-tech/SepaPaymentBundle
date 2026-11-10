@@ -63,6 +63,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Symfony Beacon spec 226 (Beacon uses this bundle instead of its own SEPA code). Standard Symfony hosts need no change:
+with the default configuration, two-decimal input produces byte-identical pain.008.001.09 XML to 2.1.0 (golden-file
+test `tests/Integration/DirectDebitBackwardCompatibilityTest.php`).
+
+### Added
+
+- **P1, pain.008 versions:** `DirectDebitGenerator` writes `pain.008.001.02`, `pain.008.001.08` (EPC 2023 guidelines)
+  and `pain.008.001.09` (default). Choose it with `direct_debit.pain_version` or per call with
+  `DirectDebitGenerationOptions(painVersion: …)`. The official ISO 20022 XSD of `pain.008.001.08` now ships in
+  `src/Resources/schemas` (source and SHA-256 in `NOTICE`); every version is validated against its own XSD in tests,
+  and `direct_debit.validate_xsd` (or the `validateXsd` option) validates each generated file. `DirectDebitParser` reads
+  `.08` too.
+- **P2, several payment-information blocks per file:** `PaymentInformationData` (id, due date, sequence type, local
+  instrument, transactions), `DirectDebitData::addPaymentInformation()`, `DirectDebitData::fromPaymentInformation()`,
+  `getPaymentInformation()`. The single-block constructor and `addTransaction()` are unchanged.
+- **P3, sequence type modes:** `direct_debit.sequence_type_mode` / `DirectDebitGenerationOptions(sequenceTypeMode: …)`:
+  `per_transaction` (default; `DirectDebitTransaction::setSequenceType()` overrides the block, and a block with mixed
+  types becomes one `PmtInf` per type, `<id>-FRST` / `<id>-RCUR`), `always_rcur`, `omit` (no `SeqTp`).
+- **P4:** `DirectDebitData::setInitiatingPartyIdentification(PartyIdentification::organisation(…)|privatePerson(…))`
+  writes `GrpHdr/InitgPty/Id` (`OrgId` or `PrvtId`, optional `SchmeNm/Cd|Prtry` and `Issr`). The creditor scheme id keeps
+  `SchmeNm/Prtry SEPA`.
+- **P7:** `Model\ReasonCode`, the ISO 20022 reason codes of SEPA R-transactions (36 codes), with ISO names, English
+  descriptions and `reason_code.<CODE>` translations in en, es, de, fr, it, nl, pt, nb and ru.
+- Per-call `creationDateTime` option (`GrpHdr/CreDtTm`) for reproducible direct debit files.
+- Ports (architecture bar): `DirectDebitGeneratorInterface`, `CreditTransferGeneratorInterface` (string-returning, no
+  HTTP types), `CreditTransferParserInterface`, `MandateServiceInterface`, each aliased to the bundle service.
+- `Http\SepaXmlResponseFactory` (service `nowo_sepa_payment.http.sepa_xml_response_factory`) builds the download
+  response for standard Symfony controllers.
+- Events with ids: `MandateService` dispatches `Event\Mandate\MandateCreatedEvent`, `MandateSequenceTypeChangedEvent`,
+  `MandateRevokedEvent`, `MandateSuspendedEvent`, `MandateReactivatedEvent` (mandate id, status, time; PSR-14, after
+  the repository save). `AfterDirectDebitGenerationEvent` adds the PmtInf ids, version, transaction count and control
+  sum; the `Before*GenerationEvent`s add `getMessageId()`.
+- `SepaBusinessRulesValidator::isValidTransactionAmountCents()` and the `MIN/MAX_TRANSACTION_AMOUNT_CENTS` constants.
+
+### Changed
+
+- **P5 / KQ-P-L3:** both generators reject a transaction outside the EPC range 1 … 99 999 999 999 cents
+  (0.01 … 999 999 999.99 EUR) with an `InvalidArgumentException`. Banks reject those files anyway.
+- **P4:** a direct debit without a creditor BIC (null or `""`) is written with `CdtrAgt/FinInstnId/Othr/Id NOTPROVIDED`
+  instead of an empty `BICFI` element, which failed the XSD. Files with a BIC are unchanged.
+- Generators, `BicLookupService`, `CccConverter` and `ValidateIbanCommand` type `IbanValidatorInterface`, so a host
+  decorator of the interface is no longer bypassed.
+- `DirectDebitData::getTransactions()` / `getTotalAmountCents()` cover every payment-information block.
+- `MandateService` takes an optional PSR-14 `EventDispatcherInterface` (third constructor argument; autowired).
+- `psr/event-dispatcher` is now a direct requirement (it was already installed through Symfony).
+
+### Fixed
+
+- **D-P-I1:** a float amount with more than 6 decimals just below a half cent (e.g. `0.0049999999`) was rounded twice
+  (to 6 decimals, then half up) and gave one cent too many. It is now rounded once, like `round($x, 2)`. Floats with up
+  to 6 decimals give the same cents as 2.1 (checked on 18 million values on PHP 8.2 and 8.5).
+
+### Deprecated
+
+- `DirectDebitGenerator::createResponse()` and `CreditTransferGenerator::createResponse()`: use
+  `SepaXmlResponseFactory::createResponse()`. Removed in 3.0.
+
 ## [2.1.0] - 2026-11-10
 
 Exact integer-cents amounts in the transaction DTOs; float input deprecated. See [UPGRADING](https://github.com/nowo-tech/SepaPaymentBundle/blob/v2.1.0/docs/UPGRADING.md#to-210).

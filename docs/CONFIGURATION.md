@@ -11,6 +11,7 @@ This document describes the configuration options available for the SEPA Payment
 - [Configuration Options](#configuration-options)
   - [`default_currency`](#default_currency)
   - [`validation_cache`](#validation_cache)
+  - [`direct_debit`](#direct_debit)
 - [How Configuration Works](#how-configuration-works)
 - [Accessing Configuration in Code](#accessing-configuration-in-code)
 - [Environment-Specific Configuration](#environment-specific-configuration)
@@ -58,6 +59,33 @@ nowo_sepa_payment:
 ```yaml
 nowo_sepa_payment:
     default_currency: EUR
+```
+
+### `direct_debit`
+
+Defaults of `DirectDebitGenerator` (since 2.2). Each one can be overridden for a single call with
+`Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitGenerationOptions`, so a host can expose them as a runtime
+setting; nothing is stored on the service between calls (FrankenPHP worker mode safe).
+
+| Key | Values | Default | Effect |
+| --- | --- | --- | --- |
+| `pain_version` | `pain.008.001.02`, `pain.008.001.08`, `pain.008.001.09` | `pain.008.001.09` | ISO 20022 version written. `.08` is the EPC 2023 implementation-guidelines format. |
+| `sequence_type_mode` | `per_transaction`, `always_rcur`, `omit` | `per_transaction` | `per_transaction`: `SeqTp` from the block, or from each transaction (`setSequenceType()`; mixed types split the block into `<id>-FRST`, `<id>-RCUR`, …). `always_rcur`: every block RCUR. `omit`: no `SeqTp` element (ask your bank first). |
+| `validate_xsd` | `true`, `false` | `false` | Validate every generated file against the XSD of its version (shipped in `src/Resources/schemas`). |
+
+```yaml
+nowo_sepa_payment:
+    direct_debit:
+        pain_version: pain.008.001.08
+        sequence_type_mode: omit
+        validate_xsd: true
+```
+
+```php
+$xml = $generator->generate($data, new DirectDebitGenerationOptions(
+    painVersion: $settings->painVersion(),          // e.g. 'pain.008.001.08'
+    sequenceTypeMode: $settings->sequenceTypeMode(), // e.g. 'omit'
+));
 ```
 
 ### `validation_cache`

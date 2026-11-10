@@ -165,6 +165,42 @@
 
 ## Unreleased
 
+Nothing to do for a standard Symfony host: the default configuration keeps the 2.1.0 output byte for byte
+(pain.008.001.09, `SeqTp` from your data). Check these points:
+
+- **Amounts out of the EPC range now throw.** A transaction of 0, a negative amount or more than 999 999 999.99 EUR
+  makes `generate()` throw `InvalidArgumentException` (both generators). Filter them before generating.
+- **No creditor BIC:** the creditor agent is now `<Othr><Id>NOTPROVIDED</Id></Othr>` (it was an empty, XSD-invalid
+  `BICFI`). Nothing changes when you set a BIC.
+- **Floats with more than 6 decimals** just below a half cent now round down like `round($x, 2)` (D-P-I1).
+- **`createResponse()` is deprecated** on the generators. Replace
+
+  ```php
+  return $generator->createResponse($xml, 'direct-debit.xml');
+  ```
+
+  with the `SepaXmlResponseFactory` service (`Nowo\SepaPaymentBundle\Http\SepaXmlResponseFactory`):
+
+  ```php
+  return $responseFactory->createResponse($xml, 'direct-debit.xml');
+  ```
+
+- **`DirectDebitData::getTransactions()`** returns the transactions of every block once you use
+  `addPaymentInformation()`; with the single-block API nothing changes.
+- **Type against the ports** if you want to decorate or replace them: `DirectDebitGeneratorInterface`,
+  `CreditTransferGeneratorInterface`, `CreditTransferParserInterface`, `MandateServiceInterface`, `IbanValidatorInterface`.
+- **New options** (all optional), see [CONFIGURATION.md](CONFIGURATION.md#direct_debit):
+
+  ```yaml
+  nowo_sepa_payment:
+      direct_debit:
+          pain_version: pain.008.001.08     # .02 | .08 | .09 (default)
+          sequence_type_mode: per_transaction   # per_transaction (default) | always_rcur | omit
+          validate_xsd: true
+  ```
+
+  Each one can be overridden per call: `$generator->generate($data, new DirectDebitGenerationOptions(painVersion: 'pain.008.001.02'))`.
+
 ## To 2.1.0
 
 From **2.0.x**:
