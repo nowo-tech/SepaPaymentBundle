@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[2.1.0] - 2026-11-10](#210---2026-11-10)
 - [[2.0.0] - 2026-10-28](#200---2026-10-28)
 - [[1.6.0] - 2026-10-28](#160---2026-10-28)
 - [[1.5.0] - 2026-10-23](#150---2026-10-23)
@@ -62,7 +63,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Target 2.1.0 — exact integer-cents amounts in the transaction DTOs; float input deprecated. See [UPGRADING](UPGRADING.md#to-210).
+## [2.1.0] - 2026-11-10
+
+Exact integer-cents amounts in the transaction DTOs; float input deprecated. See [UPGRADING](https://github.com/nowo-tech/SepaPaymentBundle/blob/v2.1.0/docs/UPGRADING.md#to-210).
 
 ### Fixed
 
@@ -98,6 +101,8 @@ Target 2.1.0 — exact integer-cents amounts in the transaction DTOs; float inpu
 - Passing a float amount, or a numeric string that is not a plain decimal, to the `DirectDebitTransaction` /
   `CreditTransfer\Transaction` constructors (`E_USER_DEPRECATED`, silenced): use `fromCents()` or a decimal string.
   It keeps working.
+
+[2.1.0]: https://github.com/nowo-tech/SepaPaymentBundle/releases/tag/v2.1.0
 
 ## [2.0.0] - 2026-10-28
 
