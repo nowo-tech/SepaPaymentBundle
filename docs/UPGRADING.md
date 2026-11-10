@@ -3,6 +3,7 @@
 ## Table of contents
 
 - [Unreleased](#unreleased)
+- [To 2.2.0](#to-220)
 - [To 2.1.0](#to-210)
 - [To 2.0.0](#to-200)
 - [To 1.6.0](#to-160)
@@ -164,6 +165,14 @@
 - [Getting Help](#getting-help)
 
 ## Unreleased
+
+## To 2.2.0
+
+From **2.1.0**:
+
+```bash
+composer update nowo-tech/sepa-payment-bundle
+```
 
 Nothing to do for a standard Symfony host: the default configuration keeps the 2.1.0 output byte for byte
 (pain.008.001.09, `SeqTp` from your data). Check these points:

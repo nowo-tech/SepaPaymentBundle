@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[2.2.0] - 2026-11-10](#220---2026-11-10)
 - [[2.1.0] - 2026-11-10](#210---2026-11-10)
 - [[2.0.0] - 2026-10-28](#200---2026-10-28)
 - [[1.6.0] - 2026-10-28](#160---2026-10-28)
@@ -62,6 +63,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[0.0.1] - 2025-01-23](#001---2025-01-23)
 
 ## [Unreleased]
+
+## [2.2.0] - 2026-11-10
+
+Direct debit: pain.008.001.02/.08/.09 selectable by config and per call, three sequence-type modes, several PmtInf blocks, InitgPty/Id and NOTPROVIDED, EPC amount range, R-transaction reason codes; PHP-version-independent float rounding. See [UPGRADING](https://github.com/nowo-tech/SepaPaymentBundle/blob/v2.2.0/docs/UPGRADING.md#to-220).
 
 Symfony Beacon spec 226 (Beacon uses this bundle instead of its own SEPA code). Standard Symfony hosts need no change:
 with the default configuration, two-decimal input produces byte-identical pain.008.001.09 XML to 2.1.0 (golden-file
@@ -135,6 +140,8 @@ test `tests/Integration/DirectDebitBackwardCompatibilityTest.php`).
 
 - `DirectDebitGenerator::createResponse()` and `CreditTransferGenerator::createResponse()`: use
   `SepaXmlResponseFactory::createResponse()`. Removed in 3.0.
+
+[2.2.0]: https://github.com/nowo-tech/SepaPaymentBundle/releases/tag/v2.2.0
 
 ## [2.1.0] - 2026-11-10
 
