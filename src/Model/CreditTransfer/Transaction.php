@@ -4,7 +4,13 @@ declare(strict_types=1);
 
 namespace Nowo\SepaPaymentBundle\Model\CreditTransfer;
 
+use Nowo\SepaPaymentBundle\Model\Amount;
+
 use function is_array;
+use function is_float;
+use function is_int;
+
+use const E_USER_DEPRECATED;
 
 /**
  * Transaction data for a SEPA Credit Transfer.
@@ -15,6 +21,11 @@ use function is_array;
  */
 final class Transaction
 {
+    /**
+     * Amount in cents (the exact value used in the XML).
+     */
+    private readonly int $amountCents;
+
     /**
      * Creditor BIC (optional).
      */
@@ -35,19 +46,44 @@ final class Transaction
     /**
      * Constructor.
      *
+     * `$amount` in euros: a decimal string ("1500.25") or an int (whole euros) is exact; a float still works but is deprecated since 2.1
+     * (it is rounded half to even to the cent, see {@see Amount}) — use {@see self::fromCents()} or a decimal string.
+     *
      * @param string $endToEndId End-to-end identifier
-     * @param float $amount Amount to transfer
+     * @param float|string $amount Amount to transfer, in euros (decimal string or whole euros as int; float deprecated)
      * @param string $currency Currency code (ISO 4217)
      * @param string $creditorIban Creditor IBAN (beneficiary that receives)
      * @param string $creditorName Creditor name (beneficiary that receives)
      */
     public function __construct(
         private readonly string $endToEndId,
-        private readonly float $amount,
+        int|float|string $amount,
         private readonly string $currency,
         private readonly string $creditorIban,
         private readonly string $creditorName
     ) {
+        if (is_int($amount)) {
+            $this->amountCents = Amount::centsFromDecimal((string) $amount);
+        } elseif (is_float($amount)) {
+            @trigger_error('Passing the amount of a CreditTransfer\\Transaction as a float is deprecated since nowo-tech/sepa-payment-bundle 2.1: use Transaction::fromCents() or a decimal string.', E_USER_DEPRECATED);
+            $this->amountCents = Amount::centsFromFloat($amount);
+        } else {
+            $this->amountCents = Amount::centsFromDecimal($amount);
+        }
+    }
+
+    /**
+     * Creates a transaction from an amount in integer cents (exact; preferred).
+     *
+     * @param string $endToEndId End-to-end identifier
+     * @param int $amountCents Amount to transfer, in cents (1500025 = 15000.25)
+     * @param string $currency Currency code (ISO 4217)
+     * @param string $creditorIban Creditor IBAN (beneficiary that receives)
+     * @param string $creditorName Creditor name (beneficiary that receives)
+     */
+    public static function fromCents(string $endToEndId, int $amountCents, string $currency, string $creditorIban, string $creditorName): self
+    {
+        return new self($endToEndId, Amount::decimalFromCents($amountCents), $currency, $creditorIban, $creditorName);
     }
 
     /**
@@ -61,13 +97,33 @@ final class Transaction
     }
 
     /**
-     * Gets the amount.
+     * Gets the amount (a float view of {@see self::getAmountCents()}; prefer the cents for arithmetic).
      *
      * @return float The amount
      */
     public function getAmount(): float
     {
-        return $this->amount;
+        return $this->amountCents / 100;
+    }
+
+    /**
+     * Gets the amount in cents (exact).
+     *
+     * @return int The amount in cents
+     */
+    public function getAmountCents(): int
+    {
+        return $this->amountCents;
+    }
+
+    /**
+     * Gets the amount as a decimal string with two decimals ("15000.25").
+     *
+     * @return string The amount
+     */
+    public function getAmountDecimal(): string
+    {
+        return Amount::decimalFromCents($this->amountCents);
     }
 
     /**

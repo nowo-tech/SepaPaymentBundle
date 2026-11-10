@@ -138,9 +138,9 @@ final class RemesaGenerator
 
         foreach ($remesaData->getTransactions() as $transaction) {
             // Remesa\Transaction uses debtor* fields (deprecated API), but CreditTransfer\Transaction now uses creditor* fields
-            $creditTransferTransaction = new Transaction(
+            $creditTransferTransaction = Transaction::fromCents(
                 $transaction->getEndToEndId(),
-                $transaction->getAmount(),
+                $transaction->getAmountCents(),
                 $transaction->getCurrency(),
                 $transaction->getDebtorIban(), // Remesa\Transaction.getDebtorIban() -> CreditTransfer\Transaction.creditorIban
                 $transaction->getDebtorName(),  // Remesa\Transaction.getDebtorName() -> CreditTransfer\Transaction.creditorName

@@ -62,6 +62,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Target 2.1.0 — exact integer-cents amounts in the transaction DTOs; float input deprecated. See [UPGRADING](UPGRADING.md#to-210).
+
+### Fixed
+
+- **Money as float in the typed DTOs** (DDD audit 2026-11-10, G1): `DirectDebitTransaction` and
+  `CreditTransfer\Transaction` stored the amount as a float and the generators converted it with
+  `round($amount * 100)`; totals (`getTotalAmount()`) were float sums (`0.1 + 0.2` → `0.30000000000000004`). Amounts are
+  now kept as integer cents: the XML `InstdAmt` and `CtrlSum` come from the cents, totals are summed in cents.
+
+### Added
+
+- `DirectDebitTransaction::fromCents()`, `CreditTransfer\Transaction::fromCents()`; `getAmountCents()` /
+  `getAmountDecimal()` on both (and `getAmountCents()` on the deprecated `Remesa\Transaction`);
+  `DirectDebitData::getTotalAmountCents()`, `CreditTransferData::getTotalAmountCents()`.
+- The constructors accept a decimal string (exact) or an int (whole euros) besides the float.
+
+### Changed
+
+- Rounding of sub-cent amounts is **half to even** after removing float noise (6 decimals), instead of
+  `round($amount * 100)` (half away from zero on the binary value): `0.125` → 0.12 (was 0.13), `2.675` → 2.68 (was
+  2.67). Two-decimal amounts are unchanged. `NAN` / `INF` and non-decimal strings now throw
+  `InvalidArgumentException`. The array path (`generateFromArray()`) reads plain decimal strings exactly.
+- Docs: USAGE "Amounts in the transaction DTOs" and "Using it from a DDD / hexagonal application"; examples use
+  `fromCents()`.
+
+### Deprecated
+
+- Passing a float amount to the `DirectDebitTransaction` / `CreditTransfer\Transaction` constructors
+  (`E_USER_DEPRECATED`, silenced): use `fromCents()` or a decimal string. It keeps working.
+
 ## [2.0.0] - 2026-10-28
 
 SepaPayment 2.0: final classes, interfaces for every extension point. See [UPGRADING](UPGRADING.md#to-200).

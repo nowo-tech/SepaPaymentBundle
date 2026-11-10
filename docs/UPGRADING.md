@@ -3,6 +3,7 @@
 ## Table of contents
 
 - [Unreleased](#unreleased)
+- [To 2.1.0](#to-210)
 - [To 2.0.0](#to-200)
 - [To 1.6.0](#to-160)
 - [To 1.5.0](#to-150)
@@ -163,6 +164,29 @@
 - [Getting Help](#getting-help)
 
 ## Unreleased
+
+## To 2.1.0
+
+From **2.0.x**:
+
+```bash
+composer update nowo-tech/sepa-payment-bundle
+```
+
+No breaking change; no configuration change.
+
+- **Prefer integer cents.** Replace `new DirectDebitTransaction(100.50, …)` with
+  `DirectDebitTransaction::fromCents(10050, …)` and `new Transaction('E2E-1', 100.50, 'EUR', …)` with
+  `Transaction::fromCents('E2E-1', 10050, 'EUR', …)`, or pass a decimal string (`'100.50'`). A float still works and
+  triggers a silenced `E_USER_DEPRECATED` (visible in the Symfony profiler / deprecation log).
+- **Rounding.** Amounts are stored as integer cents. A float is written with 6 decimals and rounded half to even to
+  the cent: two-decimal amounts give the same XML as before; computed values with more decimals can differ by one cent
+  from 2.0 (`0.125` → 0.12 instead of 0.13; `2.675` → 2.68 instead of 2.67). Round in your own money type first if
+  you depend on another rule.
+- **Validation.** `NAN` / `INF` and strings that are not plain decimals (`"1,50"`, `"1e3"`, `" 1.5"`) passed to the
+  constructors now throw `InvalidArgumentException`. (`generateFromArray()` still accepts any numeric `amount`.)
+- `getAmount()` / `getTotalAmount()` keep returning floats (cents / 100); use `getAmountCents()` /
+  `getTotalAmountCents()` for arithmetic.
 
 ## To 2.0.0
 
