@@ -15,6 +15,16 @@ services:
 
     Nowo\SepaPaymentBundle\Parser\:
         resource: '../../Parser/*'
+        exclude: '../../Parser/Report/*'
+
+    # Report parsers (pain.002, camt.054): size cap from reports.max_size
+    Nowo\SepaPaymentBundle\Parser\PaymentStatusReportParser:
+        arguments:
+            $maxSize: '%nowo_sepa_payment.reports.max_size%'
+
+    Nowo\SepaPaymentBundle\Parser\DebitCreditNotificationParser:
+        arguments:
+            $maxSize: '%nowo_sepa_payment.reports.max_size%'
 
     Nowo\SepaPaymentBundle\Generator\:
         resource: '../../Generator/*'
@@ -56,6 +66,9 @@ services:
 
     Nowo\SepaPaymentBundle\Logger\:
         resource: '../../Logger/*'
+
+    Nowo\SepaPaymentBundle\Formatter\:
+        resource: '../../Formatter/*'
 
     Nowo\SepaPaymentBundle\Lookup\:
         resource: '../../Lookup/*'

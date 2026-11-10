@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.002.001.03" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <CstmrPmtStsRpt>
+    <GrpHdr>
+      <MsgId>STS-20261202-0001</MsgId>
+      <CreDtTm>2026-12-02T08:15:00</CreDtTm>
+      <InitgPty>
+        <Id>
+          <OrgId>
+            <BICOrBEI>CAIXESBBXXX</BICOrBEI>
+          </OrgId>
+        </Id>
+      </InitgPty>
+    </GrpHdr>
+    <OrgnlGrpInfAndSts>
+      <OrgnlMsgId>REM-2026-11</OrgnlMsgId>
+      <OrgnlMsgNmId>pain.008.001.02</OrgnlMsgNmId>
+      <OrgnlNbOfTxs>3</OrgnlNbOfTxs>
+      <OrgnlCtrlSum>65.75</OrgnlCtrlSum>
+      <GrpSts>PART</GrpSts>
+    </OrgnlGrpInfAndSts>
+    <OrgnlPmtInfAndSts>
+      <OrgnlPmtInfId>REM-2026-11-1</OrgnlPmtInfId>
+      <OrgnlNbOfTxs>3</OrgnlNbOfTxs>
+      <OrgnlCtrlSum>65.75</OrgnlCtrlSum>
+      <PmtInfSts>PART</PmtInfSts>
+      <TxInfAndSts>
+        <StsId>STS-1</StsId>
+        <OrgnlInstrId>INSTR-1</OrgnlInstrId>
+        <OrgnlEndToEndId>E2E-INV-1001</OrgnlEndToEndId>
+        <TxSts>RJCT</TxSts>
+        <StsRsnInf>
+          <Orgtr>
+            <Nm>Banco Ejemplo</Nm>
+          </Orgtr>
+          <Rsn>
+            <Cd>AM04</Cd>
+          </Rsn>
+          <AddtlInf>Saldo insuficiente</AddtlInf>
+        </StsRsnInf>
+        <OrgnlTxRef>
+          <Amt>
+            <InstdAmt Ccy="EUR">42.35</InstdAmt>
+          </Amt>
+          <ReqdColltnDt>2026-12-01</ReqdColltnDt>
+          <MndtRltdInf>
+            <MndtId>MNDT-0001</MndtId>
+            <DtOfSgntr>2025-06-30</DtOfSgntr>
+          </MndtRltdInf>
+          <DbtrAcct>
+            <Id>
+              <IBAN>ES7921000813610123456789</IBAN>
+            </Id>
+          </DbtrAcct>
+        </OrgnlTxRef>
+      </TxInfAndSts>
+      <TxInfAndSts>
+        <OrgnlEndToEndId>E2E-INV-1002</OrgnlEndToEndId>
+        <TxSts>RJCT</TxSts>
+        <StsRsnInf>
+          <Rsn>
+            <Prtry>BANK-123</Prtry>
+          </Rsn>
+        </StsRsnInf>
+      </TxInfAndSts>
+    </OrgnlPmtInfAndSts>
+  </CstmrPmtStsRpt>
+</Document>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.054.001.02">
+  <BkToCstmrDbtCdtNtfctn>
+    <GrpHdr>
+      <MsgId>CAMT054-20261206-01</MsgId>
+      <CreDtTm>2026-12-06T07:00:00</CreDtTm>
+    </GrpHdr>
+    <Ntfctn>
+      <Id>NTF-20261206-01</Id>
+      <CreDtTm>2026-12-06T07:00:00</CreDtTm>
+      <Acct>
+        <Id>
+          <IBAN>ES9121000418450200051332</IBAN>
+        </Id>
+      </Acct>
+      <Ntry>
+        <NtryRef>NTRY-1</NtryRef>
+        <Amt Ccy="EUR">42.35</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-12-06</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-12-06</Dt>
+        </ValDt>
+        <AcctSvcrRef>BANKREF-0001</AcctSvcrRef>
+        <BkTxCd>
+          <Domn>
+            <Cd>PMNT</Cd>
+            <Fmly>
+              <Cd>RDDT</Cd>
+              <SubFmlyCd>UPDD</SubFmlyCd>
+            </Fmly>
+          </Domn>
+        </BkTxCd>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <AcctSvcrRef>BANKREF-0001-1</AcctSvcrRef>
+              <PmtInfId>REM-2026-11-1</PmtInfId>
+              <EndToEndId>E2E-INV-1001</EndToEndId>
+              <MndtId>MNDT-0001</MndtId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="EUR">42.35</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Dbtr>
+                <Nm>Maria Garcia Lopez</Nm>
+              </Dbtr>
+              <DbtrAcct>
+                <Id>
+                  <IBAN>ES7921000813610123456789</IBAN>
+                </Id>
+              </DbtrAcct>
+              <Cdtr>
+                <Nm>Nowo Creditor SL</Nm>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>Invoice 2026-1001</Ustrd>
+            </RmtInf>
+            <RtrInf>
+              <Rsn>
+                <Cd>MD06</Cd>
+              </Rsn>
+              <AddtlInf>Refund requested by the debtor</AddtlInf>
+            </RtrInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+    </Ntfctn>
+  </BkToCstmrDbtCdtNtfctn>
+</Document>

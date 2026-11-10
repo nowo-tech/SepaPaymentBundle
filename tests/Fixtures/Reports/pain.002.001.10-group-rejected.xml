@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.002.001.10">
+  <CstmrPmtStsRpt>
+    <GrpHdr>
+      <MsgId>STS-20261203-0042</MsgId>
+      <CreDtTm>2026-12-03T09:30:00+01:00</CreDtTm>
+      <DbtrAgt>
+        <FinInstnId>
+          <BICFI>CAIXESBBXXX</BICFI>
+        </FinInstnId>
+      </DbtrAgt>
+    </GrpHdr>
+    <OrgnlGrpInfAndSts>
+      <OrgnlMsgId>REM-2026-12</OrgnlMsgId>
+      <OrgnlMsgNmId>pain.008.001.08</OrgnlMsgNmId>
+      <OrgnlNbOfTxs>2</OrgnlNbOfTxs>
+      <GrpSts>PART</GrpSts>
+      <StsRsnInf>
+        <Rsn>
+          <Cd>FF01</Cd>
+        </Rsn>
+        <AddtlInf>One transaction failed validation</AddtlInf>
+      </StsRsnInf>
+    </OrgnlGrpInfAndSts>
+    <OrgnlPmtInfAndSts>
+      <OrgnlPmtInfId>REM-2026-12-FRST</OrgnlPmtInfId>
+      <PmtInfSts>ACCP</PmtInfSts>
+    </OrgnlPmtInfAndSts>
+    <OrgnlPmtInfAndSts>
+      <OrgnlPmtInfId>REM-2026-12-RCUR</OrgnlPmtInfId>
+      <PmtInfSts>PART</PmtInfSts>
+      <TxInfAndSts>
+        <OrgnlInstrId>INSTR-2</OrgnlInstrId>
+        <OrgnlEndToEndId>E2E-INV-2002</OrgnlEndToEndId>
+        <OrgnlUETR>8b1f4f2e-6c7d-4e9a-9b2d-1a2b3c4d5e6f</OrgnlUETR>
+        <TxSts>RJCT</TxSts>
+        <StsRsnInf>
+          <Rsn>
+            <Cd>MD01</Cd>
+          </Rsn>
+        </StsRsnInf>
+        <OrgnlTxRef>
+          <Amt>
+            <InstdAmt Ccy="EUR">1250.5</InstdAmt>
+          </Amt>
+          <ReqdColltnDt>2026-12-05</ReqdColltnDt>
+          <MndtRltdInf>
+            <MndtId>MNDT-0002</MndtId>
+          </MndtRltdInf>
+        </OrgnlTxRef>
+      </TxInfAndSts>
+    </OrgnlPmtInfAndSts>
+  </CstmrPmtStsRpt>
+</Document>

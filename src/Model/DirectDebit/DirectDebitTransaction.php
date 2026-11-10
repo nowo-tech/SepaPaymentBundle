@@ -7,6 +7,7 @@ namespace Nowo\SepaPaymentBundle\Model\DirectDebit;
 use DateTimeInterface;
 use InvalidArgumentException;
 use Nowo\SepaPaymentBundle\Model\Amount;
+use Nowo\SepaPaymentBundle\Model\Mandate\MandateAmendment;
 
 use function is_array;
 
@@ -42,6 +43,11 @@ final class DirectDebitTransaction
      * Sequence type of this transaction (FRST, RCUR, OOFF, FNAL; optional). Null means the block's sequence type.
      */
     private ?string $sequenceType = null;
+
+    /**
+     * Mandate amendment reported with this collection (optional, since 2.3).
+     */
+    private ?MandateAmendment $amendment = null;
 
     /**
      * Additional data (optional).
@@ -369,5 +375,25 @@ final class DirectDebitTransaction
     public function getSequenceType(): ?string
     {
         return $this->sequenceType;
+    }
+
+    /**
+     * Sets the mandate amendment to report with this collection (`MndtRltdInf/AmdmntInfDtls`, since 2.3). A new debtor
+     * bank (SMNDA) requires sequence type FRST.
+     */
+    public function setAmendment(?MandateAmendment $amendment): self
+    {
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
+        $this->amendment = $amendment;
+
+        return $this;
+    }
+
+    /**
+     * Gets the mandate amendment.
+     */
+    public function getAmendment(): ?MandateAmendment
+    {
+        return $this->amendment;
     }
 }

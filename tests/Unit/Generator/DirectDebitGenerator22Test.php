@@ -17,6 +17,7 @@ use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitTransaction;
 use Nowo\SepaPaymentBundle\Model\DirectDebit\Pain008Version;
 use Nowo\SepaPaymentBundle\Model\DirectDebit\PaymentInformationData;
 use Nowo\SepaPaymentBundle\Model\DirectDebit\SequenceTypeMode;
+use Nowo\SepaPaymentBundle\Model\Mandate\MandateAmendment;
 use Nowo\SepaPaymentBundle\Model\PartyIdentification;
 use Nowo\SepaPaymentBundle\Tests\Unit\Helper\TranslationHelper;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
@@ -281,7 +282,7 @@ final class DirectDebitGenerator22Test extends TestCase
         $data->setInitiatingPartyIdentification(PartyIdentification::privatePerson('12345678Z', null, 'NIDN', 'ES & co'));
         $xml = $generator->generate($data, new DirectDebitGenerationOptions(Pain008Version::V02));
         $this->assertSame(['NIDN'], self::values($xml, '//ns:InitgPty/ns:Id/ns:PrvtId/ns:Othr/ns:SchmeNm/ns:Cd'));
-        $this->assertSame(['ES & co'], self::values($xml, '//ns:InitgPty/ns:Id/ns:PrvtId/ns:Othr/ns:Issr'));
+        $this->assertSame(['ES co'], self::values($xml, '//ns:InitgPty/ns:Id/ns:PrvtId/ns:Othr/ns:Issr'));
 
         // Creditor scheme id keeps SchmeNm/Prtry SEPA
         $this->assertSame(['SEPA'], self::values($xml, '//ns:CdtrSchmeId/ns:Id/ns:PrvtId/ns:Othr/ns:SchmeNm/ns:Prtry'));
@@ -541,6 +542,102 @@ final class DirectDebitGenerator22Test extends TestCase
         }
 
         $this->assertSame(['4.24', '22.39', '1073.54'], self::values((new DirectDebitGenerator(new IbanValidator()))->generate($data), '//ns:InstdAmt'));
+    }
+
+    /**
+     * P8: mandate amendments are written in MndtRltdInf and validate in every version.
+     */
+    #[DataProvider('versionProvider')]
+    public function testMandateAmendmentsValidateInEveryVersion(Pain008Version $version): void
+    {
+        $generator = new DirectDebitGenerator(new IbanValidator(), $this->xsdValidator, true);
+        $data      = $this->singleBlockData();
+        $data->getTransactions()[0]->setAmendment(new MandateAmendment('UMR-OLD', 'ES59ZZZX7654321', 'Old Creditor & Co', null, true));
+        $second = self::tx('E2E-2', 200)->setAmendment(new MandateAmendment(null, null, null, 'DE89370400440532013000'));
+        $data->addTransaction($second);
+
+        $xml = $generator->generate($data, new DirectDebitGenerationOptions($version));
+
+        self::assertSame(['true', 'true'], self::values($xml, '//ns:MndtRltdInf/ns:AmdmntInd'));
+        self::assertSame(['UMR-OLD'], self::values($xml, '//ns:AmdmntInfDtls/ns:OrgnlMndtId'));
+        self::assertSame(['Old Creditor Co'], self::values($xml, '//ns:OrgnlCdtrSchmeId/ns:Nm'));
+        self::assertSame(['ES59ZZZX7654321'], self::values($xml, '//ns:OrgnlCdtrSchmeId/ns:Id/ns:PrvtId/ns:Othr/ns:Id'));
+        self::assertSame(['SMNDA'], self::values($xml, '//ns:OrgnlDbtrAgt/ns:FinInstnId/ns:Othr/ns:Id'));
+        self::assertSame(['DE89370400440532013000'], self::values($xml, '//ns:OrgnlDbtrAcct/ns:Id/ns:IBAN'));
+    }
+
+    public function testNewDebtorAgentRequiresFirst(): void
+    {
+        $data = $this->singleBlockData();
+        $data->getTransactions()[0]->setSequenceType('RCUR')->setAmendment(new MandateAmendment(null, null, null, null, true));
+
+        $this->expectExceptionMessage('must be collected with sequence type FRST, not RCUR');
+        (new DirectDebitGenerator(new IbanValidator()))->generate($data);
+    }
+
+    /**
+     * LB-I2: control sums come from integer cents; 20 000 maximum-amount transactions (about 2·10^15 cents) stay exact.
+     */
+    public function testControlSumsAreExactIntegerCents(): void
+    {
+        $block = new PaymentInformationData('PMT-BIG', new DateTimeImmutable('2026-12-01'), 'RCUR', 'CORE');
+        for ($i = 0; $i < 20000; ++$i) {
+            $block->addTransaction(self::tx('E2E-' . $i, 99_999_999_999));
+        }
+        $data = DirectDebitData::fromPaymentInformation('MSG-BIG', 'Creditor', 'Creditor', 'ES9121000418450200051332', 'ES59ZZZX1234567', $block);
+
+        $xml = (new DirectDebitGenerator(new IbanValidator()))->generate($data);
+
+        self::assertSame(['19999999999800.00'], self::values($xml, '//ns:GrpHdr/ns:CtrlSum'));
+        self::assertSame(['19999999999800.00'], self::values($xml, '//ns:PmtInf/ns:CtrlSum'));
+    }
+
+    /**
+     * LB-I4: DOM-added address text is reduced to the EPC character set, and its EPC lengths are enforced.
+     */
+    public function testAddressesUseTheEpcCharacterSet(): void
+    {
+        $data = $this->singleBlockData();
+        $data->setCreditorAddress('Straße & Söhne <1>', 'Málaga', '29001', 'ES');
+
+        $xml = (new DirectDebitGenerator(new IbanValidator(), $this->xsdValidator, true))->generate($data);
+
+        self::assertSame(['Strasse Sohne 1'], self::values($xml, '//ns:Cdtr/ns:PstlAdr/ns:StrtNm'));
+        self::assertSame(['Malaga'], self::values($xml, '//ns:Cdtr/ns:PstlAdr/ns:TwnNm'));
+    }
+
+    /**
+     * @return iterable<string, array{array{0: ?string, 1: ?string, 2: ?string, 3: ?string}, string}>
+     */
+    public static function badAddressProvider(): iterable
+    {
+        yield 'street' => [[str_repeat('S', 71), null, null, null], 'street'];
+        yield 'city' => [[null, str_repeat('C', 36), null, null], 'city'];
+        yield 'postal code' => [[null, null, str_repeat('1', 17), null], 'postalCode'];
+        yield 'country' => [[null, null, null, 'es'], 'country "es"'];
+    }
+
+    /**
+     * @param array{0: ?string, 1: ?string, 2: ?string, 3: ?string} $address
+     */
+    #[DataProvider('badAddressProvider')]
+    public function testEpcAddressLimits(array $address, string $message): void
+    {
+        $data = $this->singleBlockData();
+        $data->getTransactions()[0]->setDebtorAddress(...$address);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage($message);
+        (new DirectDebitGenerator(new IbanValidator()))->generate($data);
+    }
+
+    /**
+     * LB-D-I1: validateXsd in the constructor without a validator is refused instead of silently ignored.
+     */
+    public function testConstructorValidateXsdWithoutValidatorIsRefused(): void
+    {
+        $this->expectExceptionMessage('no XSD validator was given');
+        new DirectDebitGenerator(new IbanValidator(), null, true);
     }
 
     private function singleBlockData(string $creditor = 'My Company'): DirectDebitData

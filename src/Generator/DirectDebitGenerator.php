@@ -30,6 +30,7 @@ use Nowo\SepaPaymentBundle\Model\DirectDebit\DirectDebitTransaction;
 use Nowo\SepaPaymentBundle\Model\DirectDebit\Pain008Version;
 use Nowo\SepaPaymentBundle\Model\DirectDebit\SequenceType;
 use Nowo\SepaPaymentBundle\Model\DirectDebit\SequenceTypeMode;
+use Nowo\SepaPaymentBundle\Model\Mandate\MandateAmendment;
 use Nowo\SepaPaymentBundle\Model\PartyIdentification;
 use Nowo\SepaPaymentBundle\Validator\IbanValidatorInterface;
 use Nowo\SepaPaymentBundle\Validator\SepaBusinessRulesValidator;
@@ -43,6 +44,7 @@ use Throwable;
 
 use function array_column;
 use function array_key_first;
+use function array_map;
 use function array_unique;
 use function count;
 use function implode;
@@ -138,7 +140,11 @@ final class DirectDebitGenerator implements DirectDebitGeneratorInterface
         Pain008Version|string $defaultPainVersion = Pain008Version::DEFAULT,
         SequenceTypeMode|string $defaultSequenceTypeMode = SequenceTypeMode::DEFAULT,
     ) {
-        $this->validateXsd             = $validateXsd && $this->xsdValidator instanceof XsdValidatorInterface;
+        if ($validateXsd && !$this->xsdValidator instanceof XsdValidatorInterface) {
+            // Never disable a requested validation silently (LB-D-I1)
+            throw new InvalidArgumentException('XSD validation was enabled (validateXsd: true) but no XSD validator was given: pass an XsdValidatorInterface (the bundle service has one).');
+        }
+        $this->validateXsd             = $validateXsd;
         $this->stringSanitizer         = $stringSanitizer ?? new SepaStringSanitizer();
         $this->defaultPainVersion      = Pain008Version::fromValue($defaultPainVersion);
         $this->defaultSequenceTypeMode = SequenceTypeMode::fromValue($defaultSequenceTypeMode);
@@ -248,7 +254,9 @@ final class DirectDebitGenerator implements DirectDebitGeneratorInterface
             $creditorAddress = $directDebitData->getCreditorAddress();
             $written         = [];
             $controlSum      = 0;
+            $blockSums       = [];
             foreach ($blocks as $block) {
+                $blockSum = 0;
                 // Without a BIC the creditor agent is written as <Othr><Id>NOTPROVIDED</Id></Othr> (P4)
                 $paymentInformation = new PaymentInformation(
                     $block['id'],
@@ -273,7 +281,9 @@ final class DirectDebitGenerator implements DirectDebitGeneratorInterface
                     $paymentInformation->addTransfer($this->createTransferInformation($transaction));
                     $written[] = $transaction;
                     $controlSum += $transaction->getAmountCents();
+                    $blockSum += $transaction->getAmountCents();
                 }
+                $blockSums[] = $blockSum;
 
                 $transferFile->addPaymentInformation($paymentInformation);
             }
@@ -289,6 +299,8 @@ final class DirectDebitGenerator implements DirectDebitGeneratorInterface
                 $written,
                 $sequenceTypeMode === SequenceTypeMode::OMIT,
                 $directDebitData->getInitiatingPartyIdentification(),
+                $blockSums,
+                $controlSum,
             );
 
             // Validate against the XSD of the written version if enabled
@@ -435,6 +447,15 @@ final class DirectDebitGenerator implements DirectDebitGeneratorInterface
                     'sequenceType' => (string) $sequenceType,
                     'transactions' => $transactions,
                 ] + $base;
+            }
+        }
+
+        // A change of debtor bank (SMNDA) must be collected as FRST (EPC rulebook)
+        foreach ($resolved as $resolvedBlock) {
+            foreach ($resolvedBlock['transactions'] as $transaction) {
+                if ($transaction->getAmendment()?->isNewDebtorAgent() === true && $resolvedBlock['sequenceType'] !== null && $resolvedBlock['sequenceType'] !== SequenceType::FIRST) {
+                    throw new InvalidArgumentException(sprintf('Transaction "%s" amends the mandate with a new debtor bank (SMNDA): it must be collected with sequence type FRST, not %s.', $transaction->getEndToEndId(), $resolvedBlock['sequenceType']));
+                }
             }
         }
 
@@ -876,10 +897,12 @@ final class DirectDebitGenerator implements DirectDebitGeneratorInterface
      * @param list<DirectDebitTransaction>|null $transactions The transactions in the order they were written (null: the data's order)
      * @param bool $omitSequenceType Whether to remove every PmtTpInf/SeqTp element
      * @param PartyIdentification|null $initiatingPartyId The initiating party identification (GrpHdr/InitgPty/Id)
+     * @param list<int>|null $blockSums Control sum in cents of each PmtInf, in file order (null: keep the library's)
+     * @param int|null $controlSum Control sum in cents of the file (null: keep the library's)
      *
      * @return string The XML with addresses added
      */
-    private function addAddressesToXml(string $xml, DirectDebitData $directDebitData, ?array $transactions = null, bool $omitSequenceType = false, ?PartyIdentification $initiatingPartyId = null): string
+    private function addAddressesToXml(string $xml, DirectDebitData $directDebitData, ?array $transactions = null, bool $omitSequenceType = false, ?PartyIdentification $initiatingPartyId = null, ?array $blockSums = null, ?int $controlSum = null): string
     {
         try {
             $dom                     = new DOMDocument();
@@ -917,6 +940,19 @@ final class DirectDebitGenerator implements DirectDebitGeneratorInterface
 
             if ($initiatingPartyId instanceof PartyIdentification) {
                 $this->addInitiatingPartyIdToDom($dom, $xpath, $initiatingPartyId, $namespace);
+            }
+
+            // Mandate amendments (MndtRltdInf/AmdmntInd + AmdmntInfDtls), by written transaction order
+            foreach ($transactions ?? $directDebitData->getTransactions() as $index => $transaction) {
+                $amendment = $transaction->getAmendment();
+                if ($amendment instanceof MandateAmendment) {
+                    $this->addAmendmentToDom($dom, $xpath, $amendment, $index, $namespace);
+                }
+            }
+
+            // Control sums from the integer cents (LB-I2): the library divides a float, inexact beyond 10^15 cents
+            if ($blockSums !== null && $controlSum !== null) {
+                $this->writeControlSums($xpath, $blockSums, $controlSum);
             }
 
             $saved = $dom->saveXML();
@@ -1009,12 +1045,12 @@ final class DirectDebitGenerator implements DirectDebitGeneratorInterface
             $schemeName = $dom->createElementNS($namespace, 'SchmeNm');
             $schemeName->appendChild($schemeCode !== null
                 ? $dom->createElementNS($namespace, 'Cd', $schemeCode)
-                : $dom->createElementNS($namespace, 'Prtry', htmlspecialchars((string) $schemeProprietary, ENT_XML1, 'UTF-8')));
+                : $dom->createElementNS($namespace, 'Prtry', htmlspecialchars($this->stringSanitizer->sanitize((string) $schemeProprietary), ENT_XML1, 'UTF-8')));
             $other->appendChild($schemeName);
         }
         $issuer = $identification->getIssuer();
         if ($issuer !== null) {
-            $other->appendChild($dom->createElementNS($namespace, 'Issr', htmlspecialchars($issuer, ENT_XML1, 'UTF-8')));
+            $other->appendChild($dom->createElementNS($namespace, 'Issr', htmlspecialchars($this->stringSanitizer->sanitize($issuer), ENT_XML1, 'UTF-8')));
         }
 
         $kind = $dom->createElementNS($namespace, $identification->isOrganisation() ? 'OrgId' : 'PrvtId');
@@ -1066,6 +1102,9 @@ final class DirectDebitGenerator implements DirectDebitGeneratorInterface
      */
     private function createPostalAddressElement(DOMDocument $dom, DOMElement $parentNode, array $address, string $namespace): void
     {
+        // EPC character set for text added after the library (LB-I4); lengths are checked before generation
+        $address = array_map(fn (?string $value): ?string => $value === null ? null : $this->stringSanitizer->sanitize($value), $address);
+
         $hasAddress = !empty($address['street'])
             || !empty($address['city'])
             || !empty($address['postalCode'])
@@ -1149,8 +1188,11 @@ final class DirectDebitGenerator implements DirectDebitGeneratorInterface
 
         // Texts added to the XML after the library must be valid UTF-8 (LB-L3)
         $this->assertUtf8Address('creditor address', $directDebitData->getCreditorAddress());
+        $this->assertEpcAddress('creditor address', $directDebitData->getCreditorAddress());
         foreach ($directDebitData->getTransactions() as $transaction) {
-            $this->assertUtf8Address(sprintf('debtor address of transaction "%s"', $transaction->getEndToEndId()), $transaction->getDebtorAddress());
+            $field = sprintf('debtor address of transaction "%s"', $transaction->getEndToEndId());
+            $this->assertUtf8Address($field, $transaction->getDebtorAddress());
+            $this->assertEpcAddress($field, $transaction->getDebtorAddress());
         }
 
         // EndToEndId identifies a collection for the creditor and its bank: unique in the file (LB-I6)
@@ -1211,6 +1253,117 @@ final class DirectDebitGenerator implements DirectDebitGeneratorInterface
             if ($value !== null && preg_match('//u', $value) !== 1) {
                 throw new InvalidArgumentException(sprintf('Invalid %s: the text is not valid UTF-8.', $field));
             }
+        }
+    }
+
+    /**
+     * Writes a mandate amendment into MndtRltdInf of the transaction at $index (AmdmntInd, AmdmntInfDtls).
+     *
+     * @param DOMDocument $dom The DOM document
+     * @param DOMXPath $xpath The XPath object (namespace registered as "ns")
+     * @param MandateAmendment $amendment The amendment
+     * @param int $index The transaction index in file order
+     * @param string $namespace The namespace URI
+     */
+    private function addAmendmentToDom(DOMDocument $dom, DOMXPath $xpath, MandateAmendment $amendment, int $index, string $namespace): void
+    {
+        $nodes   = $xpath->query('//ns:DrctDbtTxInf/ns:DrctDbtTx/ns:MndtRltdInf');
+        $related = $nodes === false ? null : $nodes->item($index);
+        if (!$related instanceof DOMElement) {
+            throw new InvalidArgumentException(sprintf('No mandate information for the transaction at position %d.', $index));
+        }
+        $element = static fn (string $name, ?string $value = null): DOMElement => $value === null
+            ? $dom->createElementNS($namespace, $name)
+            : $dom->createElementNS($namespace, $name, htmlspecialchars($value, ENT_XML1, 'UTF-8'));
+
+        $details = $element('AmdmntInfDtls');
+        if ($amendment->getOriginalMandateId() !== null) {
+            $details->appendChild($element('OrgnlMndtId', $amendment->getOriginalMandateId()));
+        }
+        if ($amendment->getOriginalCreditorSchemeId() !== null || $amendment->getOriginalCreditorName() !== null) {
+            $scheme = $element('OrgnlCdtrSchmeId');
+            if ($amendment->getOriginalCreditorName() !== null) {
+                $scheme->appendChild($element('Nm', $this->stringSanitizer->sanitize($amendment->getOriginalCreditorName())));
+            }
+            if ($amendment->getOriginalCreditorSchemeId() !== null) {
+                $schemeName = $element('SchmeNm');
+                $schemeName->appendChild($element('Prtry', 'SEPA'));
+                $other = $element('Othr');
+                $other->appendChild($element('Id', $amendment->getOriginalCreditorSchemeId()));
+                $other->appendChild($schemeName);
+                $private = $element('PrvtId');
+                $private->appendChild($other);
+                $id = $element('Id');
+                $id->appendChild($private);
+                $scheme->appendChild($id);
+            }
+            $details->appendChild($scheme);
+        }
+        if ($amendment->getOriginalDebtorIban() !== null) {
+            $id = $element('Id');
+            $id->appendChild($element('IBAN', $amendment->getOriginalDebtorIban()));
+            $account = $element('OrgnlDbtrAcct');
+            $account->appendChild($id);
+            $details->appendChild($account);
+        }
+        if ($amendment->isNewDebtorAgent()) {
+            $other = $element('Othr');
+            $other->appendChild($element('Id', 'SMNDA'));
+            $institution = $element('FinInstnId');
+            $institution->appendChild($other);
+            $agent = $element('OrgnlDbtrAgt');
+            $agent->appendChild($institution);
+            $details->appendChild($agent);
+        }
+
+        // MndtRltdInf: MndtId, DtOfSgntr, AmdmntInd, AmdmntInfDtls, ... (the library writes the first two only)
+        $related->appendChild($element('AmdmntInd', 'true'));
+        $related->appendChild($details);
+    }
+
+    /**
+     * Writes every PmtInf/CtrlSum and GrpHdr/CtrlSum from integer cents.
+     *
+     * @param DOMXPath $xpath The XPath object (namespace registered as "ns")
+     * @param list<int> $blockSums Control sum of each PmtInf, in file order
+     * @param int $controlSum Control sum of the file
+     */
+    private function writeControlSums(DOMXPath $xpath, array $blockSums, int $controlSum): void
+    {
+        $group = $xpath->query('//ns:GrpHdr/ns:CtrlSum');
+        if ($group !== false && $group->item(0) instanceof DOMElement) {
+            $group->item(0)->nodeValue = Amount::decimalFromCents($controlSum);
+        }
+        $blocks = $xpath->query('//ns:PmtInf/ns:CtrlSum');
+        foreach ($blocks === false ? [] : $blocks as $index => $node) {
+            if ($node instanceof DOMElement && isset($blockSums[$index])) {
+                $node->nodeValue = Amount::decimalFromCents($blockSums[$index]);
+            }
+        }
+    }
+
+    /**
+     * Checks an address against the EPC limits after sanitising: street 70, town 35, postal code 16, ISO country code.
+     *
+     * @param string $field What the address is (used in the error message)
+     * @param array<string, string|null>|null $address The address
+     *
+     * @throws InvalidArgumentException If a value is too long or the country is not two uppercase letters
+     */
+    private function assertEpcAddress(string $field, ?array $address): void
+    {
+        if ($address === null) {
+            return;
+        }
+        foreach (['street' => SepaStringSanitizer::MAX_STREET_LENGTH, 'city' => SepaStringSanitizer::MAX_CITY_LENGTH, 'postalCode' => SepaStringSanitizer::MAX_POSTAL_CODE_LENGTH] as $key => $max) {
+            $value = $address[$key] ?? null;
+            if ($value !== null) {
+                $this->stringSanitizer->assertMaxLength($field . ' ' . $key, $this->stringSanitizer->sanitize($value), $max);
+            }
+        }
+        $country = $address['country'] ?? null;
+        if ($country !== null && $country !== '' && preg_match('/^[A-Z]{2}$/D', $country) !== 1) {
+            throw new InvalidArgumentException(sprintf('Invalid %s country "%s": use an ISO 3166 alpha-2 code in uppercase (e.g. "ES").', $field, $country));
         }
     }
 }

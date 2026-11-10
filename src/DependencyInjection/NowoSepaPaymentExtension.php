@@ -42,6 +42,7 @@ final class NowoSepaPaymentExtension extends Extension
         $container->setParameter('nowo_sepa_payment.direct_debit.pain_version', $config['direct_debit']['pain_version']);
         $container->setParameter('nowo_sepa_payment.direct_debit.sequence_type_mode', $config['direct_debit']['sequence_type_mode']);
         $container->setParameter('nowo_sepa_payment.direct_debit.validate_xsd', $config['direct_debit']['validate_xsd']);
+        $container->setParameter('nowo_sepa_payment.reports.max_size', $config['reports']['max_size']);
 
         // Validation cache: explicit wiring (never autowire an arbitrary PSR-16 service)
         $cacheServiceId = $config['validation_cache']['service'];
