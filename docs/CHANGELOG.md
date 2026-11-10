@@ -80,17 +80,24 @@ Target 2.1.0 — exact integer-cents amounts in the transaction DTOs; float inpu
 
 ### Changed
 
-- Rounding of sub-cent amounts is **half to even** after removing float noise (6 decimals), instead of
-  `round($amount * 100)` (half away from zero on the binary value): `0.125` → 0.12 (was 0.13), `2.675` → 2.68 (was
-  2.67). Two-decimal amounts are unchanged. `NAN` / `INF` and non-decimal strings now throw
-  `InvalidArgumentException`. The array path (`generateFromArray()`) reads plain decimal strings exactly.
+- Sub-cent floats now round like `round($x, 2)` on every PHP version: the float is written with 6 decimals (removing
+  binary noise) and rounded **half up** (half away from zero), instead of `round($amount * 100)` on the binary value,
+  whose result depended on the PHP version (`1.005` → 1.01 on PHP 8.2 but 1.00 on 8.5; `0.285` → 0.29 vs 0.28). Now
+  `1.005` → 1.01, `0.285` → 0.29, `0.125` → 0.13, `-0.125` → -0.13 and `2.675` → 2.68 everywhere. Two-decimal amounts
+  are unchanged. `NAN` / `INF` and non-numeric strings throw `InvalidArgumentException`. The array path
+  (`generateFromArray()`) reads plain decimal strings exactly.
+- Numeric strings that are not plain decimals (`"1e3"`, `" 1.5"`, `".5"`) passed to the constructors keep working
+  through the float path, with a silenced `E_USER_DEPRECATED` (as `generateFromArray()` accepts them).
+- `fromCents()` (and `amountCents` in `generateFromArray()`) refuses amounts beyond ±99 999 999 999 999 999 cents
+  (`PHP_INT_MAX` / `PHP_INT_MIN` included) with a clear "Invalid amount in cents …" message.
 - Docs: USAGE "Amounts in the transaction DTOs" and "Using it from a DDD / hexagonal application"; examples use
   `fromCents()`.
 
 ### Deprecated
 
-- Passing a float amount to the `DirectDebitTransaction` / `CreditTransfer\Transaction` constructors
-  (`E_USER_DEPRECATED`, silenced): use `fromCents()` or a decimal string. It keeps working.
+- Passing a float amount, or a numeric string that is not a plain decimal, to the `DirectDebitTransaction` /
+  `CreditTransfer\Transaction` constructors (`E_USER_DEPRECATED`, silenced): use `fromCents()` or a decimal string.
+  It keeps working.
 
 ## [2.0.0] - 2026-10-28
 

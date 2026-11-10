@@ -534,12 +534,16 @@ XML (`InstdAmt`) and summed into the control sum (`CtrlSum`, `getTotalAmountCent
 | decimal string in euros to the constructor | `new Transaction('E2E-1', '100.50', …)` | yes, read digit by digit |
 | int in euros to the constructor | `new DirectDebitTransaction(7, …)` (EUR 7.00) | yes |
 | float in euros to the constructor | `new Transaction('E2E-1', 100.50, …)` | **deprecated** (`E_USER_DEPRECATED`), still works |
+| other numeric string to the constructor | `'1e3'`, `' 1.5'`, `'.5'` | **deprecated** (`E_USER_DEPRECATED`), read like a float |
 
 Rounding: a float is first written with 6 decimals (`sprintf('%.6F')`, which removes binary noise such as
-`0.1 + 0.2 = 0.30000000000000004`) and read as a decimal string; digits beyond the cent are rounded **half to even**
-(`"0.125"` → EUR 0.12, `"0.135"` → EUR 0.14). SEPA amounts have at most two decimals, so this only matters for
-computed values. A non-finite float (`NAN`, `INF`) or a string that is not a plain decimal (`"1,50"`, `"1e3"`) throws an
-`InvalidArgumentException`.
+`0.1 + 0.2 = 0.30000000000000004`) and read as a decimal string; digits beyond the cent are rounded **half up** (half
+away from zero, the euro convention and PHP's `round($x, 2)`): `"0.125"` → EUR 0.13, `"-0.125"` → EUR -0.13,
+`1.005` → EUR 1.01, `2.675` → EUR 2.68. Because the float noise is removed first, the result is the same on every PHP
+version. SEPA amounts have at most two decimals, so this only matters for computed values. A non-finite float (`NAN`,
+`INF`) or a string that is not numeric (`"1,50"`, `"abc"`) throws an `InvalidArgumentException`; so does an amount above
+EUR 999 999 999 999 999.99 (15 integer digits), including `fromCents(PHP_INT_MAX)`. The EPC limit (EUR 999 999 999.99)
+is not enforced by the DTOs.
 
 Read the amount back with `getAmountCents(): int` (exact), `getAmountDecimal(): string` (`"100.50"`) or
 `getAmount(): float` (kept for compatibility). `DirectDebitData::getTotalAmountCents()` and
@@ -549,7 +553,7 @@ Read the amount back with `getAmountCents(): int` (exact), `getAmountDecimal(): 
 
 `CreditTransferGenerator::generateFromArray()` and `DirectDebitGenerator::generateFromArray()` read each transaction amount from exactly one of:
 
-- `amount` — decimal amount **in euros** (`15000`, `15000.00` or `"15000.00"` all mean EUR 15,000.00). Large values are never reinterpreted as cents. A plain decimal string is read exactly; a float or another numeric string (`"1e3"`) is rounded half to even to the cent as described in [Amounts in the transaction DTOs](#amounts-in-the-transaction-dtos) (no deprecation on the array path).
+- `amount` — decimal amount **in euros** (`15000`, `15000.00` or `"15000.00"` all mean EUR 15,000.00). Large values are never reinterpreted as cents. A plain decimal string is read exactly; a float or another numeric string (`"1e3"`) is rounded half up to the cent as described in [Amounts in the transaction DTOs](#amounts-in-the-transaction-dtos) (no deprecation on the array path).
 - `amountCents` (or `amount_cents`) — integer amount **in cents** (`1500000` means EUR 15,000.00).
 
 Passing both, neither, a non-numeric `amount` or a non-integer `amountCents` throws an `InvalidArgumentException`.

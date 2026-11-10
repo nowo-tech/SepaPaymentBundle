@@ -8,10 +8,6 @@ use DateTimeInterface;
 use Nowo\SepaPaymentBundle\Model\Amount;
 
 use function is_array;
-use function is_float;
-use function is_int;
-
-use const E_USER_DEPRECATED;
 
 /**
  * Direct Debit transaction data.
@@ -53,9 +49,9 @@ final class DirectDebitTransaction
      * Constructor.
      *
      * `$amount` in euros: a decimal string ("1500.25") or an int (whole euros) is exact; a float still works but is deprecated since 2.1
-     * (it is rounded half to even to the cent, see {@see Amount}) — use {@see self::fromCents()} or a decimal string.
+     * (it is rounded half up to the cent like `round($x, 2)`, see {@see Amount}); another numeric string ("1e3", " 1.5") is read like a float and deprecated too — use {@see self::fromCents()} or a decimal string.
      *
-     * @param float|string $amount Amount to debit, in euros (decimal string or whole euros as int; float deprecated)
+     * @param float|int|string $amount Amount to debit, in euros (decimal string or whole euros as int; float and non-decimal numeric strings deprecated)
      * @param string $debtorIban Debtor IBAN
      * @param string $debtorName Debtor name
      * @param string $debtorMandate Debtor mandate identifier
@@ -70,14 +66,7 @@ final class DirectDebitTransaction
         private readonly DateTimeInterface $debtorMandateSignDate,
         private readonly string $endToEndId
     ) {
-        if (is_int($amount)) {
-            $this->amountCents = Amount::centsFromDecimal((string) $amount);
-        } elseif (is_float($amount)) {
-            @trigger_error('Passing the amount of a DirectDebitTransaction as a float is deprecated since nowo-tech/sepa-payment-bundle 2.1: use DirectDebitTransaction::fromCents() or a decimal string.', E_USER_DEPRECATED);
-            $this->amountCents = Amount::centsFromFloat($amount);
-        } else {
-            $this->amountCents = Amount::centsFromDecimal($amount);
-        }
+        $this->amountCents = Amount::centsFromValue($amount, 'DirectDebitTransaction', 'DirectDebitTransaction::fromCents()');
     }
 
     /**

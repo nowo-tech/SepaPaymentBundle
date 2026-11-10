@@ -7,6 +7,7 @@ namespace Nowo\SepaPaymentBundle\Tests\Unit\Generator;
 use DateTime;
 use DOMDocument;
 use DOMXPath;
+use InvalidArgumentException;
 use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
 use Nowo\SepaPaymentBundle\Generator\DirectDebitGenerator;
 use Nowo\SepaPaymentBundle\Model\CreditTransfer\CreditTransferData;
@@ -22,10 +23,12 @@ use function restore_error_handler;
 use function set_error_handler;
 
 use const E_USER_DEPRECATED;
+use const PHP_INT_MAX;
+use const PHP_INT_MIN;
 
 /**
  * Amounts reach the XML as exact cents: integer cents and decimal strings without a float, floats (deprecated) rounded
- * half to even after removing binary noise; totals are summed in cents.
+ * half up (like round($x, 2)) after removing binary noise; totals are summed in cents.
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
@@ -56,13 +59,13 @@ final class ExactAmountsTest extends TestCase
         $data->addTransaction($this->silenced(static fn (): Transaction => new Transaction('E2E-3', 0.1 + 0.2, 'EUR', 'GB82WEST12345698765432', 'C')));
         $data->addTransaction(new Transaction('E2E-4', 7, 'EUR', 'GB82WEST12345698765432', 'D'));
 
-        self::assertSame(1500767, $data->getTotalAmountCents());
+        self::assertSame(1500768, $data->getTotalAmountCents());
 
         $translator = $this->createMock(TranslatorInterface::class);
         $translator->method('trans')->willReturnCallback(TranslationHelper::createTranslatorCallback());
         $xpath = $this->xpath((new CreditTransferGenerator(new IbanValidator(), $translator))->generate($data));
-        self::assertSame(['15000.25', '0.12', '0.30', '7.00'], $this->values($xpath, '//ns:CdtTrfTxInf/ns:Amt/ns:InstdAmt'));
-        self::assertSame('15007.67', $xpath->evaluate('string(//ns:GrpHdr/ns:CtrlSum)'));
+        self::assertSame(['15000.25', '0.13', '0.30', '7.00'], $this->values($xpath, '//ns:CdtTrfTxInf/ns:Amt/ns:InstdAmt'));
+        self::assertSame('15007.68', $xpath->evaluate('string(//ns:GrpHdr/ns:CtrlSum)'));
     }
 
     public function testTheArrayPathKeepsDecimalStringsExact(): void
@@ -102,15 +105,46 @@ final class ExactAmountsTest extends TestCase
             $transfer = new Transaction('E2E-1', 19.99, 'EUR', 'GB82WEST12345698765432', 'A');
             new DirectDebitTransaction('19.99', 'GB82WEST12345698765432', 'A', 'M-1', new DateTime('2023-12-01'), 'E2E-1');
             Transaction::fromCents('E2E-1', 1999, 'EUR', 'GB82WEST12345698765432', 'A');
+            $exponent = new Transaction('E2E-1', '1e3', 'EUR', 'GB82WEST12345698765432', 'A');
+            $spaced   = new DirectDebitTransaction(' 1.5', 'GB82WEST12345698765432', 'A', 'M-1', new DateTime('2023-12-01'), 'E2E-1');
         } finally {
             restore_error_handler();
         }
 
-        self::assertCount(2, $messages);
+        self::assertCount(4, $messages);
         self::assertStringContainsString('DirectDebitTransaction::fromCents()', $messages[0]);
+        self::assertStringContainsString('CreditTransfer\\Transaction as a float', $messages[1]);
         self::assertStringContainsString('Transaction::fromCents()', $messages[1]);
+        self::assertStringContainsString('CreditTransfer\\Transaction as a numeric string that is not a plain decimal ("1e3")', $messages[2]);
+        self::assertStringContainsString('DirectDebitTransaction as a numeric string that is not a plain decimal (" 1.5")', $messages[3]);
+        self::assertSame(100000, $exponent->getAmountCents());
+        self::assertSame(150, $spaced->getAmountCents());
         self::assertSame([1999, '19.99', 19.99], [$debit->getAmountCents(), $debit->getAmountDecimal(), $debit->getAmount()]);
         self::assertSame([1999, '19.99', 19.99], [$transfer->getAmountCents(), $transfer->getAmountDecimal(), $transfer->getAmount()]);
+    }
+
+    public function testANonNumericStringStillThrows(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        new Transaction('E2E-1', '1,50', 'EUR', 'GB82WEST12345698765432', 'A');
+    }
+
+    public function testFromCentsAtTheIntegerExtremesThrowsAClearMessage(): void
+    {
+        foreach ([PHP_INT_MAX, PHP_INT_MIN] as $cents) {
+            try {
+                DirectDebitTransaction::fromCents($cents, 'GB82WEST12345698765432', 'A', 'M-1', new DateTime('2023-12-01'), 'E2E-1');
+                self::fail('No exception.');
+            } catch (InvalidArgumentException $e) {
+                self::assertStringContainsString('Invalid amount in cents ' . $cents, $e->getMessage());
+            }
+            try {
+                Transaction::fromCents('E2E-1', $cents, 'EUR', 'GB82WEST12345698765432', 'A');
+                self::fail('No exception.');
+            } catch (InvalidArgumentException $e) {
+                self::assertStringContainsString('Invalid amount in cents ' . $cents, $e->getMessage());
+            }
+        }
     }
 
     private function directDebitData(): DirectDebitData

@@ -521,7 +521,7 @@ final class CreditTransferGenerator
      * @param array<string, mixed> $transactionData The transaction data
      *
      * A plain decimal string ("1500.25") is read exactly; an int is whole euros; a float or another numeric string
-     * ("1e3") is rounded half to even to the cent ({@see Amount}).
+     * ("1e3") is rounded half up to the cent like round($x, 2) ({@see Amount}).
      *
      * @throws InvalidArgumentException If no amount, both amounts or a non-numeric amount is given
      *
