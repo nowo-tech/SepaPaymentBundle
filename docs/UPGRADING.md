@@ -3,6 +3,7 @@
 ## Table of contents
 
 - [Unreleased](#unreleased)
+- [To 2.3.0](#to-230)
 - [To 2.2.0](#to-220)
 - [To 2.1.0](#to-210)
 - [To 2.0.0](#to-200)
@@ -165,6 +166,14 @@
 - [Getting Help](#getting-help)
 
 ## Unreleased
+
+## To 2.3.0
+
+From **2.2.0**:
+
+```bash
+composer update nowo-tech/sepa-payment-bundle
+```
 
 Nothing to do for a standard Symfony host. Check these points:
 

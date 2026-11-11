@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[2.3.0] - 2026-11-11](#230---2026-11-11)
 - [[2.2.0] - 2026-11-10](#220---2026-11-10)
 - [[2.1.0] - 2026-11-10](#210---2026-11-10)
 - [[2.0.0] - 2026-10-28](#200---2026-10-28)
@@ -64,6 +65,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-11-11
+
+pain.002 and camt.054 parsers (secure loader, effective statuses, booked entries), mandate evidence, amendments and snapshots, IbanMasker, integer CtrlSum and EPC-safe DOM text. See [UPGRADING](https://github.com/nowo-tech/SepaPaymentBundle/blob/v2.3.0/docs/UPGRADING.md#to-230).
+
 Symfony Beacon spec 226, second part. Standard Symfony hosts need no change; the 2.1.0 golden-file test still passes
 byte for byte.
 
@@ -110,6 +115,8 @@ byte for byte.
   name or the debtor street) throws, and the address handed to the library is sanitised too (LF-L3).
 - **LB-D-I1:** constructing a generator with `validateXsd: true` and no XSD validator throws instead of silently
   disabling the validation (the bundle services always have one).
+
+[2.3.0]: https://github.com/nowo-tech/SepaPaymentBundle/releases/tag/v2.3.0
 
 ## [2.2.0] - 2026-11-10
 
