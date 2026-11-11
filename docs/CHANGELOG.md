@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[2.3.1] - 2026-11-11](#231---2026-11-11)
 - [[2.3.0] - 2026-11-11](#230---2026-11-11)
 - [[2.2.0] - 2026-11-10](#220---2026-11-10)
 - [[2.1.0] - 2026-11-10](#210---2026-11-10)
@@ -65,6 +66,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.1] - 2026-11-11
+
 Next patch: 2.3.1.
 
 ### Security
@@ -94,6 +97,8 @@ Next patch: 2.3.1.
 ### Documentation
 
 - `docs/FRANKENPHP-WORKER-AUDIT.md` refreshed for 2.3.1 (boundaries, worker test, W-05).
+
+[2.3.1]: https://github.com/nowo-tech/SepaPaymentBundle/releases/tag/v2.3.1
 
 ## [2.3.0] - 2026-11-11
 

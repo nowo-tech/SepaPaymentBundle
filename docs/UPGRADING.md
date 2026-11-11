@@ -3,6 +3,7 @@
 ## Table of contents
 
 - [Unreleased](#unreleased)
+- [To 2.3.1](#to-231)
 - [To 2.3.0](#to-230)
 - [To 2.2.0](#to-220)
 - [To 2.1.0](#to-210)
@@ -166,6 +167,14 @@
 - [Getting Help](#getting-help)
 
 ## Unreleased
+
+## To 2.3.1
+
+From **2.3.0**:
+
+```bash
+composer update nowo-tech/sepa-payment-bundle
+```
 
 Next patch: 2.3.1. No API change.
 
