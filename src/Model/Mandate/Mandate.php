@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace Nowo\SepaPaymentBundle\Model\Mandate;
 
 use DateTime;
+use DateTimeImmutable;
 use DateTimeInterface;
+use InvalidArgumentException;
 use RuntimeException;
+
+use function mb_strlen;
 
 /**
  * SEPA mandate entity.
@@ -58,6 +62,28 @@ final class Mandate
      * Revocation reason (if revoked).
      */
     private ?string $revocationReason = null;
+
+    /**
+     * Debtor postal address (optional, since 2.3): keys street, city, postalCode, country.
+     *
+     * @var array{street: ?string, city: ?string, postalCode: ?string, country: ?string}|null
+     */
+    private ?array $debtorAddress = null;
+
+    /**
+     * The host's reference of the mandate owner (customer, account, tenant…; optional, since 2.3).
+     */
+    private ?string $ownerReference = null;
+
+    /**
+     * Evidence of the debtor's acceptance (optional, since 2.3).
+     */
+    private ?MandateEvidence $evidence = null;
+
+    /**
+     * Pending amendment since the last collection (optional, since 2.3).
+     */
+    private ?MandateAmendment $amendment = null;
 
     /**
      * Constructor.
@@ -398,5 +424,154 @@ final class Mandate
         $this->revocationReason = null;
 
         return $this;
+    }
+
+    /**
+     * Sets the debtor postal address (since 2.3).
+     *
+     * @param string|null $street Street and number
+     * @param string|null $city Town
+     * @param string|null $postalCode Postal code
+     * @param string|null $country ISO 3166 alpha-2 country code
+     */
+    public function setDebtorAddress(?string $street, ?string $city = null, ?string $postalCode = null, ?string $country = null): self
+    {
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
+        $this->debtorAddress = ($street ?? $city ?? $postalCode ?? $country) === null ? null : [
+            'street'     => $street,
+            'city'       => $city,
+            'postalCode' => $postalCode,
+            'country'    => $country,
+        ];
+
+        return $this;
+    }
+
+    /**
+     * Gets the debtor postal address (keys street, city, postalCode, country), or null.
+     *
+     * @return array{street: ?string, city: ?string, postalCode: ?string, country: ?string}|null
+     */
+    public function getDebtorAddress(): ?array
+    {
+        return $this->debtorAddress;
+    }
+
+    /**
+     * Sets the host's reference of the mandate owner, e.g. a customer or tenant id (since 2.3; max. 255 characters).
+     *
+     * @throws InvalidArgumentException If the reference is empty or longer than 255 characters
+     */
+    public function setOwnerReference(?string $ownerReference): self
+    {
+        if ($ownerReference !== null && ($ownerReference === '' || mb_strlen($ownerReference, 'UTF-8') > 255)) {
+            throw new InvalidArgumentException('Invalid mandate owner reference: use 1 to 255 characters.');
+        }
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
+        $this->ownerReference = $ownerReference;
+
+        return $this;
+    }
+
+    /**
+     * Gets the host's reference of the mandate owner.
+     */
+    public function getOwnerReference(): ?string
+    {
+        return $this->ownerReference;
+    }
+
+    /**
+     * Sets the evidence of the debtor's acceptance (since 2.3).
+     */
+    public function setEvidence(?MandateEvidence $evidence): self
+    {
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
+        $this->evidence = $evidence;
+
+        return $this;
+    }
+
+    /**
+     * Gets the evidence of the debtor's acceptance.
+     */
+    public function getEvidence(): ?MandateEvidence
+    {
+        return $this->evidence;
+    }
+
+    /**
+     * Sets the amendment to report with the next collection (since 2.3); clear it once collected.
+     */
+    public function setAmendment(?MandateAmendment $amendment): self
+    {
+        // @igor-ignore - Domain model value object; instance-scoped, not a shared service.
+        $this->amendment = $amendment;
+
+        return $this;
+    }
+
+    /**
+     * Gets the pending amendment.
+     */
+    public function getAmendment(): ?MandateAmendment
+    {
+        return $this->amendment;
+    }
+
+    /**
+     * Every field as an immutable snapshot, for a host repository that stores mandates its own way (DDD path, since
+     * 2.3). The explicit expiration date is kept as set (null when the inactivity rule applies).
+     */
+    public function toSnapshot(): MandateSnapshot
+    {
+        return new MandateSnapshot(
+            $this->mandateId,
+            DateTimeImmutable::createFromInterface($this->signatureDate),
+            $this->debtorIban,
+            $this->debtorName,
+            $this->type,
+            $this->sequenceType,
+            $this->debtorBic,
+            $this->status,
+            $this->active,
+            $this->expirationDate instanceof DateTimeInterface ? DateTimeImmutable::createFromInterface($this->expirationDate) : null,
+            $this->lastCollectionDate instanceof DateTimeInterface ? DateTimeImmutable::createFromInterface($this->lastCollectionDate) : null,
+            $this->revocationDate instanceof DateTimeInterface ? DateTimeImmutable::createFromInterface($this->revocationDate) : null,
+            $this->revocationReason,
+            $this->debtorAddress,
+            $this->ownerReference,
+            $this->evidence,
+            $this->amendment,
+        );
+    }
+
+    /**
+     * Rebuilds a mandate from a snapshot, without running any lifecycle rule (no expiry check, no history, no event).
+     */
+    public static function reconstitute(MandateSnapshot $snapshot): self
+    {
+        $mandate = new self(
+            $snapshot->getMandateId(),
+            $snapshot->getSignatureDate(),
+            $snapshot->getDebtorIban(),
+            $snapshot->getDebtorName(),
+            $snapshot->getType(),
+            $snapshot->getSequenceType(),
+        );
+        // @igor-ignore - Fresh value object built here; not a shared service.
+        $mandate->debtorBic          = $snapshot->getDebtorBic();
+        $mandate->status             = $snapshot->getStatus();
+        $mandate->active             = $snapshot->isActive();
+        $mandate->expirationDate     = $snapshot->getExpirationDate();
+        $mandate->lastCollectionDate = $snapshot->getLastCollectionDate();
+        $mandate->revocationDate     = $snapshot->getRevocationDate();
+        $mandate->revocationReason   = $snapshot->getRevocationReason();
+        $mandate->debtorAddress      = $snapshot->getDebtorAddress();
+        $mandate->ownerReference     = $snapshot->getOwnerReference();
+        $mandate->evidence           = $snapshot->getEvidence();
+        $mandate->amendment          = $snapshot->getAmendment();
+
+        return $mandate;
     }
 }

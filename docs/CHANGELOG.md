@@ -64,6 +64,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Symfony Beacon spec 226, second part. Standard Symfony hosts need no change; the 2.1.0 golden-file test still passes
+byte for byte.
+
+### Added
+
+- **P6, bank report parsers:** `PaymentStatusReportParser` (pain.002.001.03 and .10) and
+  `DebitCreditNotificationParser` (camt.054.001.02 and .08), with ports `PaymentStatusReportParserInterface` and
+  `DebitCreditNotificationParserInterface`. They return value objects (`Model\Report\*`): group, block and transaction
+  statuses with `StatusReason` (ISO code → `ReasonCode`, proprietary code, originator, additional information), original
+  EndToEndId / instruction id / mandate id, amounts in integer cents; camt.054 entries with booking / value dates, bank
+  transaction code, batch transactions, parties and return reasons. Every document is size-capped
+  (`reports.max_size`, default 20 MiB), loaded with `LIBXML_NONET` and without DTD, and validated against the official
+  XSD (shipped; source and hashes in `src/Resources/schemas/NOTICE`). Pure parsing: the host does the matching.
+  **Rejections are inherited:** a transaction without `TxSts` takes the block status, else the group status (never
+  PART), through `TransactionStatus::getEffectiveStatus()` / `isRejected()`; `PaymentInformationStatus::isRejected()`
+  and the report helpers `isFullyRejected()`, `getRejectedPaymentInformationIds()`, `getRejectedTransactionStatuses()`
+  and `getRejectedEndToEndIds()` make a group or block reject without transaction lines visible (LF-M1). Each camt.054
+  transaction carries its entry's status (`getEntryStatus()`, `isBooked()`), reversal flag (`isReversal()`) and
+  credit / debit indicator (the entry's when the transaction has none, as in .02); `getBookedTransactions()` and
+  `getEntriesWithoutTransactions()` keep booked entries and entries without details apart (LF-L2). The host's pending
+  libxml errors are kept (LF-I4).
+  Amounts accept every xs:decimal form (`+42.35`, `.5`, `42.`, leading zeros, `-0.00`, trailing zeros up to 5
+  decimals); an amount with non-zero digits beyond the cent or more than 15 integer digits throws a clear
+  `InvalidArgumentException` instead of being rounded.
+- **P8, mandates:** optional `MandateEvidence` (accepted-text hash, time, IP, channel, external id), debtor address,
+  owner reference and `MandateAmendment` on `Mandate`. `DirectDebitTransaction::setAmendment()` writes
+  `MndtRltdInf/AmdmntInd` + `AmdmntInfDtls` (original mandate id, original creditor scheme id / name, original debtor
+  IBAN, or SMNDA for a new debtor bank, which must be collected as FRST).
+- **P8:** `Formatter\IbanMasker` / `IbanMaskerInterface` (`ES91 **** **** **** **** 1332`). Separators are dropped and
+  anything shorter than 15 characters (the shortest IBAN) is fully masked (LF-I1).
+- **Bar gap 2:** `Mandate::toSnapshot()` / `Mandate::reconstitute()` with `MandateSnapshot` (`toArray()` / `fromArray()`,
+  JSON-safe), so a host repository can store mandates in its own table without a bundle entity. `fromArray()` (and
+  `MandateEvidence::fromArray()`) is strict: `mandateId`, `signatureDate`, `debtorIban` and `debtorName` are required,
+  and a missing, empty or relative date (`now`, `tomorrow`, `@0`) throws instead of becoming the current time (LF-L1).
+
+### Changed
+
+- **LB-I2:** `GrpHdr/CtrlSum` and `PmtInf/CtrlSum` of direct debits are written from the integer cents, exact for any
+  total (the library divided a float, inexact beyond 10¹⁵ cents).
+- **LB-I4:** text the generators add after the library (postal addresses, `InitgPty/Id` scheme name and issuer,
+  amendment creditor name) is reduced to the EPC character set like the library's own text; direct debit addresses
+  must fit the EPC lengths (street 70, town 35, postal code 16) and use an uppercase ISO country code, otherwise
+  `generate()` throws. Text that the EPC set reduces to nothing (e.g. only CJK characters in the amendment creditor
+  name or the debtor street) throws, and the address handed to the library is sanitised too (LF-L3).
+- **LB-D-I1:** constructing a generator with `validateXsd: true` and no XSD validator throws instead of silently
+  disabling the validation (the bundle services always have one).
+
 ## [2.2.0] - 2026-11-10
 
 Direct debit: pain.008.001.02/.08/.09 selectable by config and per call, three sequence-type modes, several PmtInf blocks, InitgPty/Id and NOTPROVIDED, EPC amount range, R-transaction reason codes; PHP-version-independent float rounding. See [UPGRADING](https://github.com/nowo-tech/SepaPaymentBundle/blob/v2.2.0/docs/UPGRADING.md#to-220).

@@ -32,6 +32,7 @@ It is safe when the kernel is **not** reset between requests: request-scoped in-
 - ✅ **SEPA Mandates**: Manage SEPA Direct Debit mandates with full support
 - ✅ **Credit Transfer**: Generate SEPA Credit Transfer XML files (pain.001.001.09 format) using Digitick\Sepa library
 - ✅ **Direct Debit**: Generate SEPA Direct Debit XML files (pain.008.001.09 by default; pain.008.001.08 and .02 by config or per call, each validated against its shipped XSD), several payment-information blocks per file, FRST/RCUR per transaction, always RCUR or no `SeqTp`, using Digitick\Sepa library
+- ✅ **Bank reports**: parse pain.002 status reports and camt.054 notifications (rejects, returns, refunds) into typed value objects with ISO reason codes, validated against the official XSDs; mandate evidence, amendments and snapshots; `IbanMasker`
 - ✅ **Standard Symfony and DDD**: zero-config services for controllers, plus string-returning ports (`DirectDebitGeneratorInterface`, `MandateServiceInterface`, ...) and events carrying ids for hexagonal hosts (see [USAGE](docs/USAGE.md#using-it-from-a-ddd--hexagonal-application))
 - ✅ **Array-based API**: Generate both types of payment files from simple array format
 - ✅ **Object-based API**: Generate payment files using typed objects for better type safety

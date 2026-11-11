@@ -84,4 +84,11 @@ final class CreditTransferAmountRangeTest extends TestCase
         self::assertSame('<x/>', $response->getContent());
         self::assertStringContainsString('SepaXmlResponseFactory', $deprecations[0] ?? '');
     }
+
+    public function testConstructorValidateXsdWithoutValidatorIsRefused(): void
+    {
+        $translator = $this->createMock(TranslatorInterface::class);
+        $this->expectExceptionMessage('no XSD validator was given');
+        new CreditTransferGenerator(new IbanValidator(), $translator, null, true);
+    }
 }

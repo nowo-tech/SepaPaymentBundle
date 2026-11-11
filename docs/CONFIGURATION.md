@@ -12,6 +12,7 @@ This document describes the configuration options available for the SEPA Payment
   - [`default_currency`](#default_currency)
   - [`validation_cache`](#validation_cache)
   - [`direct_debit`](#direct_debit)
+  - [`reports`](#reports)
 - [How Configuration Works](#how-configuration-works)
 - [Accessing Configuration in Code](#accessing-configuration-in-code)
 - [Environment-Specific Configuration](#environment-specific-configuration)
@@ -86,6 +87,20 @@ $xml = $generator->generate($data, new DirectDebitGenerationOptions(
     painVersion: $settings->painVersion(),          // e.g. 'pain.008.001.08'
     sequenceTypeMode: $settings->sequenceTypeMode(), // e.g. 'omit'
 ));
+```
+
+### `reports`
+
+Bank report parsers (since 2.3): `PaymentStatusReportParser` (pain.002) and `DebitCreditNotificationParser` (camt.054).
+
+| Key | Default | Effect |
+| --- | --- | --- |
+| `max_size` | `20971520` (20 MiB) | Largest accepted document in bytes; larger reports are refused before parsing. |
+
+```yaml
+nowo_sepa_payment:
+    reports:
+        max_size: 5242880
 ```
 
 ### `validation_cache`

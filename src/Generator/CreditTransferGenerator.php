@@ -39,6 +39,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 
+use function array_map;
 use function count;
 use function is_array;
 use function is_float;
@@ -120,7 +121,11 @@ final class CreditTransferGenerator implements CreditTransferGeneratorInterface
          */
         private readonly ClockInterface $clock = new NativeClock(),
     ) {
-        $this->validateXsd     = $validateXsd && $this->xsdValidator instanceof XsdValidatorInterface;
+        if ($validateXsd && !$this->xsdValidator instanceof XsdValidatorInterface) {
+            // Never disable a requested validation silently (LB-D-I1)
+            throw new InvalidArgumentException('XSD validation was enabled (validateXsd: true) but no XSD validator was given: pass an XsdValidatorInterface (the bundle service has one).');
+        }
+        $this->validateXsd     = $validateXsd;
         $this->stringSanitizer = $stringSanitizer ?? new SepaStringSanitizer();
     }
 
@@ -779,6 +784,9 @@ final class CreditTransferGenerator implements CreditTransferGeneratorInterface
      */
     private function createPostalAddressElement(DOMDocument $dom, DOMElement $parentNode, array $address, string $namespace): void
     {
+        // EPC character set for text added after the library (LB-I4)
+        $address = array_map(fn (?string $value): ?string => $value === null ? null : $this->stringSanitizer->sanitize($value), $address);
+
         // Check if at least one address field is provided
         $hasAddress = !empty($address['street'])
             || !empty($address['city'])

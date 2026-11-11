@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.054.001.08">
+  <BkToCstmrDbtCdtNtfctn>
+    <GrpHdr>
+      <MsgId>CAMT054-20261207-01</MsgId>
+      <CreDtTm>2026-12-07T06:45:00+01:00</CreDtTm>
+    </GrpHdr>
+    <Ntfctn>
+      <Id>NTF-20261207-01</Id>
+      <CreDtTm>2026-12-07T06:45:00+01:00</CreDtTm>
+      <Acct>
+        <Id>
+          <IBAN>ES9121000418450200051332</IBAN>
+        </Id>
+      </Acct>
+      <Ntry>
+        <NtryRef>NTRY-CRDT-1</NtryRef>
+        <Amt Ccy="EUR">1260.50</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Sts>
+          <Cd>BOOK</Cd>
+        </Sts>
+        <BookgDt>
+          <Dt>2026-12-05</Dt>
+        </BookgDt>
+        <ValDt>
+          <DtTm>2026-12-05T00:00:00+01:00</DtTm>
+        </ValDt>
+        <AcctSvcrRef>BANKREF-0002</AcctSvcrRef>
+        <BkTxCd>
+          <Domn>
+            <Cd>PMNT</Cd>
+            <Fmly>
+              <Cd>IDDT</Cd>
+              <SubFmlyCd>ESDD</SubFmlyCd>
+            </Fmly>
+          </Domn>
+        </BkTxCd>
+        <NtryDtls>
+          <Btch>
+            <PmtInfId>REM-2026-12-RCUR</PmtInfId>
+            <NbOfTxs>2</NbOfTxs>
+          </Btch>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>E2E-INV-2001</EndToEndId>
+              <MndtId>MNDT-0003</MndtId>
+            </Refs>
+            <Amt Ccy="EUR">10.00</Amt>
+            <CdtDbtInd>CRDT</CdtDbtInd>
+            <RltdPties>
+              <Dbtr>
+                <Pty>
+                  <Nm>Jan Jansen</Nm>
+                </Pty>
+              </Dbtr>
+              <DbtrAcct>
+                <Id>
+                  <IBAN>NL91ABNA0417164300</IBAN>
+                </Id>
+              </DbtrAcct>
+            </RltdPties>
+          </TxDtls>
+          <TxDtls>
+            <Refs>
+              <InstrId>INSTR-2</InstrId>
+              <EndToEndId>E2E-INV-2002</EndToEndId>
+            </Refs>
+            <Amt Ccy="EUR">1250.50</Amt>
+            <CdtDbtInd>CRDT</CdtDbtInd>
+            <RmtInf>
+              <Ustrd>Invoice 2026-2002</Ustrd>
+              <Ustrd>Second line</Ustrd>
+            </RmtInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">10.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <RvslInd>true</RvslInd>
+        <Sts>
+          <Prtry>REVERSED</Prtry>
+        </Sts>
+        <BkTxCd>
+          <Prtry>
+            <Cd>RET-DD</Cd>
+          </Prtry>
+        </BkTxCd>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>E2E-INV-2001</EndToEndId>
+            </Refs>
+            <Amt Ccy="EUR">10.00</Amt>
+            <CdtDbtInd>DBIT</CdtDbtInd>
+            <RtrInf>
+              <Rsn>
+                <Cd>AC04</Cd>
+              </Rsn>
+            </RtrInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+    </Ntfctn>
+  </BkToCstmrDbtCdtNtfctn>
+</Document>
