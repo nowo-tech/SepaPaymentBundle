@@ -77,7 +77,11 @@ byte for byte.
   transaction code, batch transactions, parties and return reasons. Every document is size-capped
   (`reports.max_size`, default 20 MiB), loaded with `LIBXML_NONET` and without DTD, and validated against the official
   XSD (shipped; source and hashes in `src/Resources/schemas/NOTICE`). Pure parsing: the host does the matching.
-- **P8, mandates:** optional `MandateEvidence` (accepted-text hash, time, IP, channel, external id), debtor address,
+  Amounts accept every xs:decimal form (`+42.35`, `.5`, `42.`, leading zeros, `-0.00`, trailing zeros up to 5
+  decimals); an amount with non-zero digits beyond the cent or more than 15 integer digits throws a clear
+  `InvalidArgumentException` instead of being rounded.
+- **P8, mandates:** optional `MandateEvidence` (accepted-text hash, time, IP, channel, external id; `fromArray()`
+  refuses a missing or empty `acceptedAt` instead of using the current time), debtor address,
   owner reference and `MandateAmendment` on `Mandate`. `DirectDebitTransaction::setAmendment()` writes
   `MndtRltdInf/AmdmntInd` + `AmdmntInfDtls` (original mandate id, original creditor scheme id / name, original debtor
   IBAN, or SMNDA for a new debtor bank, which must be collected as FRST).

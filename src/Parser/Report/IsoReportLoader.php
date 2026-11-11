@@ -24,7 +24,11 @@ use function in_array;
 use function libxml_clear_errors;
 use function libxml_get_errors;
 use function libxml_use_internal_errors;
+use function ltrim;
+use function preg_match;
+use function rtrim;
 use function sprintf;
+use function str_pad;
 use function str_starts_with;
 use function strlen;
 use function substr;
@@ -43,6 +47,9 @@ use const LIBXML_NONET;
  */
 final class IsoReportLoader
 {
+    /** Longest integer part of a report amount (the cents must fit a 64-bit integer). */
+    private const MAX_INTEGER_DIGITS = 15;
+
     /** Namespace prefix registered on the returned XPath. */
     public const PREFIX = 'r';
 
@@ -154,11 +161,33 @@ final class IsoReportLoader
     }
 
     /**
-     * Cents of a schema-valid decimal amount ("12.5" → 1250; digits beyond the cent are rounded half up).
+     * Cents of a schema-valid amount. Every xs:decimal form is accepted ("+42.35", ".5", "42.", leading zeros, "-0.00");
+     * digits beyond the cent must be zeros ("42.35000" is fine, "42.351" cannot be represented in cents).
+     *
+     * @throws InvalidArgumentException If the amount is not a decimal, has a non-zero fraction beyond the cent or more
+     *                                  than 15 integer digits
      */
     public static function cents(?string $value): ?int
     {
-        return $value === null ? null : Amount::centsFromDecimal(trim($value));
+        if ($value === null) {
+            return null;
+        }
+        $trimmed = trim($value);
+        if (preg_match('/^([+-]?)(\d*)(?:\.(\d*))?$/D', $trimmed, $m) !== 1 || ($m[2] === '' && ($m[3] ?? '') === '')) {
+            throw new InvalidArgumentException(sprintf('Invalid report amount "%s": not a decimal number.', $trimmed));
+        }
+        $integer  = ltrim($m[2], '0');
+        $integer  = $integer === '' ? '0' : $integer;
+        $fraction = $m[3] ?? '';
+        if (strlen($integer) > self::MAX_INTEGER_DIGITS) {
+            throw new InvalidArgumentException(sprintf('Invalid report amount "%s": more than %d integer digits.', $trimmed, self::MAX_INTEGER_DIGITS));
+        }
+        if (rtrim(substr($fraction, 2), '0') !== '') {
+            throw new InvalidArgumentException(sprintf('Invalid report amount "%s": it has digits beyond the cent, which cannot be represented in cents.', $trimmed));
+        }
+        $sign = $m[1] === '-' ? '-' : '';
+
+        return Amount::centsFromDecimal($sign . $integer . '.' . str_pad(substr($fraction, 0, 2), 2, '0'));
     }
 
     /**

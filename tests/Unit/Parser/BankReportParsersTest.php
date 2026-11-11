@@ -8,6 +8,7 @@ use InvalidArgumentException;
 use Nowo\SepaPaymentBundle\Model\ReasonCode;
 use Nowo\SepaPaymentBundle\Parser\DebitCreditNotificationParser;
 use Nowo\SepaPaymentBundle\Parser\PaymentStatusReportParser;
+use Nowo\SepaPaymentBundle\Parser\Report\IsoReportLoader;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -228,6 +229,63 @@ final class BankReportParsersTest extends TestCase
         }
         self::assertLessThan(512 * 1024, memory_get_usage() - $baseline);
         self::assertSame([], libxml_get_errors());
+    }
+
+    /**
+     * Every schema-valid xs:decimal form of an amount is read (CodeRabbit on #48).
+     *
+     * @return iterable<string, array{string, int}>
+     */
+    public static function amountFormProvider(): iterable
+    {
+        yield 'plus sign' => ['+42.35', 4235];
+        yield 'no integer digits' => ['.5', 50];
+        yield 'no fraction digits' => ['42.', 4200];
+        yield 'leading zeros beyond 15 digits' => ['0000000000000042.35', 4235];
+        yield 'negative zero' => ['-0.00', 0];
+        yield 'trailing zeros up to 5 decimals' => ['42.35000', 4235];
+        yield 'integer' => ['42', 4200];
+    }
+
+    #[DataProvider('amountFormProvider')]
+    public function testAmountForms(string $amount, int $cents): void
+    {
+        $xml          = str_replace('>42.35<', '>' . $amount . '<', self::fixture('camt.054.001.02-returns.xml'));
+        $notification = (new DebitCreditNotificationParser())->parse($xml);
+
+        self::assertSame($cents, $notification->getNotifications()[0]->getEntries()[0]->getAmountCents());
+        self::assertSame($cents, $notification->getTransactions()[0]->getAmountCents());
+
+        $report = (new PaymentStatusReportParser())->parse(str_replace('>42.35<', '>' . $amount . '<', self::fixture('pain.002.001.03-rejections.xml')));
+        self::assertSame($cents, $report->getTransactionStatuses()[0]->getAmountCents());
+    }
+
+    /**
+     * Schema-valid amounts the bundle cannot represent get a clear error.
+     *
+     * @return iterable<string, array{string, string}>
+     */
+    public static function unrepresentableAmountProvider(): iterable
+    {
+        yield 'sub-cent digits' => ['42.351', 'digits beyond the cent'];
+        yield 'five decimals' => ['42.35001', 'digits beyond the cent'];
+        yield 'more than 15 integer digits' => ['1000000000000000', 'more than 15 integer digits'];
+    }
+
+    #[DataProvider('unrepresentableAmountProvider')]
+    public function testUnrepresentableAmountsAreRejected(string $amount, string $message): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage($message);
+
+        (new DebitCreditNotificationParser())->parse(str_replace('>42.35<', '>' . $amount . '<', self::fixture('camt.054.001.02-returns.xml')));
+    }
+
+    public function testNonDecimalAmountTextIsRejected(): void
+    {
+        self::assertNull(IsoReportLoader::cents(null));
+        $this->expectExceptionMessage('Invalid report amount "1e3": not a decimal number.');
+        IsoReportLoader::cents('1e3');
     }
 
     private static function fixture(string $name): string

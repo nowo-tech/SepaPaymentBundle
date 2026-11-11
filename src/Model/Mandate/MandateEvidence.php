@@ -6,12 +6,14 @@ namespace Nowo\SepaPaymentBundle\Model\Mandate;
 
 use DateTimeImmutable;
 use DateTimeInterface;
+use Exception;
 use InvalidArgumentException;
 
 use function filter_var;
 use function mb_strlen;
 use function preg_match;
 use function sprintf;
+use function trim;
 
 use const FILTER_VALIDATE_IP;
 
@@ -106,10 +108,23 @@ final readonly class MandateEvidence
     /**
      * Rebuilds the evidence from {@see self::toArray()}.
      *
-     * @param array{acceptedTextHash: string, acceptedAt: string, ipAddress?: ?string, channel?: ?string, externalId?: ?string} $data
+     * @param array{acceptedTextHash: string, acceptedAt?: ?string, ipAddress?: ?string, channel?: ?string, externalId?: ?string} $data
+     *
+     * @throws InvalidArgumentException If acceptedAt is missing, empty or not a date, or another value is malformed
      */
     public static function fromArray(array $data): self
     {
-        return new self($data['acceptedTextHash'], new DateTimeImmutable($data['acceptedAt']), $data['ipAddress'] ?? null, $data['channel'] ?? null, $data['externalId'] ?? null);
+        $acceptedAt = trim($data['acceptedAt'] ?? '');
+        if ($acceptedAt === '') {
+            // new DateTimeImmutable('') would silently mean "now"
+            throw new InvalidArgumentException('Invalid mandate evidence: acceptedAt is missing or empty.');
+        }
+        try {
+            $acceptedAtDate = new DateTimeImmutable($acceptedAt);
+        } catch (Exception $e) {
+            throw new InvalidArgumentException(sprintf('Invalid mandate evidence: acceptedAt "%s" is not a date.', $acceptedAt), 0, $e);
+        }
+
+        return new self($data['acceptedTextHash'], $acceptedAtDate, $data['ipAddress'] ?? null, $data['channel'] ?? null, $data['externalId'] ?? null);
     }
 }

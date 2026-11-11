@@ -166,6 +166,34 @@ final class MandateSnapshotTest extends TestCase
         $factory();
     }
 
+    /**
+     * A stored evidence without acceptedAt must not become "now" (CodeRabbit on #48).
+     *
+     * @return iterable<string, array{array<string, mixed>, string}>
+     */
+    public static function badEvidenceRowProvider(): iterable
+    {
+        $hash = str_repeat('a', 64);
+        yield 'missing' => [['acceptedTextHash' => $hash], 'acceptedAt is missing or empty'];
+        yield 'empty' => [['acceptedTextHash' => $hash, 'acceptedAt' => ' '], 'acceptedAt is missing or empty'];
+        yield 'null' => [['acceptedTextHash' => $hash, 'acceptedAt' => null], 'acceptedAt is missing or empty'];
+        yield 'not a date' => [['acceptedTextHash' => $hash, 'acceptedAt' => 'yesterday-ish'], 'is not a date'];
+    }
+
+    /**
+     * @param array<string, mixed> $evidence
+     */
+    #[DataProvider('badEvidenceRowProvider')]
+    public function testEvidenceWithoutAcceptedAtIsRejected(array $evidence, string $message): void
+    {
+        $row             = self::fullMandate()->toSnapshot()->toArray();
+        $row['evidence'] = $evidence;
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage($message);
+        MandateSnapshot::fromArray($row);
+    }
+
     public function testAmendmentArrayRoundTripAndEmptyAddress(): void
     {
         $amendment = new MandateAmendment('UMR-OLD', 'ES59ZZZX1234567', 'Old Creditor', null, true);

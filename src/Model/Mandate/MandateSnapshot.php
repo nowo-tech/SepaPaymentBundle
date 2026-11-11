@@ -198,7 +198,7 @@ final readonly class MandateSnapshot
             isset($data['ownerReference']) ? (string) $data['ownerReference'] : null,
             is_array($data['evidence'] ?? null) ? MandateEvidence::fromArray([
                 'acceptedTextHash' => self::nullableString($data['evidence']['acceptedTextHash'] ?? null) ?? '',
-                'acceptedAt'       => self::nullableString($data['evidence']['acceptedAt'] ?? null) ?? '',
+                'acceptedAt'       => self::nullableString($data['evidence']['acceptedAt'] ?? null),
                 'ipAddress'        => self::nullableString($data['evidence']['ipAddress'] ?? null),
                 'channel'          => self::nullableString($data['evidence']['channel'] ?? null),
                 'externalId'       => self::nullableString($data['evidence']['externalId'] ?? null),
