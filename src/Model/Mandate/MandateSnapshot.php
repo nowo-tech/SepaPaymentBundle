@@ -6,10 +6,12 @@ namespace Nowo\SepaPaymentBundle\Model\Mandate;
 
 use DateTimeImmutable;
 use DateTimeInterface;
+use InvalidArgumentException;
 
 use function is_array;
 use function is_scalar;
-use function is_string;
+use function sprintf;
+use function trim;
 
 /**
  * Immutable snapshot of every field of a {@see Mandate} (DDD path, since 2.3). A host repository stores it in its own
@@ -172,27 +174,31 @@ final readonly class MandateSnapshot
     }
 
     /**
-     * Rebuilds a snapshot from {@see self::toArray()}.
+     * Rebuilds a snapshot from {@see self::toArray()}. Dates must be absolute (ATOM, "Y-m-d H:i:s" or "Y-m-d"): a
+     * missing, empty or relative date ("now", "tomorrow", "@0") throws instead of becoming the current time.
      *
      * @param array<string, mixed> $data
+     *
+     * @throws InvalidArgumentException If mandateId, signatureDate, debtorIban or debtorName is missing or empty, or a
+     *                                  date is not absolute
      */
     public static function fromArray(array $data): self
     {
-        $date = static fn (mixed $value): ?DateTimeImmutable => is_string($value) && $value !== '' ? new DateTimeImmutable($value) : null;
+        $date = static fn (string $field): ?DateTimeImmutable => SnapshotDate::optional($data[$field] ?? null, 'mandate snapshot ' . $field);
 
         return new self(
-            (string) $data['mandateId'],
-            new DateTimeImmutable((string) $data['signatureDate']),
-            (string) $data['debtorIban'],
-            (string) $data['debtorName'],
+            self::requiredString($data, 'mandateId'),
+            SnapshotDate::required($data['signatureDate'] ?? null, 'mandate snapshot signatureDate'),
+            self::requiredString($data, 'debtorIban'),
+            self::requiredString($data, 'debtorName'),
             (string) ($data['type'] ?? 'CORE'),
             (string) ($data['sequenceType'] ?? 'FRST'),
             isset($data['debtorBic']) ? (string) $data['debtorBic'] : null,
             MandateStatus::from((string) ($data['status'] ?? MandateStatus::ACTIVE->value)),
             (bool) ($data['active'] ?? true),
-            $date($data['expirationDate'] ?? null),
-            $date($data['lastCollectionDate'] ?? null),
-            $date($data['revocationDate'] ?? null),
+            $date('expirationDate'),
+            $date('lastCollectionDate'),
+            $date('revocationDate'),
             isset($data['revocationReason']) ? (string) $data['revocationReason'] : null,
             self::address($data['debtorAddress'] ?? null),
             isset($data['ownerReference']) ? (string) $data['ownerReference'] : null,
@@ -222,6 +228,19 @@ final readonly class MandateSnapshot
             'postalCode' => self::nullableString($value['postalCode'] ?? null),
             'country'    => self::nullableString($value['country'] ?? null),
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private static function requiredString(array $data, string $field): string
+    {
+        $value = self::nullableString($data[$field] ?? null);
+        if ($value === null || trim($value) === '') {
+            throw new InvalidArgumentException(sprintf('Invalid mandate snapshot: %s is missing or empty.', $field));
+        }
+
+        return $value;
     }
 
     private static function nullableString(mixed $value): ?string

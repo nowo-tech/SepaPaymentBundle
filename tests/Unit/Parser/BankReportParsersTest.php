@@ -12,6 +12,8 @@ use Nowo\SepaPaymentBundle\Parser\Report\IsoReportLoader;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
+use function array_slice;
+use function count;
 use function dirname;
 use function file_get_contents;
 use function memory_get_usage;
@@ -65,7 +67,7 @@ final class BankReportParsersTest extends TestCase
 
     public function testPain00200110(): void
     {
-        $report = (new PaymentStatusReportParser())->parse(self::fixture('pain.002.001.10-group-rejected.xml'));
+        $report = (new PaymentStatusReportParser())->parse(self::fixture('pain.002.001.10-partially-accepted.xml'));
 
         self::assertSame('pain.002.001.10', $report->getVersion());
         self::assertSame('pain.008.001.08', $report->getOriginalMessageNameId());
@@ -110,7 +112,7 @@ final class BankReportParsersTest extends TestCase
         self::assertSame('BANKREF-0001-1', $transaction->getAccountServicerReference());
         self::assertNull($transaction->getInstructionId());
         self::assertSame(4235, $transaction->getAmountCents());
-        self::assertNull($transaction->getCreditDebitIndicator());
+        self::assertSame('DBIT', $transaction->getCreditDebitIndicator(), 'the entry indicator (.02 has none per transaction)');
         self::assertSame('Maria Garcia Lopez', $transaction->getDebtorName());
         self::assertSame('ES7921000813610123456789', $transaction->getDebtorIban());
         self::assertSame('Nowo Creditor SL', $transaction->getCreditorName());
@@ -212,7 +214,7 @@ final class BankReportParsersTest extends TestCase
         $pain     = new PaymentStatusReportParser();
         $camt     = new DebitCreditNotificationParser();
         $a        = self::fixture('pain.002.001.03-rejections.xml');
-        $b        = self::fixture('pain.002.001.10-group-rejected.xml');
+        $b        = self::fixture('pain.002.001.10-partially-accepted.xml');
         $c        = self::fixture('camt.054.001.08-batch.xml');
         $baseline = 0;
         for ($i = 0; $i < 1000; ++$i) {
@@ -286,6 +288,148 @@ final class BankReportParsersTest extends TestCase
         self::assertNull(IsoReportLoader::cents(null));
         $this->expectExceptionMessage('Invalid report amount "1e3": not a decimal number.');
         IsoReportLoader::cents('1e3');
+    }
+
+    /**
+     * LF-M1: a "total reject" (GrpSts RJCT) without any block or transaction is visible at report level.
+     */
+    public function testGroupRejectWithoutTransactions(): void
+    {
+        $report = (new PaymentStatusReportParser())->parse(self::fixture('pain.002.001.03-group-rejected.xml'));
+
+        self::assertSame('RJCT', $report->getGroupStatus());
+        self::assertTrue($report->isFullyRejected());
+        self::assertSame('REM-2026-12-B', $report->getOriginalMessageId());
+        self::assertSame(ReasonCode::MS03, $report->getGroupReasons()[0]->getReasonCode());
+        self::assertSame([], $report->getTransactionStatuses());
+        self::assertSame([], $report->getRejectedPaymentInformationIds());
+        self::assertSame([], $report->getRejectedEndToEndIds());
+    }
+
+    /**
+     * LF-M1: transactions without TxSts in a rejected block are rejected, and a block without lines is reported.
+     */
+    public function testBlockRejectWithoutTransactionStatus(): void
+    {
+        $report = (new PaymentStatusReportParser())->parse(self::fixture('pain.002.001.10-block-rejected.xml'));
+
+        self::assertTrue($report->isFullyRejected());
+        self::assertSame(['REM-2026-12-C-FRST', 'REM-2026-12-C-RCUR'], $report->getRejectedPaymentInformationIds());
+        self::assertSame(ReasonCode::AM05, $report->getPaymentInformationStatuses()[0]->getReasons()[0]->getReasonCode());
+
+        $transaction = $report->getTransactionStatuses()[0];
+        self::assertNull($transaction->getStatus());
+        self::assertSame('RJCT', $transaction->getEffectiveStatus());
+        self::assertTrue($transaction->isStatusInherited());
+        self::assertTrue($transaction->isRejected());
+        self::assertSame(['E2E-INV-2002'], $report->getRejectedEndToEndIds());
+        self::assertSame([$transaction], $report->getRejectedTransactionStatuses());
+    }
+
+    /**
+     * LF-M1: without PmtInfSts, the block and its transactions take the group status.
+     */
+    public function testBlockWithoutStatusInheritsTheGroupReject(): void
+    {
+        $xml    = str_replace("<PmtInfSts>RJCT</PmtInfSts>\n      <TxInfAndSts>", '<TxInfAndSts>', self::fixture('pain.002.001.10-block-rejected.xml'));
+        $report = (new PaymentStatusReportParser())->parse($xml);
+        $block  = $report->getPaymentInformationStatuses()[1];
+
+        self::assertNull($block->getStatus());
+        self::assertSame('RJCT', $block->getEffectiveStatus());
+        self::assertTrue($block->isRejected());
+        self::assertTrue($report->getTransactionStatuses()[0]->isRejected());
+    }
+
+    /**
+     * LF-M1: PART is never inherited, and an accepted block or group never makes a rejected line accepted.
+     */
+    public function testPartIsNeverInherited(): void
+    {
+        $report = (new PaymentStatusReportParser())->parse(self::fixture('pain.002.001.10-partially-accepted.xml'));
+        self::assertFalse($report->isFullyRejected());
+        self::assertSame([], $report->getRejectedPaymentInformationIds());
+        self::assertSame(['E2E-INV-2002'], $report->getRejectedEndToEndIds(), 'own TxSts RJCT in a PART block');
+        self::assertFalse($report->getPaymentInformationStatuses()[0]->isRejected());
+
+        $withoutTxSts = str_replace('<TxSts>RJCT</TxSts>', '', self::fixture('pain.002.001.10-partially-accepted.xml'));
+        $transaction  = (new PaymentStatusReportParser())->parse($withoutTxSts)->getTransactionStatuses()[0];
+        self::assertNull($transaction->getEffectiveStatus());
+        self::assertFalse($transaction->isStatusInherited());
+        self::assertFalse($transaction->isRejected());
+
+        $groupPartNoBlockStatus = str_replace('<PmtInfSts>PART</PmtInfSts>', '', $withoutTxSts);
+        $report                 = (new PaymentStatusReportParser())->parse($groupPartNoBlockStatus);
+        self::assertNull($report->getPaymentInformationStatuses()[1]->getEffectiveStatus());
+        self::assertNull($report->getTransactionStatuses()[0]->getEffectiveStatus());
+    }
+
+    /**
+     * LF-L2: every camt.054 transaction carries its entry's status, reversal flag and credit / debit indicator.
+     */
+    public function testCamtTransactionsCarryTheEntryContext(): void
+    {
+        $notification = (new DebitCreditNotificationParser())->parse(self::fixture('camt.054.001.02-returns.xml'));
+        $transaction  = $notification->getTransactions()[0];
+        self::assertSame('BOOK', $transaction->getEntryStatus());
+        self::assertTrue($transaction->isBooked());
+        self::assertFalse($transaction->isReversal());
+        self::assertSame('DBIT', $transaction->getCreditDebitIndicator(), '.02 has no TxDtls/CdtDbtInd: the entry value applies');
+        self::assertSame($notification->getTransactions(), $notification->getBookedTransactions());
+
+        $pending = (new DebitCreditNotificationParser())->parse(str_replace('<Sts>BOOK</Sts>', '<Sts>PDNG</Sts>', self::fixture('camt.054.001.02-returns.xml')));
+        self::assertFalse($pending->getTransactions()[0]->isBooked());
+        self::assertSame('PDNG', $pending->getTransactions()[0]->getEntryStatus());
+        self::assertSame([], $pending->getBookedTransactions());
+
+        $batch    = (new DebitCreditNotificationParser())->parse(self::fixture('camt.054.001.08-batch.xml'));
+        $reversal = $batch->getTransactions()[2];
+        self::assertSame('E2E-INV-2001', $reversal->getEndToEndId());
+        self::assertTrue($reversal->isReversal());
+        self::assertSame('REVERSED', $reversal->getEntryStatus());
+        self::assertFalse($reversal->isBooked());
+        self::assertSame('DBIT', $reversal->getCreditDebitIndicator());
+        self::assertSame([$batch->getTransactions()[0], $batch->getTransactions()[1]], $batch->getBookedTransactions());
+    }
+
+    /**
+     * LF-L2: an entry without TxDtls (batch booked as one amount) is listed separately.
+     */
+    public function testEntryWithoutTransactionDetails(): void
+    {
+        $xml          = (string) preg_replace('#<NtryDtls>.*?</NtryDtls>#s', '', self::fixture('camt.054.001.02-returns.xml'), 1);
+        $notification = (new DebitCreditNotificationParser())->parse($xml);
+
+        self::assertSame([], $notification->getTransactions());
+        self::assertCount(1, $notification->getEntriesWithoutTransactions());
+        self::assertSame(4235, $notification->getEntriesWithoutTransactions()[0]->getAmountCents());
+    }
+
+    /**
+     * LF-I4: the host's pending libxml errors are kept.
+     */
+    public function testHostLibxmlErrorsAreKept(): void
+    {
+        $previous = libxml_use_internal_errors(true);
+        try {
+            simplexml_load_string('<host-broken');
+            $hostErrors = libxml_get_errors();
+            self::assertNotSame([], $hostErrors);
+
+            (new PaymentStatusReportParser())->parse(self::fixture('pain.002.001.03-rejections.xml'));
+            try {
+                (new PaymentStatusReportParser())->parse('<broken');
+                self::fail('A broken report must throw.');
+            } catch (InvalidArgumentException $e) {
+                self::assertStringContainsString('not well-formed', $e->getMessage());
+            }
+
+            self::assertEquals($hostErrors, array_slice(libxml_get_errors(), 0, count($hostErrors)));
+            self::assertTrue(libxml_use_internal_errors(true));
+        } finally {
+            libxml_clear_errors();
+            libxml_use_internal_errors($previous);
+        }
     }
 
     private static function fixture(string $name): string

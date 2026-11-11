@@ -17,7 +17,9 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use function array_filter;
 use function array_map;
 use function implode;
+use function in_array;
 use function sprintf;
+use function trim;
 
 /**
  * Parses bank-to-customer debit / credit notifications (camt.054.001.02 and camt.054.001.08): booked collections,
@@ -77,21 +79,25 @@ final class DebitCreditNotificationParser implements DebitCreditNotificationPars
     {
         $p      = IsoReportLoader::PREFIX . ':';
         $amount = IsoReportLoader::elements($xpath, $p . 'Amt', $entry)[0];
+        // xs:boolean: "true" or "1"
+        $reversal  = in_array(trim((string) IsoReportLoader::text($xpath, $p . 'RvslInd', $entry)), ['true', '1'], true);
+        $indicator = (string) IsoReportLoader::text($xpath, $p . 'CdtDbtInd', $entry);
+        // .02: <Sts>BOOK</Sts>; .08: <Sts><Cd>BOOK</Cd></Sts> (or Prtry)
+        $status = IsoReportLoader::text($xpath, $p . 'Sts/' . $p . 'Cd | ' . $p . 'Sts/' . $p . 'Prtry', $entry) ?? IsoReportLoader::text($xpath, $p . 'Sts', $entry);
 
         return new NotificationEntry(
             IsoReportLoader::text($xpath, $p . 'NtryRef', $entry),
             (int) IsoReportLoader::cents($amount->textContent),
             $amount->getAttribute('Ccy'),
-            (string) IsoReportLoader::text($xpath, $p . 'CdtDbtInd', $entry),
-            IsoReportLoader::text($xpath, $p . 'RvslInd', $entry) === 'true',
-            // .02: <Sts>BOOK</Sts>; .08: <Sts><Cd>BOOK</Cd></Sts> (or Prtry)
-            IsoReportLoader::text($xpath, $p . 'Sts/' . $p . 'Cd | ' . $p . 'Sts/' . $p . 'Prtry', $entry) ?? IsoReportLoader::text($xpath, $p . 'Sts', $entry),
+            $indicator,
+            $reversal,
+            $status,
             IsoReportLoader::date(IsoReportLoader::text($xpath, $p . 'BookgDt/' . $p . 'Dt | ' . $p . 'BookgDt/' . $p . 'DtTm', $entry)),
             IsoReportLoader::date(IsoReportLoader::text($xpath, $p . 'ValDt/' . $p . 'Dt | ' . $p . 'ValDt/' . $p . 'DtTm', $entry)),
             IsoReportLoader::text($xpath, $p . 'AcctSvcrRef', $entry),
             $this->bankTransactionCode($xpath, $entry),
             array_map(
-                fn (DOMElement $transaction): NotificationTransaction => $this->transaction($xpath, $transaction),
+                fn (DOMElement $transaction): NotificationTransaction => $this->transaction($xpath, $transaction, $status, $reversal, $indicator),
                 IsoReportLoader::elements($xpath, $p . 'NtryDtls/' . $p . 'TxDtls', $entry),
             ),
         );
@@ -112,7 +118,7 @@ final class DebitCreditNotificationParser implements DebitCreditNotificationPars
         return IsoReportLoader::text($xpath, $p . 'BkTxCd/' . $p . 'Prtry/' . $p . 'Cd', $entry);
     }
 
-    private function transaction(DOMXPath $xpath, DOMElement $transaction): NotificationTransaction
+    private function transaction(DOMXPath $xpath, DOMElement $transaction, ?string $entryStatus, bool $entryReversal, string $entryIndicator): NotificationTransaction
     {
         $p = IsoReportLoader::PREFIX . ':';
         // .08: TxDtls/Amt; .02 (and .08 without Amt): AmtDtls/TxAmt/Amt, then AmtDtls/InstdAmt/Amt
@@ -139,6 +145,9 @@ final class DebitCreditNotificationParser implements DebitCreditNotificationPars
             IsoReportLoader::text($xpath, $p . 'RltdPties/' . $p . 'CdtrAcct/' . $p . 'Id/' . $p . 'IBAN', $transaction),
             IsoReportLoader::texts($xpath, $p . 'RmtInf/' . $p . 'Ustrd', $transaction),
             $return,
+            $entryStatus,
+            $entryReversal,
+            $entryIndicator === '' ? null : $entryIndicator,
         );
     }
 }

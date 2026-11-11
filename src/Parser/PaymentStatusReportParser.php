@@ -55,6 +55,7 @@ final class PaymentStatusReportParser implements PaymentStatusReportParserInterf
         $root              = '/' . $p . 'Document/' . $p . 'CstmrPmtStsRpt/';
         $group             = IsoReportLoader::elements($xpath, $root . $p . 'OrgnlGrpInfAndSts')[0]
             ?? throw new InvalidArgumentException('The report has no OrgnlGrpInfAndSts.');
+        $groupStatus = IsoReportLoader::text($xpath, $p . 'GrpSts', $group);
 
         return new PaymentStatusReport(
             $version,
@@ -62,31 +63,36 @@ final class PaymentStatusReportParser implements PaymentStatusReportParserInterf
             IsoReportLoader::date(IsoReportLoader::text($xpath, $root . $p . 'GrpHdr/' . $p . 'CreDtTm')),
             (string) IsoReportLoader::text($xpath, $p . 'OrgnlMsgId', $group),
             (string) IsoReportLoader::text($xpath, $p . 'OrgnlMsgNmId', $group),
-            IsoReportLoader::text($xpath, $p . 'GrpSts', $group),
+            $groupStatus,
             IsoReportLoader::reasons($xpath, $p . 'StsRsnInf', $group),
             array_map(
-                fn (DOMElement $block): PaymentInformationStatus => $this->paymentInformation($xpath, $block),
+                fn (DOMElement $block): PaymentInformationStatus => $this->paymentInformation($xpath, $block, $groupStatus),
                 IsoReportLoader::elements($xpath, $root . $p . 'OrgnlPmtInfAndSts'),
             ),
         );
     }
 
-    private function paymentInformation(DOMXPath $xpath, DOMElement $block): PaymentInformationStatus
+    private function paymentInformation(DOMXPath $xpath, DOMElement $block, ?string $groupStatus): PaymentInformationStatus
     {
-        $p = IsoReportLoader::PREFIX . ':';
+        $p           = IsoReportLoader::PREFIX . ':';
+        $blockStatus = IsoReportLoader::text($xpath, $p . 'PmtInfSts', $block);
+        // A transaction without TxSts takes the block status, else the group status; PART is never inherited
+        $inherited = $blockStatus ?? $groupStatus;
+        $inherited = $inherited === 'PART' ? null : $inherited;
 
         return new PaymentInformationStatus(
             (string) IsoReportLoader::text($xpath, $p . 'OrgnlPmtInfId', $block),
-            IsoReportLoader::text($xpath, $p . 'PmtInfSts', $block),
+            $blockStatus,
             IsoReportLoader::reasons($xpath, $p . 'StsRsnInf', $block),
             array_map(
-                fn (DOMElement $transaction): TransactionStatus => $this->transaction($xpath, $transaction),
+                fn (DOMElement $transaction): TransactionStatus => $this->transaction($xpath, $transaction, $inherited),
                 IsoReportLoader::elements($xpath, $p . 'TxInfAndSts', $block),
             ),
+            $groupStatus,
         );
     }
 
-    private function transaction(DOMXPath $xpath, DOMElement $transaction): TransactionStatus
+    private function transaction(DOMXPath $xpath, DOMElement $transaction, ?string $inheritedStatus): TransactionStatus
     {
         $p      = IsoReportLoader::PREFIX . ':';
         $amount = IsoReportLoader::elements($xpath, $p . 'OrgnlTxRef/' . $p . 'Amt/' . $p . 'InstdAmt', $transaction)[0] ?? null;
@@ -101,6 +107,7 @@ final class PaymentStatusReportParser implements PaymentStatusReportParserInterf
             $amount?->getAttribute('Ccy'),
             IsoReportLoader::date(IsoReportLoader::text($xpath, $p . 'OrgnlTxRef/' . $p . 'ReqdColltnDt', $transaction)),
             IsoReportLoader::text($xpath, $p . 'OrgnlTxRef/' . $p . 'MndtRltdInf/' . $p . 'MndtId', $transaction),
+            $inheritedStatus,
         );
     }
 }

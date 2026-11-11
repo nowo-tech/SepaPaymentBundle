@@ -632,6 +632,44 @@ final class DirectDebitGenerator22Test extends TestCase
     }
 
     /**
+     * LF-L3: text that the EPC character set reduces to nothing is refused, instead of an empty element or the
+     * library's unsanitised AdrLine.
+     */
+    public function testTextEmptyAfterSanitizingIsRefused(): void
+    {
+        $data = $this->singleBlockData();
+        $data->getTransactions()[0]->setAmendment(new MandateAmendment(null, 'ES59ZZZX7654321', '東京商事'));
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('original creditor name of the amendment of transaction "E2E-1"');
+        (new DirectDebitGenerator(new IbanValidator()))->generate($data);
+    }
+
+    public function testDebtorStreetEmptyAfterSanitizingIsRefused(): void
+    {
+        $data = $this->singleBlockData();
+        $data->getTransactions()[0]->setDebtorAddress('東京', null, null, null);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('debtor address of transaction "E2E-1" street "東京": nothing is left after reducing it to the EPC character set');
+        (new DirectDebitGenerator(new IbanValidator()))->generate($data);
+    }
+
+    /**
+     * LF-L3: the address passed to the library is sanitised too, so no raw AdrLine is written.
+     */
+    public function testDebtorStreetIsSanitisedEverywhere(): void
+    {
+        $data = $this->singleBlockData();
+        $data->getTransactions()[0]->setDebtorAddress('Straße 1 <b>', null, null, null);
+
+        $xml = (new DirectDebitGenerator(new IbanValidator(), $this->xsdValidator, true))->generate($data);
+
+        self::assertStringNotContainsString('Straße', $xml);
+        self::assertSame(['Strasse 1 b'], self::values($xml, '//ns:Dbtr/ns:PstlAdr/ns:StrtNm'));
+    }
+
+    /**
      * LB-D-I1: validateXsd in the constructor without a validator is refused instead of silently ignored.
      */
     public function testConstructorValidateXsdWithoutValidatorIsRefused(): void

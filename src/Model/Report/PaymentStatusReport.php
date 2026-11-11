@@ -12,6 +12,10 @@ use Nowo\SepaPaymentBundle\Parser\PaymentStatusReportParser;
  * {@see PaymentStatusReportParser}. Plain values only: the host matches the statuses
  * to its own collections.
  *
+ * A rejection can come at three levels, and the lower levels are often left out: a group RJCT ("total reject") may
+ * carry no block or transaction at all, and a rejected block may list no transaction. Check
+ * {@see self::isFullyRejected()} and {@see self::getRejectedPaymentInformationIds()} before the transaction lines.
+ *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
  */
@@ -124,5 +128,67 @@ final readonly class PaymentStatusReport
         }
 
         return $transactions;
+    }
+
+    /**
+     * Whether the whole original file was rejected (`GrpSts` RJCT): every collection of
+     * {@see self::getOriginalMessageId()}, even when the report lists no block or transaction.
+     */
+    public function isFullyRejected(): bool
+    {
+        return $this->groupStatus === 'RJCT';
+    }
+
+    /**
+     * The original PmtInfId of every rejected block ({@see PaymentInformationStatus::isRejected()}), in file order.
+     *
+     * @return list<string>
+     */
+    public function getRejectedPaymentInformationIds(): array
+    {
+        $ids = [];
+        foreach ($this->paymentInformationStatuses as $block) {
+            if ($block->isRejected()) {
+                $ids[] = $block->getOriginalPaymentInformationId();
+            }
+        }
+
+        return $ids;
+    }
+
+    /**
+     * Every transaction rejected by its own, its block's or the group's status, in file order.
+     *
+     * @return list<TransactionStatus>
+     */
+    public function getRejectedTransactionStatuses(): array
+    {
+        $rejected = [];
+        foreach ($this->getTransactionStatuses() as $transaction) {
+            if ($transaction->isRejected()) {
+                $rejected[] = $transaction;
+            }
+        }
+
+        return $rejected;
+    }
+
+    /**
+     * The original EndToEndId of every rejected transaction line (see {@see self::getRejectedTransactionStatuses()}).
+     * Collections of a rejected group or block that the report does not list are not here: check
+     * {@see self::isFullyRejected()} and {@see self::getRejectedPaymentInformationIds()} too.
+     *
+     * @return list<string>
+     */
+    public function getRejectedEndToEndIds(): array
+    {
+        $ids = [];
+        foreach ($this->getRejectedTransactionStatuses() as $transaction) {
+            if ($transaction->getOriginalEndToEndId() !== null) {
+                $ids[] = $transaction->getOriginalEndToEndId();
+            }
+        }
+
+        return $ids;
     }
 }

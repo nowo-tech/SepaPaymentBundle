@@ -34,7 +34,18 @@ final class IbanMaskerTest extends TestCase
 
         self::assertSame('', $masker->mask(''));
         self::assertSame('********', $masker->mask('ES912100'));
-        self::assertSame('ES91*1234', $masker->mask('ES9101234'));
+        self::assertSame('*********', $masker->mask('ES9101234'));
+        // LF-I1: a 9-14 character non-IBAN shows nothing; the shortest IBAN (NO, 15) is masked partially
+        self::assertSame('**************', $masker->mask('ABCDEFGHIJKLMN'));
+        self::assertSame('NO93*******7947', $masker->mask('NO9386011117947'));
+    }
+
+    public function testSeparatorsAreDropped(): void
+    {
+        $masker = new IbanMasker();
+
+        self::assertSame('ES91 **** **** **** **** 1332', $masker->maskFormatted("ES91-2100-0418\u{00A0}4502-0005-1332"));
+        self::assertSame('', $masker->mask(' - '));
     }
 
     public function testVisibleEndIsBounded(): void

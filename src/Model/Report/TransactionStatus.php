@@ -10,6 +10,9 @@ use DateTimeImmutable;
  * Status of one original transaction in a payment status report (pain.002 `TxInfAndSts`). Match it to your
  * collection by {@see self::getOriginalEndToEndId()}; the bundle does no matching.
  *
+ * `TxSts` is optional: a transaction without it takes the status of its block, else of the group (never PART, which
+ * says nothing about a single transaction). {@see self::isRejected()} uses that effective status.
+ *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
  */
@@ -27,6 +30,7 @@ final readonly class TransactionStatus
      * @param ?string $currency The currency of the original amount
      * @param ?DateTimeImmutable $requestedCollectionDate The original requested collection date (`OrgnlTxRef/ReqdColltnDt`)
      * @param ?string $mandateId The original mandate id (`OrgnlTxRef/MndtRltdInf/MndtId`)
+     * @param ?string $inheritedStatus The block or group status that applies when `TxSts` is absent (never "PART")
      */
     public function __construct(
         private ?string $statusId,
@@ -38,6 +42,7 @@ final readonly class TransactionStatus
         private ?string $currency,
         private ?DateTimeImmutable $requestedCollectionDate,
         private ?string $mandateId,
+        private ?string $inheritedStatus = null,
     ) {
     }
 
@@ -124,10 +129,26 @@ final readonly class TransactionStatus
     }
 
     /**
-     * Whether the transaction was rejected (`TxSts` RJCT).
+     * The status that applies to the transaction: `TxSts`, else the block status, else the group status (never "PART").
+     */
+    public function getEffectiveStatus(): ?string
+    {
+        return $this->status ?? ($this->inheritedStatus === 'PART' ? null : $this->inheritedStatus);
+    }
+
+    /**
+     * Whether the effective status comes from the block or the group (the transaction has no `TxSts`).
+     */
+    public function isStatusInherited(): bool
+    {
+        return $this->status === null && $this->getEffectiveStatus() !== null;
+    }
+
+    /**
+     * Whether the transaction was rejected: `TxSts` RJCT, or no `TxSts` in a rejected block or group.
      */
     public function isRejected(): bool
     {
-        return $this->status === 'RJCT';
+        return $this->getEffectiveStatus() === 'RJCT';
     }
 }

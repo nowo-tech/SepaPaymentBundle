@@ -174,10 +174,14 @@ final class MandateSnapshotTest extends TestCase
     public static function badEvidenceRowProvider(): iterable
     {
         $hash = str_repeat('a', 64);
-        yield 'missing' => [['acceptedTextHash' => $hash], 'acceptedAt is missing or empty'];
-        yield 'empty' => [['acceptedTextHash' => $hash, 'acceptedAt' => ' '], 'acceptedAt is missing or empty'];
-        yield 'null' => [['acceptedTextHash' => $hash, 'acceptedAt' => null], 'acceptedAt is missing or empty'];
-        yield 'not a date' => [['acceptedTextHash' => $hash, 'acceptedAt' => 'yesterday-ish'], 'is not a date'];
+        yield 'missing' => [['acceptedTextHash' => $hash], 'acceptedAt: it is missing or empty'];
+        yield 'empty' => [['acceptedTextHash' => $hash, 'acceptedAt' => ' '], 'acceptedAt: it is missing or empty'];
+        yield 'null' => [['acceptedTextHash' => $hash, 'acceptedAt' => null], 'acceptedAt: it is missing or empty'];
+        yield 'not a date' => [['acceptedTextHash' => $hash, 'acceptedAt' => 'yesterday-ish'], 'use an absolute date'];
+        yield 'now' => [['acceptedTextHash' => $hash, 'acceptedAt' => 'now'], 'use an absolute date'];
+        yield 'tomorrow' => [['acceptedTextHash' => $hash, 'acceptedAt' => 'tomorrow'], 'use an absolute date'];
+        yield 'timestamp' => [['acceptedTextHash' => $hash, 'acceptedAt' => '@0'], 'use an absolute date'];
+        yield 'invalid day' => [['acceptedTextHash' => $hash, 'acceptedAt' => '2026-02-30T10:00:00+01:00'], 'use an absolute date'];
     }
 
     /**
@@ -192,6 +196,58 @@ final class MandateSnapshotTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage($message);
         MandateSnapshot::fromArray($row);
+    }
+
+    /**
+     * LF-L1: a damaged row never becomes "now": required fields and absolute dates.
+     *
+     * @return iterable<string, array{array<string, mixed>, string}>
+     */
+    public static function badSnapshotRowProvider(): iterable
+    {
+        foreach (['mandateId', 'signatureDate', 'debtorIban', 'debtorName'] as $field) {
+            yield $field . ' missing' => [[$field => '__unset__'], $field];
+            yield $field . ' empty' => [[$field => ''], $field];
+        }
+        foreach (['now', 'tomorrow', '@0', 'next monday', '2026-13-01'] as $value) {
+            yield 'signatureDate ' . $value => [['signatureDate' => $value], 'use an absolute date'];
+            yield 'expirationDate ' . $value => [['expirationDate' => $value], 'expirationDate'];
+        }
+        yield 'revocationDate empty' => [['revocationDate' => ''], 'revocationDate: it is missing or empty'];
+    }
+
+    /**
+     * @param array<string, mixed> $changes
+     */
+    #[DataProvider('badSnapshotRowProvider')]
+    public function testDamagedSnapshotRowsAreRejected(array $changes, string $message): void
+    {
+        $row = self::fullMandate()->toSnapshot()->toArray();
+        foreach ($changes as $field => $value) {
+            if ($value === '__unset__') {
+                unset($row[$field]);
+            } else {
+                $row[$field] = $value;
+            }
+        }
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage($message);
+        MandateSnapshot::fromArray($row);
+    }
+
+    /**
+     * LF-L1: the absolute formats a host may store are accepted.
+     */
+    public function testAbsoluteDateFormatsAreAccepted(): void
+    {
+        $row = self::fullMandate()->toSnapshot()->toArray();
+        foreach (['2026-01-15' => '2026-01-15 00:00:00', '2026-01-15 10:20:30' => '2026-01-15 10:20:30', '2026-01-15T10:20:30+01:00' => '2026-01-15 10:20:30', '2026-01-15T10:20:30.123456+01:00' => '2026-01-15 10:20:30'] as $stored => $expected) {
+            $row['signatureDate'] = $stored;
+            self::assertSame($expected, MandateSnapshot::fromArray($row)->getSignatureDate()->format('Y-m-d H:i:s'), $stored);
+        }
+        $row['expirationDate'] = null;
+        self::assertNull(MandateSnapshot::fromArray($row)->getExpirationDate());
     }
 
     public function testAmendmentArrayRoundTripAndEmptyAddress(): void

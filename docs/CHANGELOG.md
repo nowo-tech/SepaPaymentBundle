@@ -77,17 +77,27 @@ byte for byte.
   transaction code, batch transactions, parties and return reasons. Every document is size-capped
   (`reports.max_size`, default 20 MiB), loaded with `LIBXML_NONET` and without DTD, and validated against the official
   XSD (shipped; source and hashes in `src/Resources/schemas/NOTICE`). Pure parsing: the host does the matching.
+  **Rejections are inherited:** a transaction without `TxSts` takes the block status, else the group status (never
+  PART), through `TransactionStatus::getEffectiveStatus()` / `isRejected()`; `PaymentInformationStatus::isRejected()`
+  and the report helpers `isFullyRejected()`, `getRejectedPaymentInformationIds()`, `getRejectedTransactionStatuses()`
+  and `getRejectedEndToEndIds()` make a group or block reject without transaction lines visible (LF-M1). Each camt.054
+  transaction carries its entry's status (`getEntryStatus()`, `isBooked()`), reversal flag (`isReversal()`) and
+  credit / debit indicator (the entry's when the transaction has none, as in .02); `getBookedTransactions()` and
+  `getEntriesWithoutTransactions()` keep booked entries and entries without details apart (LF-L2). The host's pending
+  libxml errors are kept (LF-I4).
   Amounts accept every xs:decimal form (`+42.35`, `.5`, `42.`, leading zeros, `-0.00`, trailing zeros up to 5
   decimals); an amount with non-zero digits beyond the cent or more than 15 integer digits throws a clear
   `InvalidArgumentException` instead of being rounded.
-- **P8, mandates:** optional `MandateEvidence` (accepted-text hash, time, IP, channel, external id; `fromArray()`
-  refuses a missing or empty `acceptedAt` instead of using the current time), debtor address,
+- **P8, mandates:** optional `MandateEvidence` (accepted-text hash, time, IP, channel, external id), debtor address,
   owner reference and `MandateAmendment` on `Mandate`. `DirectDebitTransaction::setAmendment()` writes
   `MndtRltdInf/AmdmntInd` + `AmdmntInfDtls` (original mandate id, original creditor scheme id / name, original debtor
   IBAN, or SMNDA for a new debtor bank, which must be collected as FRST).
-- **P8:** `Formatter\IbanMasker` / `IbanMaskerInterface` (`ES91 **** **** **** **** 1332`).
+- **P8:** `Formatter\IbanMasker` / `IbanMaskerInterface` (`ES91 **** **** **** **** 1332`). Separators are dropped and
+  anything shorter than 15 characters (the shortest IBAN) is fully masked (LF-I1).
 - **Bar gap 2:** `Mandate::toSnapshot()` / `Mandate::reconstitute()` with `MandateSnapshot` (`toArray()` / `fromArray()`,
-  JSON-safe), so a host repository can store mandates in its own table without a bundle entity.
+  JSON-safe), so a host repository can store mandates in its own table without a bundle entity. `fromArray()` (and
+  `MandateEvidence::fromArray()`) is strict: `mandateId`, `signatureDate`, `debtorIban` and `debtorName` are required,
+  and a missing, empty or relative date (`now`, `tomorrow`, `@0`) throws instead of becoming the current time (LF-L1).
 
 ### Changed
 
@@ -96,7 +106,8 @@ byte for byte.
 - **LB-I4:** text the generators add after the library (postal addresses, `InitgPty/Id` scheme name and issuer,
   amendment creditor name) is reduced to the EPC character set like the library's own text; direct debit addresses
   must fit the EPC lengths (street 70, town 35, postal code 16) and use an uppercase ISO country code, otherwise
-  `generate()` throws.
+  `generate()` throws. Text that the EPC set reduces to nothing (e.g. only CJK characters in the amendment creditor
+  name or the debtor street) throws, and the address handed to the library is sanitised too (LF-L3).
 - **LB-D-I1:** constructing a generator with `validateXsd: true` and no XSD validator throws instead of silently
   disabling the validation (the bundle services always have one).
 

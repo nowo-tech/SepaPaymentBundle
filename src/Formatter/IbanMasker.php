@@ -18,8 +18,8 @@ use function substr;
 
 /**
  * Masks IBANs for display, logs and CSV exports: the country code and check digits (4 characters) and at most the last
- * 4 characters stay visible, everything else becomes "*". Anything shorter than 9 characters (not an IBAN) is fully
- * masked, so a malformed value never leaks. Stateless (worker safe); usable without the container (`new IbanMasker()`).
+ * 4 characters stay visible, everything else becomes "*". Spaces, dashes and other separators are dropped first.
+ * Anything shorter than 15 characters (the shortest IBAN, Norway) is fully masked, so a malformed value never leaks. Stateless (worker safe); usable without the container (`new IbanMasker()`).
  *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
@@ -36,8 +36,8 @@ final class IbanMasker implements IbanMaskerInterface
     /** Largest number of visible trailing characters. */
     private const MAX_VISIBLE_END = 4;
 
-    /** Shortest value that is masked partially. */
-    private const MIN_PARTIAL_LENGTH = 9;
+    /** Shortest value that is masked partially: the shortest IBAN (NO, 15 characters). */
+    private const MIN_PARTIAL_LENGTH = 15;
 
     public function mask(string $iban, int $visibleEnd = 4): string
     {
@@ -45,7 +45,7 @@ final class IbanMasker implements IbanMaskerInterface
             throw new InvalidArgumentException(sprintf('Invalid number of visible IBAN characters %d: use 0 to %d.', $visibleEnd, self::MAX_VISIBLE_END));
         }
 
-        $normalised = strtoupper((string) preg_replace('/\s+/', '', $iban));
+        $normalised = strtoupper((string) preg_replace('/[^A-Za-z0-9]+/', '', $iban));
         $length     = strlen($normalised);
         if ($length < self::MIN_PARTIAL_LENGTH) {
             return str_repeat('*', $length);

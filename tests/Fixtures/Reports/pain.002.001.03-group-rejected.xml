@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.002.001.03">
+  <CstmrPmtStsRpt>
+    <GrpHdr>
+      <MsgId>STS-20261204-0007</MsgId>
+      <CreDtTm>2026-12-04T07:45:00</CreDtTm>
+      <InitgPty>
+        <Id>
+          <OrgId>
+            <BICOrBEI>CAIXESBBXXX</BICOrBEI>
+          </OrgId>
+        </Id>
+      </InitgPty>
+    </GrpHdr>
+    <OrgnlGrpInfAndSts>
+      <OrgnlMsgId>REM-2026-12-B</OrgnlMsgId>
+      <OrgnlMsgNmId>pain.008.001.02</OrgnlMsgNmId>
+      <OrgnlNbOfTxs>2</OrgnlNbOfTxs>
+      <OrgnlCtrlSum>100.00</OrgnlCtrlSum>
+      <GrpSts>RJCT</GrpSts>
+      <StsRsnInf>
+        <Rsn>
+          <Cd>MS03</Cd>
+        </Rsn>
+        <AddtlInf>Total reject: the file was not processed</AddtlInf>
+      </StsRsnInf>
+    </OrgnlGrpInfAndSts>
+  </CstmrPmtStsRpt>
+</Document>

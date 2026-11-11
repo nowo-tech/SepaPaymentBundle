@@ -56,6 +56,7 @@ use function is_string;
 use function sprintf;
 use function strlen;
 use function trigger_error;
+use function trim;
 
 use const E_USER_DEPRECATED;
 use const ENT_XML1;
@@ -826,6 +827,8 @@ final class DirectDebitGenerator implements DirectDebitGeneratorInterface
         object $transferInformation,
         array $address
     ): void {
+        // EPC character set before the library writes it (LF-L3: the library may keep its own AdrLine)
+        $address = array_map(fn (?string $value): ?string => $value === null ? null : $this->stringSanitizer->sanitize($value), $address);
         if (method_exists($transferInformation, 'setPostalAddress')) {
             $transferInformation->setPostalAddress(
                 $address['street'] ?? '',
@@ -861,6 +864,7 @@ final class DirectDebitGenerator implements DirectDebitGeneratorInterface
         object $paymentInformation,
         array $address
     ): void {
+        $address = array_map(fn (?string $value): ?string => $value === null ? null : $this->stringSanitizer->sanitize($value), $address);
         // Try to set creditor postal address using available methods
         if (method_exists($paymentInformation, 'setCreditorPostalAddress')) {
             $paymentInformation->setCreditorPostalAddress(
@@ -1193,6 +1197,10 @@ final class DirectDebitGenerator implements DirectDebitGeneratorInterface
             $field = sprintf('debtor address of transaction "%s"', $transaction->getEndToEndId());
             $this->assertUtf8Address($field, $transaction->getDebtorAddress());
             $this->assertEpcAddress($field, $transaction->getDebtorAddress());
+            $originalCreditorName = $transaction->getAmendment()?->getOriginalCreditorName();
+            if ($originalCreditorName !== null) {
+                $this->assertNotEmptyAfterSanitizing(sprintf('original creditor name of the amendment of transaction "%s"', $transaction->getEndToEndId()), $originalCreditorName);
+            }
         }
 
         // EndToEndId identifies a collection for the creditor and its bank: unique in the file (LB-I6)
@@ -1343,6 +1351,19 @@ final class DirectDebitGenerator implements DirectDebitGeneratorInterface
     }
 
     /**
+     * Refuses a non-blank value that the EPC character set reduces to nothing (e.g. only CJK characters): it would
+     * give an empty element, or the library's unsanitised text (LF-L3).
+     *
+     * @throws InvalidArgumentException If nothing is left after sanitising
+     */
+    private function assertNotEmptyAfterSanitizing(string $field, string $value): void
+    {
+        if (trim($value) !== '' && trim($this->stringSanitizer->sanitize($value)) === '') {
+            throw new InvalidArgumentException(sprintf('Invalid %s "%s": nothing is left after reducing it to the EPC character set (Latin letters, digits and basic punctuation).', $field, $value));
+        }
+    }
+
+    /**
      * Checks an address against the EPC limits after sanitising: street 70, town 35, postal code 16, ISO country code.
      *
      * @param string $field What the address is (used in the error message)
@@ -1358,6 +1379,7 @@ final class DirectDebitGenerator implements DirectDebitGeneratorInterface
         foreach (['street' => SepaStringSanitizer::MAX_STREET_LENGTH, 'city' => SepaStringSanitizer::MAX_CITY_LENGTH, 'postalCode' => SepaStringSanitizer::MAX_POSTAL_CODE_LENGTH] as $key => $max) {
             $value = $address[$key] ?? null;
             if ($value !== null) {
+                $this->assertNotEmptyAfterSanitizing($field . ' ' . $key, $value);
                 $this->stringSanitizer->assertMaxLength($field . ' ' . $key, $this->stringSanitizer->sanitize($value), $max);
             }
         }

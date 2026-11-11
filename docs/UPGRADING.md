@@ -171,6 +171,8 @@ Nothing to do for a standard Symfony host. Check these points:
 - **Addresses** added to direct debits and credit transfers are now reduced to the EPC character set (`Straße & Söhne`
   → `Strasse Sohne`), and direct debit addresses longer than the EPC limits (street 70, town 35, postal code 16) or with
   a country code that is not two uppercase letters now throw. Banks rejected those files.
+- **Debtor address text** (street, town, postal code) or an amendment creditor name that becomes empty in the EPC
+  character set (e.g. only CJK characters) now throws, and the address given to the library is sanitised as well.
 - **Hand-built generators** with `validateXsd: true` and no XSD validator now throw in the constructor: pass an
   `XsdValidator` or `false`.
 - **Control sums** of direct debits are exact for any total; files under 10¹³ EUR are unchanged.

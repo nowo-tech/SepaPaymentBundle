@@ -85,4 +85,43 @@ final readonly class DebitCreditNotification
 
         return $transactions;
     }
+
+    /**
+     * Every transaction of a booked entry (`Ntry/Sts` BOOK), in file order. Reversals are included: check
+     * {@see NotificationTransaction::isReversal()}. Booked entries without transaction details are only in
+     * {@see self::getEntriesWithoutTransactions()}.
+     *
+     * @return list<NotificationTransaction>
+     */
+    public function getBookedTransactions(): array
+    {
+        $booked = [];
+        foreach ($this->getTransactions() as $transaction) {
+            if ($transaction->isBooked()) {
+                $booked[] = $transaction;
+            }
+        }
+
+        return $booked;
+    }
+
+    /**
+     * Every entry without transaction details (`NtryDtls/TxDtls`), e.g. a batch booked as one amount: it moves money
+     * that {@see self::getTransactions()} does not list.
+     *
+     * @return list<NotificationEntry>
+     */
+    public function getEntriesWithoutTransactions(): array
+    {
+        $entries = [];
+        foreach ($this->notifications as $notification) {
+            foreach ($notification->getEntries() as $entry) {
+                if ($entry->getTransactions() === []) {
+                    $entries[] = $entry;
+                }
+            }
+        }
+
+        return $entries;
+    }
 }

@@ -19,12 +19,14 @@ final readonly class PaymentInformationStatus
      * @param ?string $status The block status (`PmtInfSts`), e.g. "RJCT", "PART", "ACCP"
      * @param list<StatusReason> $reasons The status reasons of the block (`StsRsnInf`)
      * @param list<TransactionStatus> $transactions The transaction statuses (`TxInfAndSts`)
+     * @param ?string $groupStatus The group status (`GrpSts`), which applies when `PmtInfSts` is absent (never "PART")
      */
     public function __construct(
         private string $originalPaymentInformationId,
         private ?string $status,
         private array $reasons,
         private array $transactions,
+        private ?string $groupStatus = null,
     ) {
     }
 
@@ -62,5 +64,22 @@ final readonly class PaymentInformationStatus
     public function getTransactions(): array
     {
         return $this->transactions;
+    }
+
+    /**
+     * The status that applies to the block: `PmtInfSts`, else the group status (never an inherited "PART").
+     */
+    public function getEffectiveStatus(): ?string
+    {
+        return $this->status ?? ($this->groupStatus === 'PART' ? null : $this->groupStatus);
+    }
+
+    /**
+     * Whether the whole block was rejected (`PmtInfSts` RJCT, or no `PmtInfSts` in a rejected group), with or
+     * without transaction lines.
+     */
+    public function isRejected(): bool
+    {
+        return $this->getEffectiveStatus() === 'RJCT';
     }
 }

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.002.001.10">
+  <CstmrPmtStsRpt>
+    <GrpHdr>
+      <MsgId>STS-20261205-0011</MsgId>
+      <CreDtTm>2026-12-03T09:30:00+01:00</CreDtTm>
+      <DbtrAgt>
+        <FinInstnId>
+          <BICFI>CAIXESBBXXX</BICFI>
+        </FinInstnId>
+      </DbtrAgt>
+    </GrpHdr>
+    <OrgnlGrpInfAndSts>
+      <OrgnlMsgId>REM-2026-12-C</OrgnlMsgId>
+      <OrgnlMsgNmId>pain.008.001.08</OrgnlMsgNmId>
+      <OrgnlNbOfTxs>2</OrgnlNbOfTxs>
+      <GrpSts>RJCT</GrpSts>
+    </OrgnlGrpInfAndSts>
+    <OrgnlPmtInfAndSts>
+      <OrgnlPmtInfId>REM-2026-12-C-FRST</OrgnlPmtInfId>
+      <PmtInfSts>RJCT</PmtInfSts>
+      <StsRsnInf>
+        <Rsn>
+          <Cd>AM05</Cd>
+        </Rsn>
+      </StsRsnInf>
+    </OrgnlPmtInfAndSts>
+    <OrgnlPmtInfAndSts>
+      <OrgnlPmtInfId>REM-2026-12-C-RCUR</OrgnlPmtInfId>
+      <PmtInfSts>RJCT</PmtInfSts>
+      <TxInfAndSts>
+        <OrgnlInstrId>INSTR-2</OrgnlInstrId>
+        <OrgnlEndToEndId>E2E-INV-2002</OrgnlEndToEndId>
+        <OrgnlUETR>8b1f4f2e-6c7d-4e9a-9b2d-1a2b3c4d5e6f</OrgnlUETR>
+        <OrgnlTxRef>
+          <Amt>
+            <InstdAmt Ccy="EUR">1250.5</InstdAmt>
+          </Amt>
+          <ReqdColltnDt>2026-12-05</ReqdColltnDt>
+          <MndtRltdInf>
+            <MndtId>MNDT-0002</MndtId>
+          </MndtRltdInf>
+        </OrgnlTxRef>
+      </TxInfAndSts>
+    </OrgnlPmtInfAndSts>
+  </CstmrPmtStsRpt>
+</Document>

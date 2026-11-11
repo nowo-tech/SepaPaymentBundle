@@ -19,6 +19,7 @@ use Nowo\SepaPaymentBundle\Validator\XsdValidator;
 
 use function array_map;
 use function array_slice;
+use function count;
 use function implode;
 use function in_array;
 use function libxml_clear_errors;
@@ -39,6 +40,8 @@ use const LIBXML_NONET;
 /**
  * Safe loading of ISO 20022 bank reports for the report parsers: size cap, no network, no DTD, a supported namespace
  * and validation against the official XSD shipped with the bundle. Stateless (worker safe).
+ * The host's libxml error mode is restored and its pending libxml errors are kept. Loading the shipped XSD goes
+ * through a host-wide `libxml_set_external_entity_loader()`, if the host set one.
  *
  * @internal
  *
@@ -75,12 +78,13 @@ final class IsoReportLoader
         }
 
         $previous = libxml_use_internal_errors(true);
-        libxml_clear_errors();
+        // Keep the host's pending libxml errors (LF-I4): read only the errors added after them
+        $hostErrors = count(libxml_get_errors());
         try {
             $dom = new DOMDocument();
             // LIBXML_NONET: never fetch anything; no LIBXML_NOENT / DTDLOAD, so no entity expansion from a DTD
             if (!$dom->loadXML($xml, LIBXML_NONET)) {
-                throw new InvalidArgumentException('The report is not well-formed XML: ' . self::errors());
+                throw new InvalidArgumentException('The report is not well-formed XML: ' . self::errors($hostErrors));
             }
             if ($dom->doctype instanceof DOMDocumentType) {
                 throw new InvalidArgumentException('The report must not contain a document type declaration (DTD).');
@@ -92,12 +96,15 @@ final class IsoReportLoader
                 throw new InvalidArgumentException(sprintf('Unsupported report namespace "%s": expected one of %s.', $namespace, implode(', ', $versions)));
             }
 
-            libxml_clear_errors();
+            $offset = count(libxml_get_errors());
             if (!$dom->schemaValidate(XsdValidator::getSchemaDirectory() . '/' . $version . '.xsd')) {
-                throw new InvalidArgumentException(sprintf('The report is not valid against the %s schema: %s', $version, self::errors()));
+                throw new InvalidArgumentException(sprintf('The report is not valid against the %s schema: %s', $version, self::errors($offset)));
             }
         } finally {
-            libxml_clear_errors();
+            // Nothing of ours is left behind; with host errors pending, ours stay after them (libxml cannot drop only ours)
+            if ($hostErrors === 0) {
+                libxml_clear_errors();
+            }
             libxml_use_internal_errors($previous);
         }
 
@@ -210,9 +217,9 @@ final class IsoReportLoader
     /**
      * The first libxml errors as one line.
      */
-    private static function errors(): string
+    private static function errors(int $offset): string
     {
-        $errors = array_map(static fn (LibXMLError $error): string => sprintf('line %d: %s', $error->line, trim($error->message)), array_slice(libxml_get_errors(), 0, 5));
+        $errors = array_map(static fn (LibXMLError $error): string => sprintf('line %d: %s', $error->line, trim($error->message)), array_slice(libxml_get_errors(), $offset, 5));
 
         return $errors === [] ? 'unknown error' : implode('; ', $errors);
     }
