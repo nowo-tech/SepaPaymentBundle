@@ -1289,6 +1289,8 @@ $mandate->getExpirationDate(); // 2028-03-01 (36 months after the last collectio
 
 `MandateService` stores mandates through `MandateRepositoryInterface`. The default implementation (`MandateRepository`) is an **in-memory, request-scoped** store: it is emptied at every unit-of-work boundary: the start of every main request, `kernel.terminate`, the start and end of every Messenger message and `console.terminate` (also in FrankenPHP worker mode or a Messenger consumer without `services_resetter`). Bind `MandateRepositoryInterface` to a persistent implementation (Doctrine or similar) to keep mandates between requests.
 
+One console command run is **one** unit of work: the store is emptied only at `console.terminate`. A long command that walks several tenants (a cron importer, for example) with the in-memory repository still sees tenant A's mandates and debtor IBANs while it processes tenant B. Inside such a loop call `MandateRepository::reset()` (or `clear()`) per tenant, or bind `MandateRepositoryInterface` to a persistent repository.
+
 ## Generating SEPA Credit Transfer (Remesa de Pago)
 
 **Credit transfers (remesas de pago)** are used to send money from the debtor (payer) to the creditor (beneficiary).

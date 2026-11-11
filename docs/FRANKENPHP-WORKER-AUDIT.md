@@ -168,6 +168,7 @@ pass; both run in CI.
 ## Usage recommendations in worker mode
 
 - Bind `MandateRepositoryInterface` to a persistent, stateless repository before using `MandateService` for real data. The default `MandateRepository` is scoped to one unit of work (HTTP request, Messenger message, console run): safe across users, but not a persistence layer.
+- One console command run is **one** unit of work: the store is emptied only at `console.terminate`. A long command that walks several tenants (a cron importer, for example) with the in-memory repository still sees tenant A's mandates and debtor IBANs while it processes tenant B. Inside such a loop call `MandateRepository::reset()` (or `clear()`) per tenant, or bind `MandateRepositoryInterface` to a persistent repository.
 - `BicLookupService::addMapping()` is request-scoped. For mappings that must always apply, pass them via the `$customMappings` constructor argument.
 - If your own services keep per-request state, reset them yourself: the bundle only resets its own services.
 - If you wire a PSR-16 cache into `ValidationCache` or `BicLookupService`, use a shared pool (APCu/Redis/filesystem) rather than an in-process `ArrayAdapter`, which would grow for the worker lifetime.

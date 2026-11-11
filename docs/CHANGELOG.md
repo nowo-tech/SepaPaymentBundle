@@ -78,8 +78,11 @@ Next patch: 2.3.1.
   `WorkerMessageHandledEvent`, `WorkerMessageFailedEvent` and `console.terminate` (Messenger events subscribed by
   name; `symfony/messenger` stays optional). Affected: **1.2.0 to 2.3.0** with the default in-memory repository used
   from a Messenger consumer or console command (1.2.0 to 1.2.26 also leaked between HTTP requests in worker mode,
-  fixed in 1.2.27). Hosts that bind `MandateRepositoryInterface` to a persistent repository are not affected by the
-  mandate part.
+  fixed in 1.2.27). On 1.2.27 to 2.3.0 the stock `messenger:consume` already emptied the store per message through
+  `services_resetter`: exposure there needs a consumer run with `--no-reset` (or a host without `services_resetter`),
+  or FrankenPHP worker HTTP without the resetter where a request ends without a next main request (state kept until
+  then). Hosts that bind `MandateRepositoryInterface` to a persistent repository are not affected by the mandate part.
+  Not covered: one long command that walks several tenants is still one unit of work (see UPGRADING / USAGE).
 
 ### Tests
 

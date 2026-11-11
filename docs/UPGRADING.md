@@ -175,6 +175,10 @@ Next patch: 2.3.1. No API change.
   request. Inside one unit of work (a request, a message, a command run) nothing changes. If a Messenger handler or a
   command relied on mandates created by a previous message or run, bind `MandateRepositoryInterface` to a persistent
   repository (as already recommended): the in-memory store is not a persistence layer.
+- One console command run is **one** unit of work: the store is emptied only at `console.terminate`. A long command
+  that walks several tenants (a cron importer, for example) with the in-memory repository still sees tenant A's mandates
+  and debtor IBANs while it processes tenant B. Inside such a loop call `MandateRepository::reset()` (or `clear()`) per
+  tenant, or bind `MandateRepositoryInterface` to a persistent repository.
 
 ## To 2.3.0
 
