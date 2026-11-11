@@ -206,7 +206,7 @@ $bic = $bicLookup->lookupBic($iban);
 // Returns: 'CUSTOMBIC'
 ```
 
-Mappings added with `addMapping()` are **request-scoped**: they are dropped at the start of the next main request (and on `kernel.reset`), so a tenant-specific mapping never leaks to other requests in FrankenPHP worker mode. For mappings that must always apply, use the `$customMappings` constructor argument:
+Mappings added with `addMapping()` are **request-scoped**: they are dropped at the next unit-of-work boundary (main request start, `kernel.terminate`, each Messenger message, `console.terminate`, and `kernel.reset`), so a tenant-specific mapping never leaks to other requests in FrankenPHP worker mode. For mappings that must always apply, use the `$customMappings` constructor argument:
 
 ```yaml
 # config/services.yaml
@@ -1287,7 +1287,7 @@ $mandate->getExpirationDate(); // 2028-03-01 (36 months after the last collectio
 // setExpirationDate() sets an explicit expiry that takes precedence.
 ```
 
-`MandateService` stores mandates through `MandateRepositoryInterface`. The default implementation (`MandateRepository`) is an **in-memory, request-scoped** store: it is emptied at the start of every main request (also in FrankenPHP worker mode without `services_resetter`). Bind `MandateRepositoryInterface` to a persistent implementation (Doctrine or similar) to keep mandates between requests.
+`MandateService` stores mandates through `MandateRepositoryInterface`. The default implementation (`MandateRepository`) is an **in-memory, request-scoped** store: it is emptied at every unit-of-work boundary: the start of every main request, `kernel.terminate`, the start and end of every Messenger message and `console.terminate` (also in FrankenPHP worker mode or a Messenger consumer without `services_resetter`). Bind `MandateRepositoryInterface` to a persistent implementation (Doctrine or similar) to keep mandates between requests.
 
 ## Generating SEPA Credit Transfer (Remesa de Pago)
 

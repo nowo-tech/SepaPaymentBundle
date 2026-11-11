@@ -10,7 +10,7 @@
 
 This bundle is **FrankenPHP worker mode friendly**.
 
-It is safe when the kernel is **not** reset between requests: request-scoped in-memory state (`MandateRepository`, runtime `BicLookupService::addMapping()`) is cleared at each main request, and `XsdValidator` restores the process-wide libxml error mode. Full audit: [docs/FRANKENPHP-WORKER-AUDIT.md](docs/FRANKENPHP-WORKER-AUDIT.md).
+It is safe when the kernel is **not** reset between requests: request-scoped in-memory state (`MandateRepository`, runtime `BicLookupService::addMapping()`) is cleared at every unit-of-work boundary (main request start, `kernel.terminate`, each Messenger message, `console.terminate`), and `XsdValidator` restores the process-wide libxml error mode. Full audit: [docs/FRANKENPHP-WORKER-AUDIT.md](docs/FRANKENPHP-WORKER-AUDIT.md).
 
 ## Features
 

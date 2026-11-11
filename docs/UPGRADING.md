@@ -167,6 +167,15 @@
 
 ## Unreleased
 
+Next patch: 2.3.1. No API change.
+
+- The default in-memory `MandateRepository` and the runtime `BicLookupService::addMapping()` mappings are now also
+  emptied at `kernel.terminate`, at the start and end of every Messenger message (`WorkerMessageReceivedEvent`,
+  `WorkerMessageHandledEvent`, `WorkerMessageFailedEvent`) and at `console.terminate`, not only at the start of a main
+  request. Inside one unit of work (a request, a message, a command run) nothing changes. If a Messenger handler or a
+  command relied on mandates created by a previous message or run, bind `MandateRepositoryInterface` to a persistent
+  repository (as already recommended): the in-memory store is not a persistence layer.
+
 ## To 2.3.0
 
 From **2.2.0**:

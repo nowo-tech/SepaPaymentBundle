@@ -15,6 +15,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
+use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
+use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
+use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 
 /**
  * Tests for WorkerStateResetSubscriber (worker mode without services_resetter).
@@ -24,12 +27,41 @@ use Symfony\Component\HttpKernel\KernelEvents;
  */
 final class WorkerStateResetSubscriberTest extends TestCase
 {
-    public function testSubscribesToKernelRequestWithHighPriority(): void
+    public function testSubscribesToEveryUnitOfWorkBoundary(): void
     {
         $this->assertSame(
-            [KernelEvents::REQUEST => ['onKernelRequest', 4096]],
+            [
+                KernelEvents::REQUEST                                              => ['onKernelRequest', 4096],
+                KernelEvents::TERMINATE                                            => ['resetState', -4096],
+                'Symfony\\Component\\Messenger\\Event\\WorkerMessageReceivedEvent' => ['resetState', 4096],
+                'Symfony\\Component\\Messenger\\Event\\WorkerMessageHandledEvent'  => ['resetState', -4096],
+                'Symfony\\Component\\Messenger\\Event\\WorkerMessageFailedEvent'   => ['resetState', -4096],
+                'console.terminate'                                                => ['resetState', -4096],
+            ],
             WorkerStateResetSubscriber::getSubscribedEvents(),
         );
+    }
+
+    public function testMessengerEventNamesMatchTheMessengerClasses(): void
+    {
+        $this->assertSame(WorkerMessageReceivedEvent::class, WorkerStateResetSubscriber::MESSENGER_WORKER_MESSAGE_RECEIVED);
+        $this->assertSame(WorkerMessageHandledEvent::class, WorkerStateResetSubscriber::MESSENGER_WORKER_MESSAGE_HANDLED);
+        $this->assertSame(WorkerMessageFailedEvent::class, WorkerStateResetSubscriber::MESSENGER_WORKER_MESSAGE_FAILED);
+    }
+
+    public function testResetStateEmptiesEveryResettable(): void
+    {
+        $repository = new MandateRepository();
+        $bicLookup  = new BicLookupService(new IbanValidator());
+        $subscriber = new WorkerStateResetSubscriber([$repository, $bicLookup]);
+
+        $repository->save(new Mandate('M-TENANT-A', new DateTime('2024-01-01'), 'ES9121000418450200051332', 'Alice', 'CORE', 'FRST'));
+        $bicLookup->addMapping('ES', '2100', 'TENANTAXX');
+
+        $subscriber->resetState();
+
+        $this->assertNull($repository->findById('M-TENANT-A'));
+        $this->assertSame('CAIXESBB', $bicLookup->lookupBic('ES9121000418450200051332'));
     }
 
     public function testTwoConsecutiveMainRequestsDoNotShareState(): void
