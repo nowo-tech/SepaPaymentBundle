@@ -3,11 +3,12 @@
 | Field | Value |
 |-------|-------|
 | Package | `nowo-tech/sepa-payment-bundle` (`symfony-bundle`) |
-| Audited revision | `v1.2.27` |
-| Audit date | 2026-09-25 |
+| Audited revision | `v2.3.0` + fix for 2.3.1 (REQ-RUNTIME-002 sweep, batch A1) |
+| Audit date | 2026-11-11 (first audit 2026-09-25, `v1.2.27`) |
 | Method | Manual review of every file under `src/` (DI extension, `services.yaml`, generators, parsers, validators, constraint validators, lookup, cache, exporter, logger, repository, mandate service, commands); models and events skimmed |
 | Remediation (2026-09-23) | W-01/W-02 resolved with a bundle-owned `kernel.request` subscriber (`src/EventSubscriber/WorkerStateResetSubscriber.php`) that resets `ResetInterface` services tagged `nowo_sepa_payment.request_scoped` on every main request; W-03 resolved (libxml flag restored in `finally`). Regression tests: `tests/Integration/WorkerModeIntegrationTest.php`, `tests/Unit/EventSubscriber/WorkerStateResetSubscriberTest.php` |
-| **Verdict** | ✅ **Viable under scenario B** — the default in-memory `MandateRepository` and runtime `BicLookupService::addMapping()` mappings are now request-scoped (reset at the start of each main request, and on `kernel.reset`); everything else is stateless. The in-memory repository is still not a persistence layer: bind `MandateRepositoryInterface` to a persistent implementation in production. |
+| Remediation (2026-11-11, 2.3.1) | W-05 resolved: `WorkerStateResetSubscriber` also resets at `kernel.terminate`, the Messenger worker events (`WorkerMessageReceivedEvent`, `WorkerMessageHandledEvent`, `WorkerMessageFailedEvent`) and `console.terminate`. Worker test: `tests/Integration/WorkerModeIntegrationTest.php` (N = 500 HTTP + 500 Messenger, two tenants, memory margin 1 MiB) |
+| **Verdict** | ✅ **Viable under scenario B, kernel reset false (REQ-RUNTIME-002)** — the default in-memory `MandateRepository` and runtime `BicLookupService::addMapping()` mappings are scoped to one unit of work (HTTP request, Messenger message, console run) by the bundle's own subscriber, and on `kernel.reset`; everything else is stateless. The in-memory repository is still not a persistence layer: bind `MandateRepositoryInterface` to a persistent implementation in production. |
 
 ## Table of contents
 
@@ -19,6 +20,9 @@
   - [W-02 — `BicLookupService::addMapping()` mutates a shared lookup table (Medium)](#w-02--biclookupserviceaddmapping-mutates-a-shared-lookup-table-medium)
   - [W-03 — `XsdValidator` forces the process-wide libxml error mode to `false` (Low)](#w-03--xsdvalidator-forces-the-process-wide-libxml-error-mode-to-false-low)
   - [W-04 — Third-party static sanitizer in `digitick/sepa-xml` (Info)](#w-04--third-party-static-sanitizer-in-digiticksepa-xml-info)
+  - [W-05 — Mandate store not reset at Messenger or console boundaries (High)](#w-05--mandate-store-not-reset-at-messenger-or-console-boundaries-high)
+- [Boundary events](#boundary-events)
+- [Worker test](#worker-test)
 - [Usage recommendations in worker mode](#usage-recommendations-in-worker-mode)
 - [Re-audit triggers](#re-audit-triggers)
 
@@ -35,7 +39,7 @@ A bundle that is safe under **B** is safe under **A** and under classic mode / P
 
 | Area | Status | Notes |
 |------|--------|-------|
-| Mutable state in shared services | ✅ | `MandateRepository` (`$mandates` / `$history`) and `BicLookupService` (`$bicDatabase` after `addMapping()`) are reset at the start of each main request by `WorkerStateResetSubscriber` |
+| Mutable state in shared services | ✅ | `MandateRepository` (`$mandates` / `$history`) and `BicLookupService` (`$bicDatabase` after `addMapping()`) are reset at every unit-of-work boundary by `WorkerStateResetSubscriber` (see [Boundary events](#boundary-events)) |
 | Static properties / `static` locals | ✅ | None in `src/` (only `static fn` closures and pure static enum helpers in `MandateStatus`) |
 | `ResetInterface` / `kernel.reset` coverage | ✅ | `MandateRepository` and `BicLookupService` implement `ResetInterface` (autoconfigured `kernel.reset` + `nowo_sepa_payment.request_scoped`); scenario B does not depend on `services_resetter` |
 | Request / user / locale captured in services | ✅ | Data is passed as method arguments; translator is only called at runtime; dates are created per call |
@@ -43,7 +47,7 @@ A bundle that is safe under **B** is safe under **A** and under classic mode / P
 | Doctrine / EntityManager | ✅ N/A | No Doctrine; mandate persistence is an in-memory array (see W-01) |
 | Output, headers, `exit`, shutdown functions | ✅ | None; `SepaXmlResponseFactory::createResponse()` (and the deprecated generator `createResponse()`) returns a Symfony `Response` |
 | Resources (files, sockets, cURL) held open | ✅ | `php://temp` stream opened and closed per CSV export; `file_get_contents()` only in a CLI command |
-| Memory growth across requests | ✅ | Both stores are bounded by one request (reset per main request) |
+| Memory growth across requests | ✅ | Both stores are bounded by one unit of work; the worker test asserts < 1 MiB growth over 500 HTTP requests and 500 Messenger messages |
 | Blocking I/O and timeouts | ✅ | No network I/O; XSD validation reads local files only |
 | Third-party static state | ⚠️ Info | `digitick/sepa-xml` has a static `Sanitizer::$callback`; the bundle never changes it |
 | PHPStan FrankenPHP rulesets | ✅ | `ruleset-classic.neon` + `ruleset-worker.neon` included in `phpstan.neon.dist` |
@@ -54,9 +58,9 @@ All classes are registered by resource in `src/Resources/config/services.yaml` w
 
 | Service | Shared | Mutable state | Scenario A | Scenario B |
 |---------|--------|---------------|------------|------------|
-| `Repository\MandateRepository` (default for `MandateRepositoryInterface`) | yes | `$mandates`, `$history` arrays filled by `save()` / `addHistory()`; request-scoped | ✅ `reset()` via `kernel.reset` | ✅ reset per main request |
+| `Repository\MandateRepository` (default for `MandateRepositoryInterface`) | yes | `$mandates`, `$history` arrays filled by `save()` / `addHistory()`; request-scoped | ✅ `reset()` via `kernel.reset` | ✅ reset per unit of work |
 | `Service\MandateService` | yes | none itself (`readonly` repository, clock, optional PSR-14 dispatcher); inherits repository state | ✅ | ✅ |
-| `Lookup\BicLookupService` (default for `BicLookupServiceInterface`) | yes | `$bicDatabase` mutated by public `addMapping()` (request-scoped); `$customMappings` readonly; `$cache` optional injected adapter (`#[WorkerSafe]`) | ✅ `reset()` via `kernel.reset` | ✅ reset per main request |
+| `Lookup\BicLookupService` (default for `BicLookupServiceInterface`) | yes | `$bicDatabase` mutated by public `addMapping()` (request-scoped); `$customMappings` readonly; `$cache` optional injected adapter (`#[WorkerSafe]`) | ✅ `reset()` via `kernel.reset` | ✅ reset per unit of work |
 | `Generator\CreditTransferGenerator`, `Generator\DirectDebitGenerator` | yes | `$validateXsd`, default pain.008 version and sequence type mode set once in the constructor (`readonly`); per-call `DirectDebitGenerationOptions` are resolved into locals and never stored (tested: .09 then .02 then default on one instance, and 2,000 alternating calls with flat memory) | ✅ (uses `BicLookupService`, see W-02) | ✅ |
 | `Generator\RemesaGenerator` (deprecated) | yes | `readonly` inner `CreditTransferGenerator` | ✅ | ✅ |
 | `Generator\IdentifierGenerator` | yes | none (`date()` + `random_bytes()` per call) | ✅ | ✅ |
@@ -113,9 +117,58 @@ Value objects (`CreditTransferData`, `DirectDebitData`, `Mandate`, `MandateHisto
 
 Good patterns observed: every generator, parser, validator and exporter is stateless with `readonly` dependencies; dates are created per call (`SepaBusinessRulesValidator.php:75`, `:120`), not in constructors; `ValidationCache` delegates to an external PSR-16 cache keyed by `md5` of the value and stores only booleans.
 
+### W-05 — Mandate store not reset at Messenger or console boundaries (High)
+
+- **Where:** `src/EventSubscriber/WorkerStateResetSubscriber.php` subscribed only to `kernel.request` (main requests).
+- **Worker impact:** a Messenger consumer (or a long-running console command) never dispatches `kernel.request`, so the
+  in-memory `MandateRepository` (debtor IBAN and name, status, history) and runtime BIC mappings kept message A's data
+  for message B, and grew for the life of the consumer. Only `kernel.reset` cleared them, which a host running with
+  reset false does not call. Rule 1 of REQ-RUNTIME-002.
+- **Affected versions:** 1.2.0 (first in-memory mandate store) to 2.3.0. 1.2.0 to 1.2.26 also leaked between HTTP
+  requests in worker mode (W-01, fixed in 1.2.27).
+- **Status:** Resolved in 2.3.1 — see [Boundary events](#boundary-events). Tests: `tests/Integration/WorkerModeIntegrationTest.php`,
+  `tests/Unit/EventSubscriber/WorkerStateResetSubscriberTest.php`.
+
+## Boundary events
+
+`WorkerStateResetSubscriber` (registered by the bundle, private) resets every `ResetInterface` service of the bundle
+(tag `nowo_sepa_payment.request_scoped`: `MandateRepository`, `BicLookupService`) at:
+
+| Event | Priority | Why |
+|-------|----------|-----|
+| `kernel.request` (main request only) | 4096 | start of an HTTP request; sub-requests keep their main request's state |
+| `kernel.terminate` | -4096 | end of an HTTP request, so nothing stays in memory between requests |
+| `WorkerMessageReceivedEvent` | 4096 | start of a Messenger message |
+| `WorkerMessageHandledEvent` / `WorkerMessageFailedEvent` | -4096 | end of a Messenger message (success or failure) |
+| `console.terminate` | -4096 | end of a console command |
+
+The Messenger events are subscribed by class name strings, so `symfony/messenger` stays optional. `kernel.reset`
+(`ResetInterface`) still empties both services when the host runs the resetter, but the bundle does not rely on it.
+
+## Worker test
+
+`tests/Integration/WorkerModeIntegrationTest.php` boots **one** `TestKernel` (`debug: false`) and never calls
+`services_resetter` (kernel reset false):
+
+- `testManyHttpRequestsForTwoTenantsKeepStateIsolatedAndMemoryFlat`: N = 500 main requests alternating tenant A and B
+  (`kernel.request` → create mandate + runtime BIC mapping → `kernel.terminate`).
+- `testManyMessengerMessagesForTwoTenantsKeepStateIsolatedAndMemoryFlat`: N = 500 messages alternating A and B, every
+  fifth one failing (`WorkerMessageReceivedEvent` → work → `WorkerMessageHandledEvent` / `WorkerMessageFailedEvent`).
+- `testMessengerMessageStartsEmptyEvenWithoutAPreviousHandledEvent`, `testConsoleTerminateResetsState`, and the
+  original two-request + sub-request case.
+
+Each unit asserts that it sees no mandate, debtor IBAN, history or BIC mapping of the other tenant or of the previous
+unit, and that the store is empty right after the boundary event. Memory is measured after 50 warm-up units and must
+grow by less than **1 MiB** by the end. N = 500 (not 1,000+) because each unit creates a mandate with history; that is
+enough to expose per-unit growth while keeping the suite fast.
+
+Static checks: `composer igor` and the `nowo-tech/phpstan-frankenphp` classic + worker rulesets (`phpstan.neon.dist`)
+pass; both run in CI.
+
 ## Usage recommendations in worker mode
 
-- Bind `MandateRepositoryInterface` to a persistent, stateless repository before using `MandateService` for real data. The default `MandateRepository` is request-scoped (emptied at each main request): safe across users, but not a persistence layer.
+- Bind `MandateRepositoryInterface` to a persistent, stateless repository before using `MandateService` for real data. The default `MandateRepository` is scoped to one unit of work (HTTP request, Messenger message, console run): safe across users, but not a persistence layer.
+- One console command run is **one** unit of work: the store is emptied only at `console.terminate`. A long command that walks several tenants (a cron importer, for example) with the in-memory repository still sees tenant A's mandates and debtor IBANs while it processes tenant B. Inside such a loop call `MandateRepository::reset()` (or `clear()`) per tenant, or bind `MandateRepositoryInterface` to a persistent repository.
 - `BicLookupService::addMapping()` is request-scoped. For mappings that must always apply, pass them via the `$customMappings` constructor argument.
 - If your own services keep per-request state, reset them yourself: the bundle only resets its own services.
 - If you wire a PSR-16 cache into `ValidationCache` or `BicLookupService`, use a shared pool (APCu/Redis/filesystem) rather than an in-process `ArrayAdapter`, which would grow for the worker lifetime.

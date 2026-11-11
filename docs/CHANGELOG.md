@@ -65,6 +65,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Next patch: 2.3.1.
+
+### Security
+
+- **Mandate data visible across Messenger messages and console runs (REQ-RUNTIME-002):** the in-memory
+  `MandateRepository` (debtor IBANs, names, mandate status and history) and the runtime `BicLookupService::addMapping()`
+  mappings were reset only at the start of a main HTTP request (and by `kernel.reset`). In a long-running Messenger
+  consumer, or a long-running console command, with the kernel kept alive and no services resetter, one message's
+  mandates stayed visible to the next message (another user's or tenant's data) and the store grew for the life of the
+  process. `WorkerStateResetSubscriber` now also resets them at `kernel.terminate`, `WorkerMessageReceivedEvent`,
+  `WorkerMessageHandledEvent`, `WorkerMessageFailedEvent` and `console.terminate` (Messenger events subscribed by
+  name; `symfony/messenger` stays optional). Affected: **1.2.0 to 2.3.0** with the default in-memory repository used
+  from a Messenger consumer or console command (1.2.0 to 1.2.26 also leaked between HTTP requests in worker mode,
+  fixed in 1.2.27). On 1.2.27 to 2.3.0 the stock `messenger:consume` already emptied the store per message through
+  `services_resetter`: exposure there needs a consumer run with `--no-reset` (or a host without `services_resetter`),
+  or FrankenPHP worker HTTP without the resetter where a request ends without a next main request (state kept until
+  then). Hosts that bind `MandateRepositoryInterface` to a persistent repository are not affected by the mandate part.
+  Not covered: one long command that walks several tenants is still one unit of work (see UPGRADING / USAGE).
+
+### Tests
+
+- `tests/Integration/WorkerModeIntegrationTest.php`: one kernel, no services resetter, 500 HTTP requests and 500
+  Messenger messages (some failing) alternating two tenants, plus console terminate; asserts no cross-tenant mandate,
+  debtor IBAN, history or BIC mapping, an empty store right after each boundary, and memory growth under 1 MiB.
+- `symfony/messenger` added to `require-dev` (tests only).
+
+### Documentation
+
+- `docs/FRANKENPHP-WORKER-AUDIT.md` refreshed for 2.3.1 (boundaries, worker test, W-05).
+
 ## [2.3.0] - 2026-11-11
 
 pain.002 and camt.054 parsers (secure loader, effective statuses, booked entries), mandate evidence, amendments and snapshots, IbanMasker, integer CtrlSum and EPC-safe DOM text. See [UPGRADING](https://github.com/nowo-tech/SepaPaymentBundle/blob/v2.3.0/docs/UPGRADING.md#to-230).
