@@ -1002,16 +1002,26 @@ The bundle dispatches Symfony events that allow you to extend functionality with
 
 ### Available Events
 
-- `BeforeCreditTransferGenerationEvent`: Dispatched before Credit Transfer XML generation
-- `AfterCreditTransferGenerationEvent`: Dispatched after Credit Transfer XML generation
-- `BeforeDirectDebitGenerationEvent`: Dispatched before Direct Debit XML generation
-- `AfterDirectDebitGenerationEvent`: Dispatched after Direct Debit XML generation
+Since 2.4.0 every generation event has a framework-free twin in `Nowo\SepaPaymentBundle\Event\Generation`: a plain
+class with the same getters and setters and no Symfony base class (REQ-ARCH-001 rule 3). The generator dispatches the
+legacy event first, exactly as before, then the twin with the values the legacy listeners left, and uses the twin's
+final values. Prefer the twins; the legacy classes are deprecated and removed in 3.0.
+
+| Moment | Twin (2.4.0, preferred) | Legacy (deprecated, extends Symfony `Event`) |
+|--------|-------------------------|----------------------------------------------|
+| Before credit transfer generation | `Generation\CreditTransferGeneratingEvent` | `BeforeCreditTransferGenerationEvent` |
+| After credit transfer generation | `Generation\CreditTransferGeneratedEvent` | `AfterCreditTransferGenerationEvent` |
+| Before direct debit generation | `Generation\DirectDebitGeneratingEvent` | `BeforeDirectDebitGenerationEvent` |
+| After direct debit generation | `Generation\DirectDebitGeneratedEvent` | `AfterDirectDebitGenerationEvent` |
+
+`BeforeValidationEvent` / `AfterValidationEvent` are never dispatched by the bundle (they never were); they are
+deprecated and removed in 3.0.
 
 ### Event Listeners
 
 ```php
-use Nowo\SepaPaymentBundle\Event\BeforeCreditTransferGenerationEvent;
-use Nowo\SepaPaymentBundle\Event\AfterCreditTransferGenerationEvent;
+use Nowo\SepaPaymentBundle\Event\Generation\CreditTransferGeneratedEvent;
+use Nowo\SepaPaymentBundle\Event\Generation\CreditTransferGeneratingEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class SepaPaymentSubscriber implements EventSubscriberInterface
@@ -1019,12 +1029,12 @@ class SepaPaymentSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            BeforeCreditTransferGenerationEvent::class => 'onBeforeGeneration',
-            AfterCreditTransferGenerationEvent::class => 'onAfterGeneration',
+            CreditTransferGeneratingEvent::class => 'onBeforeGeneration',
+            CreditTransferGeneratedEvent::class => 'onAfterGeneration',
         ];
     }
 
-    public function onBeforeGeneration(BeforeCreditTransferGenerationEvent $event): void
+    public function onBeforeGeneration(CreditTransferGeneratingEvent $event): void
     {
         $data = $event->getCreditTransferData();
         
@@ -1035,7 +1045,7 @@ class SepaPaymentSubscriber implements EventSubscriberInterface
         $event->setCreditTransferData($data);
     }
 
-    public function onAfterGeneration(AfterCreditTransferGenerationEvent $event): void
+    public function onAfterGeneration(CreditTransferGeneratedEvent $event): void
     {
         $xml = $event->getXml();
         
@@ -1880,7 +1890,7 @@ public function download(Remittance $remittance, DirectDebitGenerator $generator
 }
 ```
 
-Listen to `AfterDirectDebitGenerationEvent` to log the file (it carries the message id, PmtInf ids, version, count and
+Listen to `Event\Generation\DirectDebitGeneratedEvent` (or the deprecated `AfterDirectDebitGenerationEvent`) to log the file (it carries the message id, PmtInf ids, version, count and
 control sum). Mandates can use `MandateService` with your own `MandateRepositoryInterface` adapter (see below).
 
 ### DDD / hexagonal path
@@ -1933,9 +1943,11 @@ final readonly class SepaDirectDebitFileExporter implements DirectDebitFileExpor
 - Validate input in your application layer with the constraints (`#[Iban]`, `#[Bic]`, `#[SepaCreditorIdentifier]`,
   `#[SepaCountry]`) on command DTOs, or call the validator interfaces from your own domain service adapters. A decorator
   of `IbanValidatorInterface` (blocklist, cache) is used by the generators too.
-- Events carry ids, never entities. `Before*GenerationEvent` exposes the mutable DTO and `getMessageId()`;
-  `AfterDirectDebitGenerationEvent` the XML, message id, PmtInf ids, version, transaction count and control sum.
-- **Events fire before you persist** (P9): `AfterDirectDebitGenerationEvent` is dispatched inside `generate()`, before
+- Events carry ids, never entities, and since 2.4.0 have framework-free twins (`Event\Generation\*`, plain classes,
+  no Symfony base class): listen to those from a DDD host. `DirectDebitGeneratingEvent` /
+  `CreditTransferGeneratingEvent` expose the mutable DTO and `getMessageId()`; `DirectDebitGeneratedEvent` the XML,
+  message id, PmtInf ids, version, transaction count and control sum. The mandate events are plain classes too.
+- **Events fire before you persist** (P9): `DirectDebitGeneratedEvent` (and the legacy `AfterDirectDebitGenerationEvent`) is dispatched inside `generate()`, before
   your code stores or sends the file, and the mandate events right after `MandateRepositoryInterface::save()` — inside
   your transaction if your adapter writes in one. Do not treat them as "committed"; dispatch your own domain event after
   your commit (or through Messenger) when a listener needs the stored row. An exception thrown by a mandate-event

@@ -168,6 +168,12 @@
 
 ## Unreleased
 
+To the next minor (2.4.0): no action needed; legacy listeners keep receiving the same events.
+
+- Move generation listeners to the framework-free twins (`Nowo\SepaPaymentBundle\Event\Generation\DirectDebitGeneratingEvent`, `DirectDebitGeneratedEvent`, `CreditTransferGeneratingEvent`, `CreditTransferGeneratedEvent`); same getters and setters. The legacy `Before*/After*GenerationEvent` classes are removed in 3.0.
+- Order when both are used: legacy listeners run first, then twin listeners, which see (and may change) what the legacy listeners left.
+- `BeforeValidationEvent` / `AfterValidationEvent` were never dispatched by the bundle and are removed in 3.0.
+
 ## To 2.3.1
 
 From **2.3.0**:

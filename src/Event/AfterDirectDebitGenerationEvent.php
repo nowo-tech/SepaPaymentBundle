@@ -14,6 +14,10 @@ use Symfony\Contracts\EventDispatcher\Event;
  * never persists anything: the event fires inside `generate()`, before the host stores or sends the file, so a listener
  * must not assume the remittance is saved (dispatch your own event after your commit for that).
  *
+ * Still dispatched exactly as before; the framework-free twin {@see Generation\DirectDebitGeneratedEvent} follows it.
+ *
+ * @deprecated since 2.4.0, removed in 3.0: listen to {@see Generation\DirectDebitGeneratedEvent} (no Symfony base class)
+ *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
  */

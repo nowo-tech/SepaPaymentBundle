@@ -20,6 +20,8 @@ use Exception;
 use InvalidArgumentException;
 use Nowo\SepaPaymentBundle\Event\AfterCreditTransferGenerationEvent;
 use Nowo\SepaPaymentBundle\Event\BeforeCreditTransferGenerationEvent;
+use Nowo\SepaPaymentBundle\Event\Generation\CreditTransferGeneratedEvent;
+use Nowo\SepaPaymentBundle\Event\Generation\CreditTransferGeneratingEvent;
 use Nowo\SepaPaymentBundle\Http\SepaXmlResponseFactory;
 use Nowo\SepaPaymentBundle\Logger\SepaPaymentLogger;
 use Nowo\SepaPaymentBundle\Lookup\BicLookupServiceInterface;
@@ -169,7 +171,10 @@ final class CreditTransferGenerator implements CreditTransferGeneratorInterface
             if ($this->eventDispatcher instanceof EventDispatcherInterface) {
                 $beforeEvent = new BeforeCreditTransferGenerationEvent($creditTransferData);
                 $this->eventDispatcher->dispatch($beforeEvent);
-                $creditTransferData = $beforeEvent->getCreditTransferData();
+                // 2.4.0: framework-free twin, after the legacy event and with what its listeners left.
+                $generatingEvent = new CreditTransferGeneratingEvent($beforeEvent->getCreditTransferData());
+                $this->eventDispatcher->dispatch($generatingEvent);
+                $creditTransferData = $generatingEvent->getCreditTransferData();
             }
 
             $this->validateCreditTransferData($creditTransferData);
@@ -271,7 +276,10 @@ final class CreditTransferGenerator implements CreditTransferGeneratorInterface
             if ($this->eventDispatcher instanceof EventDispatcherInterface) {
                 $afterEvent = new AfterCreditTransferGenerationEvent($xml, $creditTransferData->getMessageId());
                 $this->eventDispatcher->dispatch($afterEvent);
-                $xml = $afterEvent->getXml();
+                // 2.4.0: framework-free twin, after the legacy event and with the XML its listeners left.
+                $generatedEvent = new CreditTransferGeneratedEvent($afterEvent->getXml(), $afterEvent->getMessageId());
+                $this->eventDispatcher->dispatch($generatedEvent);
+                $xml = $generatedEvent->getXml();
             }
 
             // Log generation success
