@@ -10,6 +10,11 @@ use Symfony\Contracts\EventDispatcher\Event;
  * Event dispatched before validation operations.
  * Allows listeners to modify validation behavior or add custom validation logic.
  *
+ * The bundle's validators never dispatch this event (none has since its introduction in 1.1.0); it only exists for hosts that
+ * dispatch it themselves around their own validation.
+ *
+ * @deprecated since 2.4.0, removed in 3.0: dispatch your own framework-free event instead
+ *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
  */

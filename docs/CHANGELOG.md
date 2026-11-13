@@ -66,6 +66,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Framework-free twins of the generation events (REQ-ARCH-001 rule 3), plain classes without a Symfony base class in `Nowo\SepaPaymentBundle\Event\Generation`: `DirectDebitGeneratingEvent`, `DirectDebitGeneratedEvent`, `CreditTransferGeneratingEvent`, `CreditTransferGeneratedEvent`, with the getters and setters of the legacy events. The generators dispatch each twin right after its legacy event, with the values the legacy listeners left, and use the twin's final data / XML. Without twin listeners the output is byte-identical (equivalence tests).
+
+### Deprecated
+
+- `BeforeDirectDebitGenerationEvent`, `AfterDirectDebitGenerationEvent`, `BeforeCreditTransferGenerationEvent`, `AfterCreditTransferGenerationEvent`: listen to the `Event\Generation` twins. Still dispatched exactly as before; removed in 3.0.
+- `BeforeValidationEvent`, `AfterValidationEvent`: never dispatched by the bundle since they were added in 1.1.0; removed in 3.0.
+
 ### Changed
 
 - Demo uses the UiKit base style and FormKit forms (REQ-DEMO-014/015).

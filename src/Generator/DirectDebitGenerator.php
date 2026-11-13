@@ -20,6 +20,8 @@ use Exception;
 use InvalidArgumentException;
 use Nowo\SepaPaymentBundle\Event\AfterDirectDebitGenerationEvent;
 use Nowo\SepaPaymentBundle\Event\BeforeDirectDebitGenerationEvent;
+use Nowo\SepaPaymentBundle\Event\Generation\DirectDebitGeneratedEvent;
+use Nowo\SepaPaymentBundle\Event\Generation\DirectDebitGeneratingEvent;
 use Nowo\SepaPaymentBundle\Http\SepaXmlResponseFactory;
 use Nowo\SepaPaymentBundle\Logger\SepaPaymentLogger;
 use Nowo\SepaPaymentBundle\Lookup\BicLookupServiceInterface;
@@ -220,7 +222,10 @@ final class DirectDebitGenerator implements DirectDebitGeneratorInterface
             if ($this->eventDispatcher instanceof EventDispatcherInterface) {
                 $beforeEvent = new BeforeDirectDebitGenerationEvent($directDebitData);
                 $this->eventDispatcher->dispatch($beforeEvent);
-                $directDebitData = $beforeEvent->getDirectDebitData();
+                // 2.4.0: framework-free twin, after the legacy event and with what its listeners left.
+                $generatingEvent = new DirectDebitGeneratingEvent($beforeEvent->getDirectDebitData());
+                $this->eventDispatcher->dispatch($generatingEvent);
+                $directDebitData = $generatingEvent->getDirectDebitData();
             }
 
             $this->validateDirectDebitData($directDebitData);
@@ -324,7 +329,17 @@ final class DirectDebitGenerator implements DirectDebitGeneratorInterface
                     $controlSum,
                 );
                 $this->eventDispatcher->dispatch($afterEvent);
-                $xml = $afterEvent->getXml();
+                // 2.4.0: framework-free twin, after the legacy event and with the XML its listeners left.
+                $generatedEvent = new DirectDebitGeneratedEvent(
+                    $afterEvent->getXml(),
+                    $afterEvent->getMessageId(),
+                    $afterEvent->getPaymentInformationIds(),
+                    $afterEvent->getPainVersion(),
+                    $afterEvent->getNumberOfTransactions(),
+                    $afterEvent->getControlSumCents(),
+                );
+                $this->eventDispatcher->dispatch($generatedEvent);
+                $xml = $generatedEvent->getXml();
             }
 
             // Log generation success

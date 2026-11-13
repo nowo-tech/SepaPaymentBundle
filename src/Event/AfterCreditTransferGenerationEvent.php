@@ -10,6 +10,10 @@ use Symfony\Contracts\EventDispatcher\Event;
  * Event dispatched after Credit Transfer XML generation.
  * Allows listeners to modify the generated XML.
  *
+ * Still dispatched exactly as before; the framework-free twin {@see Generation\CreditTransferGeneratedEvent} follows it.
+ *
+ * @deprecated since 2.4.0, removed in 3.0: listen to {@see Generation\CreditTransferGeneratedEvent} (no Symfony base class)
+ *
  * @author Héctor Franco Aceituno <hectorfranco@nowo.tech>
  * @copyright 2026 Nowo.tech
  */
