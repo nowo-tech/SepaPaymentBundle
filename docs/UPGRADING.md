@@ -3,6 +3,7 @@
 ## Table of contents
 
 - [Unreleased](#unreleased)
+- [To 2.4.0](#to-240)
 - [To 2.3.1](#to-231)
 - [To 2.3.0](#to-230)
 - [To 2.2.0](#to-220)
@@ -167,6 +168,14 @@
 - [Getting Help](#getting-help)
 
 ## Unreleased
+
+## To 2.4.0
+
+From **2.3.1**:
+
+```bash
+composer update nowo-tech/sepa-payment-bundle
+```
 
 To the next minor (2.4.0): no action needed; legacy listeners keep receiving the same events.
 

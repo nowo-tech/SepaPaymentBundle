@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Table of contents
 
 - [[Unreleased]](#unreleased)
+- [[2.4.0] - 2026-11-13](#240---2026-11-13)
 - [[2.3.1] - 2026-11-11](#231---2026-11-11)
 - [[2.3.0] - 2026-11-11](#230---2026-11-11)
 - [[2.2.0] - 2026-11-10](#220---2026-11-10)
@@ -66,6 +67,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-11-13
+
 ### Added
 
 - Framework-free twins of the generation events (REQ-ARCH-001 rule 3), plain classes without a Symfony base class in `Nowo\SepaPaymentBundle\Event\Generation`: `DirectDebitGeneratingEvent`, `DirectDebitGeneratedEvent`, `CreditTransferGeneratingEvent`, `CreditTransferGeneratedEvent`, with the getters and setters of the legacy events. The generators dispatch each twin right after its legacy event, with the values the legacy listeners left, and use the twin's final data / XML. Without twin listeners the output is byte-identical (equivalence tests).
@@ -78,6 +81,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Demo uses the UiKit base style and FormKit forms (REQ-DEMO-014/015).
+
+[2.4.0]: https://github.com/nowo-tech/SepaPaymentBundle/releases/tag/v2.4.0
 
 ## [2.3.1] - 2026-11-11
 
