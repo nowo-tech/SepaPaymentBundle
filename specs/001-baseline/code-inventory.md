@@ -2,7 +2,7 @@
 
 **Baseline spec**: [`spec.md`](spec.md)  
 **Package**: `nowo-tech/sepa-payment-bundle`  
-**Last audited**: 2026-10-29  
+**Last audited**: 2026-11-16  
 
 This file proves that **every production source artifact** under `src/` is referenced by the baseline specification. PHPUnit under `tests/` is out of scope; the ISO 20022 XSD files under `Resources/schemas/` ship with the package and are counted.
 
@@ -32,6 +32,8 @@ This file proves that **every production source artifact** under `src/` is refer
 | `Generator/DirectDebitGenerator.php` | pain.008 XML generation | FR-GEN-002 |
 | `Generator/IdentifierGenerator.php` | MsgId / E2E / Mandate IDs | FR-GEN-003 |
 | `Generator/RemesaGenerator.php` | Deprecated CT wrapper | FR-GEN-004 |
+| `Generator/CreditTransferGeneratorInterface.php` | Port: pain.001 XML string, no HTTP types | FR-GEN-001, FR-API-001 |
+| `Generator/DirectDebitGeneratorInterface.php` | Port: pain.008 XML string, no HTTP types | FR-GEN-002, FR-API-001 |
 
 ## Parsers (`src/Parser/`)
 
@@ -41,6 +43,12 @@ This file proves that **every production source artifact** under `src/` is refer
 | `Parser/DirectDebitParser.php` | pain.008 DOM parse | FR-PARSE-002 |
 | `Parser/DirectDebitParserInterface.php` | pain.008 parser contract (2.0) | FR-PARSE-002, FR-API-001 |
 | `Parser/RemesaParser.php` | Deprecated CT parser | FR-PARSE-003 |
+| `Parser/CreditTransferParserInterface.php` | pain.001 parser contract | FR-PARSE-001, FR-API-001 |
+| `Parser/PaymentStatusReportParser.php` | pain.002.001.03 / .10 status reports | FR-REPORT-001 |
+| `Parser/PaymentStatusReportParserInterface.php` | pain.002 parser contract | FR-REPORT-001, FR-API-001 |
+| `Parser/DebitCreditNotificationParser.php` | camt.054.001.02 / .08 notifications | FR-REPORT-002 |
+| `Parser/DebitCreditNotificationParserInterface.php` | camt.054 parser contract | FR-REPORT-002, FR-API-001 |
+| `Parser/Report/IsoReportLoader.php` | Safe report loading: size cap, no network/DTD, namespace + XSD check | FR-REPORT-001, FR-REPORT-002, FR-WORKER-001 |
 
 ## Validators — services (`src/Validator/`)
 
@@ -91,6 +99,26 @@ This file proves that **every production source artifact** under `src/` is refer
 | `Model/Mandate/MandateStatus.php` | Mandate status enum | FR-MODEL-003 |
 | `Model/Remesa/RemesaData.php` | Deprecated CT DTO | FR-MODEL-004 |
 | `Model/Remesa/Transaction.php` | Deprecated transaction | FR-MODEL-004 |
+| `Model/Amount.php` | Exact integer-cent amounts (no float) | FR-MODEL-005 |
+| `Model/PartyIdentification.php` | ISO 20022 generic party id (e.g. initiating party) | FR-GEN-005 |
+| `Model/ReasonCode.php` | ISO 20022 R-transaction reason codes | FR-REPORT-003 |
+| `Model/DirectDebit/DirectDebitGenerationOptions.php` | Per-call DD generator options | FR-GEN-005 |
+| `Model/DirectDebit/Pain008Version.php` | pain.008 versions written | FR-GEN-005 |
+| `Model/DirectDebit/PaymentInformationData.php` | One `PmtInf` block | FR-GEN-005 |
+| `Model/DirectDebit/SequenceType.php` | SequenceType3Code values | FR-GEN-005, FR-MANDATE-001 |
+| `Model/DirectDebit/SequenceTypeMode.php` | How `SeqTp` is written | FR-GEN-005 |
+| `Model/Mandate/MandateAmendment.php` | EPC amendment details | FR-MANDATE-003 |
+| `Model/Mandate/MandateEvidence.php` | Optional e-mandate acceptance evidence | FR-MANDATE-003 |
+| `Model/Mandate/MandateSnapshot.php` | Immutable mandate snapshot for host repositories (DDD path) | FR-MANDATE-003 |
+| `Model/Mandate/SnapshotDate.php` | Strict date parsing of stored rows | FR-MANDATE-003 |
+| `Model/Report/PaymentStatusReport.php` | pain.002 report VO | FR-REPORT-001 |
+| `Model/Report/PaymentInformationStatus.php` | pain.002 block status | FR-REPORT-001 |
+| `Model/Report/TransactionStatus.php` | pain.002 transaction status | FR-REPORT-001 |
+| `Model/Report/StatusReason.php` | Status / return reason | FR-REPORT-001, FR-REPORT-002, FR-REPORT-003 |
+| `Model/Report/DebitCreditNotification.php` | camt.054 message VO | FR-REPORT-002 |
+| `Model/Report/AccountNotification.php` | camt.054 `Ntfctn` | FR-REPORT-002 |
+| `Model/Report/NotificationEntry.php` | camt.054 `Ntry` | FR-REPORT-002 |
+| `Model/Report/NotificationTransaction.php` | camt.054 `TxDtls` | FR-REPORT-002 |
 
 ## Events (`src/Event/`)
 
@@ -102,6 +130,16 @@ This file proves that **every production source artifact** under `src/` is refer
 | `Event/AfterCreditTransferGenerationEvent.php` | Post CT generation | FR-EVENT-002 |
 | `Event/BeforeDirectDebitGenerationEvent.php` | Pre DD generation | FR-EVENT-003 |
 | `Event/AfterDirectDebitGenerationEvent.php` | Post DD generation | FR-EVENT-003 |
+| `Event/Generation/CreditTransferGeneratingEvent.php` | Framework-free pre CT generation | FR-EVENT-004 |
+| `Event/Generation/CreditTransferGeneratedEvent.php` | Framework-free post CT generation | FR-EVENT-004 |
+| `Event/Generation/DirectDebitGeneratingEvent.php` | Framework-free pre DD generation | FR-EVENT-004 |
+| `Event/Generation/DirectDebitGeneratedEvent.php` | Framework-free post DD generation | FR-EVENT-004 |
+| `Event/Mandate/MandateEvent.php` | Base mandate event (ids + plain values) | FR-EVENT-005 |
+| `Event/Mandate/MandateCreatedEvent.php` | Mandate created | FR-EVENT-005 |
+| `Event/Mandate/MandateRevokedEvent.php` | Mandate revoked | FR-EVENT-005 |
+| `Event/Mandate/MandateSuspendedEvent.php` | Mandate suspended | FR-EVENT-005 |
+| `Event/Mandate/MandateReactivatedEvent.php` | Mandate reactivated | FR-EVENT-005 |
+| `Event/Mandate/MandateSequenceTypeChangedEvent.php` | Sequence type changed | FR-EVENT-005 |
 
 ## Export (`src/Exporter/`)
 
@@ -125,6 +163,7 @@ This file proves that **every production source artifact** under `src/` is refer
 | Source file | Spec section | Requirement IDs |
 | --- | --- | --- |
 | `Service/MandateService.php` | Mandate lifecycle | FR-MANDATE-001 |
+| `Service/MandateServiceInterface.php` | Mandate lifecycle port | FR-MANDATE-001, FR-API-001 |
 | `Repository/MandateRepositoryInterface.php` | Persistence contract | FR-MANDATE-002 |
 | `Repository/MandateRepository.php` | In-memory request-scoped repository | FR-MANDATE-002 |
 
@@ -141,6 +180,14 @@ This file proves that **every production source artifact** under `src/` is refer
 | `Converter/CccConverter.php` | Spanish CCC ↔ IBAN | FR-CONV-001 |
 | `Logger/SepaPaymentLogger.php` | Structured PSR-3 logging | FR-LOG-001 |
 
+## Formatter & HTTP edge (`src/Formatter/`, `src/Http/`)
+
+| Source file | Spec section | Requirement IDs |
+| --- | --- | --- |
+| `Formatter/IbanMasker.php` | IBAN masking for display, logs, CSV | FR-MASK-001 |
+| `Formatter/IbanMaskerInterface.php` | IBAN masking port | FR-MASK-001, FR-API-001 |
+| `Http/SepaXmlResponseFactory.php` | XML download response (only HTTP-aware piece) | FR-HTTP-001 |
+
 ## Resources under `src/Resources/`
 
 | Source file | Spec section | Requirement IDs |
@@ -149,6 +196,11 @@ This file proves that **every production source artifact** under `src/` is refer
 | `Resources/schemas/pain.001.001.09.xsd` | ISO 20022 CustomerCreditTransferInitiationV09 schema | FR-VAL-008, FR-GEN-001 |
 | `Resources/schemas/pain.008.001.02.xsd` | ISO 20022 CustomerDirectDebitInitiationV02 schema | FR-VAL-008, FR-GEN-002 |
 | `Resources/schemas/pain.008.001.09.xsd` | ISO 20022 CustomerDirectDebitInitiationV09 schema | FR-VAL-008, FR-GEN-002 |
+| `Resources/schemas/pain.008.001.08.xsd` | ISO 20022 CustomerDirectDebitInitiationV08 schema | FR-VAL-008, FR-GEN-005 |
+| `Resources/schemas/pain.002.001.03.xsd` | ISO 20022 CustomerPaymentStatusReportV03 schema | FR-REPORT-001 |
+| `Resources/schemas/pain.002.001.10.xsd` | ISO 20022 CustomerPaymentStatusReportV10 schema | FR-REPORT-001 |
+| `Resources/schemas/camt.054.001.02.xsd` | ISO 20022 BankToCustomerDebitCreditNotificationV02 schema | FR-REPORT-002 |
+| `Resources/schemas/camt.054.001.08.xsd` | ISO 20022 BankToCustomerDebitCreditNotificationV08 schema | FR-REPORT-002 |
 | `Resources/schemas/NOTICE` | Provenance / licence notice for the bundled ISO 20022 schemas | FR-VAL-008 |
 | `Resources/translations/NowoSepaPaymentBundle.de.yaml` | Constraint messages DE | FR-I18N-001 |
 | `Resources/translations/NowoSepaPaymentBundle.en.yaml` | Constraint messages en | FR-I18N-001 |
@@ -169,16 +221,19 @@ This file proves that **every production source artifact** under `src/` is refer
 | --- | ---: | ---: |
 | Bundle & DI (`src/`) | 4 | 4 |
 | Commands (`src/Command/`) | 4 | 4 |
-| Generators (`src/Generator/`) | 4 | 4 |
-| Parsers (`src/Parser/`) | 4 | 4 |
+| Generators (`src/Generator/`) | 6 | 6 |
+| Parsers (`src/Parser/`) | 10 | 10 |
 | Validators — services (`src/Validator/`) | 16 | 16 |
 | Validators — Symfony constraints (`src/Validator/Constraint/`) | 10 | 10 |
-| Models (`src/Model/`) | 9 | 9 |
-| Events (`src/Event/`) | 6 | 6 |
+| Models (`src/Model/`) | 29 | 29 |
+| Events (`src/Event/`) | 16 | 16 |
 | Export (`src/Exporter/`) | 3 | 3 |
 | Lookup & cache (`src/Lookup/`, `src/Cache/`) | 4 | 4 |
-| Mandate service & repository (`src/Service/`, `src/Repository/`) | 3 | 3 |
+| Mandate service & repository (`src/Service/`, `src/Repository/`) | 4 | 4 |
 | Worker / request lifecycle (`src/EventSubscriber/`) | 1 | 1 |
 | Converter & logger (`src/Converter/`, `src/Logger/`) | 2 | 2 |
-| Resources under `src/Resources/` | 17 | 17 |
-| **Total `src/` artifacts** | **87** | **87** |
+| Formatter & HTTP edge (`src/Formatter/`, `src/Http/`) | 3 | 3 |
+| Resources under `src/Resources/` | 22 | 22 |
+| **Total `src/` artifacts** | **134** | **134** |
+
+Audit: `git ls-files src | wc -l` → 134 (2026-11-16).

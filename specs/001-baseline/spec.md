@@ -56,6 +56,15 @@ See user stories US-01…US-05 in [`docs/SPEC-DRIVEN-DEVELOPMENT.md`](../../docs
 - **FR-GEN-003**: `IdentifierGenerator` MUST produce unique MsgId, PmtInfId, EndToEndId, MandateId values.
 - **FR-GEN-004 / FR-PARSE-003 / FR-MODEL-004**: Deprecated Remesa* classes MUST delegate to CreditTransfer equivalents until removal in 2.0.0.
 - **FR-PARSE-001 / FR-PARSE-002**: Parsers MUST extract header, payment info, and transactions from valid XML.
+- **FR-GEN-005**: The direct debit generator MUST accept per-call `DirectDebitGenerationOptions` (null = bundle config), write several `PmtInf` blocks (`PaymentInformationData`), pain.008.001.02 / .08 / .09 (`Pain008Version`), the sequence type per `SequenceTypeMode`, and an ISO 20022 generic initiating-party id (`PartyIdentification`).
+- **FR-MODEL-005**: `Amount` keeps transaction amounts as integer cents; decimal strings are read digit by digit, never through a float.
+
+### Bank reports
+
+- **FR-REPORT-001**: `PaymentStatusReportParser` MUST parse pain.002.001.03 / .10 into plain value objects (`PaymentStatusReport`, `PaymentInformationStatus`, `TransactionStatus`, `StatusReason`); the host matches statuses by original end-to-end id (the bundle does no matching).
+- **FR-REPORT-002**: `DebitCreditNotificationParser` MUST parse camt.054.001.02 / .08 (`DebitCreditNotification`, `AccountNotification`, `NotificationEntry`, `NotificationTransaction`) including R-transaction return reasons.
+- **FR-REPORT-003**: `ReasonCode` lists the ISO 20022 / EPC reason codes of SEPA R-transactions.
+- Both report parsers load documents through `IsoReportLoader`: size cap, no network, no DTD, supported namespace and validation against the bundled XSD; stateless (worker-safe).
 
 ### Validation
 
@@ -67,10 +76,15 @@ See user stories US-01…US-05 in [`docs/SPEC-DRIVEN-DEVELOPMENT.md`](../../docs
 
 - **FR-MANDATE-001**: Service MUST support create, revoke, suspend, reactivate, sequence transitions, and transaction eligibility checks.
 - **FR-MANDATE-002**: Default in-memory repository is for dev/demo and is **request-scoped** (`ResetInterface` + `WorkerStateResetSubscriber`); production apps MUST bind a persistent implementation.
+- **FR-MANDATE-003**: `MandateSnapshot` is an immutable snapshot of every mandate field so a host repository can store mandates in its own table (DDD path, 2.3); `MandateEvidence` (optional e-mandate acceptance evidence), `MandateAmendment` (EPC amendment details) and strict `SnapshotDate` parsing of stored rows complete it.
 
 ### Events, export, utilities
 
 - **FR-EVENT-001…003**: Before/after hooks for validation and generation MUST allow mutation or short-circuit where documented.
+- **FR-EVENT-004**: 2.4.0 framework-free twins of the generation events (`Event/Generation/*`): plain objects, no Symfony base class (REQ-ARCH-001 rule 3).
+- **FR-EVENT-005**: `MandateService` dispatches `MandateCreated/Revoked/Suspended/Reactivated/SequenceTypeChanged` events (base `MandateEvent`) carrying ids and plain values only.
+- **FR-MASK-001**: `IbanMaskerInterface` / `IbanMasker` mask IBANs for display, logs and CSV exports (country code + check digits and at most the last 4 characters visible).
+- **FR-HTTP-001**: `SepaXmlResponseFactory` wraps generated XML in a download response; the generator ports return plain strings, so hexagonal hosts never need it.
 - **FR-EXPORT-001 / FR-EXPORT-002**: Export/import JSON and CSV via injectable stream handler.
 - **FR-LOOKUP-001**: BIC lookup from IBAN using bundled reference data where country supported; runtime `addMapping()` is request-scoped; permanent mappings via `$customMappings`.
 - **FR-WORKER-001**: Bundle MUST clear tagged request-scoped services at the start of every main HTTP request so FrankenPHP worker mode without kernel reset matches classic PHP-FPM isolation for in-memory state.
@@ -86,7 +100,7 @@ See user stories US-01…US-05 in [`docs/SPEC-DRIVEN-DEVELOPMENT.md`](../../docs
 
 ## Success Criteria
 
-- **SC-001**: **87/87** production files under `src/` mapped in [`code-inventory.md`](code-inventory.md) (audited 2026-10-29; `git ls-files src | wc -l`).
+- **SC-001**: **134/134** production files under `src/` mapped in [`code-inventory.md`](code-inventory.md) (audited 2026-11-16; `git ls-files src | wc -l`).
 - **SC-002**: Generated XML samples in tests pass XSD when schemas enabled.
 - **SC-003**: PHPUnit + PHPStan pass in CI (`composer qa`).
 - **SC-004**: Deprecated APIs documented in CHANGELOG/UPGRADING with 2.0.0 removal target.

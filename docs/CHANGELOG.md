@@ -67,6 +67,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+
+- REQ compliance sweep 2026-11-16: Spec Kit baseline maps the 2.1-2.4 surface (pain.002 / camt.054 report parsers and value objects, mandate snapshot / evidence / amendment, mandate and framework-free generation events, generator / parser / mandate ports, IBAN masker, XML response factory, pain.008 options, new ISO 20022 schemas; FR-GEN-005, FR-MODEL-005, FR-REPORT-001..003, FR-MANDATE-003, FR-EVENT-004/005, FR-MASK-001, FR-HTTP-001), inventory 134/134 (REQ-SPECKIT-001/003); README states the measured PHP coverage, 99.58% (REQ-TEST-007).
+
 ## [2.4.0] - 2026-11-13
 
 ### Added
