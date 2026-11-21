@@ -3,28 +3,26 @@
 {% block title %}SEPA Payment Validation Form Demo{% endblock %}
 
 {% block header_title %}SEPA Payment Validation Form{% endblock %}
+{% block header_intro %}This form demonstrates the use of SEPA Payment Bundle validation constraints (Iban, Bic, SepaCountry, SepaCreditorIdentifier, CreditCard).{% endblock %}
 
 {% block content %}
-    <p class="nowo-ui-muted">This form demonstrates the use of SEPA Payment Bundle validation constraints (Iban, Bic, SepaCountry, SepaCreditorIdentifier, CreditCard)</p>
+    {% embed '@NowoUiKit/demo_platform/_section.html.twig' with {title: 'Payment fields', kind: 'form', testid: 'demo-validation', form: form} %}
+        {% block section_body %}
+            {{ form_start(form, {attr: {id: 'demo-validation-form', class: 'nowo-ui-form'}}) }}
+                {{ form_errors(form) }}
+                {{ form_rest(form) }}
+            {{ form_end(form, {render_rest: false}) }}
+        {% endblock %}
+        {% block section_footer %}
+            <button type="submit" form="demo-validation-form" class="nowo-ui-btn nowo-ui-btn--primary">Validate</button>
+        {% endblock %}
+    {% endembed %}
 
-    {{ form_start(form) }}
-        {{ form_errors(form) }}
-        {{ form_rest(form) }}
-    {{ form_end(form, {render_rest: false}) }}
-
-    {% if isSubmitted %}
-        {% if isValid %}
-            <div class="nowo-ui-flash nowo-ui-flash--success" role="status">
-                <h3>Validation Successful!</h3>
-                <p>All fields passed validation.</p>
-                <strong>Submitted Data:</strong>
-                <pre class="nowo-ui-code-block">{{ submittedData|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
-            </div>
-        {% else %}
-            <div class="nowo-ui-flash nowo-ui-flash--error" role="alert">
-                <strong>Validation Failed</strong>
-                <p>Please correct the errors above and try again.</p>
-            </div>
-        {% endif %}
+    {% if submittedData is not null %}
+        {% embed '@NowoUiKit/demo_platform/_section.html.twig' with {title: 'Submitted data', kind: 'detail', data: submittedData} %}
+            {% block section_body %}
+                <pre class="nowo-ui-code-block" tabindex="0">{{ data|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
+            {% endblock %}
+        {% endembed %}
     {% endif %}
 {% endblock %}

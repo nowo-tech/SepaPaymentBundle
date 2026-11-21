@@ -7,7 +7,7 @@
         "php": ">=8.1,<8.6",
         "nowo-tech/form-kit-bundle": "^2.22",
         "nowo-tech/sepa-payment-bundle": "@dev",
-        "nowo-tech/ui-kit-bundle": "^2.49",
+        "nowo-tech/ui-kit-bundle": "^2.60",
         "symfony/console": "^8.0",
         "symfony/dotenv": "^8.0",
         "symfony/flex": "^2.0",

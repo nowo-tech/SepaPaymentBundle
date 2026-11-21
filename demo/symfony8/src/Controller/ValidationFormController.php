@@ -34,6 +34,9 @@ class ValidationFormController extends AbstractController
             $isValid = $form->isValid();
             if ($isValid) {
                 $submittedData = $form->getData();
+                $this->addFlash('success', 'Validation successful: all fields passed validation.');
+            } else {
+                $this->addFlash('error', 'Validation failed: correct the highlighted fields and try again.');
             }
         }
 

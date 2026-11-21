@@ -12,7 +12,6 @@ use Nowo\SepaPaymentBundle\Validator\Constraint\Iban;
 use Nowo\SepaPaymentBundle\Validator\Constraint\SepaCountry;
 use Nowo\SepaPaymentBundle\Validator\Constraint\SepaCreditorIdentifier;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\NotBlank;
@@ -96,11 +95,6 @@ class PaymentValidationFormType extends AbstractType
             'constraints' => [
                 new CreditCard(),
             ],
-        ]);
-        $this->addWithDefaults($builder, 'validate', SubmitType::class, [
-            'label'              => 'Validate',
-            'translation_domain' => false,
-            'attr'               => ['class' => 'nowo-ui-btn nowo-ui-btn--primary'],
         ]);
     }
 
