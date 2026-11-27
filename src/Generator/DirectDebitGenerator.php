@@ -40,8 +40,8 @@ use Nowo\SepaPaymentBundle\Validator\SepaStringSanitizer;
 use Nowo\SepaPaymentBundle\Validator\XsdValidator;
 use Nowo\SepaPaymentBundle\Validator\XsdValidatorInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Throwable;
 
 use function array_column;
