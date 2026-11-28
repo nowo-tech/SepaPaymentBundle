@@ -49,7 +49,7 @@
         }
     ],
     "require": {
-        "php": ">=8.2 <8.6",
+        "php": ">=8.2 <8.7",
         "digitick/sepa-xml": "^3.0",
         "psr/clock": "^1.0",
         "psr/event-dispatcher": "^1.0",

@@ -1076,7 +1076,7 @@ The generators automatically use the event dispatcher if it's available via depe
 ```php
 use Nowo\SepaPaymentBundle\Generator\CreditTransferGenerator;
 use Nowo\SepaPaymentBundle\Validator\IbanValidator;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Translation\IdentityTranslator;
 
 // The event dispatcher is the 5th constructor argument (after translator, XSD, validateXsd flag)

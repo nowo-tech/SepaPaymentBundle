@@ -36,8 +36,8 @@ use Nowo\SepaPaymentBundle\Validator\XsdValidatorInterface;
 use Psr\Clock\ClockInterface;
 use Symfony\Component\Clock\NativeClock;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 

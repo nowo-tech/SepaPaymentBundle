@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e67ba4bd308a689b9011cd0997bb24cf",
+    "content-hash": "04f836035fce1f1cb241b6f14e6aa45d",
     "packages": [
         {
             "name": "digitick/sepa-xml",
@@ -6744,7 +6744,7 @@
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=8.2 <8.6"
+        "php": ">=8.2 <8.7"
     },
     "platform-dev": {},
     "platform-overrides": {
