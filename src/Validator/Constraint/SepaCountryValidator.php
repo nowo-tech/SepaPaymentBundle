@@ -55,7 +55,7 @@ final class SepaCountryValidator extends ConstraintValidator
         if (!$this->sepaCountryValidator->isSepaCountry($value)) {
             $this->context->buildViolation($constraint->message)
                 ->setTranslationDomain($constraint->translationDomain)
-                ->setParameter('{{ value }}', $this->formatValue($value))
+                ->setParameters(['{{ value }}' => $this->formatValue($value)])
                 ->setCode(SepaCountry::INVALID_SEPA_COUNTRY_ERROR)
                 ->addViolation();
         }

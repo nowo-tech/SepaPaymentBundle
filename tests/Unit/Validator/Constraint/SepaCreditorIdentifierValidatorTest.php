@@ -15,6 +15,8 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 use Symfony\Component\Validator\Violation\ConstraintViolationBuilderInterface;
 
+use function is_string;
+
 /**
  * Test cases for SepaCreditorIdentifier constraint validator.
  *
@@ -94,8 +96,8 @@ class SepaCreditorIdentifierValidatorTest extends TestCase
             ->with('NowoSepaPaymentBundle')
             ->willReturnSelf();
         $violationBuilder->expects($this->once())
-            ->method('setParameter')
-            ->with('{{ value }}', $this->anything())
+            ->method('setParameters')
+            ->with($this->callback(static fn (array $parameters): bool => array_keys($parameters) === ['{{ value }}'] && is_string($parameters['{{ value }}'])))
             ->willReturnSelf();
         $violationBuilder->expects($this->once())
             ->method('setCode')

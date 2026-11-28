@@ -71,6 +71,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - PHP 8.6: `composer.json` allows PHP below 8.7 (was below 8.6). CI adds a forward-compatibility workflow with a
   PHP 8.6 cell and a Symfony 8.2 cell (both stable, no allowed failures).
+- The five validators set their message parameters with `setParameters()`: `setParameter()` is no longer part of
+  Symfony 8.2's `ConstraintViolationBuilderInterface`. Same message, same parameter.
 - `CreditTransferGenerator` and `DirectDebitGenerator` type their optional event dispatcher with
   `Symfony\Contracts\EventDispatcher\EventDispatcherInterface` (was the component interface): Symfony 8.2 deprecates
   autowiring the component interface. Any dispatcher passed before is still accepted.
